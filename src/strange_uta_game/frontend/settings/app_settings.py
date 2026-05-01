@@ -59,6 +59,7 @@ class AppSettings:
             "theme": "light",
             "language": "zh_CN",
             "font_size": 24,
+            "lyrics_alignment": "center",
         },
         "export": {
             "default_format": "LRC (增强型)",

@@ -8,6 +8,8 @@ from typing import Callable, Optional
 from dataclasses import dataclass
 from enum import Enum, auto
 
+import numpy as np
+
 
 class AudioError(Exception):
     """音频错误基类"""
@@ -182,6 +184,16 @@ class IAudioEngine(ABC):
 
         Returns:
             音频信息，如果没有加载音频则返回 None
+        """
+        pass
+
+    @abstractmethod
+    def get_original_samples(self) -> Optional[np.ndarray]:
+        """获取原始音频采样数据（用于波形可视化）
+
+        Returns:
+            原始 PCM 数据，形状为 (n_samples, channels) 的 float32 数组，
+            如果没有加载音频则返回 None
         """
         pass
 

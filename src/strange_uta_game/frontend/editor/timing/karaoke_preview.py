@@ -91,6 +91,9 @@ class KaraokePreview(QWidget):
         self._fm_line_number = QFontMetrics(self._font_line_number)
         self._line_number_margin = 45  # 行号左侧区域宽度
 
+        # 歌词对齐方式："left" / "center" / "right"
+        self._alignment: str = "center"
+
         # 逐句渲染数据缓存（避免每帧重复计算）
         # 播放期间使用缓存；暂停时 paintEvent 旁路缓存直接重算，
         # 以便打轴/改连词等编辑动作立即反映到 wipe 时间线
@@ -210,6 +213,18 @@ class KaraokePreview(QWidget):
         self._sentence_cache.clear()
         self._cache_version += 1
         self.update()
+
+    def set_alignment(self, alignment: str):
+        """设置歌词对齐方式。
+
+        Args:
+            alignment: "left"（左对齐）、"center"（居中对齐）或 "right"（右对齐）
+        """
+        if alignment not in ("left", "center", "right"):
+            alignment = "center"
+        if self._alignment != alignment:
+            self._alignment = alignment
+            self.update()
 
     def _update_display(self):
         self._cache_version += 1
@@ -466,8 +481,17 @@ class KaraokePreview(QWidget):
         characters = sentence.characters
         n_chars = len(chars)
 
-        # 字符像素宽度
-        char_widths = [main_fm.horizontalAdvance(ch) for ch in chars]
+        # 字符像素宽度（取字符和ruby中较宽者，避免ruby重叠）
+        fm_ruby = self._fm_ruby
+        char_widths = []
+        for ci, ch in enumerate(chars):
+            char_w = main_fm.horizontalAdvance(ch)
+            # 检查是否有ruby且ruby更宽
+            ruby = characters[ci].ruby
+            if ruby:
+                ruby_w = fm_ruby.horizontalAdvance(ruby.text)
+                char_w = max(char_w, ruby_w)
+            char_widths.append(char_w)
 
         # ---------- 连词组（仅用于视觉层，与 wipe 计算无关） ----------
         char_groups: list = []
@@ -489,6 +513,22 @@ class KaraokePreview(QWidget):
                 linked_leader_groups[group[0]] = group
                 for _ci in group[1:]:
                     linked_non_leader.add(_ci)
+
+        # 连词组：确保组的总宽度 >= 合并后ruby的宽度
+        for leader_ci, group in linked_leader_groups.items():
+            merged_ruby_text = ""
+            for _gci in group:
+                _r = characters[_gci].ruby
+                if _r:
+                    merged_ruby_text += _r.text
+            if merged_ruby_text:
+                merged_ruby_w = fm_ruby.horizontalAdvance(merged_ruby_text)
+                group_total_w = sum(char_widths[g] for g in group)
+                if merged_ruby_w > group_total_w:
+                    # 将多余宽度平均分配到组内每个字符
+                    extra = (merged_ruby_w - group_total_w) / len(group)
+                    for g in group:
+                        char_widths[g] += extra
 
         # ---------- wipe 时间线（离散字符开始时间模型） ----------
         # 每个字符的 wipe 开始时间 = 该字符第一个 cp 的时间戳（render_timestamps[0]）。
@@ -687,7 +727,20 @@ class KaraokePreview(QWidget):
             _linked_leader_groups = _rd["linked_leader_groups"]
             _linked_non_leader = _rd["linked_non_leader"]
 
-            start_x = self._line_number_margin + (w - self._line_number_margin - total_text_width) // 2
+            # 根据对齐方式计算起始 x 坐标
+            text_area_left = self._line_number_margin + 5  # 行号区域右侧留 5px 间距
+            text_area_right = w  # 文本区域右边界
+            available_width = text_area_right - text_area_left
+
+            if self._alignment == "left":
+                start_x = text_area_left
+            elif self._alignment == "right":
+                start_x = text_area_right - total_text_width
+                # 确保不覆盖行号区域
+                start_x = max(start_x, text_area_left)
+            else:  # center
+                start_x = text_area_left + (available_width - total_text_width) // 2
+
             curr_x = start_x
 
             for char_pos, ch in enumerate(line.chars):
@@ -853,17 +906,21 @@ class KaraokePreview(QWidget):
                 # 使用 per-char singer 颜色（如果该字符有不同的演唱者）
                 char_highlight = _char_singer_colors.get(char_pos, highlight_color)
 
+                # 字符在 char_w 宽度内居中（与 ruby 对齐）
+                char_text_w = main_fm.horizontalAdvance(ch)
+                char_draw_x = curr_x + (char_w - char_text_w) // 2
+
                 if char_pos in char_wipe_times:
                     char_time, next_time = char_wipe_times[char_pos]
 
                     if current_time >= next_time:
                         # 已唱完 → 全高亮
                         painter.setPen(char_highlight)
-                        painter.drawText(int(curr_x), int(y_center), ch)
+                        painter.drawText(int(char_draw_x), int(y_center), ch)
                     elif current_time >= char_time:
                         # 正在唱 → wipe 渐变
                         painter.setPen(base_color)
-                        painter.drawText(int(curr_x), int(y_center), ch)
+                        painter.drawText(int(char_draw_x), int(y_center), ch)
 
                         duration = next_time - char_time
                         if duration > 0:
@@ -885,16 +942,16 @@ class KaraokePreview(QWidget):
                             )
                             painter.setClipRect(clip_rect)
                             painter.setPen(char_highlight)
-                            painter.drawText(int(curr_x), int(y_center), ch)
+                            painter.drawText(int(char_draw_x), int(y_center), ch)
                             painter.restore()
                     else:
                         # 未唱 → 基色
                         painter.setPen(base_color)
-                        painter.drawText(int(curr_x), int(y_center), ch)
+                        painter.drawText(int(char_draw_x), int(y_center), ch)
                 else:
                     # 不在任何字符组内 → 基色
                     painter.setPen(base_color)
-                    painter.drawText(int(curr_x), int(y_center), ch)
+                    painter.drawText(int(char_draw_x), int(y_center), ch)
 
                 # 当前打轴位置指示线
                 if is_current and char_pos == self._current_char_idx:

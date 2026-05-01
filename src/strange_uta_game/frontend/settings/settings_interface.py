@@ -629,9 +629,17 @@ class SettingsInterface(ScrollArea):
             suffix=" px",
             parent=self.ui_group,
         )
+        self.card_lyrics_alignment = ComboSettingCard(
+            FIF.ALIGNMENT,
+            "歌词对齐方式",
+            "卡拉OK预览中歌词文本的水平对齐方式（左对齐时注意行号区域不被覆盖）",
+            items=["左对齐", "居中对齐", "右对齐"],
+            parent=self.ui_group,
+        )
 
         self.ui_group.addSettingCard(self.card_theme)
         self.ui_group.addSettingCard(self.card_font_size)
+        self.ui_group.addSettingCard(self.card_lyrics_alignment)
         self.expandLayout.addWidget(self.ui_group)
 
     # ── 导出设定 ──
@@ -1107,6 +1115,9 @@ class SettingsInterface(ScrollArea):
         theme_idx = {"light": 0}.get(theme, 0)
         self.card_theme.setCurrentIndex(theme_idx)
         self.card_font_size.setValue(self._settings.get("ui.font_size", 24))
+        alignment = self._settings.get("ui.lyrics_alignment", "center")
+        alignment_idx = {"left": 0, "center": 1, "right": 2}.get(alignment, 1)
+        self.card_lyrics_alignment.setCurrentIndex(alignment_idx)
 
         # 导出设定
         fmt = self._settings.get("export.default_format", "LRC (增强型)")
@@ -1228,6 +1239,11 @@ class SettingsInterface(ScrollArea):
             "ui.theme", theme_map.get(self.card_theme.currentIndex(), "light")
         )
         self._settings.set("ui.font_size", self.card_font_size.value())
+        alignment_map = {0: "left", 1: "center", 2: "right"}
+        self._settings.set(
+            "ui.lyrics_alignment",
+            alignment_map.get(self.card_lyrics_alignment.currentIndex(), "center"),
+        )
 
         # 导出设定
         fmt_map = {

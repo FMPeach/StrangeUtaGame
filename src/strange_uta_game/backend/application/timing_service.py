@@ -166,6 +166,15 @@ class TimingService:
     def get_audio_info(self):
         return self._audio_engine.get_audio_info()
 
+    def get_original_samples(self):
+        """获取原始音频采样数据（用于波形可视化）
+
+        Returns:
+            原始 PCM 数据，形状为 (n_samples, channels) 的 float32 数组，
+            如果没有加载音频则返回 None
+        """
+        return self._audio_engine.get_original_samples()
+
     def get_position_ms(self) -> int:
         return self._audio_engine.get_position_ms()
 

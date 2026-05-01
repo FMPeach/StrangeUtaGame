@@ -64,6 +64,7 @@ class TransportBar(QFrame):
         self.slider_progress = Slider(Qt.Orientation.Horizontal, self)
         self.slider_progress.setRange(0, 10000)
         self.slider_progress.setValue(0)
+        self.slider_progress.sliderMoved.connect(self._on_slider_moved)
         self.slider_progress.sliderReleased.connect(self._on_seek)
         layout.addWidget(self.slider_progress, stretch=1)
 
@@ -104,6 +105,13 @@ class TransportBar(QFrame):
         else:
             self.play_clicked.emit()
 
+    def _on_slider_moved(self, value: int):
+        """滑块拖动中 — 更新时间标签预览（不触发 seek）"""
+        if self._duration_ms > 0:
+            ratio = value / 10000
+            preview_ms = int(ratio * self._duration_ms)
+            self._update_label_with_time(preview_ms)
+
     def _on_seek(self):
         if self._duration_ms > 0:
             ratio = self.slider_progress.value() / 10000
@@ -115,7 +123,8 @@ class TransportBar(QFrame):
 
     def set_position(self, ms: int):
         self._current_ms = ms
-        if self._duration_ms > 0:
+        # 用户拖动滑块时不覆盖位置，避免"回弹"BUG
+        if self._duration_ms > 0 and not self.slider_progress.isSliderDown():
             self.slider_progress.setValue(int((ms / self._duration_ms) * 10000))
         self._update_label()
 
@@ -124,12 +133,15 @@ class TransportBar(QFrame):
         self.btn_play.setIcon(FIF.PAUSE if playing else FIF.PLAY)
 
     def _update_label(self):
+        self._update_label_with_time(self._current_ms)
+
+    def _update_label_with_time(self, current_ms: int):
         def fmt(ms):
             s = ms // 1000
             c = (ms % 1000) // 10
             return f"{s // 60:02d}:{s % 60:02d}.{c:02d}"
 
-        self.lbl_time.setText(f"{fmt(self._current_ms)} / {fmt(self._duration_ms)}")
+        self.lbl_time.setText(f"{fmt(current_ms)} / {fmt(self._duration_ms)}")
 
     def _on_speed_editing_finished(self):
         """速度输入框编辑完成 — 解析并发射信号"""

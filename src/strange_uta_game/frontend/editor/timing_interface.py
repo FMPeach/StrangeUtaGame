@@ -44,7 +44,6 @@ from strange_uta_game.backend.application import (
     TimingService,
 )
 from strange_uta_game.backend.domain import Character, Project
-from strange_uta_game.backend.domain.models import RubyMoraDegradeError
 from strange_uta_game.backend.infrastructure.audio import AudioLoadError
 from strange_uta_game.backend.infrastructure.parsers.text_splitter import (
     CharType,
@@ -383,6 +382,9 @@ class EditorInterface(QWidget):
             for sentence in self._project.sentences:
                 for ch in sentence.characters:
                     ch.set_offsets(render_offset, render_offset)
+        # 应用歌词对齐方式
+        lyrics_alignment = settings.get("ui.lyrics_alignment", "center")
+        self.preview.set_alignment(lyrics_alignment)
         # 更新快捷键提示（#6：只保留 9 项核心）
         self._update_shortcut_hint(timing_actions, edit_actions)
         # #7：打轴按钮文字联动 shortcuts.timing_mode.tag_now
@@ -1013,6 +1015,13 @@ class EditorInterface(QWidget):
                 self.transport.set_position(0)
                 self.timeline.set_position(0)
 
+                # 获取音频采样数据用于波形显示
+                samples = self._timing_service.get_original_samples()
+                if samples is not None:
+                    self.timeline.set_audio_data(
+                        samples, info.sample_rate, info.channels
+                    )
+
             self._audio_file_path = file_path
             self.toolbar.lbl_audio.setText(Path(file_path).name)
 
@@ -1159,8 +1168,29 @@ class EditorInterface(QWidget):
         self._update_status()
 
     def _on_line_clicked(self, idx: int):
+        # 切换行前，校验上一行的时间戳
+        if self._project and 0 <= self._current_line_idx < len(self._project.sentences):
+            self._validate_line_timestamps(self._current_line_idx)
         self._current_line_idx = idx
         self._update_line_info()
+
+    def _validate_line_timestamps(self, line_idx: int) -> None:
+        """校验指定行的所有字符时间戳，确保不超过允许的数量。
+
+        规则：
+        - 每个字符允许的时间戳数量 = check_count + (1 if is_sentence_end else 0)
+        - timestamps 列表长度不允许超过 check_count
+        - 如果有冗余时间戳，截断并推送至 ruby
+        """
+        if not self._project or line_idx < 0 or line_idx >= len(self._project.sentences):
+            return
+        sentence = self._project.sentences[line_idx]
+        for ch in sentence.characters:
+            max_timestamps = ch.check_count
+            if len(ch.timestamps) > max_timestamps:
+                ch.timestamps = ch.timestamps[:max_timestamps]
+                ch._update_offset_timestamps()
+                ch.push_to_ruby()
 
     def _resolve_target_char(self) -> tuple[int, int]:
         """解析字符级操作的目标 (line_idx, char_idx)。
@@ -1566,24 +1596,8 @@ class EditorInterface(QWidget):
             if delta > 0:
                 sentence.add_checkpoint(char_idx)
             else:
-                try:
-                    sentence.remove_checkpoint(char_idx)
-                except RubyMoraDegradeError:
-                    # 减到 0 会从有 mora 退化为 Nicokara 无 mora 格式（注音文本保留）
-                    ch_text = sentence.characters[char_idx].char
-                    reply = QMessageBox.question(
-                        self,
-                        "退化为无 mora 格式",
-                        f"字符 '{ch_text}' 的节奏点将减至 0，注音将从有 mora 退化为 Nicokara 无 mora 格式。\n"
-                        f"注音文本会完整保留。是否继续？",
-                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                        QMessageBox.StandardButton.No,
-                    )
-                    if reply != QMessageBox.StandardButton.Yes:
-                        # 用户取消：返回当前状态，不变更
-                        cp_idx = self.preview._current_checkpoint_idx
-                        return line_idx, char_idx, cp_idx if cp_idx is not None else 0, "checkpoints"
-                    sentence.remove_checkpoint(char_idx, force=True)
+                # 减到 0 时自动退化为 Nicokara 无 mora 格式（注音文本保留）
+                sentence.remove_checkpoint(char_idx, force=True)
             cp_idx = self.preview._current_checkpoint_idx
             if cp_idx is not None and delta < 0:
                 cp_idx = min(cp_idx, sentence.characters[char_idx].check_count)
@@ -1705,6 +1719,9 @@ class EditorInterface(QWidget):
         if cand < 0:
             return
         new_line, new_char = cand, 0
+        # 行切换前校验当前行的时间戳
+        if new_line != line_idx:
+            self._validate_line_timestamps(line_idx)
         # 直接写 focus 域（与 _on_nav_char 同款，不依赖 cp 回调链污染）
         self.preview._focus_line_idx = new_line
         self.preview._focus_char_idx = new_char
@@ -1935,21 +1952,8 @@ class EditorInterface(QWidget):
         sentence = project.sentences[line_idx]
 
         def _mutate():
-            try:
-                sentence.remove_checkpoint(char_idx)
-            except RubyMoraDegradeError:
-                ch_text = sentence.characters[char_idx].char
-                reply = QMessageBox.question(
-                    self,
-                    "退化为无 mora 格式",
-                    f"字符 '{ch_text}' 的节奏点将减至 0，注音将从有 mora 退化为 Nicokara 无 mora 格式。\n"
-                    f"注音文本会完整保留。是否继续？",
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                    QMessageBox.StandardButton.No,
-                )
-                if reply != QMessageBox.StandardButton.Yes:
-                    return line_idx, char_idx, 0, "checkpoints"
-                sentence.remove_checkpoint(char_idx, force=True)
+            # 减到 0 时自动退化为 Nicokara 无 mora 格式（注音文本保留）
+            sentence.remove_checkpoint(char_idx, force=True)
             return line_idx, char_idx, 0, "checkpoints"
 
         self._execute_structural_edit("减少节奏点", _mutate)
@@ -2373,15 +2377,19 @@ class EditorInterface(QWidget):
             self._update_line_info()
             return
 
-        line_idx = max(0, min(position.line_idx, len(self._project.sentences) - 1))
-        self._current_line_idx = line_idx
-        self._update_selected_checkpoint(line_idx, position.char_idx, position.checkpoint_idx)
+        new_line_idx = max(0, min(position.line_idx, len(self._project.sentences) - 1))
+        # 行切换时校验上一行的时间戳
+        if new_line_idx != self._current_line_idx:
+            if 0 <= self._current_line_idx < len(self._project.sentences):
+                self._validate_line_timestamps(self._current_line_idx)
+        self._current_line_idx = new_line_idx
+        self._update_selected_checkpoint(new_line_idx, position.char_idx, position.checkpoint_idx)
         # cp 标记点击路径：跳过光标移动，保持 selected_char 不被污染。
         # 仍需要刷新 preview 显示以反映新的 selected_cp 高亮。
         if self._suppress_cp_cursor_move:
             self.preview._update_display()
         else:
-            self.preview.set_current_position(line_idx, position.char_idx)
+            self.preview.set_current_position(new_line_idx, position.char_idx)
         self._update_line_info()
 
     def _show_runtime_error(self, message: str):

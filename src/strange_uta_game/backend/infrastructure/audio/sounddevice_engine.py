@@ -353,6 +353,15 @@ class SoundDeviceEngine(IAudioEngine):
             channels=self._channels,
         )
 
+    def get_original_samples(self) -> Optional[np.ndarray]:
+        """获取原始音频采样数据（用于波形可视化）
+
+        Returns:
+            原始 PCM 数据，形状为 (n_samples, channels) 的 float32 数组，
+            如果没有加载音频则返回 None
+        """
+        return self._original_data
+
     # ==================== 内部：流 / Producer / 回调 ====================
 
     def _start_streaming(self) -> None:
