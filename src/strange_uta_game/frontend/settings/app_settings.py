@@ -56,7 +56,7 @@ class AppSettings:
             "checkpoint_on_punctuation": False,
         },
         "ui": {
-            "theme": "light",
+            "theme": "auto",
             "language": "zh_CN",
             "font_size": 24,
             "lyrics_alignment": "center",

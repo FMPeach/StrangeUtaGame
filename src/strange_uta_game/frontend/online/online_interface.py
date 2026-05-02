@@ -6,6 +6,7 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from qfluentwidgets import SubtitleLabel
 
 
 class OnlineQueryInterface(QWidget):
@@ -16,8 +17,6 @@ class OnlineQueryInterface(QWidget):
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        label = QLabel("在线查询 - 暂未开发")
-        label.setFont(QFont("Microsoft YaHei", 16))
+        label = SubtitleLabel("在线查询 - 暂未开发")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet("color: #888;")
         layout.addWidget(label)

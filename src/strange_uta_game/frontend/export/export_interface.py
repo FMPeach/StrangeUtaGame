@@ -26,6 +26,10 @@ from qfluentwidgets import (
     FluentIcon as FIF,
     SimpleCardWidget,
     CheckBox,
+    TitleLabel,
+    SubtitleLabel,
+    BodyLabel,
+    CaptionLabel,
 )
 
 from typing import Optional, Set, Dict, cast
@@ -54,12 +58,10 @@ class ExportInterface(QWidget):
         layout.setSpacing(20)
 
         # 标题
-        title = QLabel("导出")
-        title.setStyleSheet("font-size: 24px; font-weight: bold;")
+        title = TitleLabel("导出")
         layout.addWidget(title)
 
-        desc = QLabel("将项目导出为多种歌词格式")
-        desc.setStyleSheet("font-size: 13px; color: gray;")
+        desc = CaptionLabel("将项目导出为多种歌词格式")
         layout.addWidget(desc)
 
         # 格式选择
@@ -72,8 +74,7 @@ class ExportInterface(QWidget):
         left_layout.setContentsMargins(20, 20, 20, 20)
         left_layout.setSpacing(10)
 
-        left_label = QLabel("选择导出格式")
-        left_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        left_label = SubtitleLabel("选择导出格式")
         left_layout.addWidget(left_label)
 
         self.format_list = QListWidget()
@@ -89,13 +90,11 @@ class ExportInterface(QWidget):
         right_layout.setContentsMargins(20, 20, 20, 20)
         right_layout.setSpacing(15)
 
-        right_label = QLabel("导出设置")
-        right_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        right_label = SubtitleLabel("导出设置")
         right_layout.addWidget(right_label)
 
         # 输出路径
-        path_label = QLabel("输出路径")
-        path_label.setStyleSheet("font-size: 13px; color: #666;")
+        path_label = CaptionLabel("输出路径")
         right_layout.addWidget(path_label)
 
         path_row = QHBoxLayout()
@@ -111,8 +110,7 @@ class ExportInterface(QWidget):
         right_layout.addLayout(path_row)
 
         # 文件名
-        fname_label = QLabel("文件名（不含扩展名）")
-        fname_label.setStyleSheet("font-size: 13px; color: #666;")
+        fname_label = CaptionLabel("文件名（不含扩展名）")
         right_layout.addWidget(fname_label)
 
         self.line_filename = LineEdit()
@@ -131,8 +129,7 @@ class ExportInterface(QWidget):
         singer_group_layout = QVBoxLayout(self._singer_group)
         singer_group_layout.setSpacing(6)
 
-        singer_hint = QLabel("勾选要导出的演唱者（不勾选则导出全部）")
-        singer_hint.setStyleSheet("font-size: 12px; color: #888;")
+        singer_hint = CaptionLabel("勾选要导出的演唱者（不勾选则导出全部）")
         singer_group_layout.addWidget(singer_hint)
 
         self._singer_checkboxes: list[CheckBox] = []

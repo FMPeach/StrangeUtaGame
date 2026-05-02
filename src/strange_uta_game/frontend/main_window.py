@@ -25,6 +25,7 @@ from strange_uta_game.backend.application import CommandManager, TimingService
 from strange_uta_game.backend.domain import Project
 from strange_uta_game.backend.infrastructure.audio import SoundDeviceEngine
 from strange_uta_game.frontend.project_store import ProjectStore
+from strange_uta_game.frontend.theme import theme
 
 
 class MainWindow(MSFluentWindow):
@@ -84,7 +85,11 @@ class MainWindow(MSFluentWindow):
     def _init_window(self):
         """初始化窗口属性"""
         setThemeColor("#FF6B6B", lazy=True)
-        setTheme(Theme.LIGHT, lazy=True)
+        # 使用主题管理器的设置，而不是硬编码
+        if theme.is_dark:
+            setTheme(Theme.DARK, lazy=True)
+        else:
+            setTheme(Theme.LIGHT, lazy=True)
 
         self.setWindowTitle("StrangeUtaGame - 歌词打轴工具")
         self.setMinimumSize(1200, 800)

@@ -12,6 +12,7 @@ from qfluentwidgets import (
     PrimaryToolButton,
     Slider,
     ToolButton,
+    CaptionLabel,
 )
 
 
@@ -69,8 +70,7 @@ class TransportBar(QFrame):
         layout.addWidget(self.slider_progress, stretch=1)
 
         # 速度（百分比显示，输入框，内部转换为倍率）
-        lbl_speed = QLabel("速度")
-        lbl_speed.setStyleSheet("font-size: 11px; color: gray;")
+        lbl_speed = CaptionLabel("速度")
         layout.addWidget(lbl_speed)
         self.edit_speed = QLineEdit(self)
         self.edit_speed.setText("100%")
@@ -82,15 +82,13 @@ class TransportBar(QFrame):
         layout.addWidget(self.edit_speed)
 
         # 渲染进度提示：固定宽度避免速度输入框被挤动；默认空字符串隐身。
-        self.lbl_render = QLabel("", self)
+        self.lbl_render = CaptionLabel("", self)
         self.lbl_render.setFixedWidth(96)
-        self.lbl_render.setStyleSheet("font-size: 11px; color: #888;")
         self.lbl_render.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(self.lbl_render)
 
         # 音量
-        lbl_vol = QLabel("音量")
-        lbl_vol.setStyleSheet("font-size: 11px; color: gray;")
+        lbl_vol = CaptionLabel("音量")
         layout.addWidget(lbl_vol)
         self.slider_volume = Slider(Qt.Orientation.Horizontal, self)
         self.slider_volume.setRange(0, 100)

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit
-from qfluentwidgets import FluentIcon as FIF, PushButton
+from qfluentwidgets import FluentIcon as FIF, PushButton, CaptionLabel
 
 
 # ──────────────────────────────────────────────
@@ -85,8 +85,7 @@ class EditorToolBar(QFrame):
         layout.addSpacing(10)
 
         # 整体时间戳偏移调整
-        lbl_offset = QLabel("Karaoke渲染以及导出偏移:")
-        lbl_offset.setStyleSheet("font-size: 11px;")
+        lbl_offset = CaptionLabel("Karaoke渲染以及导出偏移:")
         layout.addWidget(lbl_offset)
         self.edit_offset = QLineEdit(self)
         self.edit_offset.setText("-100")
@@ -100,8 +99,7 @@ class EditorToolBar(QFrame):
         layout.addStretch()
 
         # 状态标签
-        self.lbl_audio = QLabel("未加载音频")
-        self.lbl_audio.setStyleSheet("font-size: 11px; color: gray;")
+        self.lbl_audio = CaptionLabel("未加载音频")
         layout.addWidget(self.lbl_audio)
 
     def _on_offset_editing_finished(self):

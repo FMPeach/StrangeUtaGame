@@ -29,6 +29,10 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from qfluentwidgets import CaptionLabel
+
+from strange_uta_game.frontend.theme import theme
+
 
 # ──────────────────────────────────────────────
 # 波形显示区域
@@ -40,17 +44,6 @@ class WaveformDisplay(QWidget):
     seek_requested = pyqtSignal(int)
     scroll_position_changed = pyqtSignal(float)
     zoom_changed = pyqtSignal(float)
-
-    # 配色方案（与 karaoke_preview 保持一致的浅色风格）
-    _COLOR_BG = QColor("#F0F0F0")
-    _COLOR_BG_NO_AUDIO = QColor("#F0F0F0")
-    _COLOR_TEXT_HINT = QColor("#999")
-    _COLOR_GRID = QColor("#DDD")
-    _COLOR_GRID_LABEL = QColor("#888")
-    _COLOR_WAVEFORM = QColor("#9DC8E8")       # 波形填充（柔和蓝）
-    _COLOR_WAVEFORM_LINE = QColor("#6BA8D4")  # 波形中心线
-    _COLOR_TAG = QColor("#FF6B6B")            # 时间标签（红）
-    _COLOR_PLAYHEAD = QColor("#4ECDC4")       # 播放头（青）
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -64,11 +57,18 @@ class WaveformDisplay(QWidget):
         self._channels: int = 2
 
         # 缩放和滚动
-        self._zoom_factor: float = 1.0
+        self._zoom_factor: float = 50.0  # 默认50x缩放，减少初始渲染压力
         self._scroll_position: float = 0.0
+
+        # 波形峰值缓存
+        self._peaks_cache: Optional[List[tuple]] = None
+        self._peaks_cache_key: Optional[tuple] = None  # (width, zoom, scroll, samples_id)
 
         self.setMinimumHeight(80)
         self.setMouseTracking(True)
+
+        # 监听主题变化，触发重绘
+        theme.changed.connect(self.update)
 
     def set_duration(self, ms: int):
         self._duration_ms = ms
@@ -94,6 +94,9 @@ class WaveformDisplay(QWidget):
         self._samples = samples
         self._sample_rate = sample_rate
         self._channels = channels
+        # 清除波形缓存
+        self._peaks_cache = None
+        self._peaks_cache_key = None
         self.update()
 
     def set_zoom(self, zoom: float):
@@ -105,9 +108,16 @@ class WaveformDisplay(QWidget):
         self.update()
 
     def _compute_waveform_peaks(self, width: int) -> Optional[List[tuple]]:
-        """计算波形峰值数据（按像素降采样）"""
+        """计算波形峰值数据（按像素降采样），带缓存"""
         if self._samples is None or self._duration_ms <= 0 or width <= 0:
             return None
+
+        # 缓存键：(width, zoom, scroll_position, samples_id)
+        samples_id = id(self._samples)
+        cache_key = (width, self._zoom_factor, self._scroll_position, samples_id)
+
+        if self._peaks_cache_key == cache_key and self._peaks_cache is not None:
+            return self._peaks_cache
 
         visible_start_ms = self._scroll_position * self._duration_ms
         visible_duration_ms = self._duration_ms / self._zoom_factor
@@ -137,6 +147,10 @@ class WaveformDisplay(QWidget):
             if len(chunk) > 0:
                 peaks.append((float(np.min(chunk)), float(np.max(chunk))))
 
+        # 更新缓存
+        self._peaks_cache = peaks
+        self._peaks_cache_key = cache_key
+
         return peaks
 
     def paintEvent(self, a0: Optional[QPaintEvent]):
@@ -145,10 +159,10 @@ class WaveformDisplay(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         w, h = self.width(), self.height()
 
-        painter.fillRect(self.rect(), self._COLOR_BG)
+        painter.fillRect(self.rect(), theme.waveform_bg)
 
         if self._duration_ms <= 0:
-            painter.setPen(self._COLOR_TEXT_HINT)
+            painter.setPen(theme.text_hint)
             painter.drawText(
                 self.rect(), Qt.AlignmentFlag.AlignCenter, "请加载音频文件"
             )
@@ -175,7 +189,7 @@ class WaveformDisplay(QWidget):
         else:
             grid_interval = 60000
 
-        painter.setPen(QPen(self._COLOR_GRID, 1))
+        painter.setPen(QPen(theme.border_primary, 1))
         first_grid = int(visible_start_ms / grid_interval) * grid_interval
         for t in range(first_grid, int(visible_end_ms) + 1, grid_interval):
             if visible_duration > 0:
@@ -183,11 +197,11 @@ class WaveformDisplay(QWidget):
                 x = int(ratio * w)
                 painter.drawLine(x, 0, x, h)
 
-                painter.setPen(self._COLOR_GRID_LABEL)
+                painter.setPen(theme.text_secondary)
                 s = t // 1000
                 time_text = f"{s // 60}:{s % 60:02d}"
                 painter.drawText(x + 2, 12, time_text)
-                painter.setPen(QPen(self._COLOR_GRID, 1))
+                painter.setPen(QPen(theme.border_primary, 1))
 
     def _draw_waveform(self, painter: QPainter, w: int, h: int):
         peaks = self._compute_waveform_peaks(w)
@@ -198,7 +212,7 @@ class WaveformDisplay(QWidget):
         amplitude_scale = h / 2.0 * 0.8
 
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(self._COLOR_WAVEFORM)
+        painter.setBrush(theme.waveform_fill)
 
         # 上半部分
         for i, (_, max_val) in enumerate(peaks):
@@ -211,7 +225,7 @@ class WaveformDisplay(QWidget):
             painter.drawRect(i, mid_y, 1, y - mid_y)
 
         # 中心线
-        painter.setPen(QPen(self._COLOR_WAVEFORM_LINE, 1))
+        painter.setPen(QPen(theme.waveform_line, 1))
         painter.drawLine(0, mid_y, w, mid_y)
 
     def _draw_time_tags(self, painter: QPainter, w: int, h: int,
@@ -220,7 +234,7 @@ class WaveformDisplay(QWidget):
         if visible_duration <= 0:
             return
 
-        painter.setPen(QPen(self._COLOR_TAG, 2))
+        painter.setPen(QPen(theme.accent_warning, 2))
         for tag in self._time_tags:
             if visible_start_ms <= tag <= visible_end_ms:
                 ratio = (tag - visible_start_ms) / visible_duration
@@ -236,11 +250,11 @@ class WaveformDisplay(QWidget):
             ratio = (self._current_ms - visible_start_ms) / visible_duration_ms
             x = int(ratio * w)
 
-            painter.setPen(QPen(self._COLOR_PLAYHEAD, 2))
+            painter.setPen(QPen(theme.accent_primary, 2))
             painter.drawLine(x, 0, x, h)
 
             # 播放头三角形标记
-            painter.setBrush(QBrush(self._COLOR_PLAYHEAD))
+            painter.setBrush(QBrush(theme.accent_primary))
             triangle = QPolygon([
                 QPoint(x - 6, 0),
                 QPoint(x + 6, 0),
@@ -316,13 +330,12 @@ class TimelineWidget(QWidget):
         # 缩放控制
         self.zoom_slider = QSlider(Qt.Orientation.Horizontal, self)
         self.zoom_slider.setRange(100, 10000)
-        self.zoom_slider.setValue(100)
+        self.zoom_slider.setValue(5000)  # 默认50x
         self.zoom_slider.setFixedWidth(120)
         self.zoom_slider.valueChanged.connect(self._on_zoom_slider_changed)
         bottom_layout.addWidget(self.zoom_slider)
 
-        self.zoom_label = QLabel("1.0x", self)
-        self.zoom_label.setStyleSheet("font-size: 10px; color: #888;")
+        self.zoom_label = CaptionLabel("50.0x", self)
         self.zoom_label.setFixedWidth(40)
         bottom_layout.addWidget(self.zoom_label)
 

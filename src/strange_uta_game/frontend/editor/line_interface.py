@@ -18,6 +18,7 @@ from qfluentwidgets import (
     InfoBar,
     InfoBarPosition,
     FluentIcon as FIF,
+    CaptionLabel,
 )
 from typing import Optional, List
 from strange_uta_game.backend.domain import (
@@ -31,6 +32,7 @@ from strange_uta_game.backend.infrastructure.parsers.inline_format import (
     align_ruby_parts_to_checkpoints,
     split_ruby_for_checkpoints,
 )
+from strange_uta_game.frontend.theme import theme
 import re
 
 
@@ -162,7 +164,6 @@ class LineDetailDialog(QDialog):
             "注音列：单字符注音整串填写；自动按 mora / 字符拆分到 Checkpoint，"
             "分段数不匹配时会自动合并/补空格，不会报错"
         )
-        hint.setStyleSheet("color: gray; font-size: 11px;")
         self.vbox.addWidget(hint)
 
         # Table
@@ -665,9 +666,7 @@ class EditInterface(QWidget):
         self.title_label.setFont(QFont("Microsoft YaHei", 24, QFont.Weight.Bold))
         self.vbox.addWidget(self.title_label)
 
-        self.desc_label = QLabel("查看和编辑所有歌词行的打轴数据", self)
-        self.desc_label.setFont(QFont("Microsoft YaHei", 12))
-        self.desc_label.setStyleSheet("color: gray;")
+        self.desc_label = CaptionLabel("查看和编辑所有歌词行的打轴数据", self)
         self.vbox.addWidget(self.desc_label)
 
         # Stats
@@ -825,11 +824,11 @@ class EditInterface(QWidget):
             item_timed.setFlags(item_timed.flags() & ~Qt.ItemFlag.ItemIsEditable)
             # 颜色标记：完成绿色，未完成红色
             if timed_cp >= total_cp:
-                item_timed.setForeground(QColor("#2ecc71"))
+                item_timed.setForeground(theme.status_complete)
             elif timed_cp > 0:
-                item_timed.setForeground(QColor("#f39c12"))
+                item_timed.setForeground(theme.status_partial)
             else:
-                item_timed.setForeground(QColor("#999"))
+                item_timed.setForeground(theme.status_none)
             self.table.setItem(i, 4, item_timed)
 
             # 6. 总Checkpoint

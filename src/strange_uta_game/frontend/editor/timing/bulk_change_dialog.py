@@ -26,6 +26,7 @@ from PyQt6.QtGui import QFont
 from qfluentwidgets import (
     PushButton,
     PrimaryPushButton,
+    CaptionLabel,
 )
 from typing import Optional, List, Tuple
 from copy import deepcopy
@@ -73,8 +74,7 @@ class BulkChangeDialog(QDialog):
         search_row = QHBoxLayout()
         self.edit_word = QLineEdit(initial_word)
         self.edit_word.setPlaceholderText("输入要搜索的词")
-        self.lbl_match = QLabel("")
-        self.lbl_match.setStyleSheet("font-size: 11px; color: gray;")
+        self.lbl_match = CaptionLabel("")
         search_row.addWidget(QLabel("搜索词:"))
         search_row.addWidget(self.edit_word, stretch=1)
         search_row.addWidget(self.lbl_match)
@@ -87,11 +87,10 @@ class BulkChangeDialog(QDialog):
         top_form.addRow("替换为:", self.edit_new_chars)
         layout.addLayout(top_form)
 
-        hint = QLabel(
+        hint = CaptionLabel(
             "按字符编辑（注音用半角逗号分隔 RubyPart；节奏点为非负整数）。\n"
             "字符数与搜索词相同 → 保留时间戳；不同 → 丢失所有匹配处时间戳。"
         )
-        hint.setStyleSheet("font-size: 11px; color: gray;")
         hint.setWordWrap(True)
         layout.addWidget(hint)
 

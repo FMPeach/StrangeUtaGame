@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from qfluentwidgets import PrimaryPushButton, PushButton
+from qfluentwidgets import PrimaryPushButton, PushButton, CaptionLabel
 
 from strange_uta_game.backend.domain import (
     Character,
@@ -74,8 +74,7 @@ class ModifyCharacterDialog(QDialog):
         layout.addLayout(top_form)
 
         # 字符级编辑区标题
-        hint = QLabel("按字符编辑（注音用半角逗号分隔 RubyPart；节奏点为非负整数）:")
-        hint.setStyleSheet("font-size: 11px; color: gray;")
+        hint = CaptionLabel("按字符编辑（注音用半角逗号分隔 RubyPart；节奏点为非负整数）:")
         layout.addWidget(hint)
 
         # Scroll area with per-char rows
@@ -485,8 +484,7 @@ class CharEditDialog(QDialog):
             range_text = " + ".join(
                 sentence.characters[i].char for i in range(word_start, word_end)
             )
-            lbl_range = QLabel(f"当前连词范围: {range_text}（逗号分隔各字符注音）")
-            lbl_range.setStyleSheet("font-size: 11px; color: gray;")
+            lbl_range = CaptionLabel(f"当前连词范围: {range_text}（逗号分隔各字符注音）")
             form.addRow("", lbl_range)
 
         self._word_start = word_start

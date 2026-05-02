@@ -22,6 +22,11 @@ from qfluentwidgets import (
     InfoBarPosition,
     FluentIcon as FIF,
     SimpleCardWidget,
+    LargeTitleLabel,
+    SubtitleLabel,
+    TitleLabel,
+    BodyLabel,
+    CaptionLabel,
 )
 
 from typing import Optional, List
@@ -172,12 +177,10 @@ class HomeInterface(QWidget):
         title_layout = QVBoxLayout()
         title_layout.setSpacing(10)
 
-        title = QLabel("StrangeUtaGame")
-        title.setStyleSheet("font-size: 32px; font-weight: bold;")
+        title = LargeTitleLabel("StrangeUtaGame")
         title_layout.addWidget(title)
 
-        subtitle = QLabel("歌词打轴工具")
-        subtitle.setStyleSheet("font-size: 14px; color: gray;")
+        subtitle = SubtitleLabel("歌词打轴工具")
         title_layout.addWidget(subtitle)
 
         layout.addLayout(title_layout)
@@ -204,13 +207,11 @@ class HomeInterface(QWidget):
         card_layout.setSpacing(20)
 
         # 标题
-        title = QLabel("新建项目")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title = TitleLabel("新建项目")
         card_layout.addWidget(title)
 
         # 歌词输入区
-        lyric_label = QLabel("歌词文本（支持粘贴或导入 LRC/ASS/SRT/TXT）")
-        lyric_label.setStyleSheet("font-size: 13px; color: #666;")
+        lyric_label = CaptionLabel("歌词文本（支持粘贴或导入 LRC/ASS/SRT/TXT）")
         card_layout.addWidget(lyric_label)
 
         self.text_lyrics = TextEdit()
@@ -245,8 +246,7 @@ class HomeInterface(QWidget):
         card_layout.addLayout(lyric_btn_layout)
 
         # 音频选择区
-        audio_label = QLabel("音频文件（打轴需要，可后续添加）")
-        audio_label.setStyleSheet("font-size: 13px; color: #666;")
+        audio_label = CaptionLabel("音频文件（打轴需要，可后续添加）")
         card_layout.addWidget(audio_label)
 
         audio_layout = QHBoxLayout()
@@ -281,13 +281,11 @@ class HomeInterface(QWidget):
         card_layout.setSpacing(20)
 
         # 标题
-        title = QLabel("打开项目")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
+        title = TitleLabel("打开项目")
         card_layout.addWidget(title)
 
         # 说明
-        desc = QLabel("打开已有的 .sug 项目文件")
-        desc.setStyleSheet("font-size: 13px; color: #666;")
+        desc = CaptionLabel("打开已有的 .sug 项目文件")
         card_layout.addWidget(desc)
 
         # 打开按钮
@@ -309,8 +307,7 @@ class HomeInterface(QWidget):
         card_layout.addStretch()
 
         # 提示信息
-        tip = QLabel("提示：项目文件不包含音频，请确保音频文件可访问")
-        tip.setStyleSheet("font-size: 12px; color: gray;")
+        tip = CaptionLabel("提示：项目文件不包含音频，请确保音频文件可访问")
         tip.setWordWrap(True)
         card_layout.addWidget(tip)
 

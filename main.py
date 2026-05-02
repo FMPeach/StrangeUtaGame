@@ -45,6 +45,21 @@ if not _icon_path.exists():
 if _icon_path.exists():
     app.setWindowIcon(QIcon(str(_icon_path)))
 
+# 初始化主题管理器（必须在创建主窗口之前）
+from strange_uta_game.frontend.theme import theme
+from strange_uta_game.frontend.settings.app_settings import AppSettings
+
+# 从配置文件读取主题设置并应用
+settings = AppSettings()
+theme_value = settings.get("ui.theme", "auto")
+from strange_uta_game.frontend.theme import ThemeMode
+mode_map = {
+    "light": ThemeMode.LIGHT,
+    "dark": ThemeMode.DARK,
+    "auto": ThemeMode.AUTO,
+}
+theme.mode = mode_map.get(theme_value, ThemeMode.AUTO)
+
 # 现在可以安全导入其他模块
 from strange_uta_game.frontend.main_window import MainWindow
 

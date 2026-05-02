@@ -30,6 +30,7 @@ from qfluentwidgets import (
     FluentIcon as FIF,
     RoundMenu,
     Action,
+    CaptionLabel,
 )
 
 from typing import Optional, List
@@ -150,8 +151,7 @@ class SingerManagerInterface(QWidget):
         layout.addWidget(title)
 
         # 说明
-        desc = QLabel("管理歌词中的演唱者，每个演唱者可以有自己的颜色标识")
-        desc.setStyleSheet("color: gray;")
+        desc = CaptionLabel("管理歌词中的演唱者，每个演唱者可以有自己的颜色标识")
         layout.addWidget(desc)
 
         layout.addSpacing(10)
@@ -209,8 +209,7 @@ class SingerManagerInterface(QWidget):
         layout.addLayout(preset_layout)
 
         # 统计信息
-        self.lbl_stats = QLabel("共 0 位演唱者")
-        self.lbl_stats.setStyleSheet("color: gray;")
+        self.lbl_stats = CaptionLabel("共 0 位演唱者")
         layout.addWidget(self.lbl_stats)
 
         layout.addStretch()

@@ -49,6 +49,7 @@ from strange_uta_game.backend.infrastructure.parsers.text_splitter import (
     CharType,
     get_char_type,
 )
+from strange_uta_game.frontend.theme import theme
 
 from .timing import (
     _SentenceSnapshotCommand,
@@ -99,7 +100,7 @@ class EditorInterface(QWidget):
         self._timing_service: Optional[TimingService] = None
         self._audio_file_path: Optional[str] = None
         self._current_line_idx = 0
-        self._space_pressed = False
+        self._pressed_keys: set[str] = set()  # 当前按下的打轴按键集合（支持多键独立）
         self._last_position_update_time = 0.0  # 60fps UI 节流
         self._fast_forward_ms = 5000
         self._rewind_ms = 5000
@@ -217,7 +218,7 @@ class EditorInterface(QWidget):
 
         # 快捷键提示（动态跟随设置）
         self.lbl_shortcut_hint = QLabel("")
-        self.lbl_shortcut_hint.setStyleSheet("font-size: 11px; color: gray;")
+        self.lbl_shortcut_hint.setStyleSheet(f"font-size: 11px; color: {theme.text_hint.name()};")
         bottom.addWidget(self.lbl_shortcut_hint)
 
         layout.addLayout(bottom)
@@ -227,16 +228,16 @@ class EditorInterface(QWidget):
         status = QHBoxLayout()
         status.setContentsMargins(5, 2, 5, 2)
         self.lbl_status = QLabel("就绪")
-        self.lbl_status.setStyleSheet("font-size: 11px; color: gray;")
+        self.lbl_status.setStyleSheet(f"font-size: 11px; color: {theme.text_hint.name()};")
         status.addWidget(self.lbl_status)
         status.addStretch()
         # 行号/字符/时间戳信息（#5：从打轴栏移到此处，与播放状态一同显示）
         self.lbl_line_info = QLabel("当前行: -")
-        self.lbl_line_info.setStyleSheet("font-size: 11px; color: gray;")
+        self.lbl_line_info.setStyleSheet(f"font-size: 11px; color: {theme.text_hint.name()};")
         status.addWidget(self.lbl_line_info)
         status.addStretch()
         self.lbl_progress = QLabel("行: 0/0 | 进度: 0%")
-        self.lbl_progress.setStyleSheet("font-size: 11px; color: gray;")
+        self.lbl_progress.setStyleSheet(f"font-size: 11px; color: {theme.text_hint.name()};")
         status.addWidget(self.lbl_progress)
         layout.addLayout(status)
 
@@ -1012,6 +1013,7 @@ class EditorInterface(QWidget):
             if info:
                 self.transport.set_duration(info.duration_ms)
                 self.timeline.set_duration(info.duration_ms)
+                self.preview.set_duration(info.duration_ms)
                 self.transport.set_position(0)
                 self.timeline.set_position(0)
 
@@ -1122,6 +1124,8 @@ class EditorInterface(QWidget):
             self.preview.set_playing(False)
             self.lbl_status.setText("已暂停")
             self._update_mode_indicator()
+            # 切换到编辑模式时校验所有行时间戳
+            self._validate_all_timestamps()
 
     def _on_stop(self):
         if self._timing_service:
@@ -1132,6 +1136,8 @@ class EditorInterface(QWidget):
             self.timeline.set_position(0)
             self.lbl_status.setText("已停止")
             self._update_mode_indicator()
+            # 切换到编辑模式时校验所有行时间戳
+            self._validate_all_timestamps()
 
     def _on_seek(self, ms: int):
         if self._timing_service:
@@ -1191,6 +1197,13 @@ class EditorInterface(QWidget):
                 ch.timestamps = ch.timestamps[:max_timestamps]
                 ch._update_offset_timestamps()
                 ch.push_to_ruby()
+
+    def _validate_all_timestamps(self) -> None:
+        """校验项目中所有行的时间戳（切换到编辑模式时调用）"""
+        if not self._project:
+            return
+        for line_idx in range(len(self._project.sentences)):
+            self._validate_line_timestamps(line_idx)
 
     def _resolve_target_char(self) -> tuple[int, int]:
         """解析字符级操作的目标 (line_idx, char_idx)。
@@ -2032,12 +2045,12 @@ class EditorInterface(QWidget):
             if a0.isAutoRepeat():
                 a0.ignore()
                 return
-            if self._timing_service and not self._space_pressed:
+            if self._timing_service and key_name not in self._pressed_keys:
                 try:
-                    self._space_pressed = True
-                    self._timing_service.on_timing_key_pressed("SPACE")
+                    self._pressed_keys.add(key_name)
+                    self._timing_service.on_timing_key_pressed(key_name)
                 except Exception as e:
-                    self._space_pressed = False
+                    self._pressed_keys.discard(key_name)
                     self._show_runtime_error(str(e))
             a0.accept()
             return
@@ -2164,12 +2177,13 @@ class EditorInterface(QWidget):
             if a0.isAutoRepeat():
                 a0.ignore()
                 return
-            if self._timing_service and self._space_pressed:
+            if self._timing_service and key_name in self._pressed_keys:
                 try:
-                    self._timing_service.on_timing_key_released("SPACE")
+                    self._timing_service.on_timing_key_released(key_name)
                 except Exception as e:
                     self._show_runtime_error(str(e))
-            self._space_pressed = False
+                finally:
+                    self._pressed_keys.discard(key_name)
             a0.accept()
             return
         super().keyReleaseEvent(a0)

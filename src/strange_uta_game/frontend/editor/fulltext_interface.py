@@ -25,6 +25,7 @@ from qfluentwidgets import (
     InfoBar,
     InfoBarPosition,
     FluentIcon as FIF,
+    CaptionLabel,
 )
 
 from typing import Optional, List, Tuple, Dict
@@ -260,12 +261,11 @@ class RubyInterface(QWidget):
         layout.addWidget(title)
 
         # 说明
-        desc = QLabel(
+        desc = CaptionLabel(
             "全文本编辑：格式 {原文||读音1,读音2,...}，`||` 分开原文与读音，\n"
             "`,` 分开不同字，`|` 分开同一字的多 mora。例：{大冒険||だ|い,ぼ|う,け|ん}\n"
             "切换标签页时只做增删字符/行，不会重新自动注音，请主动点击「自动分析」"
         )
-        desc.setStyleSheet("color: gray;")
         layout.addWidget(desc)
 
         layout.addSpacing(5)
@@ -316,8 +316,7 @@ class RubyInterface(QWidget):
 
         action_layout.addStretch()
 
-        self.lbl_stats = QLabel("共 0 行，0 个注音")
-        self.lbl_stats.setStyleSheet("color: gray;")
+        self.lbl_stats = CaptionLabel("共 0 行，0 个注音")
         action_layout.addWidget(self.lbl_stats)
 
         layout.addLayout(action_layout)

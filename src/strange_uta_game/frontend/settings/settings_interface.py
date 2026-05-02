@@ -154,6 +154,21 @@ class SettingsInterface(ScrollArea):
         if self._store is not None:
             self._store.notify("settings")
 
+        # 同步主题管理器
+        self._apply_theme_setting()
+
+    def _apply_theme_setting(self):
+        """将设置中的主题同步到主题管理器"""
+        from strange_uta_game.frontend.theme import theme, ThemeMode
+
+        theme_value = self._settings.get("ui.theme", "auto")
+        mode_map = {
+            "light": ThemeMode.LIGHT,
+            "dark": ThemeMode.DARK,
+            "auto": ThemeMode.AUTO,
+        }
+        theme.mode = mode_map.get(theme_value, ThemeMode.AUTO)
+
     def _on_shortcut_changed(self, changed_card: ShortcutSettingCard, new_value: str):
         """快捷键卡片变更事件。处理冲突判断并保存。"""
         if self._loading_settings:
@@ -615,8 +630,8 @@ class SettingsInterface(ScrollArea):
         self.card_theme = ComboSettingCard(
             FIF.BRUSH,
             "主题",
-            "切换应用主题颜色方案（暂仅支持浅色主题，自定义配色将在后续版本更新）",
-            items=["浅色"],
+            "切换应用主题颜色方案（深色模式适配中，自定义配色将在后续版本更新）",
+            items=["浅色", "深色", "跟随系统"],
             parent=self.ui_group,
         )
         self.card_font_size = SpinSettingCard(
@@ -1111,8 +1126,8 @@ class SettingsInterface(ScrollArea):
         )
 
         # 界面设定
-        theme = self._settings.get("ui.theme", "light")
-        theme_idx = {"light": 0}.get(theme, 0)
+        theme = self._settings.get("ui.theme", "auto")
+        theme_idx = {"light": 0, "dark": 1, "auto": 2}.get(theme, 2)
         self.card_theme.setCurrentIndex(theme_idx)
         self.card_font_size.setValue(self._settings.get("ui.font_size", 24))
         alignment = self._settings.get("ui.lyrics_alignment", "center")
@@ -1165,6 +1180,9 @@ class SettingsInterface(ScrollArea):
                     f"shortcuts.{mode_key}.{action_key}", default_key
                 )
                 card.setValue(value)
+
+        # 应用主题设置
+        self._apply_theme_setting()
 
     def _collect_settings(self):
         """从 UI 控件收集所有设置并写入 AppSettings"""
@@ -1234,7 +1252,7 @@ class SettingsInterface(ScrollArea):
         )
 
         # 界面设定
-        theme_map = {0: "light"}
+        theme_map = {0: "light", 1: "dark", 2: "auto"}
         self._settings.set(
             "ui.theme", theme_map.get(self.card_theme.currentIndex(), "light")
         )

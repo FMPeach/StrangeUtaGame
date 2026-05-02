@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import Action, RoundMenu
 
 from strange_uta_game.backend.domain import Character, Project, Ruby
+from strange_uta_game.frontend.theme import theme
 
 
 # ──────────────────────────────────────────────
@@ -65,6 +66,7 @@ class KaraokePreview(QWidget):
         self._current_checkpoint_idx: Optional[int] = None
         self._current_time_ms = 0
         self._render_offset_ms = 0
+        self._duration_ms = 0  # 音频总时长（用于行尾非句尾时的wipe右边界）
         self._visible_lines = 7  # 视口内可见行数（决定行高）
         self._scroll_center_line: float = 0.0  # 视口中央对应的行索引
         self._checkpoint_hitboxes: list = []  # [(QRect, line_idx, char_idx, cp_idx)]
@@ -95,15 +97,22 @@ class KaraokePreview(QWidget):
         self._alignment: str = "center"
 
         # 逐句渲染数据缓存（避免每帧重复计算）
-        # 播放期间使用缓存；暂停时 paintEvent 旁路缓存直接重算，
-        # 以便打轴/改连词等编辑动作立即反映到 wipe 时间线
+        # 每行有自己的版本号，只有数据改变的行才重新计算
         self._sentence_cache: dict = {}
-        self._cache_version: int = 0
+        self._line_versions: dict = {}  # line_idx -> version
+        self._global_version: int = 0  # 全局版本号，用于字体变化等全局刷新
         self._is_playing: bool = False
+
+        # 监听主题变化，触发重绘
+        theme.changed.connect(self.update)
 
     def set_playing(self, playing: bool):
         """由外部同步播放状态，用于决定 paintEvent 是否旁路缓存。"""
         self._is_playing = bool(playing)
+
+    def set_duration(self, duration_ms: int):
+        """设置音频总时长（用于行尾非句尾时的wipe右边界）"""
+        self._duration_ms = duration_ms
 
     def set_project(self, project: Project):
         self._project = project
@@ -122,6 +131,8 @@ class KaraokePreview(QWidget):
                     self._focus_char_idx = 0
                     self._focus_char_range_end = 0
                     break
+            # 预渲染所有句子到缓存
+            self._prewarm_all_sentences()
         self._update_display()
 
     def set_focus_position(self, line_idx:int = 0,char_idx: int = 0):
@@ -164,10 +175,20 @@ class KaraokePreview(QWidget):
             self._warm_nearby_cache(budget=2)
         self.update()
 
+    def _prewarm_all_sentences(self) -> None:
+        """项目加载时预渲染所有句子到缓存，避免切换界面时卡顿。"""
+        if not self._project or not self._project.sentences:
+            return
+        # 使用默认字体预渲染，实际渲染时会按 is_current 切换字体
+        for idx, sentence in enumerate(self._project.sentences):
+            if sentence.characters:
+                self._get_sentence_render_data(idx, sentence, self._fm_context, "ctx")
+                if idx == self._current_line_idx:
+                    self._get_sentence_render_data(idx, sentence, self._fm_current, "cur")
+
     def _warm_nearby_cache(self, budget: int = 2) -> None:
         """按 L, L+1, L-1, L+2, L-2, ... 的就近扩散顺序预热 _sentence_cache。
 
-        - 仅在播放期间调用（暂停已旁路缓存，预热无意义）
         - 每次最多预热 budget 句，避免阻塞 paint
         - 已缓存/版本匹配的行直接跳过，不重复计算
         - 行号边界：center 被 clamp 到 [0, n-1]，扩散候选再次越界检查；
@@ -195,7 +216,8 @@ class KaraokePreview(QWidget):
                 entry = self._sentence_cache.get(idx)
                 is_current_line = idx == self._current_line_idx
                 fk = "cur" if is_current_line else "ctx"
-                if entry and entry["v"] == self._cache_version and entry["fk"] == fk:
+                line_version = self._line_versions.get(idx, 0)
+                if entry and entry["v"] == line_version and entry["gv"] == self._global_version and entry["fk"] == fk:
                     continue
                 main_fm = self._fm_current if is_current_line else self._fm_context
                 self._get_sentence_render_data(idx, sentences[idx], main_fm, fk)
@@ -211,7 +233,8 @@ class KaraokePreview(QWidget):
         self._render_offset_ms = offset_ms
         # 偏移变更时，渲染时间戳已在字符上更新，清除缓存使 wipe 区间重新计算
         self._sentence_cache.clear()
-        self._cache_version += 1
+        self._line_versions.clear()
+        self._global_version += 1
         self.update()
 
     def set_alignment(self, alignment: str):
@@ -227,7 +250,21 @@ class KaraokePreview(QWidget):
             self.update()
 
     def _update_display(self):
-        self._cache_version += 1
+        self._global_version += 1
+        self.update()
+
+    def _invalidate_line(self, line_idx: int):
+        """使特定行的缓存失效（用于行内数据改变时）"""
+        if line_idx in self._line_versions:
+            self._line_versions[line_idx] += 1
+        else:
+            self._line_versions[line_idx] = 0
+        self.update()
+
+    def _invalidate_all_lines(self):
+        """使所有行的缓存失效（用于全局数据改变时）"""
+        for line_idx in list(self._line_versions.keys()):
+            self._line_versions[line_idx] += 1
         self.update()
 
     # ---- 滚动 ----
@@ -453,6 +490,23 @@ class KaraokePreview(QWidget):
         menu.addMenu(singer_menu)
         menu.exec(global_pos)
 
+    def _find_next_line_first_timestamp(self, current_line_idx: int) -> Optional[int]:
+        """查找下一行的第一个checkpoint时间戳，用于行尾非句尾时的wipe右边界。
+
+        Returns:
+            下一行第一个字符的 render_timestamps[0]，如果不存在返回 None
+        """
+        if not self._project or not self._project.sentences:
+            return None
+        next_line_idx = current_line_idx + 1
+        if next_line_idx >= len(self._project.sentences):
+            return None
+        next_sentence = self._project.sentences[next_line_idx]
+        for ch in next_sentence.characters:
+            if ch.render_timestamps:
+                return int(ch.render_timestamps[0])
+        return None
+
     def _get_sentence_render_data(
         self, idx: int, sentence, main_fm, font_key: str
     ) -> dict:
@@ -468,14 +522,13 @@ class KaraokePreview(QWidget):
           - linked_to_next 只影响视觉渲染层（连词不拆字画），不参与 wipe 计算
 
         缓存策略：
-          - 播放期间命中 (_cache_version, font_key) 匹配的缓存
-          - 暂停时 paintEvent 旁路缓存（_is_playing==False 时直接重算并跳过写入）
+          - 每行有自己的版本号，只有数据改变的行才重新计算
+          - 全局版本号用于字体变化等全局刷新
         """
-        use_cache = self._is_playing
-        if use_cache:
-            entry = self._sentence_cache.get(idx)
-            if entry and entry["v"] == self._cache_version and entry["fk"] == font_key:
-                return entry
+        line_version = self._line_versions.get(idx, 0)
+        entry = self._sentence_cache.get(idx)
+        if entry and entry["v"] == line_version and entry["gv"] == self._global_version and entry["fk"] == font_key:
+            return entry
 
         chars = sentence.chars
         characters = sentence.characters
@@ -551,6 +604,19 @@ class KaraokePreview(QWidget):
         if s_start < n_chars:
             sent_ranges.append((s_start, n_chars - 1))
 
+        # 预处理：为行尾非句尾的情况准备右边界
+        # 如果最后一个 sent_range 的最后一个字符不是句尾，去下一行借时间戳
+        fallback_sentence_end_ts: Optional[int] = None
+        if sent_ranges:
+            last_sent_start, last_sent_end = sent_ranges[-1]
+            last_char = characters[last_sent_end]
+            if not last_char.is_sentence_end:
+                next_ts = self._find_next_line_first_timestamp(idx)
+                if next_ts is not None:
+                    fallback_sentence_end_ts = next_ts
+                elif self._duration_ms > 0:
+                    fallback_sentence_end_ts = self._duration_ms
+
         char_wipe_times: dict = {}
         for sent_start, sent_end in sent_ranges:
             # 句子内有 start_ts 的 leader 字符索引
@@ -572,20 +638,34 @@ class KaraokePreview(QWidget):
                             end_ts = int(characters[ci].render_sentence_end_ts)
                             break
                     if end_ts is None:
-                        end_ts = start_times[leader]
+                        # 使用预处理的 fallback（行尾非句尾时从下一行借的时间戳）
+                        end_ts = fallback_sentence_end_ts if fallback_sentence_end_ts is not None else start_times[leader]
 
-                for ci in range(leader, seg_end + 1):
-                    char_wipe_times[ci] = (start_times[leader], end_ts)
+                # 整体：leader + 它后面的无 ts 字符，按位置从左到右分配时间
+                total_chars = seg_end - leader + 1
+                for j, ci in enumerate(range(leader, seg_end + 1)):
+                    ratio = j / total_chars
+                    next_ratio = (j + 1) / total_chars
+                    char_start_ts = int(start_times[leader] + (end_ts - start_times[leader]) * ratio)
+                    char_end_ts = int(start_times[leader] + (end_ts - start_times[leader]) * next_ratio)
+                    char_wipe_times[ci] = (char_start_ts, char_end_ts)
 
-            # 句子内第一个 leader 之前的无 ts 字符：与第一个 leader 一起 wipe
+            # 句子内第一个 leader 之前的无 ts 字符：与第一个 leader 作为整体从左到右 wipe
             first_leader = leaders[0]
             if first_leader > sent_start:
-                start_ts, end_ts = char_wipe_times[first_leader]
-                for ci in range(sent_start, first_leader):
-                    char_wipe_times[ci] = (start_ts, end_ts)
+                leader_start_ts, leader_end_ts = char_wipe_times[first_leader]
+                # 按位置分配时间，从左到右依次完成
+                total_chars = first_leader - sent_start + 1  # 包含 first_leader
+                for i, ci in enumerate(range(sent_start, first_leader)):
+                    ratio = i / total_chars
+                    next_ratio = (i + 1) / total_chars
+                    char_start_ts = int(leader_start_ts + (leader_end_ts - leader_start_ts) * ratio)
+                    char_end_ts = int(leader_start_ts + (leader_end_ts - leader_start_ts) * next_ratio)
+                    char_wipe_times[ci] = (char_start_ts, char_end_ts)
 
         entry = {
-            "v": self._cache_version,
+            "v": line_version,
+            "gv": self._global_version,
             "fk": font_key,
             "char_widths": char_widths,
             "total_text_width": sum(char_widths),
@@ -593,8 +673,7 @@ class KaraokePreview(QWidget):
             "linked_leader_groups": linked_leader_groups,
             "linked_non_leader": linked_non_leader,
         }
-        if use_cache:
-            self._sentence_cache[idx] = entry
+        self._sentence_cache[idx] = entry
         return entry
             
     def mouseDoubleClickEvent(self, a0: Optional[QMouseEvent]):
@@ -618,7 +697,7 @@ class KaraokePreview(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         # 填充背景
-        painter.fillRect(self.rect(), QColor("#FFFFFF"))
+        painter.fillRect(self.rect(), theme.karaoke_bg)
 
         # 清空 hitbox 缓存
         self._checkpoint_hitboxes = []
@@ -628,7 +707,7 @@ class KaraokePreview(QWidget):
         current_time = self._current_time_ms
 
         if not self._project or not self._project.sentences:
-            painter.setPen(QColor("#999"))
+            painter.setPen(theme.text_hint)
             painter.drawText(
                 self.rect(), Qt.AlignmentFlag.AlignCenter, "请创建或打开项目"
             )
@@ -650,7 +729,7 @@ class KaraokePreview(QWidget):
         fm_ruby = self._fm_ruby
         fm_checkpoint = self._fm_checkpoint
 
-        default_highlight = QColor("#FF6B6B")
+        default_highlight = theme.default_highlight
 
         # 计算可见行范围（留 1 行余量避免边缘裁切）
         half_visible = self._visible_lines / 2.0 + 1
@@ -671,7 +750,7 @@ class KaraokePreview(QWidget):
 
             # 绘制行号（左侧固定区域）
             painter.setFont(self._font_line_number)
-            line_num_color = QColor("#FF6B6B") if is_current else QColor("#aaa")
+            line_num_color = theme.line_number_current if is_current else theme.line_number_normal
             painter.setPen(line_num_color)
             line_num_text = str(idx + 1)
             line_num_w = self._fm_line_number.horizontalAdvance(line_num_text)
@@ -707,15 +786,15 @@ class KaraokePreview(QWidget):
             if is_current:
                 main_font = font_current
                 main_fm = fm_current
-                base_color = QColor("black")
+                base_color = theme.karaoke_text_current
             elif idx < self._current_line_idx:
                 main_font = font_context
                 main_fm = fm_context
-                base_color = QColor("#aaa")
+                base_color = theme.karaoke_text_past
             else:
                 main_font = font_context
                 main_fm = fm_context
-                base_color = QColor("#666")
+                base_color = theme.karaoke_text_future
 
             # 使用缓存的渲染数据（字符宽度/分组/wipe时间/连词信息）
             _rd = self._get_sentence_render_data(
@@ -756,7 +835,7 @@ class KaraokePreview(QWidget):
 
                 # 当前打轴位置高亮背景
                 if is_current and char_pos == self._current_char_idx:
-                    highlight_bg = QColor("#FFE0E0")
+                    highlight_bg = theme.karaoke_highlight_bg
                     bg_rect = QRect(
                         int(curr_x) - 1,
                         _rect_top,
@@ -770,7 +849,7 @@ class KaraokePreview(QWidget):
                     sel_lo = min(self._focus_char_idx, self._focus_char_range_end)
                     sel_hi = max(self._focus_char_idx, self._focus_char_range_end)
                     if sel_lo <= char_pos <= sel_hi:
-                        sel_bg = QColor("#BDE0FE")
+                        sel_bg = theme.karaoke_selection_bg
                         sel_rect = QRect(
                             int(curr_x) - 1,
                             _rect_top,
