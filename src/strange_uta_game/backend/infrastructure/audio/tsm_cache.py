@@ -1,10 +1,10 @@
 """离线预渲染 TSM 缓存。
 
 设计：
-- 切换播放速度（≠ 1.0x）时，后台 worker 用 audiotsm WSOLA 把整段原始 PCM
-  渲染成该速度下的 PCM，作为一块连续的 ``np.ndarray`` 缓存在内存里。
+- 切换播放速度（≠ 1.0x）时，后台 worker 用 Pedalboard 的 time_stretch 把整段
+  原始 PCM 渲染成该速度下的 PCM，作为一块连续的 ``np.ndarray`` 缓存在内存里。
 - 回调线程播放时只需从对应缓存里按 sample 偏移拷贝到 ring buffer，
-  **完全不在实时路径上跑 Python WSOLA**。
+  **完全不在实时路径上跑 Python TSM**。
 - 同一个 ``(audio_path, speed)`` 渲染完即长驻；最多保留 LRU 3 份。
 - 1.0x 特殊路径：直接返回原始 PCM 引用，零渲染开销。
 
@@ -22,8 +22,7 @@ from collections import OrderedDict
 from typing import Callable, Optional, Tuple
 
 import numpy as np
-import audiotsm
-from audiotsm.io.array import ArrayReader, ArrayWriter
+from pedalboard import time_stretch
 
 
 ProgressCallback = Callable[[float, float], None]  # (speed, 0.0~1.0)
@@ -168,55 +167,36 @@ class TSMRenderCache:
         speed: float,
         progress_cb: Optional[ProgressCallback],
     ) -> Optional[np.ndarray]:
-        """整文件 WSOLA 渲染；返回 ``(n_samples, channels)`` float32。
+        """整文件 TSM 渲染；返回 ``(n_samples, channels)`` float32。
 
-        用**一个连续 ArrayReader** 保证 WSOLA 窗口相位不断裂；取消检查
-        放在 ``write_to`` 的循环里（足够细粒度），进度按 reader 剩余量估算。
+        使用 Spotify Pedalboard 的 time_stretch，基于 Rubber Band 引擎，
+        音质极佳，支持高质量模式和瞬态保护。
         """
         assert self._original is not None
         n_in = self._original.shape[0]
         if n_in == 0:
             return np.zeros((0, self._channels), dtype=np.float32)
 
-        # audiotsm 约定输入 (channels, n)
-        data_ch_first = np.ascontiguousarray(self._original.T, dtype=np.float32)
-        reader = ArrayReader(data_ch_first)
-        writer = ArrayWriter(self._channels)
-        tsm = audiotsm.wsola(self._channels, speed=speed)
+        if progress_cb is not None:
+            try:
+                progress_cb(speed, 0.1)
+            except Exception:
+                pass
 
-        # 主循环：参考 audiotsm.base.tsm.TSM.run —— 必须循环到
-        # ``finished and reader.empty`` 同时成立，否则 in_buffer 里残留的
-        # 样本不会被处理（这是早期版本截短输出的根因）。
-        finished = False
-        last_reported = -1.0
-        while not (finished and reader.empty):
-            if self._worker_cancel.is_set():
-                return None
-            tsm.read_from(reader)
-            _, finished = tsm.write_to(writer)
-            # 进度估算：reader._data 是 audiotsm 内部属性，未暴露公共接口；
-            # 这里用它估算剩余输入比例，仅用于 UI 反馈，不影响正确性。
-            remaining = reader._data.shape[1] if hasattr(reader, "_data") else 0
-            progress = 1.0 - (remaining / n_in) if n_in else 1.0
-            if progress_cb is not None and progress - last_reported > 0.02:
-                try:
-                    progress_cb(speed, min(progress * 0.98, 0.98))
-                except Exception:
-                    pass
-                last_reported = progress
+        # stretch_factor: >1 拉伸（变慢），<1 压缩（变快）
+        # speed > 1 表示加快播放，所以 stretch_factor = 1/speed
+        stretch_factor = 1.0 / speed
 
-        # flush 尾巴（处理 in_buffer 残留 + 输出 out_buffer 残留）
-        flushed = False
-        while not flushed:
-            if self._worker_cancel.is_set():
-                return None
-            _, flushed = tsm.flush_to(writer)
+        # pedalboard.time_stretch 期望输入为 (n_samples, channels) float32
+        pcm = np.ascontiguousarray(self._original, dtype=np.float32)
+        out = time_stretch(pcm, float(self._sample_rate), stretch_factor=stretch_factor)
 
-        # writer.data: (channels, n_out) -> (n_out, channels)
-        out = np.ascontiguousarray(writer.data.T, dtype=np.float32)
+        if self._worker_cancel.is_set():
+            return None
+
         if progress_cb is not None:
             try:
                 progress_cb(speed, 1.0)
             except Exception:
                 pass
-        return out
+        return out.astype(np.float32)
