@@ -141,6 +141,7 @@ class EditorInterface(QWidget):
         self.toolbar.modify_char_clicked.connect(self._on_modify_char)
         self.toolbar.insert_guide_clicked.connect(self._on_insert_guide)
         self.toolbar.bulk_change_clicked.connect(self._on_bulk_change)
+        self.toolbar.analyze_rubies_clicked.connect(self._on_analyze_rubies)
         self.toolbar.delete_rubies_by_type_clicked.connect(self._on_delete_rubies_by_type)
         self.toolbar.offset_changed.connect(self._on_offset_changed)
         layout.addWidget(self.toolbar)
@@ -2539,6 +2540,67 @@ class EditorInterface(QWidget):
 
     def refresh_lyric_display(self):
         self.preview._update_display()
+
+    def _on_analyze_rubies(self):
+        """工具栏「注音分析」— 弹三选项对话框，复用全文本编辑界面逻辑"""
+        if not self._project:
+            return
+
+        msg = QMessageBox(self)
+        msg.setWindowTitle("自动分析全部注音")
+        msg.setText("请选择分析范围：")
+        msg.setInformativeText(
+            "「全部重新分析」会覆盖现有注音。\n"
+            "「仅分析未注音字符」会保留已有的人工/字典注音。"
+        )
+        btn_all = msg.addButton("全部重新分析", QMessageBox.ButtonRole.DestructiveRole)
+        btn_only_noruby = msg.addButton(
+            "仅分析未注音字符", QMessageBox.ButtonRole.AcceptRole
+        )
+        btn_cancel = msg.addButton("取消", QMessageBox.ButtonRole.RejectRole)
+        msg.setDefaultButton(btn_only_noruby)
+        msg.exec()
+
+        clicked = msg.clickedButton()
+        if clicked is btn_cancel or clicked is None:
+            return
+        only_noruby = clicked is btn_only_noruby
+
+        try:
+            from strange_uta_game.backend.application import AutoCheckService
+            from strange_uta_game.frontend.settings.settings_interface import AppSettings
+
+            app_settings = AppSettings()
+            auto_check_flags = app_settings.get_all().get("auto_check", {})
+            user_dict = app_settings.load_dictionary()
+            auto_check = AutoCheckService(
+                auto_check_flags=auto_check_flags, user_dictionary=user_dict
+            )
+            auto_check.apply_to_project(self._project, only_noruby=only_noruby)
+            self.refresh_lyric_display()
+            if hasattr(self, "_store") and self._store:
+                self._store.notify("rubies")
+                self._store.notify("checkpoints")
+
+            InfoBar.success(
+                title="注音分析完成",
+                content="已重新分析注音",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self,
+            )
+        except Exception as e:
+            InfoBar.warning(
+                title="注音分析失败",
+                content=str(e),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self,
+            )
 
     def _auto_analyze_all_rubies(self):
         """自动分析全部注音（用于歌词导入后重新注音）"""

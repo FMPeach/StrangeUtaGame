@@ -29,6 +29,7 @@ class EditorToolBar(QFrame):
     load_audio_clicked = pyqtSignal()
     load_lyrics_clicked = pyqtSignal()
     bulk_change_clicked = pyqtSignal()
+    analyze_rubies_clicked = pyqtSignal()
     modify_char_clicked = pyqtSignal()
     insert_guide_clicked = pyqtSignal()
     delete_rubies_by_type_clicked = pyqtSignal()
@@ -82,6 +83,12 @@ class EditorToolBar(QFrame):
         self.btn_bulk_change.setFixedHeight(32)
         self.btn_bulk_change.clicked.connect(self.bulk_change_clicked.emit)
         layout.addWidget(self.btn_bulk_change)
+
+        self.btn_analyze_rubies = PushButton("注音分析", self)
+        self.btn_analyze_rubies.setIcon(FIF.SYNC)
+        self.btn_analyze_rubies.setFixedHeight(32)
+        self.btn_analyze_rubies.clicked.connect(self.analyze_rubies_clicked.emit)
+        layout.addWidget(self.btn_analyze_rubies)
 
         self.btn_delete_rubies_by_type = PushButton("按类型删除注音", self)
         self.btn_delete_rubies_by_type.setIcon(FIF.DELETE)
