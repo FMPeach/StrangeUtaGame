@@ -10,10 +10,10 @@ from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit
 from qfluentwidgets import (
     Action,
     CaptionLabel,
-    DropDownPushButton,
     FluentIcon as FIF,
     PushButton,
     RoundMenu,
+    ToolButton,
 )
 
 
@@ -50,16 +50,15 @@ class EditorToolBar(QFrame):
         self.btn_save.clicked.connect(self.save_clicked.emit)
         layout.addWidget(self.btn_save)
 
-        # 加载下拉菜单（加载项目 / 加载音频 / 加载歌词）
-        self.btn_load = DropDownPushButton("加载", self)
-        self.btn_load.setIcon(FIF.FOLDER)
-        self.btn_load.setFixedHeight(32)
-        load_menu = RoundMenu(parent=self.btn_load)
-        load_menu.addAction(Action(FIF.FOLDER, "加载项目", self, triggered=self.load_project_clicked.emit))
-        load_menu.addAction(Action(FIF.MUSIC, "加载音频", self, triggered=self.load_audio_clicked.emit))
-        load_menu.addAction(Action(FIF.DOCUMENT, "加载歌词", self, triggered=self.load_lyrics_clicked.emit))
-        self.btn_load.setMenu(load_menu)
+        # 加载按钮（点击弹出菜单）
+        self.btn_load = ToolButton(FIF.FOLDER, self)
+        self.btn_load.setFixedSize(32, 32)
+        self.btn_load.clicked.connect(self._show_load_menu)
         layout.addWidget(self.btn_load)
+
+        # 加载按钮文字标签
+        self.lbl_load = CaptionLabel("加载")
+        layout.addWidget(self.lbl_load)
 
         layout.addSpacing(10)
 
@@ -108,6 +107,15 @@ class EditorToolBar(QFrame):
         # 状态标签
         self.lbl_audio = CaptionLabel("未加载音频")
         layout.addWidget(self.lbl_audio)
+
+    def _show_load_menu(self):
+        """显示加载菜单"""
+        menu = RoundMenu(parent=self)
+        menu.addAction(Action(FIF.FOLDER, "加载项目", self, triggered=self.load_project_clicked.emit))
+        menu.addAction(Action(FIF.MUSIC, "加载音频", self, triggered=self.load_audio_clicked.emit))
+        menu.addAction(Action(FIF.DOCUMENT, "加载歌词", self, triggered=self.load_lyrics_clicked.emit))
+        pos = self.btn_load.mapToGlobal(self.btn_load.rect().bottomLeft())
+        menu.exec(pos)
 
     def _on_offset_editing_finished(self):
         """偏移输入框编辑完成 — 解析并发射信号"""
