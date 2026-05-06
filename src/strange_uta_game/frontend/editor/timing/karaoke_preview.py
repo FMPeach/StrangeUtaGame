@@ -637,10 +637,12 @@ class KaraokePreview(QWidget):
                 for g in group:
                     char_widths[g] = max(char_widths[g], per_char_w)
 
-        # 单字符：确保宽度 >= ruby宽度
+        # 单字符：确保宽度 >= ruby宽度（跳过连词组成员，已由连词组逻辑处理）
         for ci, ch in enumerate(chars):
+            if ci in linked_leader_groups or ci in linked_non_leader:
+                continue  # 连词组成员已处理
             ruby = characters[ci].ruby
-            if ruby and ci not in linked_non_leader:
+            if ruby:
                 ruby_w = fm_ruby.horizontalAdvance(ruby.text)
                 char_widths[ci] = max(char_widths[ci], ruby_w)
 
