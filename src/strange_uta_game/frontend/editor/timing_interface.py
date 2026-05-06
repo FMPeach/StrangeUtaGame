@@ -24,7 +24,6 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QKeyEvent
 from PyQt6.QtWidgets import (
     QDialog,
-    QFileDialog,
     QHBoxLayout,
     QLabel,
     QMessageBox,
@@ -56,6 +55,7 @@ from .timing import (
     SentenceSnapshotCommand,
     CharEditDialog,
     EditorToolBar,
+    FileLoader,
     InsertGuideSymbolDialog,
     KaraokePreview,
     ModifyCharacterDialog,
@@ -111,6 +111,7 @@ class EditorInterface(QWidget):
         # set_current_position，从而不污染"选中字符"光标 (_current_char_idx)。
         # 区分：selected_cp（cp 标记选中态）vs selected_char（光标/选中字符态）。
         self._suppress_cp_cursor_move = False
+        self._file_loader = FileLoader(self)
         self._init_ui()
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAcceptDrops(True)
@@ -478,24 +479,13 @@ class EditorInterface(QWidget):
 
     # ==================== 拖拽加载 ====================
 
-    _AUDIO_EXTENSIONS = {".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a"}
-    _LYRIC_EXTENSIONS = {".lrc", ".txt", ".kra"}
-    _PROJECT_EXTENSIONS = {".sug"}
-
     def dragEnterEvent(self, a0: Optional[QDragEnterEvent]):
         if a0 is None:
             return
         mime = a0.mimeData()
         if mime is not None and mime.hasUrls():
             for url in mime.urls():
-                file_path = url.toLocalFile()
-                ext = Path(file_path).suffix.lower()
-                if (
-                    ext
-                    in self._AUDIO_EXTENSIONS
-                    | self._LYRIC_EXTENSIONS
-                    | self._PROJECT_EXTENSIONS
-                ):
+                if self._file_loader.can_accept_drop(url.toLocalFile()):
                     a0.acceptProposedAction()
                     return
         a0.ignore()
@@ -508,129 +498,8 @@ class EditorInterface(QWidget):
             a0.ignore()
             return
         for url in mime.urls():
-            file_path = url.toLocalFile()
-            ext = Path(file_path).suffix.lower()
-            if ext in self._AUDIO_EXTENSIONS:
-                self.load_audio(file_path)
-            elif ext in self._LYRIC_EXTENSIONS:
-                self._load_lyrics_from_path(file_path)
-            elif ext in self._PROJECT_EXTENSIONS:
-                self._load_project_file(file_path)
+            self._file_loader.handle_drop(url.toLocalFile())
         a0.acceptProposedAction()
-
-    def _load_lyrics_from_path(self, path: str):
-        """从文件路径加载歌词（拖拽或按钮均可调用）。
-
-        自动检测歌词格式（LRC/SRT/ASS/Nicokara/内联格式等）并解析。
-        如果当前没有项目，会自动创建一个新项目。
-        """
-        from .lyric_loader import read_lyric_file, parse_lyric_content
-
-        content = read_lyric_file(path)
-        if content is None:
-            InfoBar.error(
-                title="读取失败",
-                content="无法读取歌词文件",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self,
-            )
-            return
-
-        try:
-            from strange_uta_game.backend.application import ProjectService
-            from strange_uta_game.backend.domain import Singer
-
-            # 如果没有项目，自动创建一个新项目
-            if not self._project:
-                if self._store:
-                    project_service = ProjectService()
-                    project = project_service.create_project()
-                    self._store._project = project
-                    self._store.notify("project")
-                else:
-                    InfoBar.warning(
-                        title="无法加载",
-                        content="请先创建或打开一个项目",
-                        orient=Qt.Orientation.Horizontal,
-                        isClosable=True,
-                        position=InfoBarPosition.TOP,
-                        duration=3000,
-                        parent=self,
-                    )
-                    return
-
-            default_singer = self._project.get_default_singer()
-
-            # 解析歌词
-            sentences, is_nicokara, new_singers = parse_lyric_content(
-                content, default_singer.id, self._project.singers
-            )
-
-            # 添加 Nicokara 格式中的新演唱者
-            for singer in new_singers:
-                self._project.add_singer(singer)
-
-            if not sentences:
-                InfoBar.warning(
-                    title="解析结果为空",
-                    content="歌词文件未解析出有效内容",
-                    orient=Qt.Orientation.Horizontal,
-                    isClosable=True,
-                    position=InfoBarPosition.TOP,
-                    duration=3000,
-                    parent=self,
-                )
-                return
-
-            # 替换项目歌词
-            self._project.sentences.clear()
-            for s in sentences:
-                self._project.sentences.append(s)
-
-            # 重建引擎状态
-            if self._timing_service:
-                self._timing_service.set_project(self._project)
-            if self._store:
-                self._store.notify("lyrics")
-
-            self.refresh_lyric_display()
-
-            InfoBar.success(
-                title="歌词已加载",
-                content=f"已加载 {len(sentences)} 行歌词",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self,
-            )
-
-            # 如果是 Nicokara 格式，提示用户是否需要重新注音
-            if is_nicokara:
-                reply = QMessageBox.question(
-                    self,
-                    "Nicokara 格式检测",
-                    "检测到 Nicokara 格式歌词（已包含注音）。\n\n是否需要重新自动注音？\n"
-                    "选择「是」将清除现有注音并重新分析；\n选择「否」保留原有注音。",
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                    QMessageBox.StandardButton.No,
-                )
-                if reply == QMessageBox.StandardButton.Yes:
-                    self._auto_analyze_all_rubies()
-
-        except Exception as e:
-            InfoBar.error(
-                title="加载失败",
-                content=str(e),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self,
-            )
 
     # ==================== 工具栏操作 ====================
 
@@ -728,71 +597,14 @@ class EditorInterface(QWidget):
 
     def _on_load_project(self):
         """加载项目文件"""
-        path, _ = QFileDialog.getOpenFileName(
-            self,
-            "打开项目",
-            "",
-            "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)",
-        )
-        if path:
-            self._load_project_file(path)
-
-    def _load_project_file(self, file_path: str):
-        """加载 .sug 项目文件"""
-        try:
-            from strange_uta_game.backend.infrastructure.persistence.sug_io import (
-                SugProjectParser,
-            )
-
-            project = SugProjectParser.load(file_path)
-            if self._store:
-                self._store._project = project
-                self._store._save_path = file_path
-                self._store.notify("project")
-            else:
-                self.set_project(project)
-        except Exception as e:
-            InfoBar.error(
-                title="打开失败",
-                content=str(e),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self,
-            )
+        self._file_loader.prompt_load_project()
 
     def _on_load_audio(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self,
-            "选择音频文件",
-            "",
-            "音频文件 (*.mp3 *.wav *.flac *.aac *.ogg *.m4a);;所有文件 (*.*)",
-        )
-        if path:
-            self.load_audio(path)
+        self._file_loader.prompt_load_audio()
 
     def _on_load_lyrics(self):
         """加载歌词文件到当前项目（替换现有歌词）。"""
-        if not self._project:
-            InfoBar.warning(
-                title="无法加载",
-                content="请先创建或打开一个项目",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self,
-            )
-            return
-        path, _ = QFileDialog.getOpenFileName(
-            self,
-            "选择歌词文件",
-            "",
-            "歌词文件 (*.lrc *.txt *.kra);;所有文件 (*.*)",
-        )
-        if path:
-            self._load_lyrics_from_path(path)
+        self._file_loader.prompt_load_lyrics()
 
     def _on_undo(self):
         if self._timing_service and self._timing_service.can_undo():
@@ -2559,31 +2371,14 @@ class EditorInterface(QWidget):
     def refresh_lyric_display(self):
         self.preview._update_display()
 
-    def _on_analyze_rubies(self):
-        """工具栏「注音分析」— 弹三选项对话框，复用全文本编辑界面逻辑"""
+    def _auto_analyze_rubies(self, only_noruby: bool = False):
+        """执行注音分析（核心逻辑，供多处复用）
+
+        Args:
+            only_noruby: True=仅分析未注音字符，False=全部重新分析
+        """
         if not self._project:
             return
-
-        msg = QMessageBox(self)
-        msg.setWindowTitle("自动分析全部注音")
-        msg.setText("请选择分析范围：")
-        msg.setInformativeText(
-            "「全部重新分析」会覆盖现有注音。\n"
-            "「仅分析未注音字符」会保留已有的人工/字典注音。"
-        )
-        btn_all = msg.addButton("全部重新分析", QMessageBox.ButtonRole.DestructiveRole)
-        btn_only_noruby = msg.addButton(
-            "仅分析未注音字符", QMessageBox.ButtonRole.AcceptRole
-        )
-        btn_cancel = msg.addButton("取消", QMessageBox.ButtonRole.RejectRole)
-        msg.setDefaultButton(btn_only_noruby)
-        msg.exec()
-
-        clicked = msg.clickedButton()
-        if clicked is btn_cancel or clicked is None:
-            return
-        only_noruby = clicked is btn_only_noruby
-
         try:
             from strange_uta_game.backend.application import AutoCheckService
             from strange_uta_game.frontend.settings.settings_interface import AppSettings
@@ -2620,44 +2415,32 @@ class EditorInterface(QWidget):
                 parent=self,
             )
 
-    def _auto_analyze_all_rubies(self):
-        """自动分析全部注音（用于歌词导入后重新注音）"""
+    def _on_analyze_rubies(self):
+        """工具栏「注音分析」— 弹三选项对话框"""
         if not self._project:
             return
 
-        try:
-            from strange_uta_game.backend.application import AutoCheckService
-            from strange_uta_game.frontend.settings.settings_interface import AppSettings
+        msg = QMessageBox(self)
+        msg.setWindowTitle("自动分析全部注音")
+        msg.setText("请选择分析范围：")
+        msg.setInformativeText(
+            "「全部重新分析」会覆盖现有注音。\n"
+            "「仅分析未注音字符」会保留已有的人工/字典注音。"
+        )
+        btn_all = msg.addButton("全部重新分析", QMessageBox.ButtonRole.DestructiveRole)
+        btn_only_noruby = msg.addButton(
+            "仅分析未注音字符", QMessageBox.ButtonRole.AcceptRole
+        )
+        btn_cancel = msg.addButton("取消", QMessageBox.ButtonRole.RejectRole)
+        msg.setDefaultButton(btn_only_noruby)
+        msg.exec()
 
-            app_settings = AppSettings()
-            auto_check_flags = app_settings.get_all().get("auto_check", {})
-            user_dict = app_settings.load_dictionary()
-            auto_check = AutoCheckService(
-                auto_check_flags=auto_check_flags, user_dictionary=user_dict
-            )
-            # 全部重新分析（覆盖已有注音）
-            auto_check.apply_to_project(self._project, only_noruby=False)
-            self.refresh_lyric_display()
-            if hasattr(self, "_store") and self._store:
-                self._store.notify("rubies")
-                self._store.notify("checkpoints")
+        clicked = msg.clickedButton()
+        if clicked is btn_cancel or clicked is None:
+            return
+        only_noruby = clicked is btn_only_noruby
+        self._auto_analyze_rubies(only_noruby=only_noruby)
 
-            InfoBar.success(
-                title="注音分析完成",
-                content="已重新分析全部注音",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self,
-            )
-        except Exception as e:
-            InfoBar.warning(
-                title="注音分析失败",
-                content=str(e),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self,
-            )
+    def _auto_analyze_all_rubies(self):
+        """自动分析全部注音（用于歌词导入后重新注音，覆盖已有）"""
+        self._auto_analyze_rubies(only_noruby=False)

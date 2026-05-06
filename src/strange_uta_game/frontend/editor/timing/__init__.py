@@ -12,6 +12,7 @@ from .dialogs import (
     InsertGuideSymbolDialog,
     ModifyCharacterDialog,
 )
+from .file_loader import FileLoader
 from .karaoke_preview import KaraokePreview
 from .timeline_widget import TimelineWidget
 from .toolbar import EditorToolBar
@@ -22,6 +23,7 @@ __all__ = [
     "_SentenceSnapshotCommand",
     "TransportBar",
     "EditorToolBar",
+    "FileLoader",
     "KaraokePreview",
     "TimelineWidget",
     "ModifyCharacterDialog",

@@ -13,6 +13,7 @@ from strange_uta_game.backend.domain import Sentence, Singer
 from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
     LRCParser,
     NicokaraParser,
+    nicokara_result_to_sentences,
     parse_to_sentences,
 )
 from strange_uta_game.backend.infrastructure.parsers.inline_format import (
@@ -84,21 +85,47 @@ def parse_lyric_content(
         parser = NicokaraParser()
         result = parser.parse(content)
 
-        # NicokaraParseResult 没有 sentences/singers 属性
-        # 需要通过 parse_to_sentences 处理
-        sentences = parse_to_sentences(result.lines, default_singer_id)
+        # 为 singer_key 建立映射
+        singer_key_to_id: dict = {}
+        singer_colors = [
+            "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
+            "#C9B1FF", "#F7DC6F", "#82E0AA", "#F1948A", "#85C1E9",
+        ]
 
-        # 收集需要新增的演唱者（从 singer_definitions 中）
-        if project_singers and result.singer_definitions:
-            for singer_key, display_name in result.singer_definitions.items():
-                existing = None
+        # 收集所有 singer_key
+        all_singer_keys: set = set()
+        for singer_key in result.singer_definitions:
+            all_singer_keys.add(singer_key)
+        for line in result.lines:
+            if line.line_singer_key:
+                all_singer_keys.add(line.line_singer_key)
+            for _, sk in line.char_singer_map.items():
+                all_singer_keys.add(sk)
+
+        # 匹配已有演唱者或创建新的
+        for idx, singer_key in enumerate(sorted(all_singer_keys)):
+            display_name = (
+                result.singer_definitions.get(singer_key, singer_key) or singer_key
+            )
+            # 先查找已有演唱者
+            existing_id = None
+            if project_singers:
                 for s in project_singers:
                     if s.name == display_name:
-                        existing = s
+                        existing_id = s.id
                         break
-                if not existing:
-                    new_singers.append(Singer(name=display_name, color="#FF6B6B", is_default=False))
+            if existing_id:
+                singer_key_to_id[singer_key] = existing_id
+            else:
+                color = singer_colors[idx % len(singer_colors)]
+                new_singer = Singer(name=display_name, color=color, is_default=False)
+                singer_key_to_id[singer_key] = new_singer.id
+                new_singers.append(new_singer)
 
+        # 使用 nicokara_result_to_sentences 保留原有注音和时间戳
+        sentences = nicokara_result_to_sentences(
+            result, singer_key_to_id, default_singer_id
+        )
         return sentences, is_nicokara, new_singers
 
     # ASS 格式
