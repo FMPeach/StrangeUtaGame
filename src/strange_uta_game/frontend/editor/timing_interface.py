@@ -634,67 +634,6 @@ class EditorInterface(QWidget):
                 duration=5000,
                 parent=self,
             )
-            from strange_uta_game.backend.domain import Singer
-
-            # 如果没有项目，自动创建一个新项目
-            if not self._project:
-                if self._store:
-                    from strange_uta_game.backend.application import ProjectService
-                    project_service = ProjectService()
-                    project = project_service.create_project()
-                    self._store._project = project
-                    self._store.notify("project")
-                else:
-                    InfoBar.warning(
-                        title="无法加载",
-                        content="请先创建或打开一个项目",
-                        orient=Qt.Orientation.Horizontal,
-                        isClosable=True,
-                        position=InfoBarPosition.TOP,
-                        duration=3000,
-                        parent=self,
-                    )
-                    return
-
-            default_singer = self._project.get_default_singer()
-            try:
-                sentences = ProjectImportService.load_lyrics_from_file(
-                    path, default_singer.id
-                )
-            except ProjectImportError as e:
-                raise RuntimeError(str(e)) from e
-
-            # 替换项目歌词
-            self._project.sentences.clear()
-            for s in sentences:
-                self._project.sentences.append(s)
-
-            # 重建引擎状态
-            if self._timing_service:
-                self._timing_service.set_project(self._project)
-            if self._store:
-                self._store.notify("lyrics")
-
-            self.refresh_lyric_display()
-            InfoBar.success(
-                title="歌词已加载",
-                content=f"已加载 {len(sentences)} 行歌词",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3000,
-                parent=self,
-            )
-        except Exception as e:
-            InfoBar.error(
-                title="加载失败",
-                content=str(e),
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=5000,
-                parent=self,
-            )
 
     # ==================== 工具栏操作 ====================
 

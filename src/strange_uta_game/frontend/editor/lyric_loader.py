@@ -84,18 +84,22 @@ def parse_lyric_content(
         parser = NicokaraParser()
         result = parser.parse(content)
 
-        # 收集需要新增的演唱者
-        if result.singers and project_singers:
-            for nico_singer in result.singers:
+        # NicokaraParseResult 没有 sentences/singers 属性
+        # 需要通过 parse_to_sentences 处理
+        sentences = parse_to_sentences(result.lines, default_singer_id)
+
+        # 收集需要新增的演唱者（从 singer_definitions 中）
+        if project_singers and result.singer_definitions:
+            for singer_key, display_name in result.singer_definitions.items():
                 existing = None
                 for s in project_singers:
-                    if s.name == nico_singer.name:
+                    if s.name == display_name:
                         existing = s
                         break
                 if not existing:
-                    new_singers.append(nico_singer)
+                    new_singers.append(Singer(name=display_name, color="#FF6B6B", is_default=False))
 
-        return result.sentences, is_nicokara, new_singers
+        return sentences, is_nicokara, new_singers
 
     # ASS 格式
     if fmt == "ass":
