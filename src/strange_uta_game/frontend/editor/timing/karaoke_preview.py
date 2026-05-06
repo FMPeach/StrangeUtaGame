@@ -804,7 +804,7 @@ class KaraokePreview(QWidget):
         if not self._project or not self._project.sentences:
             painter.setPen(theme.text_hint)
             painter.drawText(
-                self.rect(), Qt.AlignmentFlag.AlignCenter, "请创建或打开项目"
+                self.rect(), Qt.AlignmentFlag.AlignCenter, "请拖入sug项目或者歌词文件"
             )
             painter.end()
             return
@@ -1183,7 +1183,7 @@ class KaraokePreview(QWidget):
                             ch_obj.selected_checkpoint_idx == cp_idx
                         )
                         if not has_timed:
-                            color = theme.text_disabled
+                            color = theme.karaoke_text_current
                         elif is_selected:
                             color = _char_complement_colors.get(
                                 char_pos, _char_singer_colors.get(char_pos, highlight_color)
