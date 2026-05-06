@@ -135,6 +135,7 @@ class EditorInterface(QWidget):
         # 1) 工具栏
         self.toolbar = EditorToolBar(self)
         self.toolbar.save_clicked.connect(self._on_save)
+        self.toolbar.load_project_clicked.connect(self._on_load_project)
         self.toolbar.load_audio_clicked.connect(self._on_load_audio)
         self.toolbar.load_lyrics_clicked.connect(self._on_load_lyrics)
         self.toolbar.modify_char_clicked.connect(self._on_modify_char)
@@ -788,6 +789,20 @@ class EditorInterface(QWidget):
                 duration=5000,
                 parent=self,
             )
+
+    def _on_load_project(self):
+        """加载项目文件"""
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "打开项目",
+            "",
+            "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)",
+        )
+        if path:
+            main_window = self.window()
+            open_fn = getattr(main_window, "_open_project_file", None)
+            if open_fn is not None:
+                open_fn(path)
 
     def _on_load_audio(self):
         path, _ = QFileDialog.getOpenFileName(

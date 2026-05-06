@@ -7,7 +7,14 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit
-from qfluentwidgets import FluentIcon as FIF, PushButton, CaptionLabel
+from qfluentwidgets import (
+    Action,
+    CaptionLabel,
+    DropDownPushButton,
+    FluentIcon as FIF,
+    PushButton,
+    RoundMenu,
+)
 
 
 # ──────────────────────────────────────────────
@@ -15,9 +22,10 @@ from qfluentwidgets import FluentIcon as FIF, PushButton, CaptionLabel
 # ──────────────────────────────────────────────
 
 class EditorToolBar(QFrame):
-    """编辑器工具栏 - 保存/加载音频/加载歌词/批量变更/修改字符/插入导唱符/偏移调整"""
+    """编辑器工具栏 - 保存/加载/批量变更/修改字符/插入导唱符/偏移调整"""
 
     save_clicked = pyqtSignal()
+    load_project_clicked = pyqtSignal()
     load_audio_clicked = pyqtSignal()
     load_lyrics_clicked = pyqtSignal()
     bulk_change_clicked = pyqtSignal()
@@ -42,17 +50,16 @@ class EditorToolBar(QFrame):
         self.btn_save.clicked.connect(self.save_clicked.emit)
         layout.addWidget(self.btn_save)
 
-        self.btn_load_audio = PushButton("加载音频", self)
-        self.btn_load_audio.setIcon(FIF.MUSIC)
-        self.btn_load_audio.setFixedHeight(32)
-        self.btn_load_audio.clicked.connect(self.load_audio_clicked.emit)
-        layout.addWidget(self.btn_load_audio)
-
-        self.btn_load_lyrics = PushButton("加载歌词", self)
-        self.btn_load_lyrics.setIcon(FIF.DOCUMENT)
-        self.btn_load_lyrics.setFixedHeight(32)
-        self.btn_load_lyrics.clicked.connect(self.load_lyrics_clicked.emit)
-        layout.addWidget(self.btn_load_lyrics)
+        # 加载下拉菜单（加载项目 / 加载音频 / 加载歌词）
+        self.btn_load = DropDownPushButton("加载", self)
+        self.btn_load.setIcon(FIF.FOLDER)
+        self.btn_load.setFixedHeight(32)
+        load_menu = RoundMenu(parent=self.btn_load)
+        load_menu.addAction(Action(FIF.FOLDER, "加载项目", self, triggered=self.load_project_clicked.emit))
+        load_menu.addAction(Action(FIF.MUSIC, "加载音频", self, triggered=self.load_audio_clicked.emit))
+        load_menu.addAction(Action(FIF.DOCUMENT, "加载歌词", self, triggered=self.load_lyrics_clicked.emit))
+        self.btn_load.setMenu(load_menu)
+        layout.addWidget(self.btn_load)
 
         layout.addSpacing(10)
 
