@@ -453,7 +453,7 @@ class KaraokePreview(QWidget):
                 target_line_idx, target_char_idx
             )
         )
-        menu.addAction(delete_action)
+        menu.addAction(delete_timestamp)
 
         insert_space_action = Action("在此插入空格", menu)
         insert_space_action.triggered.connect(
