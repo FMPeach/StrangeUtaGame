@@ -515,11 +515,7 @@ class EditorInterface(QWidget):
             elif ext in self._LYRIC_EXTENSIONS:
                 self._load_lyrics_from_path(file_path)
             elif ext in self._PROJECT_EXTENSIONS:
-                # 项目文件交给主窗口处理
-                main_window = self.window()
-                open_fn = getattr(main_window, "_open_project_file", None)
-                if open_fn is not None:
-                    open_fn(file_path)
+                self._load_project_file(file_path)
         a0.acceptProposedAction()
 
     def _load_lyrics_from_path(self, path: str):
@@ -739,10 +735,32 @@ class EditorInterface(QWidget):
             "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)",
         )
         if path:
-            main_window = self.window()
-            open_fn = getattr(main_window, "_open_project_file", None)
-            if open_fn is not None:
-                open_fn(path)
+            self._load_project_file(path)
+
+    def _load_project_file(self, file_path: str):
+        """加载 .sug 项目文件"""
+        try:
+            from strange_uta_game.backend.infrastructure.persistence.sug_io import (
+                SugProjectParser,
+            )
+
+            project = SugProjectParser.load(file_path)
+            if self._store:
+                self._store._project = project
+                self._store._save_path = file_path
+                self._store.notify("project")
+            else:
+                self.set_project(project)
+        except Exception as e:
+            InfoBar.error(
+                title="打开失败",
+                content=str(e),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self,
+            )
 
     def _on_load_audio(self):
         path, _ = QFileDialog.getOpenFileName(
