@@ -248,8 +248,9 @@ class TSMRenderCache:
         else:
             segment_order = list(range(total_segments))
 
-        # 使用线程池并行处理（使用所有可用 CPU 核心，留 1 个给主线程）
-        max_workers = max(1, (os.cpu_count() or 1) - 1)
+        # 使用线程池并行处理（使用 50%-70% CPU 核心，避免占用过多资源）
+        cpu_count = os.cpu_count() or 1
+        max_workers = max(1, int(cpu_count * 0.6))
         print(f"[TSM] Rendering {n_in} samples at {speed}x, {total_segments} segments, {max_workers} workers")
 
         # 预分配输出数组

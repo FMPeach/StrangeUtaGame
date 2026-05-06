@@ -234,19 +234,19 @@ class SoundDeviceEngine(IAudioEngine):
         with self._state_lock:
             if self._active_pcm is None or self._sample_rate == 0:
                 return 0
-            # pedalboard 输出的 PCM 已经是变速后的，active_speed 始终为 1.0
-            # 位置计算：直接使用 read_pos_samples
+            # pedalboard 输出的 PCM 是变速后的，长度不同
+            # 播放变速后 PCM 的 N 个采样 = 原始时间轴 N * speed 个采样
+            # 因为变速后 PCM 长度 = 原始长度 / speed
             read_pos = self._read_pos_samples
 
             # 减去 RingBuffer 中尚未播放的样本数，得到实际播放位置
             if self._ring is not None and self._state == PlaybackState.PLAYING:
-                # RingBuffer 中待播放的帧数
                 buffered_frames = self._ring.available_read()
-                # 在 active PCM 上，这些帧对应的位置
                 read_pos = max(0, read_pos - buffered_frames)
 
-            # 直接转换为毫秒（active_speed 始终为 1.0）
-            ms = int(read_pos / self._sample_rate * 1000)
+            # 位置计算：read_pos * active_speed = 原始时间轴上的采样位置
+            orig_samples = read_pos * self._active_speed
+            ms = int(orig_samples / self._sample_rate * 1000)
             return min(max(ms, 0), self._duration_ms)
 
     def set_position_ms(self, position_ms: int) -> None:
@@ -513,15 +513,15 @@ class SoundDeviceEngine(IAudioEngine):
         # 计算"当前原始时间轴位置" → 在新 PCM 上的偏移
         if cur_pcm is None or self._sample_rate == 0:
             return
-        # pedalboard 输出的 PCM 已经是变速后的，active_speed 始终为 1.0
-        # 位置计算：直接使用 read_pos_samples
-        orig_samples = cur_pos
-        new_pos = int(orig_samples)
+        # orig_samples = read_pos * cur_speed（原始时间轴位置）
+        orig_samples = cur_pos * cur_speed
+        # 在新 PCM 上的位置 = orig_samples / pending
+        new_pos = int(orig_samples / max(pending, 1e-6))
         new_pos = max(0, min(new_pos, len(new_pcm)))
 
         with self._state_lock:
             self._active_pcm = new_pcm
-            self._active_speed = 1.0  # pedalboard 输出已是变速后的 PCM
+            self._active_speed = pending  # 使用用户设置的速度
             self._read_pos_samples = new_pos
             # 更新 pending_speed 为当前 speed，避免重复 swap
             self._pending_speed = self._speed
