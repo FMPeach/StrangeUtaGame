@@ -171,32 +171,54 @@ class TSMRenderCache:
 
         使用 Spotify Pedalboard 的 time_stretch，基于 Rubber Band 引擎，
         音质极佳，支持高质量模式和瞬态保护。
+
+        为避免长时间阻塞无进度反馈，将音频分段处理。
         """
         assert self._original is not None
         n_in = self._original.shape[0]
         if n_in == 0:
             return np.zeros((0, self._channels), dtype=np.float32)
 
-        if progress_cb is not None:
-            try:
-                progress_cb(speed, 0.1)
-            except Exception:
-                pass
-
         # stretch_factor: >1 拉伸（变慢），<1 压缩（变快）
         # speed > 1 表示加快播放，所以 stretch_factor = 1/speed
         stretch_factor = 1.0 / speed
 
-        # pedalboard.time_stretch 期望输入为 (n_samples, channels) float32
-        pcm = np.ascontiguousarray(self._original, dtype=np.float32)
-        out = time_stretch(pcm, float(self._sample_rate), stretch_factor=stretch_factor)
+        # 分段处理：每段约 10 秒（避免长时间无进度反馈）
+        segment_samples = int(self._sample_rate * 10)  # 10秒
+        segments = []
+        pos = 0
+        total_segments = max(1, (n_in + segment_samples - 1) // segment_samples)
 
-        if self._worker_cancel.is_set():
-            return None
+        for seg_idx in range(total_segments):
+            if self._worker_cancel.is_set():
+                return None
+
+            end = min(pos + segment_samples, n_in)
+            segment = self._original[pos:end]
+
+            # 处理当前段
+            pcm_segment = np.ascontiguousarray(segment, dtype=np.float32)
+            stretched = time_stretch(
+                pcm_segment, float(self._sample_rate), stretch_factor=stretch_factor
+            )
+            segments.append(stretched)
+
+            # 更新进度
+            progress = (seg_idx + 1) / total_segments
+            if progress_cb is not None:
+                try:
+                    progress_cb(speed, min(progress * 0.99, 0.99))
+                except Exception:
+                    pass
+
+            pos = end
+
+        # 拼接所有段
+        out = np.concatenate(segments, axis=0).astype(np.float32)
 
         if progress_cb is not None:
             try:
                 progress_cb(speed, 1.0)
             except Exception:
                 pass
-        return out.astype(np.float32)
+        return out
