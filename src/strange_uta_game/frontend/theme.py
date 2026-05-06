@@ -89,7 +89,7 @@ class ThemeColors:
     @property
     def text_disabled(self) -> QColor:
         """禁用文字色"""
-        return QColor("#555555" if self._is_dark else "#BBBBBB")
+        return QColor("#636363" if self._is_dark else "#CCCCCC")
 
     # ── 边框色 ──
 
