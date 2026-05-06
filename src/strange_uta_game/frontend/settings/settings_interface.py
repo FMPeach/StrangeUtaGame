@@ -675,6 +675,7 @@ class SettingsInterface(ScrollArea):
                 "SRT",
                 "ASS",
                 "Nicokara",
+                "Nicokara (带注音)",
             ],
             parent=self.export_group,
         )
@@ -1135,7 +1136,7 @@ class SettingsInterface(ScrollArea):
         self.card_lyrics_alignment.setCurrentIndex(alignment_idx)
 
         # 导出设定
-        fmt = self._settings.get("export.default_format", "Nicokara")
+        fmt = self._settings.get("export.default_format", "Nicokara (带注音)")
         fmt_idx = {
             "LRC (增强型)": 0,
             "LRC (逐行)": 1,
@@ -1145,8 +1146,9 @@ class SettingsInterface(ScrollArea):
             "SRT": 5,
             "ASS": 6,
             "Nicokara": 7,
+            "Nicokara (带注音)": 8,
             "LRC": 0,  # 旧配置兼容
-        }.get(fmt, 7)
+        }.get(fmt, 8)
         self.card_default_format.setCurrentIndex(fmt_idx)
         export_dir = self._settings.get("export.last_export_dir", "")
         if export_dir:
@@ -1273,10 +1275,11 @@ class SettingsInterface(ScrollArea):
             5: "SRT",
             6: "ASS",
             7: "Nicokara",
+            8: "Nicokara (带注音)",
         }
         self._settings.set(
             "export.default_format",
-            fmt_map.get(self.card_default_format.currentIndex(), "Nicokara"),
+            fmt_map.get(self.card_default_format.currentIndex(), "Nicokara (带注音)"),
         )
         export_dir = self.card_export_dir.text()
         if export_dir:

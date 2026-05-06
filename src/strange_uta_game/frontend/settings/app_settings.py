@@ -62,7 +62,7 @@ class AppSettings:
             "lyrics_alignment": "center",
         },
         "export": {
-            "default_format": "Nicokara",
+            "default_format": "Nicokara (带注音)",
             "auto_add_extension": True,
             "last_export_dir": "",
             "offset_ms": -100,
