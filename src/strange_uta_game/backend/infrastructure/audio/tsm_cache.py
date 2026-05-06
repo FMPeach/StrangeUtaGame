@@ -27,6 +27,7 @@ from pedalboard import time_stretch
 
 ProgressCallback = Callable[[float, float], None]  # (speed, 0.0~1.0)
 DoneCallback = Callable[[float], None]              # (speed,)
+SegmentReadyCallback = Callable[[float, np.ndarray], None]  # (speed, segment_pcm)
 
 _SPEED_QUANT = 2  # round(speed, 2)，0.01 精度
 _LRU_MAX = 3
@@ -102,6 +103,7 @@ class TSMRenderCache:
         speed: float,
         progress_cb: Optional[ProgressCallback] = None,
         done_cb: Optional[DoneCallback] = None,
+        segment_ready_cb: Optional[SegmentReadyCallback] = None,
         priority_center: Optional[int] = None,
     ) -> Optional[np.ndarray]:
         """确保 ``speed`` 对应的 PCM 就绪。
@@ -111,6 +113,7 @@ class TSMRenderCache:
 
         Args:
             priority_center: 优先渲染的位置（采样索引），用于先渲染播放位置附近
+            segment_ready_cb: 每段渲染完成时回调，用于边渲染边播放
 
         新的 ensure 调用会取消正在进行的旧渲染（如果不同 speed）。
         """
@@ -139,7 +142,7 @@ class TSMRenderCache:
         def _target() -> None:
             try:
                 print(f"[TSM] Worker started for speed {q}x, priority={priority_center}")
-                rendered = self._render_full(q, progress_cb, priority_center)
+                rendered = self._render_full(q, progress_cb, priority_center, segment_ready_cb)
                 if rendered is None:
                     print(f"[TSM] Render cancelled for speed {q}x")
                     return  # 被取消
@@ -177,6 +180,7 @@ class TSMRenderCache:
         speed: float,
         progress_cb: Optional[ProgressCallback],
         priority_center: Optional[int] = None,
+        segment_ready_cb: Optional[SegmentReadyCallback] = None,
     ) -> Optional[np.ndarray]:
         """整文件 TSM 渲染；返回 ``(n_samples, channels)`` float32。
 
@@ -228,6 +232,13 @@ class TSMRenderCache:
             )
             out_segments[seg_idx] = stretched
             rendered_count += 1
+
+            # 回调通知：当前段已渲染完成
+            if segment_ready_cb is not None:
+                try:
+                    segment_ready_cb(speed, stretched)
+                except Exception as e:
+                    print(f"[TSM] segment_ready_cb error: {e}")
 
             # 更新进度
             progress = rendered_count / total_segments
