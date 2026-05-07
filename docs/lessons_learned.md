@@ -31,9 +31,14 @@
 - `apply_to_project` / `update_checkpoints_from_rubies` 改 `check_count` 后必须调用 `Project.shift_selected_checkpoint_if_lost()`。
 - startup / home 自动注音用 `only_noruby=True`，不弹窗——避免覆盖用户已带注音的导入文本。
 - fulltext_interface 的"自动分析全部注音"用三选项弹窗：全部重新分析 / 仅未注音 / 取消。
-- **英文词条的词边界必须把 apostrophe（`'` U+0027 和 `’` U+2019）视为词内字符**，否则 `what` 会命中 `what's` 中部，导致 `'s` 被占用冲突、裸露无注音。用户词典子串匹配的边界检查不能只看 `isalpha()`。
+- **英文词条的词边界必须把 apostrophe（`'` U+0027 和 `'` U+2019）视为词内字符**，否则 `what` 会命中 `what's` 中部，导致 `'s` 被占用冲突、裸露无注音。用户词典子串匹配的边界检查不能只看 `isalpha()`。
 - 用户词典在 `analyze_sentence` 中**先于** e2k 执行（dict_covered → e2k_covered → fallback）。这与直觉"英文优先 e2k"相反，是有意的覆盖优先级设计（允许用户词典强制改写英文读音）。影响：用户词典的英文词条边界必须严格，否则污染下游 e2k。
 - `update_checkpoints_from_rubies` 的节奏点覆写要在"标点/flag 过滤之后"插入英文词组规则（首=1/中=0/末=句尾），否则会被 flag 过滤抹掉。英文句尾判定合并进 `is_sentence_end` 逻辑，不单独一段。
+- **汉字注音拆分的根本矛盾**：SudachiPy/pykakasi 是基于「词」的形态素分析器，对单字只返回训读（傷→キズ），不返回音读（ショウ）。复合词（傷痕→ショウコン）被当作整体返回，无法直接拆出单字音读。`_try_split_to_chars` 的 5 级 Pass 链（约束回溯→音读字典组合匹配→pykakasi参考分区→モーラ均分→无约束分区）逐级 fallback，其中音读字典匹配（Pass 2）是唯一能准确拆分音读复合词的路径。
+- **`々` (U+3005 IDEOGRAPHIC ITERATION MARK) 不在 CJK Unified Ideographs 区块**，必须在 `_is_kanji` 和 `get_char_type` 中显式加入。否则含々的词（上々、堂々等）会被 `all_kanji` 判定为 False，跳过字典匹配。
+- **`々` 的候选读音**：字典匹配时，々应继承前一个汉字的候选读音池，并追加连浊变体（清音首字母→浊音/半浊音）。例如「上」候选 `[ジョウ]`，「々」继承 `[ジョウ, ダクテン(ジョウ)]` → 匹配 `ジョウジョウ`。
+- **モーラ均分的局限**：按拍数均匀分配（4拍/2字=各2拍）对 2+2 分布的音读词有效，但对 3+1 分布（如「〇〇〇+〇」）会错切为 2+2。因此仅作为 fallback，排在 pykakasi 参考分区之后。
+- **音读字典 vs 用户词典的分工**：`kanji_readings.json` 只存单字的标准音读/训读（KANJIDIC2 自动派生）；连浊、缩读、特殊读法（如 凛々→り,り）属于用户词典 `dictionary.json` 的范畴。
 
 ## TimingService / Checkpoint
 

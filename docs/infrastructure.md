@@ -28,6 +28,17 @@
     - **假名统一**：所有注音输出均转为平假名（含小写片假名如 ェ）。
     - **回退链**：`create_analyzer()` 优先级 SudachiPy → pykakasi → DummyAnalyzer。
     - **内置词典**：缺失 `dictionary.json` 时自动从内嵌的 1757 条 RL 词典初始化。
+    - **`_is_kanji`**：判定范围含 CJK Unified Ideographs (U+4E00-U+9FFF)、CJK Extension A (U+3400-U+4DBF)、CJK Compatibility (U+F900-U+FAFF)、以及迭字记号 `々` (U+3005)。
+
+### kanji_readings (单字音读字典)
+基于 KANJIDIC2 项目提取的全量汉字读音数据，用于复合词读音拆分。
+
+- **数据源**：KANJIDIC2 XML（Jim Breen / EDRDG 维护），包含 12000+ 汉字的音读（on）和训读（kun）。
+- **文件**：`infrastructure/parsers/kanji_readings.json`，格式 `{字: {on: [...], kun: [...]}}`。
+- **职责**：
+    - 为 `_try_split_to_chars` 的 Pass 2（音读字典组合匹配）提供单字候选读音。
+    - 不包含连浊、缩读、特殊读法——这些属于用户词典 `dictionary.json` 的范畴。
+- **更新方式**：运行 `gen_kanji_dict.py` 脚本从 KANJIDIC2 XML 重新生成。
 
 ### lyric_parser (歌词解析器)
 支持多种原始歌词格式的导入。

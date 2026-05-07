@@ -19,7 +19,13 @@
 - `apply_to_project`：将分析结果写入 Sentence（设置 check_count 和 Ruby）。
 - `update_checkpoints_from_rubies`：基于当前注音数据和 auto_check_flags 重算节奏点，不重新分析。批 18 #9 起覆写英文词组节奏点（首=1 cp，中=0，末字标句尾）。
 - **节奏点 vs 注音**：两个独立过程。注音流程不含标点；节奏点流程含标点（`checkpoint_on_punctuation` 控制，默认关）。
-- **单字拆分（`_try_split_to_chars`）**：Pass 1 约束回溯（用户字典 + 分析器 + pykakasi 候选）→ Pass 2 pykakasi 参考分区（精确→前缀→无约束三级匹配）→ Pass 3 无约束分区。失败则连词（首字承载全部读音，其余 check_count=0）。
+- **单字拆分（`_try_split_to_chars`）**：5 级 Pass 逐级 fallback：
+    1. 约束回溯（分析器 + pykakasi 候选读音精确匹配前缀）
+    2. 音读字典组合匹配（`kanji_readings.json` 单字音读/训读排列组合；「々」继承前字候选 + 连浊变体）
+    3. pykakasi 参考分区（精确→前缀→无约束三级匹配）
+    4. モーラ均分（按拍数均匀分配，局限：3+1 分布会错切为 2+2）
+    5. 无约束分区（最短优先穷举）
+    失败则连词（首字承载全部读音，其余 check_count=0）。
 - **auto_check_flags**：按字符类型控制节奏点（hiragana / katakana / kanji / alphabet / digit / symbol / space / small_kana / check_n / check_sokuon / check_space_as_line_end / check_parentheses / check_line_start 等）。
 - **only_noruby 模式**：`apply_to_project(only_noruby=True)` 跳过已注音字符，用于启动/主页自动注音避免覆盖用户导入。
 - 句尾字符允许 check_count=0（无普通 cp，仅靠 sentence_end_ts 结束句子）。
