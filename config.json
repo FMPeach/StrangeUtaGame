@@ -14,7 +14,7 @@
     "rewind_ms": 5000,
     "jump_before_ms": 3000,
     "timing_adjust_step_ms": 10,
-    "disable_click_jump": false
+    "disable_click_jump": true
   },
   "auto_check": {
     "hiragana": true,
@@ -36,7 +36,8 @@
     "space_after_symbol": true,
     "small_kana": false,
     "check_space_as_line_end": true,
-    "checkpoint_on_punctuation": false
+    "checkpoint_on_punctuation": false,
+    "check_english_word_end": true
   },
   "ui": {
     "theme": "auto",
@@ -45,13 +46,13 @@
     "current_line_font_size": 22,
     "ruby_size": 10,
     "cp_size": 8,
-    "line_height_factor": 1.20,
+    "line_height_factor": 1.2,
     "lyrics_alignment": "left"
   },
   "export": {
     "default_format": "LRC (增强型)",
     "auto_add_extension": true,
-    "last_export_dir": "",
+    "last_export_dir": "E:\\ニコカラ\\044livetune,初音ミク - Hand in Hand",
     "offset_ms": -230
   },
   "ruby_dictionary": {

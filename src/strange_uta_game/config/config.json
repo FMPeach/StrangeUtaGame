@@ -14,7 +14,7 @@
     "rewind_ms": 5000,
     "jump_before_ms": 3000,
     "timing_adjust_step_ms": 10,
-    "disable_click_jump": false
+    "disable_click_jump": true
   },
   "auto_check": {
     "hiragana": true,
@@ -36,7 +36,8 @@
     "space_after_symbol": true,
     "small_kana": false,
     "check_space_as_line_end": true,
-    "checkpoint_on_punctuation": false
+    "checkpoint_on_punctuation": false,
+    "check_english_word_end": true
   },
   "ui": {
     "theme": "auto",
