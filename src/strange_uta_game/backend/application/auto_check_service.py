@@ -1059,11 +1059,13 @@ class AutoCheckService:
         # find_english_words 基于 sentence.text 的字符索引，与 results 一一对应
         # （analyze_sentence 内 chars 由 split_text(text) 产出，逐字符英文路径保持索引对齐）。
         english_sentence_end_idx: set = set()
-        for _start, _end, _word in find_english_words(sentence.text):
-            if _end - _start <= 1:
-                continue  # 单字母词不强制
-            if _end - 1 < len(results):
-                english_sentence_end_idx.add(_end - 1)
+        check_english_word_end = self._flags.get("check_english_word_end", True)
+        if check_english_word_end:
+            for _start, _end, _word in find_english_words(sentence.text):
+                if _end - _start <= 1:
+                    continue  # 单字母词不强制
+                if _end - 1 < len(results):
+                    english_sentence_end_idx.add(_end - 1)
 
         new_characters: List[Character] = []
         for i, result in enumerate(results):
@@ -1356,13 +1358,14 @@ class AutoCheckService:
         # find_english_words 基于 sentence.text 的字符索引，与 sentence.characters 一一对应
         # （文本拆分器对英文走逐字符路径，保持字符-文本索引对齐）。
         english_sentence_end_idx: set[int] = set()
+        check_english_word_end = self._flags.get("check_english_word_end", True)
         for start, end, word in find_english_words(sentence.text):
             if end - start <= 1:
                 continue  # 单字母词：无词组概念
             for idx in range(start, end):
                 if idx < len(check_counts):
                     check_counts[idx] = 1 if idx == start else 0
-            if end - 1 < len(sentence.characters):
+            if check_english_word_end and end - 1 < len(sentence.characters):
                 english_sentence_end_idx.add(end - 1)
 
         # 更新字符属性

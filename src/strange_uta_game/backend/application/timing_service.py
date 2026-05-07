@@ -131,6 +131,8 @@ class TimingService:
         # 全局 Checkpoint 缓存
         self._global_checkpoints: List[CheckpointPosition] = []
         self._global_checkpoint_idx = 0
+        # 打轴时保存位置历史，用于撤回时恢复光标
+        self._checkpoint_history: List[int] = []
 
         # 音频播放位置回调
         self._audio_engine.set_position_callback(self._on_audio_position_changed)
@@ -209,7 +211,15 @@ class TimingService:
         """撤销上一个打轴命令"""
         if not self._command_manager:
             return None
-        return self._command_manager.undo()
+        result = self._command_manager.undo()
+        # 恢复打轴前的光标位置
+        if result is not None and self._checkpoint_history:
+            prev_idx = self._checkpoint_history.pop()
+            if 0 <= prev_idx < len(self._global_checkpoints):
+                self._global_checkpoint_idx = prev_idx
+                self._current_position = self._global_checkpoints[prev_idx]
+                self._notify_checkpoint_moved()
+        return result
 
     def redo(self) -> Optional[str]:
         """重做上一个打轴命令"""
@@ -496,6 +506,9 @@ class TimingService:
         sentence, char = self._get_current_checkpoint_info()
         if not sentence or not char:
             return
+
+        # 保存当前位置，以便撤回时恢复
+        self._checkpoint_history.append(self._global_checkpoint_idx)
 
         if self._command_manager and self._project:
             from strange_uta_game.backend.application.commands import AddTimeTagCommand
