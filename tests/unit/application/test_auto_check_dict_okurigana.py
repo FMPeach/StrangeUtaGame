@@ -93,7 +93,7 @@ class TestDictOkuriganaPeel:
     def test_dict_tail_empty_against_kanji_triggers_fallback(self):
         """`食物 → たもの,`：尾 part 空对应汉字 `物` → fallback。
 
-        期望：`{食物||た,もの}`（物 拿到 `もの`，不再无注音）
+        期望：`{食||た}{物||もの}`（物 拿到 `もの`，各自独立）
         """
         service = AutoCheckService(
             ruby_analyzer=_get_sudachi(),
@@ -104,17 +104,16 @@ class TestDictOkuriganaPeel:
         sent = _make_sentence("食物")
         service.apply_to_sentence(sent)
 
-        assert _serialize(sent.characters) == "{食物||た,もの}"
-        # 两字都在块内
-        assert sent.characters[0].linked_to_next is True
+        assert _serialize(sent.characters) == "{食||た}{物||もの}"
+        # 各自独立不连词
+        assert sent.characters[0].linked_to_next is False
         assert sent.characters[1].ruby is not None
         assert "".join(p.text for p in sent.characters[1].ruby.parts) == "もの"
 
     def test_dict_middle_empty_against_kana_preserved(self):
         """`食べ物 → た,,もの`：中间 part 空对应假名 `べ` → 保持字典语义。
 
-        这是合法的「连词首字承载」，不应触发 fallback。
-        期望：`{食べ物||た,,も|の}`（べ ruby=None，由 食 的 `た` 承载首 mora）
+        期望：`{食||た}べ{物||も|の}`（べ 独立自注音，食/物 各自独立）
         """
         service = AutoCheckService(
             ruby_analyzer=_get_sudachi(),
@@ -125,7 +124,7 @@ class TestDictOkuriganaPeel:
         sent = _make_sentence("食べ物")
         service.apply_to_sentence(sent)
 
-        assert _serialize(sent.characters) == "{食べ物||た,,も|の}"
+        assert _serialize(sent.characters) == "{食||た}べ{物||も|の}"
 
     def test_dict_leading_kana_peeled(self):
         """`お花見 → お,はな,み`：干净拆分（3段非空==3字）→ 每字独立。
@@ -181,8 +180,9 @@ class TestDictOkuriganaPeel:
         sent = _make_sentence("可愛")
         service.apply_to_sentence(sent)
 
-        assert _serialize(sent.characters) == "{可愛||か,わ}"
-        assert sent.characters[0].linked_to_next is True
+        assert _serialize(sent.characters) == "{可||か}{愛||わ}"
+        # 各自独立不连词
+        assert sent.characters[0].linked_to_next is False
 
     def test_clean_split_two_char_independent(self):
         """干净拆分 2 字 `大空 → おお,そら` → 每字独立可单独使用。
