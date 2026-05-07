@@ -31,6 +31,16 @@ try:
     import jaconv
 
     print("✓ 所有依赖已安装")
+    # 打印版本信息
+    print(f"  PyQt6: {PyQt6.QtCore.PYQT_VERSION_STR}")
+    print(f"  sounddevice: {sounddevice.__version__}")
+    print(f"  soundfile: {soundfile.__version__}")
+    print(f"  pedalboard: {pedalboard.__version__}")
+    print(f"  numpy: {numpy.__version__}")
+    print(f"  pykakasi: {getattr(pykakasi, '__version__', 'unknown')}")
+    print(f"  sudachipy: {getattr(sudachipy, '__version__', 'unknown')}")
+    print(f"  sudachidict_core: {getattr(sudachidict_core, '__version__', 'unknown')}")
+    print(f"  jaconv: {getattr(jaconv, '__version__', 'unknown')}")
 except ImportError as e:
     print(f"✗ 缺少依赖: {e}")
     print("请先运行: pip install -r requirements.txt")
@@ -57,9 +67,14 @@ args = [
     "--hidden-import=sounddevice",
     "--hidden-import=soundfile",
     "--hidden-import=pedalboard",
+    "--hidden-import=pedalboard.io",
+    "--hidden-import=pedalboard.io.AudioFile",
+    "--hidden-import=pedalboard.io.StreamResampler",
+    "--hidden-import=pedalboard.time_stretch",
     "--hidden-import=numpy",
     "--hidden-import=numpy.core",
     "--hidden-import=numpy.fft",
+    "--hidden-import=numpy.lib",
     # 日语处理
     "--hidden-import=pykakasi",
     "--hidden-import=pykakasi.kakasi",
