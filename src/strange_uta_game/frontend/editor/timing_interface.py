@@ -405,7 +405,8 @@ class EditorInterface(QWidget):
         current_line_size = settings.get("ui.current_line_font_size", 22)
         ruby_size = settings.get("ui.ruby_size", 10)
         cp_size = settings.get("ui.cp_size", 8)
-        self.preview.set_font_sizes(base_font_size, current_line_size, ruby_size, cp_size)
+        line_height_factor = settings.get("ui.line_height_factor", 1.20)
+        self.preview.set_font_sizes(base_font_size, current_line_size, ruby_size, cp_size, line_height_factor)
         # 更新快捷键提示（#6：只保留 9 项核心）
         self._update_shortcut_hint(timing_actions, edit_actions)
         # #7：打轴按钮文字联动 shortcuts.timing_mode.tag_now

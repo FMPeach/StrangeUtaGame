@@ -663,6 +663,17 @@ class SettingsInterface(ScrollArea):
             suffix=" px",
             parent=self.ui_group,
         )
+        self.card_line_height_factor = DoubleSpinSettingCard(
+            FIF.FONT_SIZE,
+            "行间距系数",
+            "行高 = (当前行字体 + 注音 + 节奏点)高度 × 系数",
+            min_val=0.50,
+            max_val=5.00,
+            step=0.05,
+            decimals=2,
+            suffix=" x",
+            parent=self.ui_group,
+        )
         self.card_lyrics_alignment = ComboSettingCard(
             FIF.ALIGNMENT,
             "歌词对齐方式",
@@ -676,6 +687,7 @@ class SettingsInterface(ScrollArea):
         self.ui_group.addSettingCard(self.card_current_line_font_size)
         self.ui_group.addSettingCard(self.card_ruby_size)
         self.ui_group.addSettingCard(self.card_cp_size)
+        self.ui_group.addSettingCard(self.card_line_height_factor)
         self.ui_group.addSettingCard(self.card_lyrics_alignment)
         self.expandLayout.addWidget(self.ui_group)
 
@@ -1153,6 +1165,7 @@ class SettingsInterface(ScrollArea):
         self.card_current_line_font_size.setValue(self._settings.get("ui.current_line_font_size", 22))
         self.card_ruby_size.setValue(self._settings.get("ui.ruby_size", 10))
         self.card_cp_size.setValue(self._settings.get("ui.cp_size", 8))
+        self.card_line_height_factor.setValue(self._settings.get("ui.line_height_factor", 1.20))
         alignment = self._settings.get("ui.lyrics_alignment", "center")
         alignment_idx = {"left": 0, "center": 1, "right": 2}.get(alignment, 1)
         self.card_lyrics_alignment.setCurrentIndex(alignment_idx)
@@ -1283,6 +1296,7 @@ class SettingsInterface(ScrollArea):
         self._settings.set("ui.current_line_font_size", self.card_current_line_font_size.value())
         self._settings.set("ui.ruby_size", self.card_ruby_size.value())
         self._settings.set("ui.cp_size", self.card_cp_size.value())
+        self._settings.set("ui.line_height_factor", self.card_line_height_factor.value())
         alignment_map = {0: "left", 1: "center", 2: "right"}
         self._settings.set(
             "ui.lyrics_alignment",
