@@ -110,13 +110,11 @@ class FileLoader:
             return True
 
         store = self._store
-        has_save_path = store and store.save_path
-
-        if not has_save_path:
-            # 临时项目：提示保存
+        # 检查是否有未保存的更改
+        if store and store.dirty:
             msg = QMessageBox(self._editor)
             msg.setWindowTitle("保存当前项目")
-            msg.setText("当前项目尚未保存，是否保存？")
+            msg.setText("当前项目有未保存的更改，是否保存？")
             btn_save = msg.addButton("保存", QMessageBox.ButtonRole.AcceptRole)
             btn_discard = msg.addButton("放弃", QMessageBox.ButtonRole.DestructiveRole)
             msg.addButton("取消", QMessageBox.ButtonRole.RejectRole)

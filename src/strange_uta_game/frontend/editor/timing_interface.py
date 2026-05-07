@@ -602,15 +602,12 @@ class EditorInterface(QWidget):
     def _on_new_project(self):
         """新建项目（检查当前项目是否需要保存）"""
         if self._project:
-            # 检查是否有未保存的更改
             store = getattr(self, "_store", None)
-            has_save_path = store and store.save_path
-
-            if not has_save_path:
-                # 临时项目：提示保存
+            # 检查是否有未保存的更改
+            if store and store.dirty:
                 msg = QMessageBox(self)
                 msg.setWindowTitle("保存当前项目")
-                msg.setText("当前项目尚未保存，是否保存？")
+                msg.setText("当前项目有未保存的更改，是否保存？")
                 btn_save = msg.addButton("保存", QMessageBox.ButtonRole.AcceptRole)
                 msg.addButton("放弃", QMessageBox.ButtonRole.DestructiveRole)
                 btn_cancel = msg.addButton("取消", QMessageBox.ButtonRole.RejectRole)
@@ -1015,6 +1012,17 @@ class EditorInterface(QWidget):
         try:
             # 创建状态提示
             state_tooltip = StateToolTip("正在加载音频", "正在读取音频文件...", self)
+            green = theme.status_complete.name()
+            state_tooltip.setStyleSheet(f"""
+                StateToolTip {{
+                    background-color: {green};
+                    border: 1px solid {green};
+                    border-radius: 8px;
+                }}
+                StateToolTip QLabel {{
+                    color: white;
+                }}
+            """)
             state_tooltip.move(state_tooltip.getSuitablePos())
             state_tooltip.show()
 
