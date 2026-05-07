@@ -713,7 +713,7 @@ class SettingsInterface(ScrollArea):
     _SHORTCUT_ACTIONS: list[tuple[str, object, str, str, str, str, str, str, str]] = [
         # (key, icon, title, content, default_timing, default_edit, scope, timing_content, edit_content)
         # — 两模式通用 —
-        ("play_pause", FIF.PLAY, "播放/暂停", "切换播放和暂停", "A", "A", "both", None, None),
+        ("play_pause", FIF.PLAY, "播放/暂停", "切换播放和暂停", "D", "D", "both", None, None),
         ("stop", FIF.PAUSE, "停止", "停止播放", "S", "S", "both", None, None),
         ("speed_down", FIF.SPEED_OFF, "减速", "降低播放速度", "Q", "Q", "both", None, None),
         ("speed_up", FIF.SPEED_HIGH, "加速", "提高播放速度", "W", "W", "both", None, None),

@@ -65,7 +65,7 @@
   },
   "shortcuts": {
     "timing_mode": {
-      "play_pause": "A",
+      "play_pause": "D",
       "stop": "S",
       "tag_now": "Space",
       "seek_back": "Z",
@@ -92,7 +92,7 @@
       "delete_timestamp": "Backspace"
     },
     "edit_mode": {
-      "play_pause": "A",
+      "play_pause": "D",
       "stop": "S",
       "tag_now": "",
       "seek_back": "Z",
@@ -118,7 +118,7 @@
       "delete_char": "Delete",
       "delete_timestamp": ""
     },
-    "play_pause": "A",
+    "play_pause": "D",
     "stop": "S",
     "tag_now": "",
     "seek_back": "Z",

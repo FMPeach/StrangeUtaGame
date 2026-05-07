@@ -86,7 +86,7 @@ class AppSettings:
             # 打轴模式：音乐播放时生效（以实时打轴操作为主）
             # 注：以 _SHORTCUT_ACTIONS 为唯一真源，此处需保持一致
             "timing_mode": {
-                "play_pause": "A",
+                "play_pause": "D",
                 "stop": "S",
                 "tag_now": "Space",
                 "seek_back": "Z",
@@ -114,7 +114,7 @@ class AppSettings:
             },
             # 编辑模式：音乐暂停/停止时生效（以歌词/注音编辑为主）
             "edit_mode": {
-                "play_pause": "A",
+                "play_pause": "D",
                 "stop": "S",
                 "tag_now": "Space",
                 "seek_back": "Z",

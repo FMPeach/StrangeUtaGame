@@ -322,7 +322,7 @@ class EditorInterface(QWidget):
         # 默认值兜底（当设置未写入新 schema 时使用）
         defaults = {
             "tag_now": "Space",
-            "play_pause": "A",
+            "play_pause": "D",
             "stop": "S",
             "seek_back": "Z",
             "seek_forward": "X",
@@ -518,6 +518,33 @@ class EditorInterface(QWidget):
         a0.acceptProposedAction()
 
     # ==================== 工具栏操作 ====================
+
+    def _on_paste_lyrics(self):
+        """从剪贴板粘贴歌词（Ctrl+V）"""
+        from PyQt6.QtWidgets import QApplication
+
+        clipboard = QApplication.clipboard()
+        if not clipboard:
+            return
+
+        text = clipboard.text()
+        if not text or not text.strip():
+            return
+
+        # 检查是否可以加载
+        if not self._file_loader.can_load_from_clipboard():
+            InfoBar.warning(
+                title="无法粘贴",
+                content="仅在未创建项目或项目无歌词时可粘贴歌词",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self,
+            )
+            return
+
+        self._file_loader.load_lyrics_from_text(text)
 
     def _on_save(self):
         if not self._project:
@@ -2080,6 +2107,10 @@ class EditorInterface(QWidget):
                 return
             elif key == Qt.Key.Key_H:
                 self._on_bulk_change()
+                a0.accept()
+                return
+            elif key == Qt.Key.Key_V:
+                self._on_paste_lyrics()
                 a0.accept()
                 return
             # 其他 Ctrl 组合键：不直接 return，继续走 key_map 查找
