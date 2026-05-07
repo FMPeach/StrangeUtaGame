@@ -7,14 +7,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 from qfluentwidgets import InfoBar, InfoBarPosition
 
-from .lyric_loader import read_lyric_file, parse_lyric_content
 from strange_uta_game.frontend.settings.app_settings import AppSettings
+
+from .lyric_loader import parse_lyric_content, read_lyric_file
 
 if TYPE_CHECKING:
     from ..timing_interface import EditorInterface
@@ -27,7 +28,7 @@ class FileLoader:
     _LYRIC_EXTENSIONS = {".lrc", ".txt", ".kra"}
     _PROJECT_EXTENSIONS = {".sug"}
 
-    def __init__(self, editor: "EditorInterface"):
+    def __init__(self, editor: EditorInterface):
         self._editor = editor
 
     @property
@@ -211,7 +212,6 @@ class FileLoader:
         """歌词加载的核心逻辑（文件和剪贴板共用）"""
         try:
             from strange_uta_game.backend.application import ProjectService
-            from strange_uta_game.backend.domain import Singer
 
             # 如果没有项目，自动创建
             if not self._project:
@@ -273,9 +273,69 @@ class FileLoader:
             if is_nicokara:
                 self._prompt_nicokara_ruby_choice()
 
+        except ValueError as e:
+            # SUG 项目文件：直接加载为项目
+            if str(e) == "__SUG_PROJECT__":
+                self._load_sug_from_text(content)
+            else:
+                InfoBar.error(
+                    title="加载失败", content=str(e),
+                    orient=Qt.Orientation.Horizontal, isClosable=True,
+                    position=InfoBarPosition.TOP, duration=5000,
+                    parent=self._editor,
+                )
         except Exception as e:
             InfoBar.error(
                 title="加载失败", content=str(e),
+                orient=Qt.Orientation.Horizontal, isClosable=True,
+                position=InfoBarPosition.TOP, duration=5000,
+                parent=self._editor,
+            )
+
+    def _load_sug_from_text(self, content: str):
+        """从文本内容加载 SUG 项目（用于剪贴板粘贴）。
+
+        检查未保存更改后，解析 SUG JSON 内容并加载为新项目。
+        由于没有文件路径，保存时需要用户选择路径。
+        """
+        # 检查未保存更改
+        if not self.check_unsaved_changes():
+            return
+
+        try:
+            import json
+
+            from strange_uta_game.backend.infrastructure.persistence.sug_io import (
+                SugMigrator,
+                SugProjectParser,
+            )
+
+            data = json.loads(content.strip())
+
+            # 版本迁移
+            version = data.get("version", "1.0")
+            if version != SugMigrator.CURRENT_VERSION:
+                data = SugMigrator.migrate(data, version)
+
+            project = SugProjectParser._dict_to_project(data)
+
+            # 加载项目（无文件路径，保存时需用户选择）
+            if self._store:
+                self._store._project = project
+                self._store._save_path = None
+                self._store.notify("project")
+            else:
+                self._editor.set_project(project)
+
+            InfoBar.success(
+                title="项目已加载", content="从剪贴板加载了 SUG 项目（保存时需选择路径）",
+                orient=Qt.Orientation.Horizontal, isClosable=True,
+                position=InfoBarPosition.TOP, duration=3000,
+                parent=self._editor,
+            )
+        except Exception as e:
+            InfoBar.error(
+                title="加载失败", content=f"解析 SUG 项目失败: {e}",
                 orient=Qt.Orientation.Horizontal, isClosable=True,
                 position=InfoBarPosition.TOP, duration=5000,
                 parent=self._editor,

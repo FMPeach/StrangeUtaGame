@@ -1969,12 +1969,12 @@ class EditorInterface(QWidget):
         if tags:
             self._on_seek(tags[0])
         else:
-            # 向前查找最近的时间戳
+            # 向前查找最近的时间戳，仅跳转音频
             prev_ts = self._find_previous_timestamp(line_idx, char_idx)
             if prev_ts is not None:
                 self._on_seek(prev_ts)
 
-        # 同时移动打轴位置到该字符
+        # 移动打轴位置到当前双击的字符
         if self._timing_service:
             self._timing_service.move_to_checkpoint(line_idx, char_idx, 0)
             self._update_time_tags_display()
@@ -1997,12 +1997,12 @@ class EditorInterface(QWidget):
             target_idx = min(cp_idx, len(tags) - 1)
             self._on_seek(tags[target_idx])
         else:
-            # 向前查找最近的时间戳
+            # 向前查找最近的时间戳，仅跳转音频
             prev_ts = self._find_previous_timestamp(line_idx, char_idx)
             if prev_ts is not None:
                 self._on_seek(prev_ts)
 
-        # 同时移动打轴位置到该 checkpoint
+        # 移动打轴位置到当前双击的 checkpoint
         if self._timing_service:
             self._timing_service.move_to_checkpoint(line_idx, char_idx, cp_idx)
             self._update_time_tags_display()

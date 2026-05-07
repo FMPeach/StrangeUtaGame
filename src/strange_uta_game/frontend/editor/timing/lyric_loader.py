@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -21,7 +22,7 @@ from strange_uta_game.backend.infrastructure.parsers.inline_format import (
 )
 
 
-# 内联格式检测
+# 内联格式检测（包括 inline 和纯 RLF 文本格式）
 _INLINE_PATTERN = re.compile(r"\[.*?\|.*?\]|{[^}]+\|[^}]+}")
 # LRC 时间标签检测
 _LRC_PATTERN = re.compile(r"\[\d{2}:\d{2}\.\d{2,3}\]")
@@ -33,12 +34,37 @@ _SRT_PATTERN = re.compile(
 )
 
 
+def _is_json_content(content: str) -> bool:
+    """检测内容是否为 JSON 格式（可能是 SUG 项目文件）。"""
+    stripped = content.strip()
+    if not stripped:
+        return False
+    # 快速检查：JSON 必须以 { 或 [ 开头
+    if not (stripped.startswith("{") or stripped.startswith("[")):
+        return False
+    # 尝试解析 JSON
+    try:
+        data = json.loads(stripped)
+        # 检查是否包含 SUG 项目文件的特征字段
+        if isinstance(data, dict):
+            sug_keys = {"version", "id", "metadata", "singers", "sentences"}
+            if sug_keys.intersection(data.keys()):
+                return True
+        return False
+    except (json.JSONDecodeError, ValueError):
+        return False
+
+
 def detect_lyric_format(content: str) -> str:
     """检测歌词内容的格式。
 
     Returns:
-        格式名称: "inline", "nicokara", "ass", "srt", "lrc", "text"
+        格式名称: "sug", "inline", "nicokara", "ass", "srt", "lrc", "text"
     """
+    # SUG/JSON 格式检测（最高优先级，避免误解析）
+    if _is_json_content(content):
+        return "sug"
+    # 内联格式检测（包括 inline 和纯 RLF 文本格式）
     if _INLINE_PATTERN.search(content):
         return "inline"
     if NicokaraParser.is_nicokara_format(content):
@@ -69,12 +95,19 @@ def parse_lyric_content(
         - sentences: 解析后的句子列表
         - is_nicokara: 是否为 Nicokara 格式
         - new_singers: Nicokara 格式中需要新增的演唱者列表
+
+    Raises:
+        ValueError: 当内容是 SUG 项目文件格式时（由调用方处理为项目加载）
     """
     fmt = detect_lyric_format(content)
     is_nicokara = False
     new_singers: List[Singer] = []
 
-    # 内联格式
+    # SUG 项目文件格式：抛出异常，由调用方处理为项目加载
+    if fmt == "sug":
+        raise ValueError("__SUG_PROJECT__")
+
+    # 内联格式（包括 inline 和纯 RLF 文本格式）
     if fmt == "inline":
         sentences = sentences_from_inline_text(content, default_singer_id)
         return sentences, False, []

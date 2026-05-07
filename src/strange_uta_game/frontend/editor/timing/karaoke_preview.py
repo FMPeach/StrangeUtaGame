@@ -1243,10 +1243,10 @@ class KaraokePreview(QWidget):
                         is_selected = (
                             ch_obj.selected_checkpoint_idx == cp_idx
                         )
-                        if not has_timed:
-                            color = theme.karaoke_text_current
-                        elif is_selected:
+                        if is_selected:
                             color = _char_singer_colors.get(char_pos, highlight_color)
+                        elif not has_timed:
+                            color = theme.karaoke_text_current
                         else:
                             color = base_color
 

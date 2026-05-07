@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import (
     QCheckBox,
     QGroupBox,
     QScrollArea,
+    QMessageBox,
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from qfluentwidgets import (
@@ -385,6 +386,18 @@ class ExportInterface(QWidget):
         )
         filename = base_name + ext
         filepath = str(Path(output_dir) / filename)
+
+        # 检查文件是否已存在
+        if Path(filepath).exists():
+            msg = QMessageBox(self)
+            msg.setWindowTitle("文件已存在")
+            msg.setText(f"文件已存在：\n{filename}")
+            msg.setInformativeText("是否覆盖该文件？")
+            btn_overwrite = msg.addButton("覆盖", QMessageBox.ButtonRole.AcceptRole)
+            msg.addButton("取消", QMessageBox.ButtonRole.RejectRole)
+            msg.exec()
+            if msg.clickedButton() != btn_overwrite:
+                return
 
         result = self._export_service.export(
             self._project,
