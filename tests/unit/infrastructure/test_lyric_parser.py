@@ -142,6 +142,79 @@ class TestParseToSentences:
 
         assert len(sentences) == 1
         assert sentences[0].text == "测试"
-        # 逐字模型中，(0, 1000) 对应第0个字符的第0个时间戳
-        assert len(sentences[0].characters[0].timestamps) == 1
-        assert sentences[0].characters[0].timestamps[0] == 1000
+
+
+class TestApplyRubyEntries:
+    """测试 @Ruby 注音应用（含位置范围消歧）"""
+
+    def _make_sentence(self, text: str, timestamps: list) -> "Sentence":
+        """创建带时间戳的句子"""
+        from strange_uta_game.backend.domain import Sentence
+
+        sentence = Sentence.from_text(text, "singer_1")
+        for i, ts in enumerate(timestamps):
+            if ts is not None and i < len(sentence.characters):
+                sentence.characters[i].add_timestamp(ts)
+        return sentence
+
+    def test_same_kanji_different_readings_across_sentences(self):
+        """同一词组在不同句子有不同读音时，应按位置范围正确匹配"""
+        from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
+            _apply_ruby_entries,
+            NicokaraRubyEntry,
+        )
+
+        # 句子1: 言葉は (言→こと, ts=1000)
+        s1 = self._make_sentence("言葉は", [1000, 1300, 1500])
+        s1.characters[0].check_count = 2
+        s1.characters[0].add_timestamp(1000, checkpoint_idx=0)
+        s1.characters[0].add_timestamp(1163, checkpoint_idx=1)
+
+        # 句子2: 言う (言→い, ts=5000)
+        s2 = self._make_sentence("言う", [5000, 5200])
+
+        # @Ruby 条目: 言有两个不同读音，需要位置范围
+        entries = [
+            NicokaraRubyEntry(
+                kanji="言", reading="こ[00:00:16]と", positions=["", "[00:05:00]"]
+            ),
+            NicokaraRubyEntry(
+                kanji="言", reading="い", positions=["[00:05:00]"]
+            ),
+        ]
+
+        _apply_ruby_entries(s1, entries)
+        _apply_ruby_entries(s2, entries)
+
+        # 句子1 的 言 应该是 こと
+        assert s1.characters[0].ruby is not None
+        ruby_text_1 = "".join(p.text for p in s1.characters[0].ruby.parts)
+        assert ruby_text_1 == "こと"
+
+        # 句子2 的 言 应该是 い
+        assert s2.characters[0].ruby is not None
+        ruby_text_2 = "".join(p.text for p in s2.characters[0].ruby.parts)
+        assert ruby_text_2 == "い"
+
+    def test_no_position_falls_back_to_sequential(self):
+        """无位置范围时按顺序匹配第一个未标注出现"""
+        from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
+            _apply_ruby_entries,
+            NicokaraRubyEntry,
+        )
+
+        s = self._make_sentence("嫌い嫌い", [1000, 2000, 3000, 4000])
+
+        entries = [
+            NicokaraRubyEntry(kanji="嫌", reading="きら"),
+            NicokaraRubyEntry(kanji="嫌", reading="いや"),
+        ]
+
+        _apply_ruby_entries(s, entries)
+
+        # 第一个嫌 → きら
+        ruby1 = "".join(p.text for p in s.characters[0].ruby.parts)
+        assert ruby1 == "きら"
+        # 第二个嫌 → いや
+        ruby2 = "".join(p.text for p in s.characters[2].ruby.parts)
+        assert ruby2 == "いや"

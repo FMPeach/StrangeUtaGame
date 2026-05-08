@@ -1,5 +1,6 @@
 """导出器测试。"""
 
+import re
 import pytest
 import tempfile
 import os
@@ -399,6 +400,58 @@ class TestNicokaraWithRubyExporter:
             # @Ruby 读音应包含相对时间戳
             # あ (offset 0) + [00:00:15] (150ms) + か
             assert "あ[00:00:15]か" in content
+        finally:
+            os.unlink(temp_path)
+
+
+    def test_export_ruby_multi_reading_disambiguation(self):
+        """同一词组有不同读音时，所有条目都需要位置范围"""
+        from strange_uta_game.backend.domain import Ruby, RubyPart
+        from strange_uta_game.backend.infrastructure.exporters import (
+            NicokaraWithRubyExporter,
+        )
+
+        project = Project()
+        singer = project.singers[0]
+
+        # 第一句: 言 with reading こ[0]と[163]
+        s1 = Sentence.from_text("言葉は", singer.id)
+        s1.characters[0].check_count = 2
+        s1.characters[0].set_ruby(
+            Ruby(parts=[RubyPart(text="こ"), RubyPart(text="と")])
+        )
+        s1.characters[0].add_timestamp(1000, checkpoint_idx=0)
+        s1.characters[0].add_timestamp(1163, checkpoint_idx=1)
+        s1.characters[1].set_ruby(Ruby(parts=[RubyPart(text="ば")]))
+        s1.characters[1].add_timestamp(1300)
+        s1.characters[2].add_timestamp(1500)
+        project.add_sentence(s1)
+
+        # 第二句: 言 with reading ゆ (不同的读音)
+        s2 = Sentence.from_text("言う", singer.id)
+        s2.characters[0].set_ruby(Ruby(parts=[RubyPart(text="ゆ")]))
+        s2.characters[0].add_timestamp(5000)
+        s2.characters[1].add_timestamp(5200)
+        project.add_sentence(s2)
+
+        exporter = NicokaraWithRubyExporter()
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".lrc", delete=False, encoding="utf-8"
+        ) as f:
+            temp_path = f.name
+
+        try:
+            exporter.export(project, temp_path)
+
+            with open(temp_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            # 言有不同读音(こと/ゆ)，两个条目都必须有位置范围
+            # 第一个言(こと): 应带结束时间
+            assert re.search(r"@Ruby\d+=言,こ\[00:00:16\]と,,\[00:05:00\]", content)
+            # 第二个言(ゆ): 应带开始时间
+            assert re.search(r"@Ruby\d+=言,ゆ,\[00:05:00\]", content)
         finally:
             os.unlink(temp_path)
 

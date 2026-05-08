@@ -776,6 +776,9 @@ def _apply_ruby_entries(sentence: Sentence, ruby_entries: List[NicokaraRubyEntry
     通过文本匹配找到漢字在行中的位置并添加 Ruby 注音。
     在新模型中，多字符漢字的 ruby 按字拆分为 per-char Ruby，
     且每个字符内部按 checkpoint 用 # 分组。
+
+    当条目携带位置范围（positions）时，利用字符时间戳精确定位到正确的出现，
+    避免同一词组在不同句子/位置有不同读音时被错误匹配。
     """
     from strange_uta_game.backend.infrastructure.parsers.inline_format import (
         split_ruby_for_checkpoints,
@@ -786,6 +789,10 @@ def _apply_ruby_entries(sentence: Sentence, ruby_entries: List[NicokaraRubyEntry
         # 清除读音中的时间戳（[MM:SS:CC] 格式）
         clean_reading = re.sub(r"\[\d{1,2}:\d{2}[:.]?\d{2,3}\]", "", entry.reading)
 
+        # 判断是否有位置范围
+        pos_start_ms, pos_end_ms = _parse_position_range(entry.positions)
+        has_position_filter = pos_start_ms is not None or pos_end_ms is not None
+
         # 在文本中查找漢字位置
         start = 0
         while True:
@@ -793,6 +800,24 @@ def _apply_ruby_entries(sentence: Sentence, ruby_entries: List[NicokaraRubyEntry
             if pos == -1:
                 break
             end_pos = pos + len(entry.kanji)
+
+            # 如果有位置范围，检查该出现的时间戳是否在范围内
+            if has_position_filter:
+                if pos >= len(sentence.characters):
+                    start = end_pos
+                    continue
+                ch = sentence.characters[pos]
+                if not ch.global_timestamps:
+                    start = end_pos
+                    continue
+                char_ms = ch.global_timestamps[0]
+                if pos_start_ms is not None and char_ms < pos_start_ms:
+                    start = end_pos
+                    continue
+                if pos_end_ms is not None and char_ms >= pos_end_ms:
+                    start = end_pos
+                    continue
+
             # 检查是否已有 ruby 覆盖该范围
             has_existing = any(
                 sentence.characters[ci].ruby is not None
@@ -812,6 +837,57 @@ def _apply_ruby_entries(sentence: Sentence, ruby_entries: List[NicokaraRubyEntry
                         target_char.set_ruby(Ruby(parts=[RubyPart(text=s) for s in ruby_segments if s]))
                 break  # 每个 entry 只匹配第一个未标注的出现
             start = end_pos
+
+
+def _parse_nicokara_ts_str(ts_str: str) -> Optional[int]:
+    """解析 [MM:SS:CC] 时间戳字符串 → 毫秒
+
+    Args:
+        ts_str: 时间戳字符串，如 "[01:23:45]" 或 "01:23:45"
+
+    Returns:
+        毫秒数，解析失败返回 None
+    """
+    ts_str = ts_str.strip()
+    if not ts_str:
+        return None
+    ts_str = ts_str.strip("[]")
+    m = re.match(r"^(\d{1,2}):(\d{2})[:.]?(\d{2,3})$", ts_str)
+    if not m:
+        return None
+    minutes = int(m.group(1))
+    seconds = int(m.group(2))
+    sub = m.group(3)
+    millis = int(sub) * 10 if len(sub) == 2 else int(sub)
+    return (minutes * 60 + seconds) * 1000 + millis
+
+
+def _parse_position_range(
+    positions: List[str],
+) -> Tuple[Optional[int], Optional[int]]:
+    """从 @Ruby 条目的 positions 列表解析位置范围
+
+    格式约定（由导出器生成）：
+      []              → 无位置，全局条目
+      ["", "end"]     → 首个子组：无开始，结束于 end
+      ["start"]       → 末尾子组：开始于 start，无结束
+      ["start","end"] → 中间子组：开始于 start，结束于 end
+
+    Returns:
+        (start_ms, end_ms)，None 表示无边界
+    """
+    if not positions:
+        return None, None
+
+    start_ms: Optional[int] = None
+    end_ms: Optional[int] = None
+
+    if len(positions) >= 1:
+        start_ms = _parse_nicokara_ts_str(positions[0])
+    if len(positions) >= 2:
+        end_ms = _parse_nicokara_ts_str(positions[1])
+
+    return start_ms, end_ms
 
 
 class LyricParserFactory:

@@ -1253,13 +1253,6 @@ class AutoCheckService:
             cur_ch = new_characters[i]
             if cur_ch.char and cur_ch.char.isspace():
                 continue
-            # 假名/英文不参与汉字连词（数字保留，如 1人/2人 需要连词）
-            next_ct = get_char_type(next_ch.char) if len(next_ch.char) == 1 else CharType.OTHER
-            if next_ct in (CharType.HIRAGANA, CharType.KATAKANA, CharType.ALPHABET):
-                continue
-            cur_ct = get_char_type(cur_ch.char) if len(cur_ch.char) == 1 else CharType.OTHER
-            if cur_ct == CharType.ALPHABET:
-                continue
             cur_src = results[i].origin_source if i < len(results) else "self"
             next_src = (
                 results[i + 1].origin_source if i + 1 < len(results) else "self"
@@ -1273,8 +1266,15 @@ class AutoCheckService:
                 == results[i + 1].origin_block_id
             ):
                 continue
-            # 后字有独立注音 → 读音已拆分，不连词
-            # 后字无注音（ruby 为空）→ 无法拆分，连词
+            # 英文词组始终连词（e2k/english_fallback 来源）
+            if cur_src in ("e2k", "english_fallback"):
+                new_characters[i].linked_to_next = True
+                continue
+            # 假名不参与汉字连词（送り仮名/接头假名应独立）
+            next_ct = get_char_type(next_ch.char) if len(next_ch.char) == 1 else CharType.OTHER
+            if next_ct in (CharType.HIRAGANA, CharType.KATAKANA):
+                continue
+            # 汉字连词：后字无 ruby 才连词（无法拆分的情况）
             next_has_ruby = (
                 next_ch.ruby is not None
                 and (

@@ -4,7 +4,7 @@
 - 切换播放速度（≠ 1.0x）时，后台 worker 用 Pedalboard 的 time_stretch 渲染，
   结果保存到磁盘缓存文件，不占用大量内存。
 - 播放时从磁盘缓存读取到内存。
-- 缓存文件位于用户目录下的 .cache 文件夹，更换歌曲或退出时自动清理。
+- 缓存文件位于程序所在目录下的 .cache 文件夹，更换歌曲或退出时自动清理。
 - 1.0x 特殊路径：直接返回原始 PCM 引用，零渲染开销。
 - 缓存文件采用 MP3 格式压缩，节省磁盘空间。
 
@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import heapq
 import os
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, Future
@@ -60,8 +61,9 @@ def _quantize(speed: float) -> float:
 
 
 def _get_cache_dir() -> Path:
-    """获取缓存目录（软件工作目录下的 .cache 文件夹）"""
-    cache_dir = Path.cwd() / _CACHE_DIR_NAME
+    """获取缓存目录（程序所在目录下的 .cache 文件夹）"""
+    program_dir = Path(sys.argv[0]).resolve().parent
+    cache_dir = program_dir / _CACHE_DIR_NAME
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir
 

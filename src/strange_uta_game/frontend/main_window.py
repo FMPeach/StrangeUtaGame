@@ -49,6 +49,9 @@ class MainWindow(MSFluentWindow):
         # 中央响应：store 的 project 变更 → 同步 timing_service 等
         self._store.data_changed.connect(self._on_data_changed)
 
+        # 监听主题变化，更新 Win10 兜底背景色
+        theme.changed.connect(self._on_theme_changed)
+
         # 全局 Ctrl+S 保存快捷键
         self._save_shortcut = QShortcut(QKeySequence("Ctrl+S"), self)
         self._save_shortcut.activated.connect(self._on_global_save)
@@ -91,6 +94,10 @@ class MainWindow(MSFluentWindow):
         else:
             setTheme(Theme.LIGHT, lazy=True)
 
+        # Win10 兜底：Mica 材质不可用时，强制设置纯深色背景
+        # 避免白底白字的灾难性渲染
+        self._apply_win10_fallback_bg()
+
         self.setWindowTitle("StrangeUtaGame - 歌词打轴工具")
         self.setMinimumSize(1200, 800)
         self.resize(1400, 900)
@@ -110,6 +117,18 @@ class MainWindow(MSFluentWindow):
                 (geometry.width() - self.width()) // 2,
                 (geometry.height() - self.height()) // 2,
             )
+
+    def _on_theme_changed(self):
+        """主题变化时更新 Win10 兜底背景色"""
+        self._apply_win10_fallback_bg()
+
+    def _apply_win10_fallback_bg(self):
+        """Win10 兜底：Mica 材质不可用时，强制设置纯色背景"""
+        if theme.is_dark:
+            bg = theme.bg_primary.name()
+            self.setStyleSheet(f"MSFluentWindow {{ background-color: {bg}; }}")
+        else:
+            self.setStyleSheet("")
 
     def _init_interfaces(self):
         """初始化所有子界面"""

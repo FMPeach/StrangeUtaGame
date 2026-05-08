@@ -436,61 +436,98 @@ class NicokaraWithRubyExporter(NicokaraExporter):
         all_entries: List[tuple[tuple[int, int], str]] = []
         group_index = 0
 
-        for (kanji, _reading), occurrences in ruby_groups.items():
-            # 检查所有出现的 reading_with_ts 是否完全相同
-            distinct_readings = set(occ["reading_with_ts"] for occ in occurrences)
+        # 判断每个 kanji（词组）是否有多种不同读音，需要位置消歧
+        kanji_readings: dict[str, set[str]] = {}
+        for (kanji, reading) in ruby_groups:
+            kanji_readings.setdefault(kanji, set()).add(reading)
 
-            if len(distinct_readings) == 1:
-                # 所有出现读音相同 → 单条全局条目，不附加时间范围
-                r_ts = occurrences[0]["reading_with_ts"]
-                sort_ts = occurrences[0].get("first_char_ts") or 0
-                all_entries.append(((sort_ts, group_index), f"{kanji},{r_ts}"))
-                group_index += 1
-            else:
-                # 不同出现有不同读音 → 需要时间范围
-                # 合并连续相同 reading_with_ts 的出现为子组
-                sub_groups: List[List[dict]] = []
-                for occ in occurrences:
-                    if (
-                        sub_groups
-                        and sub_groups[-1][0]["reading_with_ts"]
-                        == occ["reading_with_ts"]
-                    ):
-                        sub_groups[-1].append(occ)
+        def _emit_with_ranges(
+            kanji: str, merged: List[dict]
+        ) -> None:
+            """将合并后的出现列表按时间分组并生成带位置范围的条目"""
+            nonlocal group_index
+            # 按 first_char_ts 排序
+            merged.sort(key=lambda o: o["first_char_ts"] or 0)
+            # 合并连续相同 reading_with_ts 为子组
+            sub_groups: List[List[dict]] = []
+            for occ in merged:
+                if (
+                    sub_groups
+                    and sub_groups[-1][0]["reading_with_ts"]
+                    == occ["reading_with_ts"]
+                ):
+                    sub_groups[-1].append(occ)
+                else:
+                    sub_groups.append([occ])
+
+            n = len(sub_groups)
+            for i, sg in enumerate(sub_groups):
+                r_ts = sg[0]["reading_with_ts"]
+                this_ts = sg[0].get("first_char_ts")
+                sort_ts = this_ts or 0
+
+                if n == 1:
+                    entry = f"{kanji},{r_ts}"
+                elif i == 0:
+                    next_ts = sub_groups[i + 1][0].get("first_char_ts")
+                    if next_ts is not None:
+                        entry = f"{kanji},{r_ts},,{_format_nicokara_ts(next_ts)}"
                     else:
-                        sub_groups.append([occ])
-
-                n = len(sub_groups)
-                for i, sg in enumerate(sub_groups):
-                    r_ts = sg[0]["reading_with_ts"]
-                    this_ts = sg[0].get("first_char_ts")
-                    sort_ts = this_ts or 0
-
-                    if n == 1:
-                        # 合并后只剩一个子组 → 全局条目
                         entry = f"{kanji},{r_ts}"
-                    elif i == 0:
-                        # 首个子组：省略开始时间，结束=下一子组首次出现时间
-                        next_ts = sub_groups[i + 1][0].get("first_char_ts")
-                        if next_ts is not None:
-                            entry = f"{kanji},{r_ts},,{_format_nicokara_ts(next_ts)}"
-                        else:
-                            entry = f"{kanji},{r_ts}"
-                    elif i == n - 1:
-                        # 最后子组：开始=本子组首次出现时间，省略结束时间
-                        if this_ts is not None:
-                            entry = f"{kanji},{r_ts},{_format_nicokara_ts(this_ts)}"
-                        else:
-                            entry = f"{kanji},{r_ts}"
+                elif i == n - 1:
+                    if this_ts is not None:
+                        entry = f"{kanji},{r_ts},{_format_nicokara_ts(this_ts)}"
                     else:
-                        # 中间子组：开始=本子组首次出现，结束=下一子组首次出现
-                        next_ts = sub_groups[i + 1][0].get("first_char_ts")
-                        p1 = _format_nicokara_ts(this_ts) if this_ts is not None else ""
-                        p2 = _format_nicokara_ts(next_ts) if next_ts is not None else ""
-                        entry = f"{kanji},{r_ts},{p1},{p2}"
+                        entry = f"{kanji},{r_ts}"
+                else:
+                    next_ts = sub_groups[i + 1][0].get("first_char_ts")
+                    p1 = (
+                        _format_nicokara_ts(this_ts)
+                        if this_ts is not None
+                        else ""
+                    )
+                    p2 = (
+                        _format_nicokara_ts(next_ts)
+                        if next_ts is not None
+                        else ""
+                    )
+                    entry = f"{kanji},{r_ts},{p1},{p2}"
 
-                    all_entries.append(((sort_ts, group_index), entry))
+                all_entries.append(((sort_ts, group_index), entry))
+                group_index += 1
+
+        # 已处理的 kanji 集合（用于跨读音消歧的情况）
+        processed_kanji: set[str] = set()
+
+        for (kanji, _reading), occurrences in ruby_groups.items():
+            if kanji in processed_kanji:
+                continue
+
+            # 该词组是否需要跨读音消歧（有多种不同读音）
+            needs_cross_reading_range = len(kanji_readings.get(kanji, set())) > 1
+
+            if needs_cross_reading_range:
+                # 合并该 kanji 所有 (kanji, *) 组的出现，统一按时间分配位置范围
+                processed_kanji.add(kanji)
+                merged: List[dict] = []
+                for r, occs in ruby_groups.items():
+                    if r[0] == kanji:
+                        merged.extend(occs)
+                _emit_with_ranges(kanji, merged)
+            else:
+                # 单一读音：在组内检查 reading_with_ts 是否一致
+                distinct_readings = set(
+                    occ["reading_with_ts"] for occ in occurrences
+                )
+                if len(distinct_readings) == 1:
+                    r_ts = occurrences[0]["reading_with_ts"]
+                    sort_ts = occurrences[0].get("first_char_ts") or 0
+                    all_entries.append(
+                        ((sort_ts, group_index), f"{kanji},{r_ts}")
+                    )
                     group_index += 1
+                else:
+                    _emit_with_ranges(kanji, occurrences)
 
         # 按首字符时间戳排序，同时间戳按出现顺序（insertion_order）
         all_entries.sort(key=lambda x: x[0])
