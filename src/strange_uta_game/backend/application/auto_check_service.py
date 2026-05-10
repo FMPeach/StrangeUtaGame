@@ -1344,7 +1344,17 @@ class AutoCheckService:
             if ruby_groups and not (
                 len(ruby_groups) == 1 and ruby_groups[0] == result.char
             ):
-                ruby_obj = Ruby(parts=[RubyPart(text=g) for g in ruby_groups if g])
+                # 处理 rubyPart 数量 > checkCount 的情况
+                from strange_uta_game.backend.infrastructure.parsers.inline_format import (
+                    split_ruby_for_checkpoints,
+                )
+                full_text = "".join(ruby_groups)
+                if check_count > 0 and len(ruby_groups) > check_count:
+                    # rubyPart 数量 > checkCount，使用 split_ruby_for_checkpoints 处理
+                    aligned_parts = split_ruby_for_checkpoints(full_text, check_count)
+                    ruby_obj = Ruby(parts=[RubyPart(text=p) for p in aligned_parts if p])
+                else:
+                    ruby_obj = Ruby(parts=[RubyPart(text=g) for g in ruby_groups if g])
                 if not ruby_obj.parts:
                     ruby_obj = None
             else:

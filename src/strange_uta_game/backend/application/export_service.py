@@ -185,3 +185,18 @@ class ExportService:
             errors.append(f"只有 {completed_lines}/{total_lines} 行完成打轴")
 
         return errors
+
+    def validate_ruby_parts(self, project: Project) -> List[dict]:
+        """校验项目中所有字符的 rubyPart 数量与 checkCount 是否匹配
+
+        Args:
+            project: 项目数据
+
+        Returns:
+            不匹配的字符信息列表
+        """
+        from strange_uta_game.backend.infrastructure.exporters.nicokara_exporter import (
+            NicokaraWithRubyExporter,
+        )
+        exporter = NicokaraWithRubyExporter()
+        return exporter.validate_ruby_parts(project)
