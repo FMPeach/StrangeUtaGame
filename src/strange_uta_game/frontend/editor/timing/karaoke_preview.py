@@ -75,6 +75,9 @@ class KaraokePreview(QWidget):
         self.setMinimumHeight(400)
         self.setMouseTracking(True)
 
+        # 音频引擎引用（用于 paintEvent 主动拉取高精度时间）
+        self._audio_engine = None
+
         # 划词选中状态
         self._focus_line_idx: int = -1
         self._focus_char_idx: int = -1
@@ -118,6 +121,9 @@ class KaraokePreview(QWidget):
         self._line_versions: dict = {}  # line_idx -> version
         self._global_version: int = 0  # 全局版本号，用于字体变化等全局刷新
         self._is_playing: bool = False
+        self._auto_scroll_enabled: bool = True  # 自动滚动开关，特殊场景可关闭
+        self._line_switch_points: list[tuple[int, int]] = []  # [(switch_ms, line_idx)]
+        self._current_switch_idx: int = 0  # 当前快照位置
 
         # 监听主题变化，触发重绘
         theme.changed.connect(self.update)
@@ -125,10 +131,28 @@ class KaraokePreview(QWidget):
     def set_playing(self, playing: bool):
         """由外部同步播放状态，用于决定 paintEvent 是否旁路缓存。"""
         self._is_playing = bool(playing)
+        if playing:
+            self._build_line_switch_points()
+
+    def _build_line_switch_points(self):
+        """构建换行时间点快照，记录每个时间点应切换到哪一行。"""
+        self._line_switch_points = []
+        self._current_switch_idx = 0
+        if not self._project or not self._project.sentences:
+            return
+        for idx, sentence in enumerate(self._project.sentences):
+            ts = sentence.global_timing_start_ms
+            if ts is not None:
+                self._line_switch_points.append((ts, idx))
+        self._line_switch_points.sort()
 
     def set_disable_click_jump(self, disable: bool):
         """设置是否禁用单击跳转功能。"""
         self._disable_click_jump = bool(disable)
+
+    def set_auto_scroll_enabled(self, enabled: bool):
+        """设置是否启用自动滚动功能。特殊场景可关闭。"""
+        self._auto_scroll_enabled = bool(enabled)
 
     def set_duration(self, duration_ms: int):
         """设置音频总时长（用于行尾非句尾时的wipe右边界）"""
@@ -196,11 +220,45 @@ class KaraokePreview(QWidget):
         self._scroll_center_line = new_line
         self._update_display()
 
+    def _find_line_for_time(self, time_ms: int) -> Optional[int]:
+        """查找当前时间对应的歌词行索引（使用快照索引，O(1)判断）。
+
+        Args:
+            time_ms: 当前播放时间（毫秒）
+
+        Returns:
+            行索引，如果没有找到返回 None
+        """
+        points = self._line_switch_points
+        if not points:
+            return None
+
+        # 时间倒退（拖动进度条）：重置索引
+        if self._current_switch_idx > 0:
+            if time_ms < points[self._current_switch_idx][0]:
+                self._current_switch_idx = 0
+
+        # 从当前位置向后推进
+        while self._current_switch_idx < len(points) - 1:
+            next_time, _ = points[self._current_switch_idx + 1]
+            if time_ms < next_time:
+                break
+            self._current_switch_idx += 1
+
+        return points[self._current_switch_idx][1]
+
     def set_current_time_ms(self, time_ms: int):
         self._current_time_ms = time_ms
         # 播放期间按就近扩散顺序预热少量邻近行，降低视口内首帧卡顿
         if self._is_playing:
             self._warm_nearby_cache(budget=2)
+        # 自动滚动：播放时根据当前时间自动滚动到对应行
+        if self._auto_scroll_enabled and self._is_playing:
+            target_line_idx = self._find_line_for_time(time_ms)
+            if target_line_idx is not None:
+                if target_line_idx != self._current_line_idx:
+                    self._current_line_idx = target_line_idx
+                    self.scroll_current_line_to_center()
         self.update()
 
     def _prewarm_all_sentences(self) -> None:
@@ -261,6 +319,10 @@ class KaraokePreview(QWidget):
         self._global_offset_ms = offset_ms
         # 偏移变更时，清除缓存使 wipe 区间重新计算
         self._sentence_cache.clear()
+
+    def set_audio_engine(self, engine):
+        """设置音频引擎引用，使 paintEvent 可主动拉取高精度时间。"""
+        self._audio_engine = engine
         self._line_versions.clear()
         self._global_version += 1
         self.update()
@@ -897,8 +959,13 @@ class KaraokePreview(QWidget):
         self._checkpoint_hitboxes = []
         self._char_hitboxes = []
 
-        # 渲染时间：偏移已在 global_timestamps 中预计算，直接使用当前播放时间
-        current_time = self._current_time_ms
+        # 渲染时间：播放中主动拉取基于 perf_counter 外推的高精度时间，
+        # 消除 QTimer 间隔 + Qt paint 调度带来的 ~16ms 抖动。
+        if self._is_playing and self._audio_engine is not None:
+            current_time = self._audio_engine.get_position_ms()
+            self._current_time_ms = current_time
+        else:
+            current_time = self._current_time_ms
 
         if not self._project or not self._project.sentences:
             painter.setPen(theme.text_hint)
