@@ -4,88 +4,81 @@
 
 一款由 RhythmicaLyrics 启发的歌词打轴软件，专注于低延迟、高精度的卡拉OK时间标签制作。
 
-## 功能特性
+**当前版本**：v0.2.0 | **许可证**：GPL-3.0 | **平台**：Windows 10/11
 
-- **精准打轴**：类似节奏游戏的打轴体验，支持空格键和 F1-F9 功能键，双模式快捷键（打轴模式 / 编辑模式）
-- **上下文感知注音**：基于 SudachiPy 的复合词分析与智能单字读音分配。锁定词语读法后，采用三步走策略：Pass 1（约束回溯搜索，优先匹配用户字典与库函数常见度，并加入 pykakasi 候选词）；Pass 2（基于 pykakasi 参考的分词，使用「精确匹配→前缀匹配→无约束回退」三级匹配逻辑）；Pass 3（无约束分区）。不可拆分时自动连词。
-- **英文 e2k 注音**：基于 CMU 词典 + morikatron 规则引擎的英文假名注音，支持 apostrophe 词边界（`what's` 作为整词识别）
-- **内置 RL 字典**：内嵌 1757 条常用日语词汇读音，首次启动时自动初始化用户词典。
-- **卡拉OK预览**：实时ワイプ効果，逐字高亮显示演唱进度，Ruby 注音同步走字，无时间戳字符连读平滑渲染，逐句渲染数据缓存优化
-- **小写假名 AutoCheck 开关**：可选择是否自动为小写假名分配节奏点
-- **句尾判定**：当字符后跟空格（或为行末字符）时，自动将其标记为句尾（is_sentence_end）。句尾字符允许无普通节奏点（check_count=0），此时以前一字符的 checkpoint 为按下-抬起的开始。句尾标记与行尾标记独立，句尾释放时间戳独立存储。
-- **Karaoke 渲染偏移及导出偏移**：在「设置」→「打轴设定」中设置全局偏移量（毫秒）。渲染和导出偏移预计算在 Character 数据结构中（`render_timestamps` / `export_timestamps`），确保预览与导出一致。
-- **演唱者颜色区分**：多演唱者模式下走字高亮颜色跟随演唱者设置
-- **日语注音**：自动为所有字符类型添加注音（汉字、平假名、片假名、英文、数字、符号、空格），支持手动编辑、按字符类型批量删除（含長音符号、特殊符号、小假名与促音等）。片假名将自动转换为平假名以保证注音风格统一。
-- **设置自动保存**：设置项操作后自动保存，无需手动点击保存按钮。
-- **连词编辑**：F3 toggle linked_to_next 标记，控制字符是否与下一字符相连，每个字符独立标记，连词不影响 checkpoint，连词 ruby 框合并渲染
-- **自由文本编辑**：全文本编辑模式下支持增删行、自由排版，智能保留打轴数据和注音数据，切换标签页时自动应用修改
-- **行编辑操作**：行编辑视图支持添加、删除、复制、插入行，Ctrl+C/V/Delete 快捷键
-- **字符编辑操作**：行详情对话框支持添加、删除、复制、插入字符，Ctrl+C/V/Delete 快捷键
-- **Offset 校准（可视化弹窗）**：独立校准窗口，2 个滑块按 BPM 滑动。使用 `sd.OutputStream` 实现低延迟节拍音，以滑块中心穿过判定线（视觉正中央）为完美判定点计算偏移量（正=偏早，负=偏晚），实时显示最近/平均偏移，支持校准中调节 BPM
-- **配置与自定义**：默认配置文件位于程序目录。支持通过 `.config_redirect` 文件重定向配置目录。About 界面提供「打开目录」和「更改位置」按钮，方便管理配置文件。用户字典和演唱者预设独立存储（`dictionary.json`、`singers.json`），重置配置不影响字典和演唱者数据。
-- **应用图标**：窗口左上角和 Windows 任务栏显示自定义图标，兼容开发和打包环境
-- **内嵌默认配置**：config.json、dictionary.json、singers.json、e2k.txt 作为 package data 嵌入，打包后无需额外携带配置文件
-- **变速播放**：50%~200% 速度调节（输入框显示百分比，可直接输入速度值），Q/W 快捷键 ±10%。采用 pedalboard `time_stretch` 离线预渲染变速 PCM，配合 SPSC RingBuffer 实现零分配音频回调。切换速度时播控栏实时显示后台渲染进度。位置追踪始终基于原始音频时间轴。
-- **修改所选字符**：打轴界面支持选中字符后通过工具栏按钮打开对话框，批量替换文本、注音和节奏点数量，可选注册到用户字典，支持保持句尾标记。
-- **插入导唱符**：打轴界面支持在选中字符前批量插入导唱用占位符，自动计算时间戳并建立连词链条。
-- **快捷键自定义**：键盘监听捕获设置、支持组合键、双快捷键绑定、冲突检测、ESC 取消设置。F3 连词功能可自定义快捷键。
-- **全局音频管理**：主页加载音频后自动同步到打轴界面，无需通过创建项目中转
-- **拖拽加载**：音频/歌词/项目文件直接拖入窗口即可加载
-- **演唱者划词选择**：打轴预览中拖拽选中文字后右键菜单设置演唱者，per-char singer_id 存储，checkpoint 颜色跟随演唱者
-- **演唱者预设持久化**：演唱者设置保存为软件预设，跨项目/跨启动保持不变
-- **用户字典优先级**：用户字典高于库函数分析优先级。字典条目按从上到下排列（后添加的在顶部），支持上下移动调整优先级。
-- **RL字典导入**：支持导入 RhythmicaLyrics 字典文件，自动解析 `原文\t注音` 格式和 `＋` 连词标记，翻译为内部字典格式。
-- **Nicokara 导入**：支持导入 Nicokara LRC 格式（【svN】标签 + @Ruby 注音），自动识别并创建演唱者
-- **Nicokara 演唱者导出**：导出时可按演唱者筛选歌词，可选插入演唱者切换标签【演唱者名】
-- **多格式导入**：支持导入 LRC（逐行/逐字/增强型）、ASS 字幕、SRT 字幕、TXT、KRA、Nicokara 格式。导入文件时显示原始内容，创建项目时自动检测格式并解析。
-- **多格式导出**：支持 LRC（增强型/逐行/逐字）、KRA、TXT、SRT、txt2ass、ASS、Nicokara 规则等格式。
-- **定时自动保存**：可配置的周期性自动保存（默认 5 分钟），保存为 `.sug.temp` 文件。未指定项目路径时，默认保存至程序目录下；支持闪退恢复。用户正常退出时自动清理 temp 文件与 `.autosave.sug` 文件。
-- **深色/浅色主题**：支持浅色、深色、跟随系统三种主题模式，基于 qfluentwidgets 主题框架
+## 核心特性
+
+### 🎯 打轴与编辑
+- **双模式打轴**：打轴模式/编辑模式，左下角实时提示
+- **精准时间控制**：Alt+↑/↓ 微调时间戳，Alt+←/→ 字符内切换节奏点
+- **批量编辑**：批量替换文本、注音和节奏点，支持撤销/重做
+
+### 🎵 音频处理
+- **WSOLA 变速**：pedalboard `time_stretch` 离线预渲染，50%-200% 速度调节
+- **SPSC RingBuffer**：零分配音频回调，立体声相位一致
+- **低延迟播放**：sounddevice (PortAudio) 输出
+
+### 📝 注音系统
+- **日语注音**：SudachiPy 上下文感知，5 级 Pass 拆分策略
+- **英文注音**：CMU 词典 + morikatron 规则引擎
+- **用户词典**：1757 条内置词典，支持 RL 字典导入
+
+### 📁 文件支持
+- **多格式导入**：LRC、ASS、SRT、TXT、KRA、Nicokara
+- **多格式导出**：LRC（3 种）、KRA、SRT、TXT、txt2ass、ASS、Nicokara
+- **项目格式**：.sug JSON 格式，支持版本迁移
 
 ## 技术栈
 
-- **UI 框架**：PyQt6 + PyQt6-Fluent-Widgets
-- **音频处理**：sounddevice + soundfile + pedalboard (WSOLA time_stretch)
-- **日语处理**：SudachiPy + pykakasi
-- **架构模式**：分层架构（Domain + Application + Infrastructure + Presentation）
+| 类别 | 技术 |
+|------|------|
+| **编程语言** | Python 3.11+ |
+| **UI 框架** | PyQt6 + PyQt6-Fluent-Widgets (Fluent Design) |
+| **音频处理** | sounddevice + soundfile + pedalboard (WSOLA) |
+| **日语处理** | SudachiPy + pykakasi |
+| **英文注音** | CMU 词典 + morikatron 规则引擎 |
+| **打包工具** | PyInstaller |
+| **代码质量** | ruff, black, mypy |
+| **测试框架** | pytest + pytest-qt + pytest-cov |
 
 ## 项目结构
 
 ```
-strange-uta-game/
-├── src/                        # 应用源代码
+StrangeUtaGame/
+├── src/                            # 应用源代码
 │   └── strange_uta_game/
-│       ├── backend/            # 后端核心逻辑
-│       │   ├── domain/         # 领域层：纯数据模型，无外部依赖
-│       │   ├── application/    # 应用服务层：业务逻辑协调
-│       │   └── infrastructure/ # 基础设施层：具体实现
-│       │       ├── audio/      # 音频引擎（SoundDeviceEngine, TSMRenderCache, RingBuffer）
-│       │       ├── data/       # 内嵌词典数据（default_dictionary.py）
-│       │       ├── exporters/  # 导出器集合（LRC/KRA/SRT/TXT/ASS/Nicokara）
-│       │       ├── parsers/    # 解析器（lyric_parser, text_splitter, ruby_analyzer, e2k_engine）
-│       │       └── persistence/# 项目持久化（sug_io）
-│       ├── frontend/           # 前端 UI 层（PyQt）
-│       │   ├── home/           # 主页（项目创建入口）
-│       │   ├── editor/         # 编辑器界面（timing_interface + timing/ 子包）
-│       │   ├── export/         # 导出界面
-│       │   ├── singer/         # 演唱者管理界面
-│       │   ├── online/         # 在线查询界面（占位）
-│       │   └── settings/       # 设置界面（拆分为 app_settings / cards / dialogs 等子模块）
-│       ├── resource/           # 应用资源（icon.ico）
-│       └── config/             # 内嵌默认配置文件（config.json, dictionary.json, singers.json, e2k.txt）
-├── tests/                      # 测试文件（与应用代码分离）
-│   └── unit/                   # 单元测试
-│       ├── domain/             # 领域层测试
-│       ├── application/        # 应用层测试
-│       ├── infrastructure/     # 基础设施层测试
-│       └── frontend/           # 前端层测试
-├── docs/                       # 设计文档
-├── scripts/                    # 辅助脚本（迁移工具等）
-├── main.py                     # 启动脚本
-├── build.py                    # PyInstaller 打包脚本
-├── requirements.txt            # 依赖
-├── pyproject.toml              # 项目元数据与工具配置
-└── README.md                   # 本文件
+│       ├── backend/                # 后端核心逻辑
+│       │   ├── domain/             # 领域层：纯数据模型，无外部依赖
+│       │   ├── application/        # 应用服务层：业务逻辑协调
+│       │   └── infrastructure/     # 基础设施层：具体实现
+│       │       ├── audio/          # 音频引擎（SoundDeviceEngine, TSMRenderCache, RingBuffer）
+│       │       ├── data/           # 内嵌词典数据（default_dictionary.py）
+│       │       ├── exporters/      # 导出器集合（LRC/KRA/SRT/TXT/ASS/Nicokara）
+│       │       ├── parsers/        # 解析器（lyric_parser, text_splitter, ruby_analyzer, e2k_engine）
+│       │       └── persistence/    # 项目持久化（sug_io）
+│       ├── frontend/               # 前端 UI 层（PyQt）
+│       │   ├── home/               # 主页（项目创建入口）
+│       │   ├── editor/             # 编辑器界面（timing_interface + timing/ 子包）
+│       │   ├── export/             # 导出界面
+│       │   ├── singer/             # 演唱者管理界面
+│       │   ├── online/             # 在线查询界面（占位）
+│       │   └── settings/           # 设置界面（拆分为 app_settings / cards / dialogs 等子模块）
+│       ├── resource/               # 应用资源（icon.ico）
+│       └── config/                 # 内嵌默认配置文件（config.json, dictionary.json, singers.json, e2k.txt）
+├── tests/                          # 测试文件（与应用代码分离）
+│   └── unit/                       # 单元测试
+│       ├── domain/                 # 领域层测试
+│       ├── application/            # 应用层测试
+│       ├── infrastructure/         # 基础设施层测试
+│       └── frontend/               # 前端层测试
+├── docs/                           # 设计文档
+├── scripts/                        # 辅助脚本（迁移工具等）
+├── main.py                         # 启动脚本
+├── build.py                        # PyInstaller 打包脚本
+├── requirements.txt                # 生产依赖
+├── requirements-dev.txt            # 开发依赖
+├── pyproject.toml                  # 项目元数据与工具配置
+└── README.md                       # 用户文档
 ```
 
 ## 架构概述
@@ -124,30 +117,48 @@ strange-uta-game/
 
 ### 环境要求
 
-- Python 3.11+
-- Windows 10/11（主要开发平台）
-- 音频输出设备
+- **操作系统**：Windows 10/11（主要开发平台）
+- **Python**：3.11+
+- **音频设备**：支持音频输出的设备
 
-### 安装依赖
+### 开发环境设置
 
 ```bash
+# 克隆仓库
+git clone https://github.com/Xuan-cc/StrangeUtaGame.git
+cd StrangeUtaGame
+
+# 创建虚拟环境（推荐）
+python -m venv venv
+venv\Scripts\activate
+
+# 安装生产依赖
 pip install -r requirements.txt
-```
 
-### 运行应用
+# 安装开发依赖
+pip install -r requirements-dev.txt
 
-```bash
+# 运行应用
 python main.py
 ```
 
-### 开发模式
+### 开发工具
 
 ```bash
+# 代码检查
+ruff check .
+
+# 代码格式化
+black .
+
+# 类型检查
+mypy src/
+
 # 运行测试
 pytest tests/
 
-# 代码检查
-ruff check .
+# 运行测试并生成覆盖率报告
+pytest tests/ --cov=src --cov-report=html
 ```
 
 ## 使用指南
@@ -175,19 +186,35 @@ ruff check .
 | `Q` / `W` | 减速 / 加速 (±10%) | 减速 / 加速 (±10%) |
 | `↑` / `↓` | 上一行 / 下一行 | 上一行 / 下一行 |
 | `←` / `→` | 上一字符 / 下一字符（行首/末自动跨行） | 上一字符 / 下一字符 |
+| `Enter` | — | 插入换行（在当前字符处拆分新行） |
+| `Delete` | — | 删除选中字符（支持划词多选） |
 | `Backspace` | — | 减少节奏点 (-1，最小0) |
 | `F2` | 编辑注音（支持连词合并/拆分） | 编辑注音 |
 | `F3` | 连词/取消连词（可自定义快捷键） | 连词/取消连词 |
-| `F4` | 切换句尾标记（is_sentence_end） | — |
 | `F5` / `F6` | 增加 / 减少节奏点 | — |
-| `.` | — | 切换句尾标记 |
+| `.` (长按) | 切换句尾标记（is_sentence_end） | — |
+| `.` (短按) | — | 切换句尾标记 |
 | `Alt+←` / `Alt+→` | 当前字符内节奏点循环切换（上一个 / 下一个） | 同左 |
-| `Alt+↑` / `Alt+↓` | 当前时间戳 ± 步长（默认10ms） | 同左 |
+| `Alt+↑` / `Alt+↓` | 当前时间戳 ± 10ms（默认步长） | 同左 |
 | `Ctrl+Z` / `Ctrl+Y` | 撤销 / 重做 | 撤销 / 重做 |
 | `Ctrl+S` | 保存项目 | 保存项目 |
 | `Ctrl+H` | 批量变更（替换注音/删除注音/设置节奏点/注册词典） | 同左 |
 
-> 快捷键可在「设置 → 快捷键」中自定义，支持组合键和双快捷键绑定，冲突即时检测。
+> 快捷键可在「设置 → 快捷键」中自定义，支持组合键、双快捷键绑定和长按绑定（按键持续 300ms 以上触发），冲突即时检测。
+
+### 右键菜单
+
+在打轴预览中右键点击字符，可快速执行以下操作：
+
+- **删除字符**：删除选中字符（支持划词多选）
+- **删除当前时间戳并回滚**：移除当前节奏点的时间戳
+- **在此插入空格**：在当前字符后插入空格
+- **合并上一行**：将当前行合并到上一行末尾
+- **删除本行**：删除当前整行
+- **在此插入空行**：在当前行前插入空行
+- **增加/减少节奏点**：调整当前字符的节奏点数量
+- **设置/取消句尾**：切换句尾标记
+- **设置演唱者**：为选中字符指定演唱者（支持划词多选）
 
 ### 3. 保存和导出
 
@@ -365,44 +392,87 @@ pytest tests/unit/frontend/
 
 # 生成覆盖率报告
 pytest tests/ --cov=src --cov-report=html
+
+# 运行测试并显示详细输出
+pytest tests/ -v
 ```
 
-当前共有 **382 个测试**，全部通过。
+### 测试统计
+
+- **当前测试数量**：382 个
+- **测试覆盖率**：运行 `pytest tests/ --cov=src` 查看
+
+### 编写测试
+
+测试文件命名规范：`test_*.py` 或 `*_test.py`
+
+```python
+# 示例：领域层测试
+def test_character_check_count():
+    char = Character(char="あ")
+    char.set_check_count(2)
+    assert char.check_count == 2
+    assert len(char.timestamps) == 2
+```
+
+**测试原则**：
+- 每个测试函数只测试一个功能点
+- 使用描述性的测试函数名
+- 测试应该独立，不依赖其他测试的执行顺序
+- 使用 pytest fixtures 管理测试数据
 
 ## 打包发行
 
-### 使用 PyInstaller 打包
+### 使用打包脚本（推荐）
 
 ```bash
 # 安装 PyInstaller
 pip install pyinstaller
 
-# 打包命令示例（含隐藏导入与数据收集）
-pyinstaller --noconfirm --onedir --windowed --name "StrangeUtaGame" --icon="src/strange_uta_game/resource/icon.ico" --add-data "src/strange_uta_game/config;strange_uta_game/config" --add-data "src/strange_uta_game/resource;strange_uta_game/resource" --collect-data "sudachipy" --collect-data "sudachidict_core" --collect-binaries "soundfile" --hidden-import "numpy" --hidden-import "sudachipy" --hidden-import "pedalboard" main.py
-```
-
-### 使用打包脚本（推荐）
-
-```bash
+# 运行打包脚本
 python build.py
 ```
 
-`build.py` 包含所有必要的 `hidden-imports`（numpy, sudachipy, pedalboard 等）和数据/二进制收集配置，并处理 PortAudio DLL 路径检测。
+`build.py` 包含所有必要的配置：
+- `hidden-imports`（numpy, sudachipy, pedalboard 等）
+- 数据/二进制收集配置
+- PortAudio DLL 路径检测
 
-### 打包后的文件
+### 手动打包
 
-打包完成后，可在 `dist/` 目录找到：
-- `StrangeUtaGame/` - 应用程序目录（onedir 模式）
+```bash
+pyinstaller --noconfirm --onedir --windowed \
+  --name "StrangeUtaGame" \
+  --icon="src/strange_uta_game/resource/icon.ico" \
+  --add-data "src/strange_uta_game/config;strange_uta_game/config" \
+  --add-data "src/strange_uta_game/resource;strange_uta_game/resource" \
+  --collect-data "sudachipy" \
+  --collect-data "sudachidict_core" \
+  --collect-binaries "soundfile" \
+  --hidden-import "numpy" \
+  --hidden-import "sudachipy" \
+  --hidden-import "pedalboard" \
+  main.py
+```
 
-体积参考：约 410 MB（sudachidict_core 约 207 MB 占大头，属日语形态素分析词典）。
+### 打包产物
+
+- **输出目录**：`dist/StrangeUtaGame/`
+- **主程序**：`StrangeUtaGame.exe`
+- **体积参考**：约 410 MB（sudachidict_core 约 207 MB 占大头，属日语形态素分析词典）
 
 ## 项目信息
 
-- **GitHub 地址**: https://github.com/Xuan-cc/StrangeUtaGame
-- **许可证**: GPL-3.0 License
-- **作者**: Xuan-cc
+| 项目 | 信息 |
+|------|------|
+| **GitHub** | https://github.com/Xuan-cc/StrangeUtaGame |
+| **许可证** | GPL-3.0 License |
+| **作者** | Xuan-cc |
+| **版本** | v0.2.0 |
 
 ## 依赖
+
+### 生产依赖
 
 主要依赖项：
 - PyQt6 >= 6.6.0
@@ -415,6 +485,31 @@ python build.py
 - pykakasi >= 2.2.1
 
 完整依赖列表见 [requirements.txt](requirements.txt)
+
+### 开发依赖
+
+开发依赖列表见 [requirements-dev.txt](requirements-dev.txt)
+
+## 代码规范
+
+### 代码风格
+
+- **格式化工具**：black
+- **Lint 工具**：ruff
+- **类型检查**：mypy
+
+### 命名规范
+
+- **类名**：PascalCase（如 `TimingService`、`Character`）
+- **函数/方法**：snake_case（如 `on_key_changed`、`set_check_count`）
+- **常量**：UPPER_SNAKE_CASE（如 `DEFAULT_CONFIG`）
+- **私有成员**：单下划线前缀（如 `_current_position`）
+
+### 架构规范
+
+- **依赖方向**：始终向内（Presentation → Application → Domain）
+- **领域层**：零外部依赖，纯 Python 数据类
+- **命令模式**：所有编辑操作通过 Command 对象执行，支持撤销/重做
 
 ## 许可
 
