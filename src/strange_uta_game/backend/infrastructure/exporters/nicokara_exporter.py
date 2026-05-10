@@ -264,6 +264,41 @@ class NicokaraWithRubyExporter(NicokaraExporter):
     def description(self) -> str:
         return "Nicokara 逐字 LRC 格式（含 @Ruby 注音标签）"
 
+    def validate_ruby_parts(self, project: Project) -> List[dict]:
+        """校验项目中所有字符的 rubyPart 数量与 checkCount 是否匹配
+
+        Args:
+            project: 项目数据
+
+        Returns:
+            不匹配的字符信息列表，每个元素为 dict:
+            {
+                "sentence_idx": 句子索引,
+                "char_idx": 字符索引,
+                "char": 字符文本,
+                "check_count": check_count,
+                "ruby_parts_count": ruby.parts 数量,
+                "ruby_text": ruby 文本,
+                "ruby_parts": ruby.parts 拆分情况 (List[str])
+            }
+        """
+        mismatches = []
+        for sent_idx, sentence in enumerate(project.sentences):
+            for char_idx, ch in enumerate(sentence.characters):
+                if ch.ruby and ch.check_count > 0:
+                    ruby_parts_count = len(ch.ruby.parts)
+                    if ruby_parts_count != ch.check_count:
+                        mismatches.append({
+                            "sentence_idx": sent_idx,
+                            "char_idx": char_idx,
+                            "char": ch.char,
+                            "check_count": ch.check_count,
+                            "ruby_parts_count": ruby_parts_count,
+                            "ruby_text": ch.ruby.text,
+                            "ruby_parts": [p.text for p in ch.ruby.parts],
+                        })
+        return mismatches
+
     def export(
         self,
         project: Project,
@@ -570,6 +605,13 @@ class NicokaraWithRubyExporter(NicokaraExporter):
             ch = sentence.characters[char_idx]
             ruby = ch.ruby
             groups = [p.text for p in ruby.parts] if ruby else []
+
+            # 如果 ruby.parts 数量少于 check_count，需要补充空条目
+            # 以确保 mapping 中包含所有 checkpoint
+            check_count = ch.check_count
+            if check_count > 0 and len(groups) < check_count:
+                # 补充空格条目到 check_count 个
+                groups = groups + [" "] * (check_count - len(groups))
 
             for cp_idx, group_text in enumerate(groups):
                 mapping.append((group_text, char_idx, cp_idx))
