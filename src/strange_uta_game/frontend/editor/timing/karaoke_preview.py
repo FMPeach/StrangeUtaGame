@@ -160,9 +160,8 @@ class KaraokePreview(QWidget):
 
     def _suspend_auto_scroll(self):
         """用户交互时挂起自动滚动，通知外部停止 cooldown timer。"""
-        if not self._auto_scroll_suspended:
-            self._auto_scroll_suspended = True
-            self.user_interaction_during_auto_scroll.emit()
+        self._auto_scroll_suspended = True
+        self.user_interaction_during_auto_scroll.emit()
 
     def resume_auto_scroll(self):
         """恢复自动滚动：将视口同步到当前播放行（不改变编辑光标）。"""

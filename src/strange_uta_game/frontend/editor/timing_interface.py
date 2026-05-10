@@ -1473,12 +1473,11 @@ class EditorInterface(QWidget):
                 self.lbl_status.setText("播放中")
                 self._update_mode_indicator()
                 self.preview._last_auto_scroll_line_idx = -1
-                # 仅 Play 按钮（非键盘）立即恢复自动滚动；
-                # 键盘 play_pause 由 keyPressEvent 已挂起，不覆盖
-                if not getattr(self, "_action_from_keyboard", False):
-                    self._auto_scroll_suspended = False
-                    self._auto_scroll_new_line_reached = False
-                    self._auto_scroll_cooldown_timer.stop()
+                # 无论鼠标点击还是键盘快捷键触发播放，都无条件恢复自动滚动
+                self._auto_scroll_suspended = False
+                self._auto_scroll_new_line_reached = False
+                self._auto_scroll_cooldown_timer.stop()
+                self.preview._auto_scroll_suspended = False
                 # 启动位置主动拉取定时器
                 self._position_poll_timer.start()
             except Exception as e:
