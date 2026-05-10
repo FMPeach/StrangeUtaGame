@@ -114,6 +114,8 @@ def split_ruby_for_checkpoints(ruby_text: str, total_cps: int) -> List[str]:
     入参: ruby_text 纯读音串（不再支持 `#` 分组标记）; total_cps 节奏点数量。
     出参: 长度为 total_cps 的读音分段列表；优先按 mora 对齐，否则按字符均分。
     逗号是读音分隔符，会被跳过。
+
+    当 mora/字符数 > total_cps 时，多余部分会合到末段，确保输出长度 = total_cps。
     """
     if total_cps <= 0:
         return [ruby_text.replace(',', '')] if ruby_text else []
@@ -124,22 +126,22 @@ def split_ruby_for_checkpoints(ruby_text: str, total_cps: int) -> List[str]:
     if len(moras) == total_cps:
         return moras
 
+    # mora 数量 > total_cps 时，多余 mora 合到末段
+    if len(moras) > total_cps:
+        head = moras[:total_cps - 1]
+        tail = "".join(moras[total_cps - 1:])
+        return head + [tail]
+
     # 按字符拆分时跳过逗号
     chars = [ch for ch in ruby_text if ch != ',']
     if len(chars) <= total_cps:
         # 字符数 ≤ cp 数: 每个 cp 分一个字符，多余 cp 分空串
         return chars + [""] * (total_cps - len(chars))
 
-    # 字符数 > cp 数: 尽量均匀
-    result = []
-    base = len(chars) // total_cps
-    extra = len(chars) % total_cps
-    pos = 0
-    for i in range(total_cps):
-        size = base + (1 if i < extra else 0)
-        result.append("".join(chars[pos : pos + size]))
-        pos += size
-    return result
+    # 字符数 > cp 数: 多余字符合到末段
+    head = chars[:total_cps - 1]
+    tail = "".join(chars[total_cps - 1:])
+    return head + [tail]
 
 
 def align_ruby_parts_to_checkpoints(

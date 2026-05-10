@@ -169,6 +169,8 @@ class LRCParser(LyricParser):
 
     def parse(self, content: str) -> List[ParsedLine]:
         """解析 LRC 格式"""
+        # 去除 UTF-8 BOM（Python str.strip() 不会移除 \ufeff）
+        content = content.lstrip("\ufeff")
         lines = []
 
         for line_text in content.split("\n"):
@@ -326,7 +328,16 @@ class LRCParser(LyricParser):
                     lyric_chars.append(char)
                     char_idx += 1
 
-        lyric_text = "".join(lyric_chars).strip()
+        raw_text = "".join(lyric_chars)
+        lyric_text = raw_text.strip()
+
+        # 去除前导空白后重新计算索引
+        leading_spaces = len(raw_text) - len(raw_text.lstrip())
+        if leading_spaces > 0:
+            timetags = [
+                (ci - leading_spaces, ts) for ci, ts in timetags if ci >= leading_spaces
+            ]
+
         return lyric_text, timetags
 
     def _parse_timestamp(self, match: re.Match) -> int:
@@ -475,6 +486,8 @@ class NicokaraParser:
         Returns:
             NicokaraParseResult 含歌词行、ruby 条目和演唱者定义
         """
+        # 去除 UTF-8 BOM（Python str.strip() 不会移除 \ufeff）
+        content = content.lstrip("\ufeff")
         raw_lines = content.split("\n")
         body_lines: List[str] = []
         ruby_entries: List[NicokaraRubyEntry] = []
