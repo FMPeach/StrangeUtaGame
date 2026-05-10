@@ -1476,6 +1476,7 @@ class EditorInterface(QWidget):
                 self._auto_scroll_suspended = False
                 self._auto_scroll_new_line_reached = False
                 self._auto_scroll_cooldown_timer.stop()
+                self.preview._last_auto_scroll_line_idx = -1
                 self.preview.resume_auto_scroll()
                 # 启动位置主动拉取定时器
                 self._position_poll_timer.start()

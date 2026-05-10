@@ -125,6 +125,7 @@ class KaraokePreview(QWidget):
         self._is_playing: bool = False
         self._auto_scroll_enabled: bool = True  # 自动滚动开关，特殊场景可关闭
         self._auto_scroll_suspended: bool = False  # 用户交互后挂起自动滚动
+        self._last_auto_scroll_line_idx: int = -1  # 上次自动滚动到的行（与 _current_line_idx 独立）
         self._line_switch_points: list[tuple[int, int]] = []  # [(switch_ms, line_idx)]
         self._current_switch_idx: int = 0  # 当前快照位置
 
@@ -164,9 +165,14 @@ class KaraokePreview(QWidget):
             self.user_interaction_during_auto_scroll.emit()
 
     def resume_auto_scroll(self):
-        """恢复自动滚动，重置快照索引以确保下次换行检测准确。"""
+        """恢复自动滚动：将视口同步到当前播放行。"""
         self._auto_scroll_suspended = False
-        self._current_switch_idx = 0
+        if (
+            self._last_auto_scroll_line_idx >= 0
+            and self._last_auto_scroll_line_idx != self._current_line_idx
+        ):
+            self._current_line_idx = self._last_auto_scroll_line_idx
+            self.scroll_current_line_to_center()
 
     def set_duration(self, duration_ms: int):
         """设置音频总时长（用于行尾非句尾时的wipe右边界）"""
@@ -266,18 +272,20 @@ class KaraokePreview(QWidget):
         # 播放期间按就近扩散顺序预热少量邻近行，降低视口内首帧卡顿
         if self._is_playing:
             self._warm_nearby_cache(budget=2)
-        # 自动滚动：播放时根据当前时间自动滚动到对应行（排除用户交互挂起）
-        if (
-            self._auto_scroll_enabled
-            and self._is_playing
-            and not self._auto_scroll_suspended
-        ):
+        # 自动滚动：始终检测播放行变化（用于 cooldown 判断），
+        # 仅在未挂起时才真正移动视口
+        if self._auto_scroll_enabled and self._is_playing:
             target_line_idx = self._find_line_for_time(time_ms)
             if target_line_idx is not None:
-                if target_line_idx != self._current_line_idx:
+                if target_line_idx != self._last_auto_scroll_line_idx:
+                    self._last_auto_scroll_line_idx = target_line_idx
+                    self.auto_scroll_line_changed.emit()
+                if (
+                    not self._auto_scroll_suspended
+                    and target_line_idx != self._current_line_idx
+                ):
                     self._current_line_idx = target_line_idx
                     self.scroll_current_line_to_center()
-                    self.auto_scroll_line_changed.emit()
         self.update()
 
     def _prewarm_all_sentences(self) -> None:
