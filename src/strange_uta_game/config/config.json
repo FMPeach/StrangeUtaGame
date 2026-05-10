@@ -117,7 +117,10 @@
       "analyze_rubies": "",
       "delete_rubies_by_type": "",
       "set_singer_by_line": "",
-      "clear_timestamp": ""
+      "undo": "CTRL+Z:short",
+      "redo": "CTRL+Y:short",
+      "save": "CTRL+S:short",
+      "paste_lyrics": "CTRL+V:short"
     },
     "edit_mode": {
       "play_pause": "D:short",
@@ -152,7 +155,10 @@
       "analyze_rubies": "",
       "delete_rubies_by_type": "",
       "set_singer_by_line": "",
-      "clear_timestamp": ""
+      "undo": "CTRL+Z:short",
+      "redo": "CTRL+Y:short",
+      "save": "CTRL+S:short",
+      "paste_lyrics": "CTRL+V:short"
     },
     "play_pause": "D",
     "stop": "S",

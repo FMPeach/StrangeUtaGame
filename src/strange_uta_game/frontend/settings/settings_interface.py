@@ -729,45 +729,47 @@ class SettingsInterface(ScrollArea):
     #   "timing_only"  仅打轴模式可用，UI 渲染一次并标注【仅打轴】
     #   "edit_only"    仅编辑模式可用，UI 渲染一次并标注【仅编辑】
     #   "split"        两模式下按键不同，UI 渲染两张卡片
-    _SHORTCUT_ACTIONS: list[tuple[str, object, str, str, str, str, str, str, str]] = [
-        # (key, icon, title, content, default_timing, default_edit, scope, timing_content, edit_content)
+    _SHORTCUT_ACTIONS: list[tuple[str, object, str, str, str, str, str, str, str, bool]] = [
+        # (key, icon, title, content, default_timing, default_edit, scope, timing_content, edit_content, readonly)
         # — 两模式通用 —
-        ("play_pause", FIF.PLAY, "播放/暂停", "切换播放和暂停", "D:short", "D:short", "both", None, None),
-        ("stop", FIF.PAUSE, "停止", "停止播放", "S:short", "S:short", "both", None, None),
-        ("speed_down", FIF.SPEED_OFF, "减速", "降低播放速度", "Q:short", "Q:short", "both", None, None),
-        ("speed_up", FIF.SPEED_HIGH, "加速", "提高播放速度", "W:short", "W:short", "both", None, None),
-        ("volume_up", FIF.VOLUME, "音量增大", "增大播放音量", "", "", "both", None, None),
-        ("volume_down", FIF.MUTE, "音量减小", "减小播放音量", "", "", "both", None, None),
-        ("nav_prev_line", FIF.UP, "上一行", "移动到上一歌词行", "UP:short", "UP:short", "both", None, None),
-        ("nav_next_line", FIF.DOWN, "下一行", "移动到下一歌词行", "DOWN:short", "DOWN:short", "both", None, None),
-        ("nav_prev_char", FIF.LEFT_ARROW, "上一字符", "在当前行内移动到上一个字符；若已在首字符则跳到上一行末字符", "LEFT:short", "LEFT:short", "both", None, None),
-        ("nav_next_char", FIF.RIGHT_ARROW, "下一字符", "在当前行内移动到下一个字符；若已在末字符则跳到下一行首字符", "RIGHT:short", "RIGHT:short", "both", None, None),
-        ("cycle_checkpoint_prev", FIF.SYNC, "切换字内节奏点（反向）", "在当前字符的多个节奏点之间反向循环切换（Alt+←）", "ALT+LEFT:short", "ALT+LEFT:short", "both", None, None),
-        ("timestamp_up", FIF.UP, "时间戳+步长", "增加选中节奏点时间戳", "ALT+UP:short", "ALT+UP:short", "both", None, None),
-        ("timestamp_down", FIF.DOWN, "时间戳-步长", "减少选中节奏点时间戳", "ALT+DOWN:short", "ALT+DOWN:short", "both", None, None),
-        ("cycle_checkpoint", FIF.SYNC, "切换字内节奏点", "在当前字符的多个节奏点之间循环切换（Alt+→）", "ALT+RIGHT:short", "ALT+RIGHT:short", "both", None, None),
-        ("edit_ruby", FIF.EDIT, "注音编辑", "编辑当前字符注音", "F2:short", "F2:short", "both", None, None),
-        ("toggle_word_join", FIF.LINK, "连词", "连词/取消连词", "F3:short", "F3:short", "both", None, None),
+        ("play_pause", FIF.PLAY, "播放/暂停", "切换播放和暂停", "D:short", "D:short", "both", None, None, False),
+        ("stop", FIF.PAUSE, "停止", "停止播放", "S:short", "S:short", "both", None, None, False),
+        ("speed_down", FIF.SPEED_OFF, "减速", "降低播放速度", "Q:short", "Q:short", "both", None, None, False),
+        ("speed_up", FIF.SPEED_HIGH, "加速", "提高播放速度", "W:short", "W:short", "both", None, None, False),
+        ("volume_up", FIF.VOLUME, "音量增大", "增大播放音量", "", "", "both", None, None, False),
+        ("volume_down", FIF.MUTE, "音量减小", "减小播放音量", "", "", "both", None, None, False),
+        ("nav_prev_line", FIF.UP, "上一行", "移动到上一歌词行", "UP:short", "UP:short", "both", None, None, False),
+        ("nav_next_line", FIF.DOWN, "下一行", "移动到下一歌词行", "DOWN:short", "DOWN:short", "both", None, None, False),
+        ("nav_prev_char", FIF.LEFT_ARROW, "上一字符", "在当前行内移动到上一个字符；若已在首字符则跳到上一行末字符", "LEFT:short", "LEFT:short", "both", None, None, False),
+        ("nav_next_char", FIF.RIGHT_ARROW, "下一字符", "在当前行内移动到下一个字符；若已在末字符则跳到下一行首字符", "RIGHT:short", "RIGHT:short", "both", None, None, False),
+        ("cycle_checkpoint_prev", FIF.SYNC, "切换字内节奏点（反向）", "在当前字符的多个节奏点之间反向循环切换（Alt+←）", "ALT+LEFT:short", "ALT+LEFT:short", "both", None, None, False),
+        ("timestamp_up", FIF.UP, "时间戳+步长", "增加选中节奏点时间戳", "ALT+UP:short", "ALT+UP:short", "both", None, None, False),
+        ("timestamp_down", FIF.DOWN, "时间戳-步长", "减少选中节奏点时间戳", "ALT+DOWN:short", "ALT+DOWN:short", "both", None, None, False),
+        ("cycle_checkpoint", FIF.SYNC, "切换字内节奏点", "在当前字符的多个节奏点之间循环切换（Alt+→）", "ALT+RIGHT:short", "ALT+RIGHT:short", "both", None, None, False),
+        ("edit_ruby", FIF.EDIT, "注音编辑", "编辑当前字符注音", "F2:short", "F2:short", "both", None, None, False),
+        ("toggle_word_join", FIF.LINK, "连词", "连词/取消连词", "F3:short", "F3:short", "both", None, None, False),
         # — 仅打轴模式 —
-        ("tag_now", FIF.PLAY, "打轴键", "打轴操作的按键【仅打轴模式】", "Space:short", "", "timing_only", None, None),
-        ("seek_back", FIF.LEFT_ARROW, "后退", "后退跳转【仅打轴模式】", "Z:short", "", "timing_only", None, None),
-        ("seek_forward", FIF.CHEVRON_RIGHT, "前进", "前进跳转【仅打轴模式】", "X:short", "", "timing_only", None, None),
-        ("delete_timestamp", FIF.DELETE, "删除当前时间戳并回滚", "删除跳转【仅打轴模式】", "Backspace:short", "", "timing_only", None, None),
+        ("tag_now", FIF.PLAY, "打轴键", "打轴操作的按键【仅打轴模式】", "Space:short", "", "timing_only", None, None, False),
+        ("seek_back", FIF.LEFT_ARROW, "后退", "后退跳转【仅打轴模式】", "Z:short", "", "timing_only", None, None, False),
+        ("seek_forward", FIF.CHEVRON_RIGHT, "前进", "前进跳转【仅打轴模式】", "X:short", "", "timing_only", None, None, False),
+        ("delete_timestamp", FIF.DELETE, "删除当前时间戳并回滚", "删除跳转【仅打轴模式】", "Backspace:short", "", "timing_only", None, None, False),
         # — 两模式下按键不同 —
-        ("add_checkpoint", FIF.PIN, "增加节奏点", "增加当前字符的节奏点数量", "F5:short", "Space:short", "split", "增加当前字符的节奏点数量（默认 F5）", "增加当前字符的节奏点数量（默认 Space）"),
-        ("remove_checkpoint", FIF.REMOVE, "删除节奏点", "减少当前字符的节奏点数量", "F6:short", "Backspace:short", "split", "减少当前字符的节奏点数量（默认 F6）", "减少当前字符的节奏点数量（默认 Backspace）"),
-        ("toggle_line_end", FIF.TAG, "切换句尾", "切换当前字符的句尾标记", "F4:short", ".:short", "split", "切换当前字符的句尾标记（默认 F4）", "切换当前字符的句尾标记（默认 句号）"),
-        ("break_line_here", FIF.RETURN, "在此处换行", "在当前字符后插入换行", "Return:short", "Return:short", "both", None, None),
-        ("delete_char", FIF.DELETE, "删除字符", "删除选中字符或当前字符（删行尾时行合并）", "Delete:short", "Delete:short", "both", None, None),
+        ("add_checkpoint", FIF.PIN, "增加节奏点", "增加当前字符的节奏点数量", "F5:short", "Space:short", "split", "增加当前字符的节奏点数量（默认 F5）", "增加当前字符的节奏点数量（默认 Space）", False),
+        ("remove_checkpoint", FIF.REMOVE, "删除节奏点", "减少当前字符的节奏点数量", "F6:short", "Backspace:short", "split", "减少当前字符的节奏点数量（默认 F6）", "减少当前字符的节奏点数量（默认 Backspace）", False),
+        ("toggle_line_end", FIF.TAG, "切换句尾", "切换当前字符的句尾标记", "F4:short", ".:short", "split", "切换当前字符的句尾标记（默认 F4）", "切换当前字符的句尾标记（默认 句号）", False),
         # — 通用工具栏功能 —
-        ("bulk_change", FIF.EDIT, "批量变更", "打开批量变更对话框", "CTRL+H:short", "CTRL+H:short", "both", None, None),
-        ("modify_char", FIF.EDIT, "修改所选字符", "打开修改所选字符对话框", "", "", "both", None, None),
-        ("insert_guide", FIF.ADD, "插入导唱符", "打开插入导唱符对话框", "", "", "both", None, None),
-        ("modify_line", FIF.EDIT, "修改选中行", "打开修改选中行对话框", "", "", "both", None, None),
-        ("analyze_rubies", FIF.SYNC, "注音分析", "自动分析全部注音", "", "", "both", None, None),
-        ("delete_rubies_by_type", FIF.DELETE, "按类型删除注音", "按类型删除注音对话框", "", "", "both", None, None),
-        ("set_singer_by_line", FIF.PEOPLE, "按行设置演唱者", "按行批量设置演唱者", "", "", "both", None, None),
-        ("clear_timestamp", FIF.DELETE, "清除当前行时间戳", "清除当前行所有时间戳", "", "", "both", None, None),
+        ("bulk_change", FIF.EDIT, "批量变更", "打开批量变更对话框", "CTRL+H:short", "CTRL+H:short", "both", None, None, False),
+        ("modify_char", FIF.EDIT, "修改所选字符", "打开修改所选字符对话框", "", "", "both", None, None, False),
+        ("insert_guide", FIF.ADD, "插入导唱符", "打开插入导唱符对话框", "", "", "both", None, None, False),
+        ("modify_line", FIF.EDIT, "修改选中行", "打开修改选中行对话框", "", "", "both", None, None, False),
+        ("analyze_rubies", FIF.SYNC, "注音分析", "自动分析全部注音", "", "", "both", None, None, False),
+        ("delete_rubies_by_type", FIF.DELETE, "按类型删除注音", "按类型删除注音对话框", "", "", "both", None, None, False),
+        ("set_singer_by_line", FIF.PEOPLE, "按行设置演唱者", "按行批量设置演唱者", "", "", "both", None, None, False),
+        # — 硬编码按键（仅用于冲突检测，不可编辑） —
+        ("undo", FIF.CANCEL, "撤销", "撤销操作", "CTRL+Z:short", "CTRL+Z:short", "both", None, None, True),
+        ("redo", FIF.SYNC, "重做", "重做操作", "CTRL+Y:short", "CTRL+Y:short", "both", None, None, True),
+        ("save", FIF.SAVE, "保存", "保存项目", "CTRL+S:short", "CTRL+S:short", "both", None, None, True),
+        ("paste_lyrics", FIF.PASTE, "粘贴歌词", "粘贴歌词", "CTRL+V:short", "CTRL+V:short", "both", None, None, True),
     ]
 
     # 两种模式的中文标签，供 UI 标题与冲突提示使用
@@ -802,7 +804,7 @@ class SettingsInterface(ScrollArea):
         color_both = "#5C2D91"   # 紫色
 
         for row in self._SHORTCUT_ACTIONS:
-            action_key, icon, title, content, default_timing, default_edit, scope, timing_content, edit_content = row
+            action_key, icon, title, content, default_timing, default_edit, scope, timing_content, edit_content, readonly = row
             
             # 模式前缀样式处理 (#6)
             def _wrap_title(t, s):
@@ -821,22 +823,31 @@ class SettingsInterface(ScrollArea):
             if scope == "both":
                 card = ShortcutSettingCard(icon, "", content, default_timing, parent=group)
                 card.setTitle(_wrap_title(title, "both"))
+                if readonly:
+                    card.setReadOnly(True)
                 self._shortcut_cards["timing_mode"][action_key] = card
                 self._shortcut_cards["edit_mode"][action_key] = card
                 group.addSettingCard(card)
-                card.value_changed.connect(lambda v, c=card: self._on_shortcut_changed(c, v))
+                if not readonly:
+                    card.value_changed.connect(lambda v, c=card: self._on_shortcut_changed(c, v))
             elif scope == "timing_only":
                 card = ShortcutSettingCard(icon, "", content, default_timing, parent=group)
                 card.setTitle(_wrap_title(title, "timing_only"))
+                if readonly:
+                    card.setReadOnly(True)
                 self._shortcut_cards["timing_mode"][action_key] = card
                 group.addSettingCard(card)
-                card.value_changed.connect(lambda v, c=card: self._on_shortcut_changed(c, v))
+                if not readonly:
+                    card.value_changed.connect(lambda v, c=card: self._on_shortcut_changed(c, v))
             elif scope == "edit_only":
                 card = ShortcutSettingCard(icon, "", content, default_edit, parent=group)
                 card.setTitle(_wrap_title(title, "edit_only"))
+                if readonly:
+                    card.setReadOnly(True)
                 self._shortcut_cards["edit_mode"][action_key] = card
                 group.addSettingCard(card)
-                card.value_changed.connect(lambda v, c=card: self._on_shortcut_changed(c, v))
+                if not readonly:
+                    card.value_changed.connect(lambda v, c=card: self._on_shortcut_changed(c, v))
             elif scope == "split":
                 # #5 使用独立的 content
                 t_content = timing_content if timing_content else content
@@ -844,12 +855,17 @@ class SettingsInterface(ScrollArea):
                 
                 card_t = ShortcutSettingCard(icon, "", t_content, default_timing, parent=group)
                 card_t.setTitle(_wrap_title(title, "split_timing"))
+                if readonly:
+                    card_t.setReadOnly(True)
                 self._shortcut_cards["timing_mode"][action_key] = card_t
                 group.addSettingCard(card_t)
-                card_t.value_changed.connect(lambda v, c=card_t: self._on_shortcut_changed(c, v))
+                if not readonly:
+                    card_t.value_changed.connect(lambda v, c=card_t: self._on_shortcut_changed(c, v))
                 
                 card_e = ShortcutSettingCard(icon, "", e_content, default_edit, parent=group)
                 card_e.setTitle(_wrap_title(title, "split_edit"))
+                if readonly:
+                    card_e.setReadOnly(True)
                 self._shortcut_cards["edit_mode"][action_key] = card_e
                 group.addSettingCard(card_e)
                 card_e.value_changed.connect(lambda v, c=card_e: self._on_shortcut_changed(c, v))
@@ -1292,6 +1308,9 @@ class SettingsInterface(ScrollArea):
         for mode_key, _ in self._SHORTCUT_MODES:
             for row in self._SHORTCUT_ACTIONS:
                 action_key = row[0]
+                readonly = row[9] if len(row) > 9 else False
+                if readonly:
+                    continue  # 跳过只读快捷键
                 card = self._shortcut_cards[mode_key].get(action_key)
                 if card is None:
                     continue

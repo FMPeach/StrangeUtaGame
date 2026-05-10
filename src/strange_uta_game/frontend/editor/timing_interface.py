@@ -20,13 +20,15 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Callable, Optional, Tuple
 
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QKeyEvent
 from PyQt6.QtWidgets import (
+    QApplication,
     QDialog,
     QFileDialog,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMessageBox,
     QVBoxLayout,
     QWidget,
@@ -108,6 +110,15 @@ class EditorInterface(QWidget):
         self._fast_forward_ms = 5000
         self._rewind_ms = 5000
         self._key_map = {}  # key_string -> action_name, populated by _apply_settings
+        self._settings_loaded = False  # 配置是否已加载成功
+        # 长按/短按支持
+        self._long_press_timer = QTimer(self)
+        self._long_press_timer.setSingleShot(True)
+        self._long_press_timer.setInterval(300)
+        self._long_press_timer.timeout.connect(self._on_long_press_timeout)
+        self._pending_press_key: Optional[str] = None
+        self._pending_press_action_short: Optional[str] = None
+        self._pending_press_action_long: Optional[str] = None
         # 当 cp 标记被点击时，沿 _on_checkpoint_clicked → move_to_checkpoint →
         # on_checkpoint_moved (signal) → _handle_checkpoint_moved →
         # _apply_checkpoint_position 链路同步执行；此标志使后者跳过
@@ -119,6 +130,11 @@ class EditorInterface(QWidget):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setAcceptDrops(True)
         self._bind_callback_signals()
+
+        # 位置主动拉取定时器（UI 线程 60fps，替代旧的回调线程+信号推送）
+        self._position_poll_timer = QTimer(self)
+        self._position_poll_timer.setInterval(16)  # ~60fps
+        self._position_poll_timer.timeout.connect(self._poll_audio_position)
 
     def _bind_callback_signals(self):
         self._position_changed_signal.connect(self._handle_position_changed)
@@ -262,6 +278,8 @@ class EditorInterface(QWidget):
         self._timing_service._global_qt._focus_moved_signal.connect(self._handle_foucus_moved)
         # 注册当前行居中滚动信号
         self._timing_service._global_qt._center_current_line_signal.connect(self._handle_center_current_line)
+        # 传音频引擎引用给 preview，使 paintEvent 可主动拉取高精度时间
+        self.preview.set_audio_engine(timing_service._audio_engine)
 
     def set_store(self, store):
         """接入 ProjectStore 统一数据中心。"""
@@ -351,9 +369,29 @@ class EditorInterface(QWidget):
             "delete_timestamp": "Backspace",
         }
 
-        def _collect_map(mode_key: str) -> tuple[dict, dict]:
-            """返回 (key_map, action->key_str) 两套数据，后者用于提示显示。"""
-            key_map: dict[str, str] = {}
+        def _normalize_trigger(raw: str) -> str:
+            """将旧格式快捷键值（无 :short/:long 后缀）标准化为新格式。"""
+            if not raw:
+                return raw
+            parts = []
+            needs_update = False
+            for k in raw.split(","):
+                k = k.strip()
+                if k:
+                    if ":" not in k:
+                        parts.append(f"{k}:short")
+                        needs_update = True
+                    else:
+                        parts.append(k)
+            return ",".join(parts) if needs_update else raw
+
+        # 标记是否有旧格式需要持久化
+        self._settings_migrated = False
+
+        def _collect_map(mode_key: str) -> tuple[dict, dict, dict]:
+            """返回 (key_map_short, key_map_long, action->key_str) 三套数据。"""
+            key_map_short: dict[str, str] = {}
+            key_map_long: dict[str, str] = {}
             action_to_keys: dict[str, str] = {}
             for action in action_names:
                 raw = settings.get(
@@ -361,19 +399,44 @@ class EditorInterface(QWidget):
                     # 兼容旧 schema（无 mode_key 的扁平 shortcuts.xxx）
                     settings.get(f"shortcuts.{action}", defaults[action]),
                 )
+                # 旧格式自动更正：无后缀的键名补全为 :short
+                normalized = _normalize_trigger(raw)
+                if normalized != raw:
+                    settings.set(f"shortcuts.{mode_key}.{action}", normalized)
+                    self._settings_migrated = True
+                    raw = normalized
                 action_to_keys[action] = raw
                 for k in (raw or "").split(","):
                     k = k.strip()
                     if k:
-                        key_map[k.upper()] = action
-            return key_map, action_to_keys
+                        parts = k.split(":")
+                        key_name = parts[0].strip()
+                        trigger = parts[1].strip().lower() if len(parts) > 1 else "short"
+                        if key_name:
+                            if trigger == "long":
+                                key_map_long[key_name.upper()] = action
+                            else:
+                                key_map_short[key_name.upper()] = action
+            return key_map_short, key_map_long, action_to_keys
 
-        self._key_map_timing, timing_actions = _collect_map("timing_mode")
-        self._key_map_edit, edit_actions = _collect_map("edit_mode")
+        timing_short, timing_long, timing_actions = _collect_map("timing_mode")
+        edit_short, edit_long, edit_actions = _collect_map("edit_mode")
+        # 旧格式迁移后自动保存
+        if self._settings_migrated:
+            settings.save()
+            self._settings_migrated = False
         for key_name in ("SPACE", "Z", "X"):
-            self._key_map_edit.pop(key_name, None)
-        # 兼容旧字段名：当前活动 map（按播放状态切换；初始为编辑模式）
-        self._key_map = self._key_map_edit
+            edit_short.pop(key_name, None)
+            edit_long.pop(key_name, None)
+        self._key_map_timing_short = timing_short
+        self._key_map_timing_long = timing_long
+        self._key_map_edit_short = edit_short
+        self._key_map_edit_long = edit_long
+        # 当前活动 map（按播放状态切换；初始为编辑模式）
+        self._key_map_short = edit_short
+        self._key_map_long = edit_long
+        # 兼容旧引用
+        self._key_map = edit_short
         # 应用默认音量
         default_volume = int(settings.get("audio.default_volume", 80))
         if self._timing_service:
@@ -419,7 +482,7 @@ class EditorInterface(QWidget):
         self._update_shortcut_hint(timing_actions, edit_actions)
         # #7：打轴按钮文字联动 shortcuts.timing_mode.tag_now
         tag_key_raw = timing_actions.get("tag_now", "Space")
-        tag_first = tag_key_raw.split(",")[0].strip() if tag_key_raw else "Space"
+        tag_first = tag_key_raw.split(",")[0].split(":")[0].strip() if tag_key_raw else "Space"
         if hasattr(self, "btn_tag"):
             self.btn_tag.setText(f"打轴 ({tag_first})")
         # #8：同步模式指示器（首次应用设置时刷新）
@@ -427,6 +490,7 @@ class EditorInterface(QWidget):
         # 应用禁用单击跳转设置
         disable_click_jump = settings.get("timing.disable_click_jump", False)
         self.preview.set_disable_click_jump(disable_click_jump)
+        self._settings_loaded = True
 
     def _update_shortcut_hint(
         self, timing_actions: dict, edit_actions: Optional[dict] = None
@@ -453,8 +517,9 @@ class EditorInterface(QWidget):
         for action, label in action_labels:
             key = active.get(action, "")
             if key:
-                first_key = key.split(",")[0].strip()
-                parts.append(f"{first_key}{label}")
+                first_key = key.split(",")[0].split(":")[0].strip()
+                if first_key:
+                    parts.append(f"{first_key}{label}")
         parts.append("Alt+→ 切换字内节奏点")
         if hasattr(self, "lbl_shortcut_hint"):
             self.lbl_shortcut_hint.setText(" ".join(parts))
@@ -764,16 +829,32 @@ class EditorInterface(QWidget):
     def _on_undo(self):
         if self._timing_service and self._timing_service.can_undo():
             self._timing_service.undo()
-            self._update_time_tags_display()
-            self._apply_checkpoint_position(self._timing_service.get_current_position())
-            self._update_status()
+            cmd = self._timing_service.command_manager.get_last_undone_command()
+            if isinstance(cmd, SentenceSnapshotCommand) and cmd.undo_position:
+                self._sync_after_structure_change(
+                    change_type="lyrics",
+                    focus_line_idx=cmd.undo_position[0],
+                    focus_char_idx=cmd.undo_position[1],
+                )
+            else:
+                self._update_time_tags_display()
+                self._apply_checkpoint_position(self._timing_service.get_current_position())
+                self._update_status()
 
     def _on_redo(self):
         if self._timing_service and self._timing_service.can_redo():
             self._timing_service.redo()
-            self._update_time_tags_display()
-            self._apply_checkpoint_position(self._timing_service.get_current_position())
-            self._update_status()
+            cmd = self._timing_service.command_manager.get_last_redone_command()
+            if isinstance(cmd, SentenceSnapshotCommand) and cmd.redo_position:
+                self._sync_after_structure_change(
+                    change_type="lyrics",
+                    focus_line_idx=cmd.redo_position[0],
+                    focus_char_idx=cmd.redo_position[1],
+                )
+            else:
+                self._update_time_tags_display()
+                self._apply_checkpoint_position(self._timing_service.get_current_position())
+                self._update_status()
 
     def _on_bulk_change(self):
         """Ctrl+H — 打开批量変更对话框，自动填充当前焦点字符的连词或划选区域"""
@@ -871,8 +952,9 @@ class EditorInterface(QWidget):
                     after_sentences,
                     f"修改字符（第 {use_line + 1} 句 第 {start_idx + 1}-{end_idx + 1} 字）",
                 )
-                # 我们已经原地修改完成，不希望 execute() 再跑一次：
-                # 用直接入栈方式——调用 execute 会重置为 after_sentences（幂等，安全）
+                cursor_pos = (self._current_line_idx, self.preview._current_char_idx)
+                cmd.undo_position = cursor_pos
+                cmd.redo_position = cursor_pos
                 command_manager.execute(cmd)
 
             # Rebuild global checkpoints
@@ -932,6 +1014,9 @@ class EditorInterface(QWidget):
                     after_sentences,
                     f"修改选中行（第 {line_idx + 1} 句）",
                 )
+                cursor_pos = (self._current_line_idx, self.preview._current_char_idx)
+                cmd.undo_position = cursor_pos
+                cmd.redo_position = cursor_pos
                 command_manager.execute(cmd)
 
             if self._timing_service:
@@ -1293,8 +1378,8 @@ class EditorInterface(QWidget):
     def _update_mode_indicator(self):
         """#8：根据播放状态更新左下角模式指示器与激活的 key_map。
 
-        - 播放中 → "模式：打轴"，使用 _key_map_timing
-        - 未播放 → "模式：编辑"，使用 _key_map_edit
+        - 播放中 → "模式：打轴"，使用 _key_map_timing_short/long
+        - 未播放 → "模式：编辑"，使用 _key_map_edit_short/long
         同步刷新底部快捷键提示（因为两模式文本可能不同）。
         """
         if not hasattr(self, "lbl_mode"):
@@ -1306,16 +1391,20 @@ class EditorInterface(QWidget):
                 "font-size: 12px; padding: 2px 8px; border-radius: 4px;"
                 "background-color: #ffd54f; color: #333; font-weight: bold;"
             )
-            if hasattr(self, "_key_map_timing"):
-                self._key_map = self._key_map_timing
+            if hasattr(self, "_key_map_timing_short"):
+                self._key_map_short = self._key_map_timing_short
+                self._key_map_long = self._key_map_timing_long
+                self._key_map = self._key_map_timing_short
         else:
             self.lbl_mode.setText("模式：编辑")
             self.lbl_mode.setStyleSheet(
                 "font-size: 12px; padding: 2px 8px; border-radius: 4px;"
                 "background-color: #e0e0e0; color: #444;"
             )
-            if hasattr(self, "_key_map_edit"):
-                self._key_map = self._key_map_edit
+            if hasattr(self, "_key_map_edit_short"):
+                self._key_map_short = self._key_map_edit_short
+                self._key_map_long = self._key_map_edit_long
+                self._key_map = self._key_map_edit_short
         # 刷新快捷键提示（按新模式取文本）
         if hasattr(self, "_shortcut_actions_timing"):
             self._update_shortcut_hint(
@@ -1333,6 +1422,8 @@ class EditorInterface(QWidget):
                 self.preview.set_playing(self._timing_service.is_playing())
                 self.lbl_status.setText("播放中")
                 self._update_mode_indicator()
+                # 启动位置主动拉取定时器
+                self._position_poll_timer.start()
             except Exception as e:
                 self._show_runtime_error(str(e))
 
@@ -1343,6 +1434,8 @@ class EditorInterface(QWidget):
             self.preview.set_playing(False)
             self.lbl_status.setText("已暂停")
             self._update_mode_indicator()
+            # 停止位置拉取定时器
+            self._position_poll_timer.stop()
             # 切换到编辑模式时校验所有行时间戳
             self._validate_all_timestamps()
 
@@ -1355,6 +1448,8 @@ class EditorInterface(QWidget):
             self.timeline.set_position(0)
             self.lbl_status.setText("已停止")
             self._update_mode_indicator()
+            # 停止位置拉取定时器
+            self._position_poll_timer.stop()
             # 切换到编辑模式时校验所有行时间戳
             self._validate_all_timestamps()
 
@@ -1677,6 +1772,8 @@ class EditorInterface(QWidget):
         if not self._project:
             return False
 
+        undo_pos = (self._current_line_idx, self.preview._current_char_idx)
+
         before_sentences = deepcopy(self._project.sentences)
         result = mutator()
         if result is None:
@@ -1693,6 +1790,9 @@ class EditorInterface(QWidget):
                 after_sentences,
                 description,
             )
+            command.undo_position = undo_pos
+            focus_line_idx, focus_char_idx, checkpoint_idx, change_type = result
+            command.redo_position = (focus_line_idx, focus_char_idx)
             command_manager.execute(command)
 
         focus_line_idx, focus_char_idx, checkpoint_idx, change_type = result
@@ -2050,10 +2150,10 @@ class EditorInterface(QWidget):
                     return tags[-1]  # 返回该字符最后一个时间戳（最近的）
         return None
 
-    def _find_previous_checkpoint_with_timestamp(
+    def _find_prev_char_with_cp(
         self, line_idx: int, char_idx: int
     ) -> Optional[Tuple[int, int, int]]:
-        """向前查找最近一个有时间戳的cp
+        """向前查找最近一个有CP的字符（check_count > 0）
 
         Args:
             line_idx: 当前行索引
@@ -2075,11 +2175,8 @@ class EditorInterface(QWidget):
                 char = sentence.get_character(ci)
                 if not char:
                     continue
-                # 检查该字符是否有时间戳
-                if char.all_global_timestamps:
-                    # 返回该字符的最后一个cp索引
-                    last_cp_idx = len(char.all_global_timestamps) - 1
-                    return (li, ci, last_cp_idx)
+                if char.check_count > 0:
+                    return (li, ci, 0)
 
         return None
 
@@ -2168,13 +2265,14 @@ class EditorInterface(QWidget):
         self._delete_timestamp(line_idx, char_idx)
         
         # 删除后自动移动到前一个有时间戳的cp，方便连续删除
-        prev_cp = self._find_previous_checkpoint_with_timestamp(line_idx, char_idx)
+        prev_char = self._find_prev_char_with_cp(line_idx, char_idx)
         if prev_cp:
-            prev_line, prev_char, prev_cp_idx = prev_cp
+            prev_line, prev_char_idx, prev_cp_idx = prev_char
             if self._timing_service:
-                self._timing_service.move_to_checkpoint(prev_line, prev_char, prev_cp_idx)
+                self._timing_service.move_to_checkpoint(prev_line, prev_char_idx, prev_cp_idx)
                 self._update_time_tags_display()
                 self._update_status()
+            self.preview.set_focus_position(prev_line, prev_char_idx)
 
     def _on_insert_space_after_requested(self, line_idx: int, char_idx: int):
         if not self._project or line_idx < 0 or line_idx >= len(self._project.sentences):
@@ -2285,79 +2383,9 @@ class EditorInterface(QWidget):
 
     # ==================== 键盘 ====================
 
-    def keyPressEvent(self, a0: Optional[QKeyEvent]):
-        if a0 is None:
-            return
-        key = a0.key()
-        modifiers = a0.modifiers()
-        playing = bool(self._timing_service and self._timing_service.is_playing())
-
-        if playing and key == Qt.Key.Key_F4:
-            self._toggle_sentence_end_at_current()
-            a0.accept()
-            return
-        if playing and key == Qt.Key.Key_F5:
-            self._add_checkpoint()
-            a0.accept()
-            return
-        if playing and key == Qt.Key.Key_F6:
-            self._remove_checkpoint()
-            a0.accept()
-            return
-
-        # Ctrl 快捷键（系统级，优先处理）
-        if modifiers & Qt.KeyboardModifier.ControlModifier:
-            if key == Qt.Key.Key_Z:
-                self._on_undo()
-                a0.accept()
-                return
-            elif key == Qt.Key.Key_Y:
-                self._on_redo()
-                a0.accept()
-                return
-            elif key == Qt.Key.Key_S:
-                self._on_save()
-                a0.accept()
-                return
-            elif key == Qt.Key.Key_H:
-                self._on_bulk_change()
-                a0.accept()
-                return
-            elif key == Qt.Key.Key_V:
-                self._on_paste_lyrics()
-                a0.accept()
-                return
-            # 其他 Ctrl 组合键：不直接 return，继续走 key_map 查找
-
-        # Convert Qt key to string name for mapping lookup
-        key_name = self._qt_key_to_name(key, modifiers)
-        if not key_name:
-            super().keyPressEvent(a0)
-            return
-
-        action = self._key_map.get(key_name.upper())
-        # Fallback to default key map if settings not loaded yet
-        if action is None:
-            action = self._default_key_action(key, modifiers)
-
-        if action == "tag_now":
-            if not playing:
-                self._add_checkpoint()
-                a0.accept()
-                return
-            if a0.isAutoRepeat():
-                a0.ignore()
-                return
-            if self._timing_service and key_name not in self._pressed_keys:
-                try:
-                    self._pressed_keys.add(key_name)
-                    self._timing_service.on_timing_key_pressed(key_name)
-                except Exception as e:
-                    self._pressed_keys.discard(key_name)
-                    self._show_runtime_error(str(e))
-            a0.accept()
-            return
-        elif action == "play_pause":
+    def _execute_action(self, action: str, key: int):
+        """执行指定的快捷键动作。"""
+        if action == "play_pause":
             if self._timing_service and self._timing_service.is_playing():
                 self._on_pause()
             else:
@@ -2365,17 +2393,11 @@ class EditorInterface(QWidget):
         elif action == "stop":
             self._on_stop()
         elif action == "seek_back":
-            if not playing:
-                a0.accept()
-                return
-            if self._timing_service:
+            if self._timing_service and self._timing_service.is_playing():
                 cur = self._timing_service.get_position_ms()
                 self._on_seek(max(0, cur - self._rewind_ms))
         elif action == "seek_forward":
-            if not playing:
-                a0.accept()
-                return
-            if self._timing_service:
+            if self._timing_service and self._timing_service.is_playing():
                 cur = self._timing_service.get_position_ms()
                 dur = self._timing_service.get_duration_ms()
                 self._on_seek(min(dur, cur + self._fast_forward_ms))
@@ -2393,39 +2415,20 @@ class EditorInterface(QWidget):
             self.transport.slider_volume.setValue(max(0, v - 5))
         elif action == "nav_prev_line":
             self._on_nav_line(-1)
-            a0.accept()
-            return
         elif action == "nav_next_line":
             self._on_nav_line(1)
-            a0.accept()
-            return
         elif action == "nav_prev_char":
             self._on_nav_char(-1)
-            a0.accept()
-            return
         elif action == "nav_next_char":
             self._on_nav_char(1)
-            a0.accept()
-            return
         elif action == "timestamp_up":
-            # #3/#4：以 checkpoint 为单位 + 步长可配置
             self._adjust_current_timestamp(self._timing_adjust_step_ms)
-            a0.accept()
-            return
         elif action == "timestamp_down":
             self._adjust_current_timestamp(-self._timing_adjust_step_ms)
-            a0.accept()
-            return
         elif action == "cycle_checkpoint":
-            # #2：Alt+→ 循环切换当前字符的 checkpoint（正向）
             self._cycle_current_checkpoint(1)
-            a0.accept()
-            return
         elif action == "cycle_checkpoint_prev":
-            # #2：Alt+← 循环切换当前字符的 checkpoint（反向）
             self._cycle_current_checkpoint(-1)
-            a0.accept()
-            return
         elif action == "edit_ruby":
             if self._project:
                 line_idx = self._current_line_idx
@@ -2447,13 +2450,124 @@ class EditorInterface(QWidget):
                     self.preview.toggle_sentence_end_requested.emit(line_idx, char_idx)
                 else:
                     self._toggle_sentence_end_at_current()
-                a0.accept()
         elif action == "delete_timestamp":
             if self._project:
                 line_idx = self._current_line_idx
                 char_idx = self.preview._current_char_idx
                 self._on_delete_timestamp_requested(line_idx, char_idx)
-        elif key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+        elif action == "bulk_change":
+            self._on_bulk_change()
+        elif action == "modify_char":
+            self._on_modify_char()
+        elif action == "insert_guide":
+            self._on_insert_guide()
+        elif action == "modify_line":
+            self._on_modify_line()
+        elif action == "analyze_rubies":
+            self._on_analyze_rubies()
+        elif action == "delete_rubies_by_type":
+            self._on_delete_rubies_by_type()
+        elif action == "set_singer_by_line":
+            self._on_set_singer_by_line()
+
+    def _on_long_press_timeout(self):
+        """长按定时器超时，执行 long 动作。"""
+        action = self._pending_press_action_long
+        key_name = self._pending_press_key
+        # 清除 pending 状态（标记为已处理长按）
+        self._pending_press_key = None
+        self._pending_press_action_short = None
+        self._pending_press_action_long = None
+        if action:
+            self._execute_action(action, 0)
+
+    def keyPressEvent(self, a0: Optional[QKeyEvent]):
+        if a0 is None:
+            return
+        key = a0.key()
+        modifiers = a0.modifiers()
+        playing = bool(self._timing_service and self._timing_service.is_playing())
+
+        # Ctrl 快捷键（系统级，优先处理）
+        if modifiers & Qt.KeyboardModifier.ControlModifier:
+            if key == Qt.Key.Key_Z:
+                self._on_undo()
+                a0.accept()
+                return
+            elif key == Qt.Key.Key_Y:
+                self._on_redo()
+                a0.accept()
+                return
+            elif key == Qt.Key.Key_S:
+                self._on_save()
+                a0.accept()
+                return
+            elif key == Qt.Key.Key_V:
+                self._on_paste_lyrics()
+                a0.accept()
+                return
+            # 其他 Ctrl 组合键：不直接 return，继续走 key_map 查找
+
+        # Convert Qt key to string name for mapping lookup
+        key_name = self._qt_key_to_name(key, modifiers)
+        if not key_name:
+            super().keyPressEvent(a0)
+            return
+
+        key_upper = key_name.upper()
+        action_short = self._key_map_short.get(key_upper)
+        action_long = self._key_map_long.get(key_upper)
+        # Fallback to default key map only if settings not loaded yet
+        if not self._settings_loaded and action_short is None and action_long is None:
+            action_short = self._default_key_action(key, modifiers)
+
+        # tag_now 使用 press/release 语义，立即执行，不走长按检测
+        if action_short == "tag_now" or action_long == "tag_now":
+            if not playing:
+                self._add_checkpoint()
+                a0.accept()
+                return
+            if a0.isAutoRepeat():
+                a0.ignore()
+                return
+            if self._timing_service and key_name not in self._pressed_keys:
+                try:
+                    self._pressed_keys.add(key_name)
+                    # 用事件时间戳计算 Qt 队列实际延迟
+                    # event.timestamp() 与 time.monotonic() 在 Windows 上共享时基
+                    # （系统启动时间），但 32 位 GetMessageTime 49.7 天归零，
+                    # 且跨平台时基可能不同，故限制合理范围（0~200ms）。
+                    queue_delay_ms = max(0, int(time.monotonic() * 1000 - a0.timestamp()))
+                    if queue_delay_ms > 500:
+                        queue_delay_ms = 0
+                    self._timing_service.on_timing_key_pressed(key_name, queue_delay_ms)
+                except Exception as e:
+                    self._pressed_keys.discard(key_name)
+                    self._show_runtime_error(str(e))
+            a0.accept()
+            return
+
+        # 只有 short 绑定：立即执行，保留 isAutoRepeat 行为
+        if action_short is not None and action_long is None:
+            self._execute_action(action_short, key)
+            a0.accept()
+            return
+
+        # 有 long 绑定（可能同时有 short）：启动定时器等待区分
+        if action_long is not None:
+            self._pending_press_key = key_upper
+            self._pending_press_action_short = action_short
+            self._pending_press_action_long = action_long
+            self._long_press_timer.start()
+            a0.accept()
+            return
+
+        # 无绑定的按键
+        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            # 如果焦点在 QLineEdit 上（如速度/偏移输入框），不拦截回车
+            focused = QApplication.focusWidget()
+            if isinstance(focused, QLineEdit):
+                return
             self._insert_line_break_at_current()
             a0.accept()
             return
@@ -2470,10 +2584,16 @@ class EditorInterface(QWidget):
         key = a0.key()
         modifiers = a0.modifiers()
         key_name = self._qt_key_to_name(key, modifiers)
-        action = self._key_map.get(key_name.upper()) if key_name else None
-        if action is None:
-            action = self._default_key_action(key, modifiers)
-        if action == "tag_now":
+        if not key_name:
+            super().keyReleaseEvent(a0)
+            return
+
+        key_upper = key_name.upper()
+
+        # tag_now 释放处理
+        action_short = self._key_map_short.get(key_upper)
+        action_long = self._key_map_long.get(key_upper)
+        if action_short == "tag_now" or action_long == "tag_now":
             if not (self._timing_service and self._timing_service.is_playing()):
                 a0.accept()
                 return
@@ -2482,13 +2602,35 @@ class EditorInterface(QWidget):
                 return
             if self._timing_service and key_name in self._pressed_keys:
                 try:
-                    self._timing_service.on_timing_key_released(key_name)
+                    queue_delay_ms = max(0, int(time.monotonic() * 1000 - a0.timestamp()))
+                    if queue_delay_ms > 500:
+                        queue_delay_ms = 0
+                    self._timing_service.on_timing_key_released(key_name, queue_delay_ms)
                 except Exception as e:
                     self._show_runtime_error(str(e))
                 finally:
                     self._pressed_keys.discard(key_name)
             a0.accept()
             return
+
+        # 长按/短按释放处理
+        if self._pending_press_key == key_upper and self._long_press_timer.isActive():
+            # 定时器仍在运行 = 短按（300ms 内释放）
+            self._long_press_timer.stop()
+            action = self._pending_press_action_short
+            self._pending_press_key = None
+            self._pending_press_action_short = None
+            self._pending_press_action_long = None
+            if action:
+                self._execute_action(action, key)
+            a0.accept()
+            return
+
+        # 长按已超时，pending 已被 _on_long_press_timeout 清除，忽略释放
+        if a0.isAutoRepeat():
+            a0.ignore()
+            return
+
         super().keyReleaseEvent(a0)
 
     def _qt_key_to_name(
@@ -2567,7 +2709,7 @@ class EditorInterface(QWidget):
             return None
         defaults = {
             "SPACE": "tag_now",
-            "A": "play_pause",
+            "D": "play_pause",
             "S": "stop",
             "Z": "seek_back",
             "X": "seek_forward",
@@ -2575,9 +2717,6 @@ class EditorInterface(QWidget):
             "W": "speed_up",
             "F2": "edit_ruby",
             "F3": "toggle_word_join",
-            "F4": "add_checkpoint",
-            "F5": "remove_checkpoint",
-            "F6": "toggle_line_end",
             "UP": "nav_prev_line",
             "DOWN": "nav_next_line",
             "LEFT": "nav_prev_char",
@@ -2615,6 +2754,30 @@ class EditorInterface(QWidget):
 
     def on_timing_error(self, error_type: str, message: str) -> None:
         self._timing_error_signal.emit(error_type, message)
+
+    def _poll_audio_position(self) -> None:
+        """UI 线程 QTimer 主动拉取音频位置（替代旧的回调线程+信号推送）。
+
+        直接从音频引擎获取基于 perf_counter 外推的高精度位置，
+        消除多层异步排队带来的延迟和抖动。
+        """
+        if not self._timing_service:
+            return
+        engine = self._timing_service._audio_engine
+        position_ms = engine.get_position_ms()
+        duration_ms = engine.get_duration_ms()
+
+        self.transport.set_duration(duration_ms)
+        self.timeline.set_duration(duration_ms)
+        self.transport.set_position(position_ms)
+        self.timeline.set_position(position_ms)
+        self.preview.set_current_time_ms(position_ms)
+
+        # 检测播放结束（位置到达末尾或引擎已停止）
+        if not engine.is_playing():
+            self.transport.set_playing(False)
+            self.preview.set_playing(False)
+            self._position_poll_timer.stop()
 
     def _handle_position_changed(
         self, position_ms: int, duration_ms: int, singer_positions

@@ -65,8 +65,8 @@
   "export": {
     "default_format": "LRC (增强型)",
     "auto_add_extension": true,
-    "last_export_dir": "E:\\ニコカラ\\045阿澄佳奈,藤田咲,喜多村英梨 - SOMEONE ELSE",
-    "offset_ms": -230
+    "last_export_dir": "E:\\ニコカラ\\043大橋彩香 - ワガママMIRROR HEART",
+    "offset_ms": 0
   },
   "ruby_dictionary": {
     "enabled": true
@@ -117,7 +117,10 @@
       "analyze_rubies": "",
       "delete_rubies_by_type": "",
       "set_singer_by_line": "",
-      "clear_timestamp": ""
+      "undo": "CTRL+Z:short",
+      "redo": "CTRL+Y:short",
+      "save": "CTRL+S:short",
+      "paste_lyrics": "CTRL+V:short"
     },
     "edit_mode": {
       "play_pause": "D:short",
@@ -152,7 +155,10 @@
       "analyze_rubies": "",
       "delete_rubies_by_type": "",
       "set_singer_by_line": "",
-      "clear_timestamp": ""
+      "undo": "CTRL+Z:short",
+      "redo": "CTRL+Y:short",
+      "save": "CTRL+S:short",
+      "paste_lyrics": "CTRL+V:short"
     },
     "play_pause": "D",
     "stop": "S",

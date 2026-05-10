@@ -503,6 +503,17 @@ class ShortcutSettingCard(SettingCard):
         if self.btn_key2.get_key().strip().upper() == key_name.upper():
             self.btn_key2.clear_key()
 
+    def setReadOnly(self, readonly: bool):
+        """设置只读模式，禁用快捷键编辑。"""
+        self.btn_key1.setEnabled(not readonly)
+        self.btn_key2.setEnabled(not readonly)
+        if readonly:
+            self.btn_key1.setToolTip("此快捷键不可修改")
+            self.btn_key2.setToolTip("此快捷键不可修改")
+        else:
+            self.btn_key1.setToolTip("")
+            self.btn_key2.setToolTip("")
+
 
 class MultiCheckSettingCard(SettingCard):
     """多选设定卡片 — 点击按钮弹出对话框进行多选。"""
