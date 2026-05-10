@@ -1119,7 +1119,7 @@ class AutoCheckService:
                     check_counts[i] = 0
                     continue
 
-                if char == "ん" and not self._flags.get("check_n", False):
+                if char in ("ん", "ン") and not self._flags.get("check_n", False):
                     check_counts[i] = 0
                     continue
 
@@ -1562,7 +1562,7 @@ class AutoCheckService:
                     check_counts[i] = 0
                     continue
 
-                if ch == "ん" and not self._flags.get("check_n", False):
+                if ch in ("ん", "ン") and not self._flags.get("check_n", False):
                     check_counts[i] = 0
                     continue
 

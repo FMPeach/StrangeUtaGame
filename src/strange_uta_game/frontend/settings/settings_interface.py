@@ -491,7 +491,7 @@ class SettingsInterface(ScrollArea):
             "check 规则",
             "选择启用哪些自动节奏点规则",
             items=[
-                ("check_n", "「ん」check"),
+                ("check_n", "「ん/ン」check"),
                 ("check_sokuon", "促音check"),
                 ("small_kana", "小写假名check"),
                 ("check_parentheses", "括号内文字check"),
