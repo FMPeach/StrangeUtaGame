@@ -17,7 +17,7 @@
    下一个时间戳(或行末 sentence_end_ts) - 当前字时间戳，转厘秒。
 """
 
-from typing import List, Optional
+from typing import List
 from .base import BaseExporter, ExportError
 from strange_uta_game.backend.domain import Project, Sentence
 
@@ -222,71 +222,71 @@ class ASSDirectExporter(BaseExporter):
     ) -> str:
         """生成带卡拉OK效果的 Dialogue 文本。
 
-        - 每字符只出现一次，前缀 {\\k<cs>} 标签控制点亮时长。
-        - 时长 = 下一个字符的 global_timestamps[0]
-                - 当前字符的 global_timestamps[0]
-                （最后一个有时间戳的字符用 line_end_ms 收尾）
-        - 无时间戳的字符（标点、未打轴）会跟着前一个字符的 \\k 内显示。
-        - 行首加 pre-roll \\k，行尾加 post-roll \\k 让进入/退出更平滑。
-        - 含 Ruby 的字符按 Aegisub 注音格式输出：{\\k...}{字|<かな}
+        基于「节拍块 (Block)」机制：一个有时间戳的字符及其后所有无时间戳
+        字符（如标点、被注音吞掉的连词后续字）打包为同一个 \\k 节拍块。
+        这样可避免两类 bug：
+        1. 标点漂移：`あ。い` 不会变成 `{\\k}あ{\\k}。い`，而是 `{\\k}あ。{\\k}い`。
+        2. 多字注音断裂：`漢字|<かんじ` 不会被拆成两块，会整体输出
+           `{\\k}漢字|<かんじ`，符合 Aegisub 注音语法。
+
+        - 行首未打轴的前导字符（如前导标点）落入 pre-roll \\k 区。
+        - 行尾 post-roll \\k 让退出平滑。
         """
-        # 先把字符顺序里「下一个有时间戳的字符的时间戳」预算好，
-        # 方便给每个有时间戳的字符算 duration。
         chars = sentence.characters
-        next_ts_for: List[Optional[int]] = [None] * len(chars)
-        # 从尾部回扫
-        running: Optional[int] = line_end_ms
-        for i in range(len(chars) - 1, -1, -1):
-            next_ts_for[i] = running
-            if chars[i].global_timestamps:
-                running = chars[i].global_timestamps[0]
+        if not chars:
+            return f"{{\\k{_PRE_ROLL_MS // 10}}}{{\\k{_POST_ROLL_MS // 10}}}"
 
         parts: List[str] = [f"{{\\k{_PRE_ROLL_MS // 10}}}"]
 
-        # 缓冲：未打轴的字符（如标点）会暂存，挂到下一个有时间戳的字符上
-        pending_untimed: List[str] = []
+        # 1. 行首未打轴字符并入 pre-roll \k 区
+        idx = 0
+        while idx < len(chars) and not chars[idx].global_timestamps:
+            parts.append(self._escape_ass_text(chars[idx].char))
+            idx += 1
 
-        for i, ch in enumerate(chars):
-            if not ch.global_timestamps:
-                # 标点等无时间戳字符：留到下一个有时间戳的字符一起出
-                pending_untimed.append(self._escape_ass_text(ch.char))
-                continue
+        # 2. 按「带时间戳的字符」为锚点切分成 Block
+        blocks: List[List] = []
+        current_block: List = []
+        for ch in chars[idx:]:
+            if ch.global_timestamps:
+                if current_block:
+                    blocks.append(current_block)
+                current_block = [ch]
+            else:
+                current_block.append(ch)
+        if current_block:
+            blocks.append(current_block)
 
-            current_ts = ch.global_timestamps[0]
-            nxt_raw = next_ts_for[i]
-            nxt = nxt_raw if nxt_raw is not None else line_end_ms
-            duration_ms = max(0, nxt - current_ts)
-            k_cs = duration_ms // 10  # 厘秒
+        # 3. 渲染每个 Block
+        for i, block in enumerate(blocks):
+            first_ch = block[0]
+            current_ts = first_ch.global_timestamps[0]
 
-            # 把字符（可能含 ruby）和前面累积的标点一起输出
-            char_token = self._format_char_with_ruby(ch)
-            # 标点跟在前面字符同一拍点亮（视觉合理），所以放在 \k 之后、字之前
-            prefix_untimed = "".join(pending_untimed)
-            pending_untimed.clear()
+            # 时长 = 下一个 Block 锚点时间 - 当前锚点时间（最后一块用 line_end_ms）
+            if i + 1 < len(blocks):
+                nxt_ts = blocks[i + 1][0].global_timestamps[0]
+            else:
+                nxt_ts = line_end_ms
+            duration_ms = max(0, nxt_ts - current_ts)
+            k_cs = duration_ms // 10
 
-            parts.append(f"{{\\k{k_cs}}}{prefix_untimed}{char_token}")
+            # 合并块内所有字符的文字和注音
+            kanji_text = "".join(self._escape_ass_text(c.char) for c in block)
+            kana_text = "".join(
+                self._escape_ass_text(c.ruby.text)
+                for c in block
+                if c.ruby and c.ruby.text
+            )
 
-        # 若末尾还残留未打轴字符（极端情况），收尾输出
-        if pending_untimed:
-            parts.append("".join(pending_untimed))
+            if kana_text:
+                parts.append(f"{{\\k{k_cs}}}{kanji_text}|<{kana_text}")
+            else:
+                parts.append(f"{{\\k{k_cs}}}{kanji_text}")
 
-        # 行尾 post-roll
+        # 4. 行尾 post-roll
         parts.append(f"{{\\k{_POST_ROLL_MS // 10}}}")
 
         return "".join(parts)
-
-    @staticmethod
-    def _format_char_with_ruby(ch) -> str:
-        """格式化单个字符。
-
-        有 ruby → {汉字|<かな}（Aegisub 卡拉OK注音惯例）
-        无 ruby → 字符原文
-        """
-        if ch.ruby and ch.ruby.text:
-            kanji = ASSDirectExporter._escape_ass_text(ch.char)
-            kana = ASSDirectExporter._escape_ass_text(ch.ruby.text)
-            return f"{kanji}|<{kana}"
-        return ASSDirectExporter._escape_ass_text(ch.char)
 
     @staticmethod
     def _escape_ass_text(text: str) -> str:
