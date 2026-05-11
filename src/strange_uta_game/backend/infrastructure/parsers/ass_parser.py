@@ -153,7 +153,7 @@ class ASSParser(LyricParser):
 
         lyric_chars: List[str] = []
         timetags: List[Tuple[int, int]] = []
-        ruby_map: Dict[int, str] = {}
+        ruby_map: Dict[int, Tuple[str, int]] = {}
         current_ms = start_ms
         char_idx = 0
         last_duration_ms = 0
@@ -179,7 +179,10 @@ class ASSParser(LyricParser):
                 first_char_idx_in_segment = char_idx
                 timetags.append((first_char_idx_in_segment, current_ms))
                 if ruby_text:
-                    ruby_map[first_char_idx_in_segment] = ruby_text
+                    # 注音 span = main_text 字符数。下游 parse_to_sentences 会
+                    # 据此把 ruby 均分到段内所有字符并建立 linked_to_next 羁绊，
+                    # 避免「整段假名压给首字、其余无 ruby」导致的语义丢失。
+                    ruby_map[first_char_idx_in_segment] = (ruby_text, len(main_text))
 
                 for ch in main_text:
                     lyric_chars.append(ch)

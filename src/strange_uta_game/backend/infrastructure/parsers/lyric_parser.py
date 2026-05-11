@@ -28,13 +28,16 @@ class ParsedLine:
         line_end_ts: 行尾释放时间戳（句尾拖音终止点，毫秒）。
             ASS 解析器会把最后一个 \\k 的尾部时长写到这里，
             转换时绑给末字符的 sentence_end_ts。
-        ruby_map: char_idx → ruby 文本，从 ASS 的 `汉字|<かな` 语法提取。
+        ruby_map: char_idx → (ruby_text, span_length)，从 ASS 的
+            `汉字|<かな` 语法提取。span_length 是 ruby 管辖的连续字符数
+            （含首字），用于在 parse_to_sentences 中均分注音到多个字符
+            并建立 linked_to_next 羁绊。
     """
 
     text: str
     timetags: List[Tuple[int, int]]  # (char_idx, timestamp_ms) 列表
     line_end_ts: Optional[int] = None
-    ruby_map: Dict[int, str] = field(default_factory=dict)
+    ruby_map: Dict[int, Tuple[str, int]] = field(default_factory=dict)
 
 
 @dataclass
@@ -226,11 +229,15 @@ class LRCParser(LyricParser):
             # 检查是否为增强型 LRC 格式（含 <mm:ss.xx> 标签）
             enhanced_matches = list(self.ENHANCED_TAG_PATTERN.finditer(line_text))
             if enhanced_matches:
-                lyric_text, timetags = self._parse_enhanced_lrc(
+                lyric_text, timetags, end_ts = self._parse_enhanced_lrc(
                     line_text, matches, enhanced_matches
                 )
                 if lyric_text:
-                    lines.append(ParsedLine(text=lyric_text, timetags=timetags))
+                    lines.append(
+                        ParsedLine(
+                            text=lyric_text, timetags=timetags, line_end_ts=end_ts
+                        )
+                    )
                 continue
 
             # 判断是逐行格式还是逐字格式
@@ -242,9 +249,15 @@ class LRCParser(LyricParser):
 
             if is_word_by_word:
                 # 逐字格式：提取所有字符和时间标签
-                lyric_text, timetags = self._parse_word_by_word(line_text, matches)
+                lyric_text, timetags, end_ts = self._parse_word_by_word(
+                    line_text, matches
+                )
                 if lyric_text:
-                    lines.append(ParsedLine(text=lyric_text, timetags=timetags))
+                    lines.append(
+                        ParsedLine(
+                            text=lyric_text, timetags=timetags, line_end_ts=end_ts
+                        )
+                    )
             else:
                 # 逐行格式：提取最后一个时间标签后的文本作为歌词
                 last_match = matches[-1]
@@ -303,17 +316,20 @@ class LRCParser(LyricParser):
 
     def _parse_word_by_word(
         self, line_text: str, matches: List[re.Match]
-    ) -> Tuple[str, List[Tuple[int, int]]]:
+    ) -> Tuple[str, List[Tuple[int, int]], Optional[int]]:
         """解析逐字格式
 
-        格式：[00:00.000]春[00:01.086]日[00:01.629]影
+        格式：[00:00.000]春[00:01.086]日[00:01.629]影[00:02.500]
+                                                    ^ 末尾无文字的时间戳
+                                                      = 句尾释放点 line_end_ts
 
         Returns:
-            (歌词文本, 时间标签列表)
+            (歌词文本, 时间标签列表, line_end_ts)
         """
         lyric_chars = []
         timetags = []
         char_idx = 0
+        line_end_ts: Optional[int] = None
 
         # 遍历所有时间标签
         for i, match in enumerate(matches):
@@ -328,6 +344,11 @@ class LRCParser(LyricParser):
 
             # 提取字符
             chars = line_text[start_pos:end_pos]
+
+            # 末尾时间戳后无文字 → 句尾释放点（仅在最后一个 tag 后才认为是 line_end）
+            if not chars.strip() and i == len(matches) - 1 and timetags:
+                line_end_ts = timestamp_ms
+                continue
 
             # 为每个字符添加时间标签
             for char in chars:
@@ -352,7 +373,7 @@ class LRCParser(LyricParser):
                 (ci - leading_spaces, ts) for ci, ts in timetags if ci >= leading_spaces
             ]
 
-        return lyric_text, timetags
+        return lyric_text, timetags, line_end_ts
 
     def _parse_timestamp(self, match: re.Match) -> int:
         """从正则匹配解析时间戳（毫秒）"""
@@ -375,18 +396,21 @@ class LRCParser(LyricParser):
         line_text: str,
         bracket_matches: List[re.Match],
         angle_matches: List[re.Match],
-    ) -> Tuple[str, List[Tuple[int, int]]]:
+    ) -> Tuple[str, List[Tuple[int, int]], Optional[int]]:
         """解析增强型 LRC 格式
 
-        格式: [00:20.799]<00:20.799>い<00:21.367>ま<00:21.598>私...
+        格式: [00:20.799]<00:20.799>い<00:21.367>ま<00:21.598>私<00:25.000>
+                                                              ^ 末尾空标签
+                                                                = line_end_ts
         [mm:ss.xx] 是行级时间标签（忽略），<mm:ss.xx> 是逐字时间标签。
 
         Returns:
-            (歌词文本, 时间标签列表)
+            (歌词文本, 时间标签列表, line_end_ts)
         """
         lyric_chars: List[str] = []
         timetags: List[Tuple[int, int]] = []
         char_idx = 0
+        line_end_ts: Optional[int] = None
 
         # 合并所有标签位置（方括号和尖括号），按位置排序
         all_tag_spans: List[Tuple[int, int]] = []
@@ -411,8 +435,10 @@ class LRCParser(LyricParser):
 
             chars = line_text[start_pos:end_pos]
 
-            if not chars:
-                # 尾部空标签（结束时间戳），跳过
+            if not chars.strip():
+                # 尾部空标签 = 句尾释放点（仅最后一个 angle tag 算 line_end）
+                if i == len(angle_matches) - 1 and timetags:
+                    line_end_ts = timestamp_ms
                 continue
 
             # 为第一个非空白字符添加时间标签
@@ -433,7 +459,7 @@ class LRCParser(LyricParser):
                 (ci - leading_spaces, ts) for ci, ts in timetags if ci >= leading_spaces
             ]
 
-        return lyric_text, timetags
+        return lyric_text, timetags, line_end_ts
 
 
 class KRAParser(LRCParser):
@@ -1318,12 +1344,43 @@ def parse_to_sentences(
             if last_idx_with_ts is None or char_idx > last_idx_with_ts:
                 last_idx_with_ts = char_idx
 
-        # 注入 ruby（如 ASS 的 `汉字|<かな`）
-        for char_idx, ruby_text in parsed.ruby_map.items():
-            if 0 <= char_idx < len(sentence.characters) and ruby_text:
+        # 注入 ruby（如 ASS 的 `汉字|<かな`，支持多字 span 均分）
+        # ruby_map: char_idx → (ruby_text, span_length)
+        # 复用 _distribute_reading_to_chars 实现按字均分（与 Nicokara 路径同源），
+        # 并按"段内后续字符无独立 ts"建立 linked_to_next 羁绊。
+        for char_idx, ruby_payload in parsed.ruby_map.items():
+            if not (0 <= char_idx < len(sentence.characters)):
+                continue
+            # 兼容旧签名（纯字符串，无 span）
+            if isinstance(ruby_payload, tuple):
+                ruby_text, span_len = ruby_payload
+            else:
+                ruby_text, span_len = ruby_payload, 1
+            if not ruby_text:
+                continue
+            k = min(max(1, span_len), len(sentence.characters) - char_idx)
+            if k == 1:
+                # 单字 ruby：直接挂
                 ch = sentence.characters[char_idx]
                 ch.set_ruby(Ruby(parts=[RubyPart(text=ruby_text)]))
                 ch.push_to_ruby()
+            else:
+                # 多字 span：复用 Nicokara 路径同款均分实现
+                # reading_parts: 整段 ruby 文本作为单 part，offset=0
+                # → _distribute_reading_to_chars 内部会触发"落空回退"按字均分
+                _distribute_reading_to_chars(
+                    sentence,
+                    char_idx,
+                    k,
+                    [(ruby_text, 0)],
+                )
+                # linked_to_next：段内 i 与 i+1 之间，仅当 i+1 没有独立
+                # body timestamp 时才视为连词（与 Nicokara 路径同规则）
+                for i in range(k - 1):
+                    next_ch = sentence.characters[char_idx + i + 1]
+                    sentence.characters[char_idx + i].linked_to_next = not bool(
+                        next_ch.timestamps
+                    )
 
         # 行尾释放点：优先用解析器给的 line_end_ts，没有就兜底
         if last_idx_with_ts is not None:
