@@ -509,31 +509,73 @@ class AppSettings:
         self._save_json(self._singers_path, presets)
 
 
-def build_annotated_reading(word: str, per_char_ruby: list) -> str:
-    """把 ``(word, per_char_ruby)`` 忠实序列化为 annotated 行内格式 reading 字符串。
+def build_annotated_reading(
+    word: str,
+    per_char_ruby: list,
+    per_char_linked: "list[bool] | None" = None,
+) -> str:
+    """把 ``(word, per_char_ruby[, per_char_linked])`` 序列化为 annotated 行内格式。
 
     Args:
         word: 原文词（N 个字符）。
         per_char_ruby: 长度为 N 的列表，每项是对应字符的 ``Ruby`` 对象或 ``None``。
             ``Ruby.parts`` 中每个 ``RubyPart.text`` 对应一个 mora，用 ``|`` 连接写入。
+        per_char_linked: 长度为 N 的布尔列表，``True`` 表示该字符与下一字符连词。
+            若为 ``None``，则视所有字符独立（不连词）。
 
     完全尊重用户输入：不做自注音剥离、不做额外 mora 拆分、不做任何读音变换。
-    有 parts → ``{c||part1|part2|...}``；无 parts / None → 字面 ``c``。
+
+    连词处理：
+        ``linked[i]=True`` 表示字符 ``i`` 与 ``i+1`` 在同一连词块内。
+        连词链 ``[i..j]`` 合并为单个 annotated 块
+        ``{word[i:j+1]||seg_i,seg_{i+1},...,seg_j}``，
+        每段 ``seg_k`` 为该字符各 ``RubyPart.text`` 以 ``|`` 连接；无 ruby 的字符用空段。
 
     例：
-        "微" ruby.parts=[RubyPart("ほ"), RubyPart("ほ")] → ``{微||ほ|ほ}``
-        "ん" ruby.parts=[RubyPart("ん")]                  → ``{ん||ん}``
-        "べ" ruby=None                                    → ``べ``
+        word="大冒険", ruby=[R("だ","い"), R("ぼ","う"), R("け","ん")], linked=[True,True,False]
+        → ``{大冒険||だ|い,ぼ|う,け|ん}``
+
+        word="食べ物", ruby=[R("た"), None, R("も","の")], linked=[False,False,False]
+        → ``{食||た}べ{物||も|の}``
     """
-    out: list = []
-    for i, c in enumerate(word):
-        ruby = per_char_ruby[i] if i < len(per_char_ruby) else None
+
+    def _seg(ruby: "object | None") -> str:
+        """把一个字符的 Ruby 对象序列化为段内字符串（mora 用 | 连接）。"""
         if ruby is not None and hasattr(ruby, "parts") and ruby.parts:
-            parts_text = "|".join(p.text for p in ruby.parts if p.text)
-            if parts_text:
-                out.append(f"{{{c}||{parts_text}}}")
-                continue
-        out.append(c)
+            return "|".join(p.text for p in ruby.parts if p.text)
+        return ""
+
+    n = len(word)
+    linked: "list[bool]" = list(per_char_linked) if per_char_linked else [False] * n
+
+    out: list = []
+    i = 0
+    while i < n:
+        # 找到从 i 开始的连词链末尾 j（linked[i..j-1] 均为 True，linked[j] 为 False 或越界）
+        j = i
+        while j < n - 1 and j < len(linked) and linked[j]:
+            j += 1
+        # 链覆盖 [i..j]
+        chain_chars = word[i : j + 1]
+        chain_rubies = [
+            per_char_ruby[k] if k < len(per_char_ruby) else None
+            for k in range(i, j + 1)
+        ]
+        chain_segs = [_seg(r) for r in chain_rubies]
+
+        if j > i:
+            # 连词块：合并为 {chars||seg_i,seg_{i+1},...,seg_j}
+            segs_str = ",".join(chain_segs)
+            out.append(f"{{{chain_chars}||{segs_str}}}")
+        else:
+            # 单字
+            seg = chain_segs[0]
+            if seg:
+                out.append(f"{{{chain_chars}||{seg}}}")
+            else:
+                out.append(chain_chars)
+        i = j + 1
+
     return "".join(out)
 
 

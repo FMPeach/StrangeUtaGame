@@ -167,7 +167,7 @@ class ModifyCharacterDialog(QDialog):
       - 文本修改时自动重建字符行，并按位置尽量保留已输入值
       - 单字符修改时直接原地 set_ruby/check_count/linked_to_next/push_to_ruby，保留 timestamps
       - 字符数变化时才走替换 slice 流程（必然丢旧 timestamps）
-      - 连词校验：末字/句尾/行尾字符禁止 linked_to_next=True，
+      - 连词校验：末字/行尾字符禁止 linked_to_next=True（句尾=语气停顿点，允许连词），
         提交时若有违规项则跳过该项的 linked_to_next 并在 failures 列表返回。
     """
 
@@ -275,7 +275,7 @@ class ModifyCharacterDialog(QDialog):
         chk_linked = QCheckBox("是否连词")
         chk_linked.setChecked(bool(linked))
         chk_linked.setToolTip(
-            "连接到下一字符（末字/句尾/行尾不可连词，提交时将跳过并提示）"
+            "连接到下一字符（末字/行尾不可连词，提交时将跳过并提示；句尾=停顿点，允许连词）"
         )
         # 监控用户手动编辑
         edit_ruby.textEdited.connect(self._on_row_user_edited)
@@ -406,21 +406,16 @@ class ModifyCharacterDialog(QDialog):
                 tgt.set_ruby(per_char_ruby[i])
                 tgt.set_check_count(per_char_check[i], force=True)
                 tgt.push_to_ruby()
-                # linked_to_next 校验：末字/句尾/行尾字符禁止连词
+                # linked_to_next 校验：末字/行尾禁止连词（句尾=语气停顿点，可以连词）
                 req_linked = per_char_linked_req[i]
                 abs_idx = self._start_idx + i
                 sentence_len = len(self._sentence.characters)
                 is_last_in_sentence = abs_idx >= sentence_len - 1
                 if req_linked and (
                     is_last_in_sentence
-                    or tgt.is_sentence_end
                     or tgt.is_line_end
                 ):
-                    reason = (
-                        "最后一个字符"
-                        if is_last_in_sentence
-                        else ("句尾" if tgt.is_sentence_end else "行尾")
-                    )
+                    reason = "最后一个字符" if is_last_in_sentence else "行尾"
                     self._linked_failures.append((abs_idx, ch_str, reason))
                     tgt.linked_to_next = False
                 else:
@@ -454,23 +449,18 @@ class ModifyCharacterDialog(QDialog):
                 is_last_in_sentence = abs_idx >= total_after - 1
                 if req_linked and (
                     is_last_in_sentence
-                    or new_ch.is_sentence_end
                     or new_ch.is_line_end
                 ):
-                    reason = (
-                        "最后一个字符"
-                        if is_last_in_sentence
-                        else ("句尾" if new_ch.is_sentence_end else "行尾")
-                    )
+                    reason = "最后一个字符" if is_last_in_sentence else "行尾"
                     self._linked_failures.append((abs_idx, new_ch.char, reason))
                     new_ch.linked_to_next = False
                 else:
                     new_ch.linked_to_next = req_linked
             self._sentence.characters[self._start_idx : self._end_idx + 1] = new_chars
 
-        # 词典注册：直接传 Ruby 对象列表，完整保留 parts/mora 信息
+        # 词典注册：传 Ruby 对象列表 + 连词信息，完整保留用户设定
         if self.chk_register.isChecked():
-            self._register_to_dictionary(new_text, per_char_ruby)
+            self._register_to_dictionary(new_text, per_char_ruby, per_char_linked_req)
 
         # 保存注音分段方式配置
         _save_ruby_split_mode(self._radio_direct, self._radio_by_char, self._radio_by_mora)
@@ -479,10 +469,10 @@ class ModifyCharacterDialog(QDialog):
         self.accept()
 
     def get_linked_failures(self) -> list[tuple[int, str, str]]:
-        """返回应用连词时因末字/句尾/行尾被跳过的项列表（abs_idx, char, reason）。"""
+        """返回应用连词时因末字/行尾被跳过的项列表（abs_idx, char, reason）。"""
         return list(self._linked_failures)
 
-    def _register_to_dictionary(self, word: str, per_char_ruby: list):
+    def _register_to_dictionary(self, word: str, per_char_ruby: list, per_char_linked: list | None = None):
         """将词注册到用户词典，完整保留用户设定的 Ruby parts（mora）与连词信息。"""
         try:
             from strange_uta_game.frontend.settings.settings_interface import (
@@ -492,7 +482,7 @@ class ModifyCharacterDialog(QDialog):
                 build_annotated_reading,
             )
 
-            reading = build_annotated_reading(word, per_char_ruby)
+            reading = build_annotated_reading(word, per_char_ruby, per_char_linked)
             AppSettings().register_dictionary_word(word, reading)
         except Exception:
             pass
@@ -736,6 +726,10 @@ class CharEditDialog(QDialog):
         # 初始预览
         self._update_preview()
 
+        # 注册词典
+        self.chk_register = QCheckBox("将此词注册到读音词典")
+        layout.addWidget(self.chk_register)
+
         # 按钮
         btn_layout = QHBoxLayout()
         btn_ok = PrimaryPushButton("确定", self)
@@ -765,7 +759,7 @@ class CharEditDialog(QDialog):
         chk_linked = QCheckBox("是否连词")
         chk_linked.setChecked(bool(linked))
         chk_linked.setToolTip(
-            "连接到下一字符（末字/句尾/行尾不可连词，提交时将跳过并提示）"
+            "连接到下一字符（末字/行尾不可连词，提交时将跳过并提示；句尾=停顿点，允许连词）"
         )
         # 监控用户手动编辑
         edit_ruby.textEdited.connect(self._on_row_user_edited)
@@ -908,6 +902,10 @@ class CharEditDialog(QDialog):
 
         self._modified = True
 
+        # 词典注册：传 Ruby 对象列表 + 连词信息，完整保留用户设定
+        if self.chk_register.isChecked():
+            self._register_to_dictionary(new_text, per_char_ruby, per_char_linked_req)
+
         # 保存注音分段方式配置
         _save_ruby_split_mode(self._radio_direct, self._radio_by_char, self._radio_by_mora)
 
@@ -915,6 +913,21 @@ class CharEditDialog(QDialog):
 
     def was_modified(self) -> bool:
         return self._modified
+
+    def _register_to_dictionary(self, word: str, per_char_ruby: list, per_char_linked: list | None = None):
+        """将词注册到用户词典，完整保留用户设定的 Ruby parts（mora）与连词信息。"""
+        try:
+            from strange_uta_game.frontend.settings.settings_interface import (
+                AppSettings,
+            )
+            from strange_uta_game.frontend.settings.app_settings import (
+                build_annotated_reading,
+            )
+
+            reading = build_annotated_reading(word, per_char_ruby, per_char_linked)
+            AppSettings().register_dictionary_word(word, reading)
+        except Exception:
+            pass
 
 
 # ──────────────────────────────────────────────

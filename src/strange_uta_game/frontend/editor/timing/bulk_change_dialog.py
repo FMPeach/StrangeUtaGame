@@ -163,7 +163,7 @@ class BulkChangeDialog(QDialog):
         chk_linked = QCheckBox("是否连词")
         chk_linked.setChecked(bool(linked))
         chk_linked.setToolTip(
-            "连接到下一字符（末字/句尾/行尾不可连词，提交时将跳过并提示）"
+            "连接到下一字符（末字/行尾不可连词，提交时将跳过并提示；句尾=停顿点，允许连词）"
         )
         # 监控用户手动编辑
         edit_ruby.textEdited.connect(self._on_row_user_edited)
@@ -455,21 +455,18 @@ class BulkChangeDialog(QDialog):
                         tgt.set_ruby(per_char_ruby[i])
                         tgt.set_check_count(per_char_check[i], force=True)
                         tgt.push_to_ruby()
-                        # linked_to_next 校验：末字/句尾/行尾禁止连词
+                        # linked_to_next 校验：末字/行尾禁止连词（句尾=语气停顿点，允许连词）
                         req_linked = per_char_linked_req[i]
                         sentence_len = len(sentence.characters)
                         is_last_in_sentence = ci >= sentence_len - 1
                         if req_linked and (
                             is_last_in_sentence
-                            or tgt.is_sentence_end
                             or tgt.is_line_end
                         ):
                             reason = (
                                 "最后一个字符"
                                 if is_last_in_sentence
-                                else (
-                                    "句尾" if tgt.is_sentence_end else "行尾"
-                                )
+                                else "行尾"
                             )
                             self._linked_failures.append(
                                 (s_idx, ci, ch_str, reason)
@@ -520,15 +517,12 @@ class BulkChangeDialog(QDialog):
                         is_last_in_sentence = abs_idx >= new_total_len - 1
                         if req_linked and (
                             is_last_in_sentence
-                            or new_ch.is_sentence_end
                             or new_ch.is_line_end
                         ):
                             reason = (
                                 "最后一个字符"
                                 if is_last_in_sentence
-                                else (
-                                    "句尾" if new_ch.is_sentence_end else "行尾"
-                                )
+                                else "行尾"
                             )
                             self._linked_failures.append(
                                 (s_idx, abs_idx, new_ch.char, reason)
@@ -539,9 +533,9 @@ class BulkChangeDialog(QDialog):
                     sentence.characters[pos : pos + word_len] = new_chars
                     changed += 1
 
-        # 注册到词典
+        # 注册到词典（传入连词信息，保留连词块结构）
         if self.chk_register.isChecked():
-            self._register_to_dictionary(new_text, per_char_ruby)
+            self._register_to_dictionary(new_text, per_char_ruby, per_char_linked_req)
 
         # 保存注音分段方式配置
         from strange_uta_game.frontend.editor.timing.dialogs import _save_ruby_split_mode
@@ -621,13 +615,16 @@ class BulkChangeDialog(QDialog):
         QMessageBox.information(
             self,
             "部分连词设置未应用",
-            "以下位置为末字/句尾/行尾，不能设置连词，已自动跳过：\n\n"
+            "以下位置为末字/行尾，不能设置连词，已自动跳过：\n\n"
             + "\n".join(lines)
             + more,
         )
 
     def _register_to_dictionary(
-        self, word: str, per_char_ruby: List[Optional[Ruby]]
+        self,
+        word: str,
+        per_char_ruby: List[Optional[Ruby]],
+        per_char_linked: "List[bool] | None" = None,
     ):
         """将词注册到用户词典，完整保留用户设定的 Ruby parts（mora）与连词信息。"""
         try:
@@ -638,7 +635,7 @@ class BulkChangeDialog(QDialog):
                 build_annotated_reading,
             )
 
-            reading = build_annotated_reading(word, per_char_ruby)
+            reading = build_annotated_reading(word, per_char_ruby, per_char_linked)
             AppSettings().register_dictionary_word(word, reading)
         except Exception:
             pass
