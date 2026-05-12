@@ -73,6 +73,7 @@
   "ruby_dictionary": {
     "enabled": true
   },
+  "is_dictionary_real_sugdic": true,
   "nicokara_tags": {
     "title": "",
     "artist": "",

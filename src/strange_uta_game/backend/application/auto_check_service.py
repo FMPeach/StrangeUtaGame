@@ -62,6 +62,85 @@ def _is_word_inner(c: str) -> bool:
     return (c.isascii() and c.isalpha()) or c in ("'", "\u2019")
 
 
+def _parse_dict_reading(reading: str, expected_word: str) -> Optional[
+    Tuple[List[List[str]], List[int]]
+]:
+    """解析用户词典 reading（annotated 行内格式）。
+
+    Args:
+        reading: 形如 ``{微笑||ほほ,え}ん`` 的注音文本。
+        expected_word: 词条 ``word``，用于校验解析出的原文与 ``word`` 一致。
+
+    Returns:
+        ``None`` 解析失败或 raw 与 word 不一致；
+        否则返回 ``(per_char_parts, char_block_id)``：
+
+        - ``per_char_parts`` — 每个字符的 RubyPart 文本列表（无 ruby 字符为空列表）；
+        - ``char_block_id`` — 每个字符所属的 annotated block 编号，
+          块外字符（字面无 ruby 段）一律为 ``-1``；同 block 内字符 id 相同。
+          用于设置 ``linked_to_next``：同 block 内相邻字符链接，否则不链接。
+    """
+    raw_chars: List[str] = []
+    per_char_parts: List[List[str]] = []
+    char_block_id: List[int] = []
+    block_seq = 0
+
+    i = 0
+    n = len(reading)
+    while i < n:
+        ch = reading[i]
+        if ch == "{":
+            close = reading.find("}", i)
+            if close == -1:
+                # 未配对 → 整体判定失败
+                return None
+            content = reading[i + 1 : close]
+            if "||" in content:
+                text_part, readings_part = content.split("||", 1)
+                per_char_readings = readings_part.split(",")
+                this_block = block_seq
+                block_seq += 1
+                for j, c in enumerate(text_part):
+                    raw_chars.append(c)
+                    if j < len(per_char_readings):
+                        parts = [p for p in per_char_readings[j].split("|") if p != ""]
+                    else:
+                        parts = []
+                    per_char_parts.append(parts)
+                    char_block_id.append(this_block)
+            elif "|" in content:
+                # 兼容简短：{text|mora...}（单字多段）
+                segs = content.split("|")
+                text_part = segs[0]
+                if len(text_part) == 1:
+                    parts = [p for p in segs[1:] if p != ""]
+                    raw_chars.append(text_part)
+                    per_char_parts.append(parts)
+                    char_block_id.append(block_seq)
+                    block_seq += 1
+                else:
+                    # 不符合 annotated 规范
+                    return None
+            else:
+                # {text} 无 ruby
+                this_block = block_seq
+                block_seq += 1
+                for c in content:
+                    raw_chars.append(c)
+                    per_char_parts.append([])
+                    char_block_id.append(this_block)
+            i = close + 1
+        else:
+            raw_chars.append(ch)
+            per_char_parts.append([])
+            char_block_id.append(-1)
+            i += 1
+
+    if "".join(raw_chars) != expected_word:
+        return None
+    return per_char_parts, char_block_id
+
+
 @dataclass
 class AutoCheckResult:
     """自动检查结果"""
@@ -100,22 +179,15 @@ class AutoCheckService:
         """
         self._analyzer = ruby_analyzer or create_analyzer()
         self._flags = auto_check_flags or {}
-        # 只保留已启用的词典条目，按词长降序（最长优先匹配）
+        # 用户词典：保留词典数组顺序（上方条目优先级最高）。
+        # 在 apply_to_sentence 末尾以子串严格匹配方式覆盖 Character[]，
+        # 因此本字段仅用于 Phase 5 覆盖，不再参与 analyze_sentence 阶段。
         raw = user_dictionary or []
-        self._dict: List[Tuple[str, str]] = sorted(
-            [
-                (e["word"], e["reading"])
-                for e in raw
-                if e.get("enabled", True) and e.get("word") and e.get("reading")
-            ],
-            key=lambda x: len(x[0]),
-            reverse=True,
-        )
-        # 第十批 #5：建立英文整词 O(1) 查询表，作为 e2k 失败时的用户词典全词回退。
-        # key 为小写词条，仅收录含 ASCII 英文字母的条目。
-        self._dict_map: Dict[str, str] = {
-            w.lower(): r for (w, r) in self._dict if _has_latin(w)
-        }
+        self._dict: List[Tuple[str, str]] = [
+            (e["word"], e["reading"])
+            for e in raw
+            if e.get("enabled", True) and e.get("word") and e.get("reading")
+        ]
         # pykakasi 用于无约束分区的参考读音
         self._pykakasi_conv = None
         try:
@@ -139,65 +211,6 @@ class AutoCheckService:
         except Exception:
             pass
 
-    def _apply_dictionary(
-        self, text: str, ruby_results: List[RubyResult]
-    ) -> Tuple[List[RubyResult], set]:
-        """用用户词典覆盖 ruby_results。
-
-        遍历 ruby_results 中的形態素，找到与用户词典词条文本匹配的条目，
-        用用户词典的读音覆盖该形態素的读音。
-        三步后处理（多字词拆分、首尾假名剥离、等 mora 分配）由
-        analyze_sentence 统一对所有 ruby_results 执行。
-
-        Returns:
-            (合并后的 ruby_results, 被用户词典覆盖的字符索引集合)
-        """
-        covered: set[int] = set()
-        overrides: List[RubyResult] = []
-
-        # 遍历用户词典（已按词长降序排列，最长优先匹配）
-        for word, reading in self._dict:
-            # 遍历 ruby_results，找到 text 匹配的形態素
-            for r in ruby_results:
-                if r.text != word:
-                    continue
-                # 检查是否已被覆盖
-                span = set(range(r.start_idx, r.end_idx))
-                if span & covered:
-                    continue
-                # 英文词条的词边界检查
-                if _has_latin(word):
-                    left_ok = r.start_idx == 0 or not _is_word_inner(text[r.start_idx - 1])
-                    right_ok = r.end_idx == len(text) or not _is_word_inner(text[r.end_idx])
-                    if not (left_ok and right_ok):
-                        continue
-                # 匹配成功，覆盖
-                # 含汉字的词条去掉逗号（逗号仅是编辑用分隔符），
-                # 让下游走正常三步处理：多字词拆分→首尾假名剥离→等 mora 分配
-                has_kanji = any(self._is_kanji(c) for c in word)
-                clean_reading = reading.replace(",", "") if has_kanji else reading
-                overrides.append(
-                    RubyResult(
-                        text=word,
-                        reading=clean_reading,
-                        start_idx=r.start_idx,
-                        end_idx=r.end_idx,
-                    )
-                )
-                covered |= span
-
-        if not overrides:
-            return ruby_results, covered
-
-        filtered = [
-            r
-            for r in ruby_results
-            if not (set(range(r.start_idx, r.end_idx)) & covered)
-        ]
-        merged = filtered + overrides
-        merged.sort(key=lambda r: r.start_idx)
-        return merged, covered
-
     def _apply_english_dictionary(
         self, text: str, ruby_results: List[RubyResult], dict_covered: set
     ) -> Tuple[List[RubyResult], set]:
@@ -205,8 +218,10 @@ class AutoCheckService:
 
         用户要求的优先级：
           1. e2k 规则引擎（基于 CMU Pronouncing Dictionary 的音素规则转换）
-          2. 用户词典整词回退（仅含字母的条目，通过 self._dict_map 做小写全词查询）
-          3. e2k.txt 词表（EnglishRubyLookup 静态词表）
+          2. e2k.txt 词表（EnglishRubyLookup 静态词表）
+
+        用户词典的英文整词回退已被移除：用户词典命中在 Phase 5（apply_to_sentence
+        末尾）以子串严格匹配 + Character[] 覆盖的方式处理，优先级最高。
 
         只覆盖未被用户词典（非英文部分）占用的英文整词范围。
         本函数对命中的英文词以整词为粒度替换 ruby_results，使下游序列化产生
@@ -219,8 +234,7 @@ class AutoCheckService:
         lookup = EnglishRubyLookup.instance()
         has_engine = engine.has()
         has_lookup = lookup.has()
-        has_user_dict = bool(self._dict_map)
-        if not has_engine and not has_lookup and not has_user_dict:
+        if not has_engine and not has_lookup:
             return ruby_results, set()
         e2k_covered: set[int] = set()
         overrides: List[RubyResult] = []
@@ -235,10 +249,8 @@ class AutoCheckService:
             )
 
             normalized_word = normalize_apostrophes(word)
-            # 第十批 #5 优先级：e2k → user dict 全词 → 静态 lookup
+            # 第十批 #5 优先级：e2k → 静态 lookup
             reading = engine.convert(normalized_word) if has_engine else None
-            if not reading and has_user_dict:
-                reading = self._dict_map.get(normalized_word.lower())
             if not reading and has_lookup:
                 reading = lookup.lookup(normalized_word)
             if not reading:
@@ -796,10 +808,9 @@ class AutoCheckService:
 
         ruby_results = [r for r in ruby_results if _result_should_keep(r)]
 
-        # 应用用户词典覆盖（最长优先匹配） — 记录被用户词典覆盖的索引集合
+        # 用户词典覆盖已迁移到 Phase 5（apply_to_sentence 末尾，子串严格匹配
+        # 覆盖 Character[]），此处不再处理；dict_covered 仅作为占位传给英文阶段。
         dict_covered: set = set()
-        if self._dict:
-            ruby_results, dict_covered = self._apply_dictionary(text, ruby_results)
 
         # #12: 应用英语词典（e2k）覆盖（用户词典之后，库函数之前的优先级）
         ruby_results, e2k_covered = self._apply_english_dictionary(
@@ -1435,6 +1446,94 @@ class AutoCheckService:
                     # （ruby.parts 与 old_cc 在原 Character 上本就匹配）
                     sentence.characters[i].set_check_count(old_cc, force=True)
                     sentence.characters[i].linked_to_next = old_link
+
+        # Phase 5: 用户词典覆盖（优先级最高，覆盖一切包括 only_noruby preserved）。
+        # 按词典数组顺序逐条扫描，先命中锁定 span，后命中若与已锁定区间重叠则跳过。
+        # 子串严格匹配 sentence 字面文本，不跨 Sentence。
+        if self._dict:
+            self._apply_user_dictionary_to_sentence(sentence)
+
+    def _apply_user_dictionary_to_sentence(self, sentence: Sentence) -> None:
+        """Phase 5：把用户词典以子串严格匹配方式覆盖到 sentence.characters 上。
+
+        语义：
+          - 词典按数组顺序枚举（上方条目优先级最高）；
+          - 对每条 ``(word, reading)``，在 ``sentence`` 字面 ``"".join(c.char ...)``
+            上扫描所有不重叠的出现位置；
+          - 字符位置若已被更高优先级词条锁定，则跳过；
+          - 命中后：解析 ``reading``（annotated 行内格式），为该 span 的每个
+            ``Character`` 覆盖 ``ruby`` 和 ``linked_to_next``；
+            ``timestamps / check_count / singer_id / is_line_end / is_sentence_end /
+            sentence_end_ts / is_rest`` 等字段全部保留；
+          - 同一 annotated block 内相邻字符设 ``linked_to_next=True``，
+            block 末字符 / 块外字符（无 ruby 段）设 ``linked_to_next=False``。
+        """
+        chars = sentence.characters
+        if not chars:
+            return
+        sentence_text = "".join(c.char for c in chars)
+        if not sentence_text:
+            return
+
+        # 已被任意词条覆盖的字符索引（防止重叠）
+        locked: set[int] = set()
+
+        for word, reading in self._dict:
+            if not word or not reading:
+                continue
+            # 不允许跨字符位置不一致：sentence 字符与 word 字符一一对应（按 Python 字符串索引）
+            # sentence.characters 每项 char 字段通常是单字符；若为多字符（如空格段），则
+            # 子串匹配仍按 Python str 索引，但映射到 characters 列表时需要按累计长度处理。
+            # 这里先用最简单方式：要求 sum(len(c.char)) == len(sentence_text)，
+            # 且每个 character 严格 1 字符（项目主流路径成立）。若不满足，跳过。
+            char_lens = [len(c.char) for c in chars]
+            if any(l != 1 for l in char_lens):
+                # 极少数情况：character 存了多字符（旧数据迁移可能出现）。
+                # 此时退化为不应用 Phase 5，避免索引错乱。
+                return
+
+            parsed = _parse_dict_reading(reading, word)
+            if parsed is None:
+                # reading 解析失败或 raw != word，跳过该条目
+                continue
+            per_char_parts, char_block_id = parsed
+            if len(per_char_parts) != len(word):
+                # 解析出的字符数与 word 不符，跳过
+                continue
+
+            # 找所有不重叠出现位置（贪心从左到右）
+            search_from = 0
+            wlen = len(word)
+            while True:
+                idx = sentence_text.find(word, search_from)
+                if idx == -1:
+                    break
+                span = range(idx, idx + wlen)
+                if any(i in locked for i in span):
+                    # 与已锁定区间重叠 → 整段丢弃，继续找下一处
+                    search_from = idx + 1
+                    continue
+                # 命中：覆盖 chars[idx..idx+wlen]
+                for k in range(wlen):
+                    ch = chars[idx + k]
+                    parts = per_char_parts[k]
+                    if parts:
+                        ch.ruby = Ruby(parts=[RubyPart(text=p) for p in parts])
+                    else:
+                        ch.ruby = None
+                    # linked_to_next：同 block 内相邻字符 → True；否则 False。
+                    # 词末字符（k == wlen-1）的 linked_to_next 不在 word 内部决定，
+                    # 保守置 False（不连到 word 之外的下一字符）。
+                    if k < wlen - 1:
+                        same_block = (
+                            char_block_id[k] >= 0
+                            and char_block_id[k] == char_block_id[k + 1]
+                        )
+                        ch.linked_to_next = same_block
+                    else:
+                        ch.linked_to_next = False
+                    locked.add(idx + k)
+                search_from = idx + wlen
 
     def analyze_project(
         self, project: Project, split_config: Optional[SplitConfig] = None

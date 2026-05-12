@@ -16,14 +16,22 @@ from PyQt6.QtWidgets import (
 from qfluentwidgets import InfoBar, InfoBarPosition, PrimaryPushButton, PushButton
 
 from .app_settings import _parse_rl_dictionary
+from strange_uta_game.backend.infrastructure.parsers.annotated_text import (
+    parse_annotated_line,
+)
 
 
 class DictionaryEditDialog(QDialog):
     """用户读音词典编辑对话框
 
-    三列表格：启用 | 词 | 读音
+    三列表格：启用 | 词 | 注音(annotated 行内格式)
     按从上到下排列，顶部 = 最高优先级。新条目默认添加到顶部。
     支持导入 RL 字典文件和上下移动调整优先级。
+
+    注音格式（annotated 行内格式）：
+        ``{原文||段1,段2,...}``
+        块内 ``|`` 分 mora（RubyPart），``,`` 分字符；空段表示该字符无 ruby；
+        ``{...||...}`` 块外的字面字符无 ruby，但参与连词。
     """
 
     def __init__(self, entries: list, parent=None):
@@ -41,15 +49,17 @@ class DictionaryEditDialog(QDialog):
         layout.addWidget(title)
 
         desc = QLabel(
-            "设置固定读音的词汇。词典中的词将优先于自动注音。\n"
-            "优先级从上到下递减，新添加的词条默认在顶部（最高优先级）。"
+            "设置固定读音的词汇。词典中的词将以子串严格匹配方式覆盖自动注音（最高优先级）。\n"
+            "优先级从上到下递减，新添加的词条默认在顶部（最高优先级）。\n"
+            "注音格式：{原文||段1,段2,...}（块内 | 分 mora、, 分字符；空段=无 ruby）。\n"
+            "示例：{微笑||ほほ,え}ん  /  {大冒険||だ|い,ぼ|う,け|ん}"
         )
         desc.setFont(QFont("Microsoft YaHei", 10))
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
         self._table = QTableWidget(0, 3, self)
-        self._table.setHorizontalHeaderLabels(["启用", "词", "读音"])
+        self._table.setHorizontalHeaderLabels(["启用", "词", "注音(annotated)"])
         header = self._table.horizontalHeader()
         if header is not None:
             header.setStretchLastSection(True)
@@ -89,7 +99,7 @@ class DictionaryEditDialog(QDialog):
         # 确定/取消
         ok_row = QHBoxLayout()
         btn_ok = PrimaryPushButton("确定", self)
-        btn_ok.clicked.connect(self.accept)
+        btn_ok.clicked.connect(self._on_accept)
         btn_cancel = PushButton("取消", self)
         btn_cancel.clicked.connect(self.reject)
         ok_row.addStretch()
@@ -236,6 +246,57 @@ class DictionaryEditDialog(QDialog):
             duration=3000,
             parent=self,
         )
+
+    def _validate_entries(self) -> list:
+        """校验所有行的 annotated 格式。
+
+        返回有问题的行号列表（0-based）。仅对启用且非空的行做校验：
+        - reading 必须能被 ``parse_annotated_line`` 解析
+        - 解析后的 raw_text 必须等于 word
+        """
+        bad_rows: list = []
+        for row in range(self._table.rowCount()):
+            chk = self._table.item(row, 0)
+            word_item = self._table.item(row, 1)
+            reading_item = self._table.item(row, 2)
+            enabled = chk.checkState() == Qt.CheckState.Checked if chk else True
+            word = word_item.text().strip() if word_item else ""
+            reading = reading_item.text().strip() if reading_item else ""
+            if not enabled:
+                continue
+            if not word and not reading:
+                continue
+            if not word or not reading:
+                bad_rows.append(row)
+                continue
+            try:
+                parsed_raw_text, _chars, _ruby = parse_annotated_line(reading)
+            except Exception:
+                bad_rows.append(row)
+                continue
+            if parsed_raw_text != word:
+                bad_rows.append(row)
+        return bad_rows
+
+    def _on_accept(self):
+        """点击确定：先校验，再 accept。校验失败软警告但不阻塞。"""
+        bad_rows = self._validate_entries()
+        if bad_rows:
+            preview = ", ".join(str(r + 1) for r in bad_rows[:5])
+            more = "" if len(bad_rows) <= 5 else f" 等 {len(bad_rows)} 行"
+            InfoBar.warning(
+                title="注音格式异常",
+                content=(
+                    f"第 {preview}{more} 行的注音不符合 annotated 格式或 raw_text 与词不一致；"
+                    "这些行在匹配时可能被忽略。仍可保存。"
+                ),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self,
+            )
+        self.accept()
 
     def get_entries(self) -> list:
         entries = []
