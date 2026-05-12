@@ -357,9 +357,10 @@ class TestNicokaraWithRubyExporter:
             with open(temp_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            # 应包含 @Offset
-            assert "@Offset=+0" in content
-            # 应包含 @Ruby 标签（单次出现无需位置标记）
+            # @Offset 仅在 project.offset_ms ≠ 0 时输出（避免 round-trip 污染）；
+            # 当前 Project 没有 offset_ms 字段，因此不应出现 @Offset 行。
+            assert "@Offset" not in content
+            # 应包含 @Ruby 标签（朴素分段：kanji + reading + pos1 + pos2）
             assert "@Ruby1=赤,あか" in content
             # 歌词部分仍为逐字时间戳
             assert "[00:05:00]赤" in content
@@ -408,7 +409,11 @@ class TestNicokaraWithRubyExporter:
 
 
     def test_export_ruby_multi_reading_disambiguation(self):
-        """同一词组有不同读音时，所有条目都需要位置范围"""
+        """朴素分段策略：每段连续 ruby 独立成 @RubyN，不做 kanji 合并 / 去重。
+
+        即使同一 kanji（言）在不同句子里有不同读音（こと vs ゆ），
+        两段也独立输出，各自带自身的位置范围 [pos1],[pos2]。
+        """
         from strange_uta_game.backend.domain import Ruby, RubyPart
         from strange_uta_game.backend.infrastructure.exporters import (
             NicokaraWithRubyExporter,
@@ -417,7 +422,7 @@ class TestNicokaraWithRubyExporter:
         project = Project()
         singer = project.singers[0]
 
-        # 第一句: 言 with reading こ[0]と[163]
+        # 第一句: 言 with reading こ[0]と[163]，葉 with reading ば
         s1 = Sentence.from_text("言葉は", singer.id)
         s1.characters[0].check_count = 2
         s1.characters[0].set_ruby(
@@ -450,11 +455,18 @@ class TestNicokaraWithRubyExporter:
             with open(temp_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            # 言有不同读音(こと/ゆ)，两个条目都必须有位置范围
-            # 第一个言(こと): 应带结束时间
-            assert re.search(r"@Ruby\d+=言,こ\[00:00:16\]と,,\[00:05:00\]", content)
-            # 第二个言(ゆ): 应带开始时间
-            assert re.search(r"@Ruby\d+=言,ゆ,\[00:05:00\]", content)
+            # 第一段：连续 ruby 段 = 言+葉（汉字拼接），reading 内含子时间戳
+            # 形如：@RubyN=言葉,こ[mm:ss.cc]と[mm:ss.cc]ば,[00:01:00],[00:01:50]
+            assert re.search(
+                r"@Ruby\d+=言葉,こ\[\d{2}:\d{2}:\d{2}\]と\[\d{2}:\d{2}:\d{2}\]ば,"
+                r"\[00:01:00\],\[00:01:50\]",
+                content,
+            ), f"未匹配第一段 ruby:\n{content}"
+            # 第二段：独立 entry，自身位置范围
+            assert re.search(
+                r"@Ruby\d+=言,ゆ,\[00:05:00\],\[00:05:20\]",
+                content,
+            ), f"未匹配第二段 ruby:\n{content}"
         finally:
             os.unlink(temp_path)
 

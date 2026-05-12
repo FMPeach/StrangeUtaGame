@@ -47,7 +47,7 @@ class SRTExporter(BaseExporter):
 
             # 起始时间
             if sentence.has_timetags:
-                start_ms = sentence.export_timing_start_ms
+                start_ms = sentence.global_timing_start_ms or 0
             else:
                 start_ms = 0
 
@@ -55,7 +55,7 @@ class SRTExporter(BaseExporter):
             if i + 1 < len(sentences):
                 next_sentence = sentences[i + 1]
                 if next_sentence.has_timetags:
-                    end_ms = next_sentence.export_timing_start_ms
+                    end_ms = (next_sentence.global_timing_start_ms or 0)
                 else:
                     end_ms = start_ms + 5000
             else:
@@ -76,8 +76,12 @@ class SRTExporter(BaseExporter):
             raise ExportError(f"写入文件失败: {e}")
 
     def _format_srt_timestamp(self, timestamp_ms: int) -> str:
-        """格式化 SRT 时间戳: HH:MM:SS,mmm"""
-        timestamp_ms = max(0, timestamp_ms + self._offset_ms)
+        """格式化 SRT 时间戳: HH:MM:SS,mmm
+
+        调用方传入的 timestamp_ms 应已是全局时间戳
+        （Sentence.global_timing_start_ms），本方法不再二次叠加偏移。
+        """
+        timestamp_ms = max(0, timestamp_ms)
 
         hours = timestamp_ms // 3600000
         remaining = timestamp_ms % 3600000

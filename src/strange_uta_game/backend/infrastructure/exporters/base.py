@@ -4,7 +4,6 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional
 from pathlib import Path
 
 from strange_uta_game.backend.domain import Project
@@ -66,9 +65,6 @@ class BaseExporter(IExporter):
     提供通用的导出功能。
     """
 
-    def __init__(self):
-        self._offset_ms: int = 0
-
     def _validate_project(self, project: Project) -> None:
         """验证项目是否可导出"""
         if not project:
@@ -80,6 +76,10 @@ class BaseExporter(IExporter):
     def _format_timestamp(self, timestamp_ms: int, format_type: str = "lrc") -> str:
         """格式化时间戳
 
+        调用方传入的 timestamp_ms 应已是软件渲染所用的全局时间戳
+        （即 Character.global_timestamps / global_sentence_end_ts 等），
+        本方法只负责数字到字符串的格式化，不再二次叠加任何偏移。
+
         Args:
             timestamp_ms: 毫秒时间戳
             format_type: 格式类型 ('lrc', 'ass', 'nicokara')
@@ -87,7 +87,7 @@ class BaseExporter(IExporter):
         Returns:
             格式化后的时间字符串
         """
-        timestamp_ms = max(0, timestamp_ms + self._offset_ms)
+        timestamp_ms = max(0, timestamp_ms)
         total_seconds = timestamp_ms / 1000
         minutes = int(total_seconds // 60)
         seconds = int(total_seconds % 60)

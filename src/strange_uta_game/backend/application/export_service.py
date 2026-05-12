@@ -79,7 +79,8 @@ class ExportService:
             project: 项目对象
             format_name: 格式名称 ('LRC', 'KRA', 'TXT', 等)
             file_path: 导出文件路径
-            offset_ms: 导出时间偏移（毫秒）
+            offset_ms: 已弃用。全局偏移由前端通过 Character.set_offset() 预先写入
+                       global_timestamps，本参数保留只为向后兼容，不会被使用。
             singer_ids: 要输出的演唱者 ID 集合（None=全部，仅 Nicokara 格式有效）
             insert_singer_tags: 是否在演唱者切换处插入【演唱者名】标签
             singer_map: singer_id → 演唱者显示名的映射
@@ -91,10 +92,10 @@ class ExportService:
             # 获取导出器
             exporter = get_exporter_by_name(format_name)
 
-            # 设置导出偏移：偏移已预计算在 Character.export_timestamps 中，
-            # 导出器不再需要额外偏移
-            if hasattr(exporter, "_offset_ms"):
-                exporter._offset_ms = 0
+            # 注：offset_ms 参数已弃用 —— 全局偏移由前端在导出前通过
+            # Character.set_offset() 写入 global_timestamps / global_sentence_end_ts，
+            # 各导出器从中直接读取，不再需要 service 层再次叠加。
+            _ = offset_ms
 
             # 报告进度
             if self._progress_callback:
