@@ -224,42 +224,61 @@ class AppSettings:
         self._force_upgrade_dictionary_if_needed()
 
     def _force_upgrade_dictionary_if_needed(self) -> None:
-        """老用户强制升级一次词典：当用户 config.json 中 is_dictionary_real_sugdic
-        缺失或为 False 时，用内置 dictionary.json 覆盖用户 dictionary.json，并写入标志位。
-        用户之前自定义的词条会丢失（一次性破坏性升级）。
+        """词典版本升级：比较内置词典版本号与用户已应用版本号。
 
-        注意：判断依据是用户 config.json 的原始内容，而非 merge 后的 _settings。
-        内置 config.json 已预设 is_dictionary_real_sugdic=True，若以 _settings
-        判断则永远不会触发。
+        内置 config.json 含 ``dictionary_version``（整数），用户 config.json 含
+        ``applied_dictionary_version``（整数，首次无此字段视为 0）。
+        若用户版本 < 内置版本，用内置 dictionary.json 覆盖用户词典并更新版本号。
+
+        好处：之后只需递增内置 config.json 的 ``dictionary_version``，
+        所有用户下次启动即自动升级，无需改代码。
         """
-        # 读用户 config.json 原始内容（非 merge 后的 _settings）
-        user_flag = False
+        # 读内置版本号
+        packaged_cfg_path = self._get_packaged_config_path("config.json")
+        packaged_version = 0
+        if packaged_cfg_path:
+            try:
+                with open(packaged_cfg_path, "r", encoding="utf-8") as f:
+                    packaged_cfg = json.load(f)
+                packaged_version = int(packaged_cfg.get("dictionary_version", 0))
+            except Exception:
+                packaged_version = 0
+
+        if packaged_version <= 0:
+            return  # 内置没有版本号，跳过
+
+        # 读用户已应用版本号（直接从用户 config.json 原始文件读，避免 merge 干扰）
+        user_version = 0
         if self._config_path.exists():
             try:
                 with open(self._config_path, "r", encoding="utf-8") as f:
                     user_cfg = json.load(f)
-                user_flag = user_cfg.get("is_dictionary_real_sugdic") is True
+                user_version = int(user_cfg.get("applied_dictionary_version", 0))
             except Exception:
-                user_flag = False
+                user_version = 0
 
-        if user_flag:
-            return
-        packaged = self._get_packaged_config_path("dictionary.json")
-        if not packaged:
+        if user_version >= packaged_version:
+            return  # 已是最新版本
+
+        # 覆盖用户词典
+        packaged_dict = self._get_packaged_config_path("dictionary.json")
+        if not packaged_dict:
             return
         try:
             import shutil
-
-            shutil.copy2(str(packaged), str(self._dict_path))
+            shutil.copy2(str(packaged_dict), str(self._dict_path))
         except Exception as e:
-            print(f"强制升级词典失败: {e}")
+            print(f"词典版本升级失败: {e}")
             return
-        # 写入标志位，避免下次再次覆盖
-        self._settings["is_dictionary_real_sugdic"] = True
+
+        # 写入已应用版本号到用户 config.json
+        self._settings["applied_dictionary_version"] = packaged_version
+        # 清理旧标志位（兼容旧版）
+        self._settings.pop("is_dictionary_real_sugdic", None)
         try:
             self._save_json(self._config_path, self._settings)
         except Exception as e:
-            print(f"写入 is_dictionary_real_sugdic 标志失败: {e}")
+            print(f"写入 applied_dictionary_version 失败: {e}")
 
     def _ensure_default_dictionary(self) -> None:
         """首次启动时，将内置 RL 字典固化为默认 dictionary.json。"""
