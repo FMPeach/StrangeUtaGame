@@ -71,12 +71,18 @@ class FileLoader:
             self.load_lyrics(file_path)
             self._save_last_dir(file_path)
         elif ext in self._PROJECT_EXTENSIONS:
+            self._save_last_dir(file_path)
             self.load_project(file_path)
 
     # ── 菜单/按钮触发 ──
 
     def _save_last_dir(self, file_path: str):
-        """保存文件所在目录到配置，方便后续导出使用"""
+        """保存文件所在目录到 store + config（统一入口）。"""
+        store = self._store
+        if store:
+            store.set_working_dir(file_path)
+            return
+        # 退化路径：无 store 时直接写 settings
         parent_dir = str(Path(file_path).parent)
         settings = AppSettings()
         settings.set("export.last_export_dir", parent_dir)
@@ -86,17 +92,20 @@ class FileLoader:
         """弹出文件选择框加载项目"""
         if not self.check_unsaved_changes():
             return
+        init_dir = self._store.working_dir if self._store else ""
         path, _ = QFileDialog.getOpenFileName(
-            self._editor, "打开项目", "",
+            self._editor, "打开项目", init_dir,
             "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)",
         )
         if path:
+            self._save_last_dir(path)
             self.load_project(path)
 
     def prompt_load_audio(self):
         """弹出文件选择框加载音频或视频"""
+        init_dir = self._store.working_dir if self._store else ""
         path, _ = QFileDialog.getOpenFileName(
-            self._editor, "选择音频或视频文件", "",
+            self._editor, "选择音频或视频文件", init_dir,
             "音频/视频文件 (*.mp3 *.wav *.flac *.ogg *.mp4 *.mkv *.m4a *.avi *.mov *.wmv *.flv *.webm *.m4v *.mpg *.mpeg *.ts *.3gp *.vob *.mts *.m2ts *.rm *.rmvb *.asf *.f4v *.ogv *.m4b *.aac *.wma *.opus *.ape *.ac3 *.dts);;所有文件 (*.*)",
         )
         if path:
@@ -116,8 +125,9 @@ class FileLoader:
                 parent=self._editor,
             )
             return
+        init_dir = self._store.working_dir if self._store else ""
         path, _ = QFileDialog.getOpenFileName(
-            self._editor, "选择歌词文件", "",
+            self._editor, "选择歌词文件", init_dir,
             "歌词文件 (*.lrc *.txt *.kra);;所有文件 (*.*)",
         )
         if path:
@@ -336,6 +346,7 @@ class FileLoader:
         if self._store:
             self._store._project = project
             self._store._save_path = file_path
+            self._store.set_working_dir(file_path)
             self._store.notify("project")
         else:
             self._editor.set_project(project)

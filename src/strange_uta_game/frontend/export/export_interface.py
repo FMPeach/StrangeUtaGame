@@ -214,12 +214,25 @@ class ExportInterface(QWidget):
         if change_type == "project":
             self._project = self._store.project
             self._sync_default_filename()
+            self._sync_default_output_dir()
             self._refresh_singer_checkboxes()
         elif change_type == "audio":
             # 音频变更即刻反映到默认文件名（无需等待"创建项目"）
             self._sync_default_filename()
+            self._sync_default_output_dir()
         elif change_type == "singers":
             self._refresh_singer_checkboxes()
+
+    def _sync_default_output_dir(self):
+        """根据当前 store 的工作目录自动预填导出路径（用户可手动改）。"""
+        if not self._store:
+            return
+        # 用户已经手填过路径则不覆盖
+        if self.line_output.text().strip():
+            return
+        working_dir = self._store.working_dir
+        if working_dir:
+            self.line_output.setText(working_dir)
 
     def _sync_default_filename(self):
         """根据当前 store 的音频 / 项目元数据刷新默认导出文件名。"""
@@ -306,7 +319,12 @@ class ExportInterface(QWidget):
 
     def _on_browse(self):
         settings = AppSettings()
-        default_dir = settings.get("export.last_export_dir", "")
+        # 优先用 store 的工作目录，回退到 settings 中的 last_export_dir
+        default_dir = ""
+        if self._store:
+            default_dir = self._store.working_dir
+        if not default_dir:
+            default_dir = settings.get("export.last_export_dir", "")
         path = QFileDialog.getExistingDirectory(self, "选择导出目录", default_dir)
         if path:
             self.line_output.setText(path)
@@ -351,7 +369,11 @@ class ExportInterface(QWidget):
         if not output_dir:
             # 弹出文件选择
             settings = AppSettings()
-            default_dir = settings.get("export.last_export_dir", "")
+            default_dir = ""
+            if self._store:
+                default_dir = self._store.working_dir
+            if not default_dir:
+                default_dir = settings.get("export.last_export_dir", "")
             output_dir = QFileDialog.getExistingDirectory(self, "选择导出目录", default_dir)
             if not output_dir:
                 return

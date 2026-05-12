@@ -75,6 +75,9 @@ class ProjectStore(QObject):
         self._project: Optional[Project] = None
         self._save_path: Optional[str] = None
         self._audio_path: Optional[str] = None
+        # 最近一次被加载/导入的歌词文件所在目录（不持久化，仅运行时使用，
+        # 优先级介于 audio 与 last_export_dir 之间）
+        self._last_lyric_dir: Optional[str] = None
         self._dirty = False
 
         # 防抖 auto-save（2 秒无操作后写临时文件）
@@ -108,7 +111,123 @@ class ProjectStore(QObject):
         if self._audio_path == path:
             return
         self._audio_path = path
+        # 音频是用户当前工作上下文 → 同步刷新默认目录到 config
+        if path:
+            self._persist_last_export_dir(str(Path(path).parent))
         self.data_changed.emit("audio")
+
+    # ── 工作目录（默认保存/导出位置） ─────────────
+
+    @staticmethod
+    def _is_in_cache_dir(path: Optional[str]) -> bool:
+        """判断路径是否位于 .cache 临时目录下。"""
+        if not path:
+            return False
+        try:
+            return Path(path).resolve().is_relative_to(_CACHE_DIR.resolve())
+        except (ValueError, OSError):
+            return False
+
+    def is_temp_save_path(self, path: Optional[str] = None) -> bool:
+        """判断给定路径（或当前 _save_path）是否为 .cache 临时位置。
+
+        临时项目的 save_path 不应作为默认保存目录返回给用户。
+        """
+        target = path if path is not None else self._save_path
+        return self._is_in_cache_dir(target)
+
+    @property
+    def working_dir(self) -> str:
+        """派生：当前工作目录。
+
+        优先级：
+          1. 已正式保存的项目目录（排除 .cache 临时项目）
+          2. 音频文件所在目录
+          3. 最近加载/导入的歌词文件所在目录
+          4. settings["export.last_export_dir"]
+          5. ""（让 Qt 用系统默认）
+        """
+        if self._save_path and not self.is_temp_save_path(self._save_path):
+            parent = str(Path(self._save_path).parent)
+            if parent and Path(parent).is_dir():
+                return parent
+        if self._audio_path and not self._is_in_cache_dir(self._audio_path):
+            parent = str(Path(self._audio_path).parent)
+            if parent and Path(parent).is_dir():
+                return parent
+        if self._last_lyric_dir and Path(self._last_lyric_dir).is_dir():
+            return self._last_lyric_dir
+        try:
+            from strange_uta_game.frontend.settings.app_settings import AppSettings
+            last = AppSettings().get("export.last_export_dir", "") or ""
+        except Exception:
+            last = ""
+        if last and Path(last).is_dir():
+            return last
+        return ""
+
+    def suggested_save_path(self, ext: str = ".sug") -> str:
+        """根据 working_dir + 项目标题/音频名生成建议的保存全路径。
+
+        若无可用目录则只返回建议文件名。
+        """
+        if not ext.startswith("."):
+            ext = "." + ext
+        # 选 base name
+        base = ""
+        if self._project and getattr(self._project, "metadata", None):
+            title = getattr(self._project.metadata, "title", "") or ""
+            if title.strip():
+                base = title.strip()
+        if not base and self._audio_path:
+            base = Path(self._audio_path).stem
+        if not base:
+            base = "untitled"
+
+        wd = self.working_dir
+        if wd:
+            return str(Path(wd) / f"{base}{ext}")
+        return f"{base}{ext}"
+
+    def set_working_dir(self, file_or_dir: str) -> None:
+        """登记一个用户刚操作过的文件/目录，并持久化到 config。
+
+        - 传入文件路径 → 取其 parent
+        - 同时记录为最近歌词目录（用于歌词类型时的派生）
+        - 写入 ``settings["export.last_export_dir"]`` 并立刻 save()
+        """
+        if not file_or_dir:
+            return
+        p = Path(file_or_dir)
+        parent = str(p.parent) if p.suffix or p.is_file() else str(p)
+        if not parent:
+            return
+        if not Path(parent).is_dir():
+            return
+        self._last_lyric_dir = parent
+        self._persist_last_export_dir(parent)
+
+    @staticmethod
+    def _persist_last_export_dir(parent: str) -> None:
+        """把目录写入 config.json 的 export.last_export_dir 并立即持久化。
+
+        .cache 目录（含临时音频/临时项目）一律不写入，避免污染默认路径。
+        """
+        if not parent:
+            return
+        # 过滤 .cache 目录（临时提取的音频、临时项目都在这里）
+        if ProjectStore._is_in_cache_dir(parent):
+            return
+        try:
+            from strange_uta_game.frontend.settings.app_settings import AppSettings
+            settings = AppSettings()
+            current = settings.get("export.last_export_dir", "")
+            if current == parent:
+                return
+            settings.set("export.last_export_dir", parent)
+            settings.save()
+        except Exception:
+            pass  # 持久化失败不影响主流程
 
     @property
     def dirty(self) -> bool:

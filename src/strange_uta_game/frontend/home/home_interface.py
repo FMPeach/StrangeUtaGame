@@ -322,14 +322,16 @@ class HomeInterface(QWidget):
 
     def _on_import_lyric(self):
         """导入歌词文件"""
+        init_dir = self._working_dir()
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "选择歌词文件",
-            "",
+            init_dir,
             "歌词文件 (*.lrc *.txt *.kra *.ass *.srt);;所有文件 (*.*)",
         )
 
         if file_path:
+            self._register_working_dir(file_path)
             self._import_lyric_file(
                 file_path,
                 append=self.text_lyrics.toPlainText().strip() != "",
@@ -343,14 +345,16 @@ class HomeInterface(QWidget):
 
     def _on_select_audio(self):
         """选择音频或视频文件"""
+        init_dir = self._working_dir()
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "选择音频或视频文件",
-            "",
+            init_dir,
             "音频/视频文件 (*.mp3 *.wav *.flac *.ogg *.mp4 *.mkv *.m4a *.avi *.mov *.wmv *.flv *.webm *.m4v *.mpg *.mpeg *.ts *.3gp *.vob *.mts *.m2ts *.rm *.rmvb *.asf *.f4v *.ogv *.m4b *.aac *.wma *.opus *.ape *.ac3 *.dts);;所有文件 (*.*)",
         )
 
         if file_path:
+            self._register_working_dir(file_path)
             if is_video_file(file_path):
                 self._load_video_as_audio(file_path)
             else:
@@ -482,14 +486,16 @@ class HomeInterface(QWidget):
 
     def _on_open_project(self):
         """打开项目"""
+        init_dir = self._working_dir()
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "打开项目",
-            "",
+            init_dir,
             "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)",
         )
 
         if file_path:
+            self._register_working_dir(file_path)
             self._open_project_file(file_path)
 
     def _is_supported_drop_file(self, file_path: str) -> bool:
@@ -527,6 +533,9 @@ class HomeInterface(QWidget):
             self._set_lyrics_text(raw_content, append=append)
 
             line_count = len([l for l in raw_content.split("\n") if l.strip()])
+
+            # 登记工作目录（拖拽 / 按钮导入歌词都会经过这里）
+            self._register_working_dir(file_path)
 
             if show_feedback:
                 InfoBar.success(
@@ -759,6 +768,19 @@ class HomeInterface(QWidget):
         self.line_audio_path.setText(file_path)
         if hasattr(self, "_store") and self._store:
             self._store.set_audio_path(file_path)
+
+    def _working_dir(self) -> str:
+        """返回当前工作目录（用作 QFileDialog 初始路径）。"""
+        if hasattr(self, "_store") and self._store:
+            return self._store.working_dir or ""
+        return ""
+
+    def _register_working_dir(self, file_path: str) -> None:
+        """把刚刚加载/选中的文件目录登记为全局工作目录并持久化。"""
+        if not file_path:
+            return
+        if hasattr(self, "_store") and self._store:
+            self._store.set_working_dir(file_path)
 
     def _load_video_as_audio(self, file_path: str) -> None:
         """异步加载视频文件，提取音频并设置路径"""

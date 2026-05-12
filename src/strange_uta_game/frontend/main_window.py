@@ -444,6 +444,9 @@ class MainWindow(MSFluentWindow):
             self._state_tooltip.setState(True)
             self._state_tooltip = None
 
+        # 登记工作目录到 config（命令行打开的项目也算加载入口）
+        self._store.set_working_dir(file_path)
+
         self._on_project_opened(project, file_path)
 
     def _on_initial_project_load_error(self, error_msg: str) -> None:
@@ -492,13 +495,14 @@ class MainWindow(MSFluentWindow):
             )
             return
 
-        if self._store.save_path:
+        if self._store.save_path and not self._store.is_temp_save_path():
             self._async_save(self._store.save_path)
         else:
+            suggested = self._store.suggested_save_path(".sug")
             path, _ = QFileDialog.getSaveFileName(
                 self,
                 "保存项目",
-                "",
+                suggested,
                 "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)",
             )
             if not path:
@@ -513,6 +517,9 @@ class MainWindow(MSFluentWindow):
                     old_temp.unlink()
             except Exception:
                 pass
+
+            # 登记新的工作目录到 config
+            self._store.set_working_dir(path)
 
             self._async_save(path)
 

@@ -671,8 +671,12 @@ class EditorInterface(QWidget):
 
         store = getattr(self, "_store", None)
 
-        # 已有保存路径 → 直接保存
-        if store and store.save_path:
+        # 已有正式保存路径（非 .cache 临时）→ 直接保存
+        if (
+            store is not None
+            and store.save_path
+            and not store.is_temp_save_path()
+        ):
             if store.save():
                 InfoBar.success(
                     title="保存成功",
@@ -696,14 +700,19 @@ class EditorInterface(QWidget):
                 )
             return
 
-        # 无保存路径 → 弹出另存为对话框
+        # 无正式保存路径 / 仍是临时项目 → 弹出另存为对话框
+        suggested = store.suggested_save_path(".sug") if store else ""
         path, _ = QFileDialog.getSaveFileName(
-            self, "保存项目", "", "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)"
+            self, "保存项目", suggested, "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)"
         )
         if not path:
             return
         if not path.endswith(".sug"):
             path += ".sug"
+
+        # 登记工作目录到 config
+        if store:
+            store.set_working_dir(path)
 
         try:
             if store:
@@ -794,16 +803,21 @@ class EditorInterface(QWidget):
             )
             return
 
+        store = getattr(self, "_store", None)
+        suggested = store.suggested_save_path(".sug") if store else ""
         path, _ = QFileDialog.getSaveFileName(
-            self, "另存为", "", "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)"
+            self, "另存为", suggested, "StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)"
         )
         if not path:
             return
         if not path.endswith(".sug"):
             path += ".sug"
 
+        # 登记工作目录到 config
+        if store:
+            store.set_working_dir(path)
+
         try:
-            store = getattr(self, "_store", None)
             if store:
                 success = store.save(path)
             else:
@@ -3035,13 +3049,14 @@ class EditorInterface(QWidget):
             sentence = self._project.sentences[idx]
             if 0 <= char_idx < len(sentence.characters):
                 ch = sentence.characters[char_idx]
+                # 使用带 global_offset 的时间戳，与实际渲染/导出预览一致
                 ts_parts = []
-                for ts in ch.timestamps:
+                for ts in ch.global_timestamps:
                     m, s = divmod(ts // 1000, 60)
                     ms = ts % 1000
                     ts_parts.append(f"{m:02d}:{s:02d}.{ms:03d}")
-                if ch.is_sentence_end and ch.sentence_end_ts is not None:
-                    ets = ch.sentence_end_ts
+                if ch.is_sentence_end and ch.global_sentence_end_ts is not None:
+                    ets = ch.global_sentence_end_ts
                     m, s = divmod(ets // 1000, 60)
                     ms = ets % 1000
                     ts_parts.append(f"句尾{m:02d}:{s:02d}.{ms:03d}")
