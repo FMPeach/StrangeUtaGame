@@ -17,7 +17,7 @@
    下一个时间戳(或行末 sentence_end_ts) - 当前字时间戳，转厘秒。
 """
 
-from typing import List
+from typing import Dict, List, Optional, Tuple
 from .base import BaseExporter, ExportError
 from strange_uta_game.backend.domain import Project, Sentence
 
@@ -220,17 +220,25 @@ class ASSDirectExporter(BaseExporter):
     def _generate_karaoke_text(
         self, sentence: Sentence, line_start_ms: int, line_end_ms: int
     ) -> str:
-        """生成带卡拉OK效果的 Dialogue 文本。
+        """生成带卡拉OK效果的 Dialogue 文本（Aegisub 真实注音语法）。
 
-        基于「节拍块 (Block)」机制：一个有时间戳的字符及其后所有无时间戳
-        字符（如标点、被注音吞掉的连词后续字）打包为同一个 \\k 节拍块。
-        这样可避免两类 bug：
-        1. 标点漂移：`あ。い` 不会变成 `{\\k}あ{\\k}。い`，而是 `{\\k}あ。{\\k}い`。
-        2. 多字注音断裂：`漢字|<かんじ` 不会被拆成两块，会整体输出
-           `{\\k}漢字|<かんじ`，符合 Aegisub 注音语法。
+        Aegisub karaoke-template 注音语法精确规则：
+        - 无注音字：`{\\k<dur>}<字>`
+        - 单 part 注音：`{\\k<dur>}<漢字>|<<かな>`
+        - 多 part 注音（一字配多假名）：每个 part 一个独立 `\\k`，
+            首 part 用 `|<` 绑给汉字，续 part 用 `#|` 单独成段。
+            例如「届」配「とど」(2 parts)：
+                `{\\k20}届|<と{\\k12}#|ど`
+            其中 `\\k20` 是「と」段时长，`\\k12` 是「ど」段时长。
 
-        - 行首未打轴的前导字符（如前导标点）落入 pre-roll \\k 区。
+        - 无时间戳字符（标点、未打轴的连词后续字）追加到**前一个 \\k 块尾**，
+            不产生新的 \\k 标签，避免时间轴偏移。
+        - 行首所有未打轴字符并入 pre-roll \\k 区。
         - 行尾 post-roll \\k 让退出平滑。
+
+        参考用户提供的真实样例（一行 Aegisub 卡拉OK）：
+            {\\k200}{\\k23}い{\\k8}つ{\\k36}か{\\k20}見|<み{\\k26}た
+            {\\k10}夢|<ゆ{\\k31}#|め{\\k5}　{\\k10}届|<と{\\k12}#|ど
         """
         chars = sentence.characters
 
@@ -244,52 +252,91 @@ class ASSDirectExporter(BaseExporter):
 
         parts: List[str] = [f"{{\\k{actual_pre_roll_ms // 10}}}"]
 
-        # 1. 行首未打轴字符并入 pre-roll \k 区
-        idx = 0
-        while idx < len(chars) and not chars[idx].global_timestamps:
-            parts.append(self._escape_ass_text(chars[idx].char))
-            idx += 1
+        # 1. 收集所有「有 ts 的字符」做为锚点；记录每个锚点的 ts 列表起点
+        #    用于计算每个 \k 段的时长
+        anchor_indices = [
+            i for i, ch in enumerate(chars) if ch.global_timestamps
+        ]
+        if not anchor_indices:
+            # 全行无打轴：整段并入 pre-roll，仅给 post-roll 收尾
+            plain_text = "".join(self._escape_ass_text(c.char) for c in chars)
+            parts.append(plain_text)
+            parts.append(f"{{\\k{_POST_ROLL_MS // 10}}}")
+            return "".join(parts)
 
-        # 2. 按「带时间戳的字符」为锚点切分成 Block
-        blocks: List[List] = []
-        current_block: List = []
-        for ch in chars[idx:]:
+        # 2. 行首未打轴字符（在第一个锚点前）并入 pre-roll \k 区，
+        #    不产生新的 \k。
+        first_anchor = anchor_indices[0]
+        for j in range(first_anchor):
+            parts.append(self._escape_ass_text(chars[j].char))
+
+        # 3. 构造所有 \k 段的「时间锚点序列」(扁平化的 ts 列表)：
+        #    每个有 ts 字符贡献 len(global_timestamps) 个段（= part 数 或 1）。
+        #    末段的 dur 用 line_end_ms 兜底。
+        flat_anchors: List[Tuple[int, int, int]] = []
+        # 每项 = (char_idx, part_idx, ts_ms)；part_idx=0 表示该字第一段
+        for ci in anchor_indices:
+            ch = chars[ci]
+            for pi, ts in enumerate(ch.global_timestamps):
+                flat_anchors.append((ci, pi, ts))
+
+        # 计算每个段的下一锚点 ts（用于求 \k 时长）
+        def next_ts(seg_idx: int) -> int:
+            if seg_idx + 1 < len(flat_anchors):
+                return flat_anchors[seg_idx + 1][2]
+            return line_end_ms
+
+        # 4. 逐段渲染。无 ts 字符（标点等）追加到所属字符的「最后一段」尾巴。
+        #    所属字符 = 该字之前最近的一个有 ts 字符。
+        # 先建立映射：char_idx → 该字最后段在 flat_anchors 的下标
+        last_seg_of_char: Dict[int, int] = {}
+        for seg_idx, (ci, pi, _) in enumerate(flat_anchors):
+            last_seg_of_char[ci] = seg_idx
+
+        # 收集「该 seg 结尾要追加的无 ts 字符文字」
+        tail_text: Dict[int, str] = {}
+        # 遍历 chars，把每个无 ts 字符塞到「前一个有 ts 字符的最后段」尾巴
+        prev_anchor_ci: Optional[int] = None
+        for j, ch in enumerate(chars):
             if ch.global_timestamps:
-                if current_block:
-                    blocks.append(current_block)
-                current_block = [ch]
-            else:
-                current_block.append(ch)
-        if current_block:
-            blocks.append(current_block)
-
-        # 3. 渲染每个 Block
-        for i, block in enumerate(blocks):
-            first_ch = block[0]
-            current_ts = first_ch.global_timestamps[0]
-
-            # 时长 = 下一个 Block 锚点时间 - 当前锚点时间（最后一块用 line_end_ms）
-            if i + 1 < len(blocks):
-                nxt_ts = blocks[i + 1][0].global_timestamps[0]
-            else:
-                nxt_ts = line_end_ms
-            duration_ms = max(0, nxt_ts - current_ts)
-            k_cs = duration_ms // 10
-
-            # 合并块内所有字符的文字和注音
-            kanji_text = "".join(self._escape_ass_text(c.char) for c in block)
-            kana_text = "".join(
-                self._escape_ass_text(c.ruby.text)
-                for c in block
-                if c.ruby and c.ruby.text
+                prev_anchor_ci = j
+                continue
+            if j < first_anchor:
+                continue  # 已并入 pre-roll
+            if prev_anchor_ci is None:
+                continue
+            tail_seg = last_seg_of_char[prev_anchor_ci]
+            tail_text[tail_seg] = (
+                tail_text.get(tail_seg, "") + self._escape_ass_text(ch.char)
             )
 
-            if kana_text:
-                parts.append(f"{{\\k{k_cs}}}{kanji_text}|<{kana_text}")
-            else:
-                parts.append(f"{{\\k{k_cs}}}{kanji_text}")
+        # 5. 渲染每个段
+        for seg_idx, (ci, pi, ts) in enumerate(flat_anchors):
+            dur_ms = max(0, next_ts(seg_idx) - ts)
+            k_cs = dur_ms // 10
+            ch = chars[ci]
 
-        # 4. 行尾 post-roll
+            if pi == 0:
+                # 该字第一段：写字符（+ 可选首 part ruby）
+                kanji = self._escape_ass_text(ch.char)
+                if ch.ruby and ch.ruby.parts:
+                    first_part_text = self._escape_ass_text(ch.ruby.parts[0].text)
+                    seg_body = f"{kanji}|<{first_part_text}"
+                else:
+                    seg_body = kanji
+            else:
+                # 该字续段：用 #| 前缀，单独成段（无主文）
+                # ruby.parts[pi] 必定存在（push_to_ruby 保证 parts 数 = ts 数）
+                part_text = ""
+                if ch.ruby and pi < len(ch.ruby.parts):
+                    part_text = self._escape_ass_text(ch.ruby.parts[pi].text)
+                seg_body = f"#|{part_text}"
+
+            # 追加该段尾巴的无 ts 文字（标点等）
+            seg_body += tail_text.get(seg_idx, "")
+            parts.append(f"{{\\k{k_cs}}}{seg_body}")
+
+        # 6. 行尾 post-roll
         parts.append(f"{{\\k{_POST_ROLL_MS // 10}}}")
 
         return "".join(parts)

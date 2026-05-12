@@ -108,55 +108,77 @@ class ASSParser(LyricParser):
         return re.sub(r"\{[^}]*\}", "", text)
 
     @staticmethod
-    def _split_ruby(segment: str) -> Tuple[str, str]:
-        """拆分 Aegisub 注音段。
+    def _classify_segment(segment: str) -> Tuple[str, str, str, str]:
+        """识别 \\k 段的语义类型并拆分。
 
-        语法：`汉字|<かな` 或 `汉字|かな`（部分工具不带 `<`）。
-        - 含 `|` 时：左侧为主文本（用于歌词），右侧为注音；
-          右侧若以 `<` 开头则去掉该前缀（Aegisub 习惯）。
-        - 不含 `|` 时：整段为主文本，注音为空。
+        Aegisub 注音三类段：
+        - "continuation"  `#|<かな>` 或 `#|かな`: 续段，无主文，假名归属上一汉字
+        - "with_ruby"     `<汉字>|<<かな>` 或 `<汉字>|かな`: 首段，主文+首 part 假名
+        - "plain"         无 `|`: 普通段，仅主文（也可能空）
 
         Returns:
-            (主文本, 注音文本)
+            (kind, main_text, ruby_text, raw_segment)
+            kind ∈ {"continuation", "with_ruby", "plain"}
         """
-        if "|" not in segment:
-            return segment, ""
-        main, _, ruby = segment.partition("|")
-        ruby = ruby.lstrip("<")
-        return main, ruby
+        # 续段标记：`#|` 开头（# 之前可能有别的字符吗？Aegisub 规范不会，
+        # 但用户工具可能在 #| 前放其他字符。保守起见仅匹配净 # 起始）
+        stripped = segment.lstrip()
+        if stripped.startswith("#|"):
+            rest = stripped[2:]
+            # `#|<かな` 也可能（极少见），剥掉 `<`
+            ruby_text = rest.lstrip("<")
+            return "continuation", "", ruby_text, segment
+
+        if "|" in segment:
+            main, _, ruby = segment.partition("|")
+            ruby = ruby.lstrip("<")
+            return "with_ruby", main, ruby, segment
+
+        return "plain", segment, "", segment
 
     def _parse_karaoke_text(
         self, text: str, start_ms: int
     ) -> Optional[ParsedLine]:
         """解析含卡拉OK标签的文本。
 
+        Aegisub karaoke-template 注音真实语法（三类段）：
+        - `{\\k<d>}<字>`            普通段
+        - `{\\k<d>}<汉字>|<<かな>`   带 ruby 首段（新建字符 + ruby.parts[0]）
+        - `{\\k<d>}#|<かな>`         续段（不新建字符；ts 与 part 追加给前一字）
+
         策略：
-        - 把整段按 `\\k...` 切片，每片 = (duration_cs, 后续文本)。
-        - 每片先剥掉非卡拉OK ASS 标签，再用 `|` 拆分注音。
-        - 每片首字符获得 (char_idx, current_ms) 时间标签；
-          若该片有注音，把注音绑给该首字符。
+        - 把整段按 `\\k...` 切片，每片用 `_classify_segment` 区分种类。
+        - "with_ruby"/"plain"：产生新字符 + 一条 timetag。
+        - "continuation"：把 (上一字的 char_idx → ts) 写入 extra_checkpoints_map，
+          把假名追加到该字 ruby_map 的 parts_list。
         - 累加 duration → 下一片的起始时间。
-        - **末尾片的 duration 不丢弃**，作为 `line_end_ts`（绝对时间）。
-        - 若不含任何卡拉OK标签，整行视为一个段，时间标签仅在首字符。
+        - 末尾片的 duration 不丢弃，作为 `line_end_ts`。
         """
         karaoke_tags = list(self.KARAOKE_TAG_PATTERN.finditer(text))
 
         if not karaoke_tags:
             clean_text = self._strip_non_karaoke_tags(text)
-            # 兼容无 \k 但带 `|<` 注音：拆出主文本即可（无 ruby_map，
-            # 因为没有按字粒度的对应关系）
-            main_text, _ = self._split_ruby(clean_text)
-            main_text = main_text.strip()
+            # 兼容无 \k 但带 `|<` 注音
+            if "|" in clean_text:
+                main_text, _, _ = clean_text.partition("|")
+                main_text = main_text.strip()
+            else:
+                main_text = clean_text.strip()
             if main_text:
                 return ParsedLine(text=main_text, timetags=[(0, start_ms)])
             return None
 
         lyric_chars: List[str] = []
         timetags: List[Tuple[int, int]] = []
-        ruby_map: Dict[int, Tuple[str, int]] = {}
+        # 新签名：char_idx → (parts_list, span_length)
+        ruby_map: Dict[int, Tuple[List[str], int]] = {}
+        # ASS `#|` 续段给同字追加的额外 checkpoint
+        extra_checkpoints_map: Dict[int, List[int]] = {}
         current_ms = start_ms
         char_idx = 0
         last_duration_ms = 0
+        # 续段归属：最近一次产生新字符的起始 char_idx
+        last_char_idx_for_ruby: Optional[int] = None
 
         for i, tag_match in enumerate(karaoke_tags):
             duration_cs = int(tag_match.group(1))
@@ -171,18 +193,42 @@ class ASSParser(LyricParser):
             )
 
             raw_segment = text[text_start:text_end]
-            # 先剥掉装饰性 ASS 标签，再拆注音
+            # 先剥掉装饰性 ASS 标签
             cleaned = self._strip_non_karaoke_tags(raw_segment)
-            main_text, ruby_text = self._split_ruby(cleaned)
 
+            kind, main_text, ruby_text, _ = self._classify_segment(cleaned)
+
+            if kind == "continuation":
+                # 续段：本段 ts 归属上一字符，假名追加到其 ruby.parts
+                if last_char_idx_for_ruby is not None and ruby_text:
+                    extra_checkpoints_map.setdefault(
+                        last_char_idx_for_ruby, []
+                    ).append(current_ms)
+                    # 追加 part 到既有 ruby_map 项
+                    if last_char_idx_for_ruby in ruby_map:
+                        parts_list, span = ruby_map[last_char_idx_for_ruby]
+                        parts_list.append(ruby_text)
+                        ruby_map[last_char_idx_for_ruby] = (parts_list, span)
+                    else:
+                        # 极少见：上一字没有首 part 注音却有续段。建一条新项。
+                        ruby_map[last_char_idx_for_ruby] = ([ruby_text], 1)
+                # 续段不新建字符，不追加 lyric_chars
+                current_ms += duration_ms
+                continue
+
+            # with_ruby / plain：产生新字符（可能多字）
             if main_text:
                 first_char_idx_in_segment = char_idx
                 timetags.append((first_char_idx_in_segment, current_ms))
                 if ruby_text:
-                    # 注音 span = main_text 字符数。下游 parse_to_sentences 会
-                    # 据此把 ruby 均分到段内所有字符并建立 linked_to_next 羁绊，
-                    # 避免「整段假名压给首字、其余无 ruby」导致的语义丢失。
-                    ruby_map[first_char_idx_in_segment] = (ruby_text, len(main_text))
+                    # span = main_text 字符数。
+                    # - 单字 main_text + ruby_text：span=1, parts=[ruby_text]（之后续段会 append part）
+                    # - 多字 main_text + ruby_text：span=N, parts=[ruby_text]（旧整段共享 reading 语法）
+                    ruby_map[first_char_idx_in_segment] = (
+                        [ruby_text],
+                        len(main_text),
+                    )
+                last_char_idx_for_ruby = first_char_idx_in_segment
 
                 for ch in main_text:
                     lyric_chars.append(ch)
@@ -204,21 +250,30 @@ class ASSParser(LyricParser):
             ruby_map = {
                 ci - leading: rb for ci, rb in ruby_map.items() if ci >= leading
             }
+            extra_checkpoints_map = {
+                ci - leading: ts_list
+                for ci, ts_list in extra_checkpoints_map.items()
+                if ci >= leading
+            }
 
         # 句尾释放：最后一片 \k 的 duration_ms 不丢弃
         line_end_ts: Optional[int] = None
-        if timetags:
-            # current_ms 此时已经累加完最后一片 duration，即"行结束绝对时间"
+        if timetags or extra_checkpoints_map:
             line_end_ts = current_ms
             # 防御：若解析过程异常导致 line_end_ts 反而小于等于末 ts，
             # 退化为「末 ts + 末片 duration」
-            last_ts = timetags[-1][1]
-            if line_end_ts <= last_ts:
-                line_end_ts = last_ts + max(0, last_duration_ms)
+            all_ts = [ts for _, ts in timetags]
+            for extras in extra_checkpoints_map.values():
+                all_ts.extend(extras)
+            if all_ts:
+                last_ts = max(all_ts)
+                if line_end_ts <= last_ts:
+                    line_end_ts = last_ts + max(0, last_duration_ms)
 
         return ParsedLine(
             text=lyric_text,
             timetags=timetags,
             line_end_ts=line_end_ts,
             ruby_map=ruby_map,
+            extra_checkpoints_map=extra_checkpoints_map,
         )

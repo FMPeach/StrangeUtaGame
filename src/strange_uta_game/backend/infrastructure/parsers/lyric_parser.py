@@ -24,20 +24,27 @@ class ParsedLine:
 
     Attributes:
         text: 行文本
-        timetags: [(char_idx, timestamp_ms), ...] 列表
+        timetags: [(char_idx, timestamp_ms), ...] 列表（每字首 ts）
         line_end_ts: 行尾释放时间戳（句尾拖音终止点，毫秒）。
             ASS 解析器会把最后一个 \\k 的尾部时长写到这里，
             转换时绑给末字符的 sentence_end_ts。
-        ruby_map: char_idx → (ruby_text, span_length)，从 ASS 的
-            `汉字|<かな` 语法提取。span_length 是 ruby 管辖的连续字符数
-            （含首字），用于在 parse_to_sentences 中均分注音到多个字符
-            并建立 linked_to_next 羁绊。
+        ruby_map: char_idx → (parts_list, span_length)。
+            - parts_list: ruby 分段文本列表（多 part 单字 = 多元素；
+              单 part 单字/多字共享 reading = 单元素）。
+            - span_length: ruby 管辖的连续字符数（首字算第 1 个）。
+              单字多 part: span=1, parts=N；多字单 part: span=N, parts=1。
+            来源：ASS 的 `汉字|<かな`（含 `#|` 续段）语法。
+        extra_checkpoints_map: char_idx → [额外 checkpoint ts, ...]
+            ASS `#|` 续段给同字追加的内部 checkpoint 时间戳（不含首 ts）。
+            parse_to_sentences 会全部 add_timestamp 进去，让 check_count 增长，
+            使导出器能按 part 复原 `{\\k}` 时长。
     """
 
     text: str
     timetags: List[Tuple[int, int]]  # (char_idx, timestamp_ms) 列表
     line_end_ts: Optional[int] = None
-    ruby_map: Dict[int, Tuple[str, int]] = field(default_factory=dict)
+    ruby_map: Dict[int, Tuple[List[str], int]] = field(default_factory=dict)
+    extra_checkpoints_map: Dict[int, List[int]] = field(default_factory=dict)
 
 
 @dataclass
@@ -1344,39 +1351,61 @@ def parse_to_sentences(
             if last_idx_with_ts is None or char_idx > last_idx_with_ts:
                 last_idx_with_ts = char_idx
 
-        # 注入 ruby（如 ASS 的 `汉字|<かな`，支持多字 span 均分）
-        # ruby_map: char_idx → (ruby_text, span_length)
-        # 复用 _distribute_reading_to_chars 实现按字均分（与 Nicokara 路径同源），
-        # 并按"段内后续字符无独立 ts"建立 linked_to_next 羁绊。
+        # ASS `#|` 续段给同字追加的额外 checkpoint：每个都 add_timestamp，
+        # 让 check_count 自动增长，导出器能据此复原每 part 的 \k 时长。
+        for char_idx, extra_ts_list in parsed.extra_checkpoints_map.items():
+            if not (0 <= char_idx < len(sentence.characters)):
+                continue
+            char = sentence.characters[char_idx]
+            for ts in extra_ts_list:
+                char.add_timestamp(ts)
+
+        # 注入 ruby（统一新签名：(parts_list, span_length)）
+        # - span=1, parts=N → 单字多 part（ASS 的 `#|` 续段产物）
+        # - span=N, parts=1 → 多字共享 reading（旧 `漢字|<おもいで` 整段语法）
+        # - span=1, parts=1 → 标准单字单 part
         for char_idx, ruby_payload in parsed.ruby_map.items():
             if not (0 <= char_idx < len(sentence.characters)):
                 continue
-            # 兼容旧签名（纯字符串，无 span）
+            # 兼容旧签名（纯字符串 or 旧 tuple）
             if isinstance(ruby_payload, tuple):
-                ruby_text, span_len = ruby_payload
+                first, second = ruby_payload
+                if isinstance(first, list):
+                    parts_list, span_len = first, second
+                else:
+                    # 旧 tuple (text, span)
+                    parts_list, span_len = [first], second
+            elif isinstance(ruby_payload, str):
+                parts_list, span_len = [ruby_payload], 1
             else:
-                ruby_text, span_len = ruby_payload, 1
-            if not ruby_text:
                 continue
-            k = min(max(1, span_len), len(sentence.characters) - char_idx)
-            if k == 1:
-                # 单字 ruby：直接挂
+            parts_list = [p for p in parts_list if p]
+            if not parts_list:
+                continue
+
+            span_len = min(max(1, span_len), len(sentence.characters) - char_idx)
+
+            if span_len == 1:
+                # 单字 ruby：直接挂 N 个 part
                 ch = sentence.characters[char_idx]
-                ch.set_ruby(Ruby(parts=[RubyPart(text=ruby_text)]))
+                ch.set_ruby(Ruby(parts=[RubyPart(text=p) for p in parts_list]))
+                # 若该字有多个 timestamps（来自 extra_checkpoints_map），
+                # check_count 自动 = len(timestamps)；push 同步 part offset。
+                if ch.check_count < len(parts_list):
+                    ch.check_count = len(parts_list)
                 ch.push_to_ruby()
             else:
-                # 多字 span：复用 Nicokara 路径同款均分实现
-                # reading_parts: 整段 ruby 文本作为单 part，offset=0
-                # → _distribute_reading_to_chars 内部会触发"落空回退"按字均分
+                # 多字 span 单 reading：复用 Nicokara 路径同款均分实现
+                ruby_text = "".join(parts_list)
                 _distribute_reading_to_chars(
                     sentence,
                     char_idx,
-                    k,
+                    span_len,
                     [(ruby_text, 0)],
                 )
                 # linked_to_next：段内 i 与 i+1 之间，仅当 i+1 没有独立
                 # body timestamp 时才视为连词（与 Nicokara 路径同规则）
-                for i in range(k - 1):
+                for i in range(span_len - 1):
                     next_ch = sentence.characters[char_idx + i + 1]
                     sentence.characters[char_idx + i].linked_to_next = not bool(
                         next_ch.timestamps
