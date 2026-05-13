@@ -35,6 +35,7 @@ from qfluentwidgets import (
 
 from typing import Optional, Set, Dict, cast
 from pathlib import Path
+import re
 
 from strange_uta_game.backend.domain import Project
 from strange_uta_game.backend.application.export_service import ExportService
@@ -174,6 +175,14 @@ class ExportInterface(QWidget):
 
         layout.addLayout(content, 1)
 
+    @staticmethod
+    def _strip_extension_hint(name: str) -> str:
+        """去除格式名末尾形如 '(.ext)' 的后缀提示，便于名称比对。
+
+        例如 'LRC (增强型) (.lrc)' → 'LRC (增强型)'
+        """
+        return re.sub(r"\s*\(\.[^)]+\)$", "", name).strip()
+
     def _populate_formats(self):
         """填充格式列表"""
         formats = self._export_service.get_available_formats()
@@ -182,7 +191,19 @@ class ExportInterface(QWidget):
             item.setData(Qt.ItemDataRole.UserRole, fmt["name"])
             self.format_list.addItem(item)
         if self.format_list.count() > 0:
-            self.format_list.setCurrentRow(0)
+            default_format = self._strip_extension_hint(
+                AppSettings().get("export.default_format", "")
+            )
+            default_row = 0
+            if default_format:
+                for i in range(self.format_list.count()):
+                    item = self.format_list.item(i)
+                    if item and self._strip_extension_hint(
+                        item.data(Qt.ItemDataRole.UserRole)
+                    ) == default_format:
+                        default_row = i
+                        break
+            self.format_list.setCurrentRow(default_row)
         self.format_list.currentItemChanged.connect(self._on_format_selected)
 
     def _on_format_selected(self, current, _previous):
@@ -222,6 +243,23 @@ class ExportInterface(QWidget):
             self._sync_default_output_dir()
         elif change_type == "singers":
             self._refresh_singer_checkboxes()
+        elif change_type == "settings":
+            self._sync_default_format()
+
+    def _sync_default_format(self):
+        """将 format_list 的选中项与配置中的 default_format 同步。"""
+        default_format = self._strip_extension_hint(
+            AppSettings().get("export.default_format", "")
+        )
+        if not default_format:
+            return
+        for i in range(self.format_list.count()):
+            item = self.format_list.item(i)
+            if item and self._strip_extension_hint(
+                item.data(Qt.ItemDataRole.UserRole)
+            ) == default_format:
+                self.format_list.setCurrentRow(i)
+                return
 
     def _sync_default_output_dir(self):
         """根据当前 store 的工作目录自动预填导出路径（用户可手动改）。"""
@@ -465,6 +503,11 @@ class ExportInterface(QWidget):
             singer_map=self._get_singer_map(),
         )
         if result.success:
+            # 将本次使用的格式持久化为默认导出格式
+            settings = AppSettings()
+            settings.set("export.default_format", name)
+            settings.save()
+
             InfoBar.success(
                 title="导出成功",
                 content=result.file_path,

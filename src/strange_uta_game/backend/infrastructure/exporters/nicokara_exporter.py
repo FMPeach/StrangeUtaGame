@@ -489,18 +489,22 @@ class NicokaraWithRubyExporter(NicokaraExporter):
                 # 扫一段连词组 [start_idx, end_idx)。
                 # 终止条件（满足任一立即收尾，当前字仍纳入本段）：
                 #   1. 当前字 linked_to_next == False —— 连词链断
-                #   2. 下一字无 ruby —— 段自然结束
-                # 注意：is_sentence_end 表示「演唱停顿」而非语义边界，
-                # **不参与**切段判断（连词内允许演唱停顿）。
+                #   2. i+1 >= n —— 已到句末，无后续字
+                # 注意：
+                # - 下一字「无 ruby」**不是**终止条件。连词中下游字可以
+                #   没有自己的 ruby（例如「明日」中「日」无读音），此时
+                #   该字仍贡献 kanji，reading_fallback 里的 `if c.ruby`
+                #   guard 已处理 ruby=None 的跳过。
+                # - is_sentence_end 表示「演唱停顿」而非语义边界，
+                #   **不参与**切段判断（连词内允许演唱停顿）。
                 start_idx = i
                 while i < n:
                     cur = chars[i]
                     if not cur.linked_to_next:
                         i += 1
                         break
-                    # linked_to_next=True 但下一字越界或无 ruby
-                    # （异常数据保护）：本字仍属本段，下一轮 outer loop 处理 i+1
-                    if i + 1 >= n or chars[i + 1].ruby is None:
+                    if i + 1 >= n:
+                        # 已到句末：当前字纳入本段，收段
                         i += 1
                         break
                     i += 1
@@ -629,7 +633,11 @@ class NicokaraWithRubyExporter(NicokaraExporter):
                 break
             ch = sentence.characters[char_idx]
             ruby = ch.ruby
-            groups = [p.text for p in ruby.parts] if ruby else []
+            if ruby is None:
+                # 无 ruby 的字（连词中的下游字，如「明日」里的「日」）：
+                # 只贡献 kanji，不贡献 reading / checkpoint，跳过 mapping。
+                continue
+            groups = [p.text for p in ruby.parts]
 
             # 如果 ruby.parts 数量少于 check_count，需要补充空条目
             # 以确保 mapping 中包含所有 checkpoint

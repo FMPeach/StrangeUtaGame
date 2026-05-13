@@ -598,6 +598,59 @@ class TestNicokaraWithRubyExporter:
         finally:
             os.unlink(temp_path)
 
+    def test_export_ruby_linked_downstream_no_ruby(self):
+        """linked_to_next=True 但下游字无 ruby 的场景（如「明日」：
+        「明」有 ruby「あした」、linked_to_next=True；
+        「日」无 ruby、linked_to_next=False）。
+
+        预期：
+          - @Ruby1=明日,あした,[pos1],[pos2]  —— 「日」贡献 kanji 但无 reading
+          - **不**出现 @Ruby=明（亲文字只含「明」是错的）
+        """
+        from strange_uta_game.backend.domain import Ruby, RubyPart
+        from strange_uta_game.backend.infrastructure.exporters import (
+            NicokaraWithRubyExporter,
+        )
+
+        project = Project()
+        singer = project.singers[0]
+
+        # 「明日は」：明(ruby=あした, linked=True) + 日(ruby=None) + は(无ruby)
+        sentence = Sentence.from_text("明日は", singer.id)
+        sentence.characters[0].set_ruby(Ruby(parts=[RubyPart(text="あした")]))
+        sentence.characters[0].add_timestamp(1000)
+        sentence.characters[0].linked_to_next = True
+        # 「日」无 ruby，check_count=0，linked=False
+        sentence.characters[1].add_timestamp(1300)
+        sentence.characters[2].add_timestamp(1500)
+        project.add_sentence(sentence)
+
+        exporter = NicokaraWithRubyExporter()
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".lrc", delete=False, encoding="utf-8"
+        ) as f:
+            temp_path = f.name
+
+        try:
+            exporter.export(project, temp_path)
+
+            with open(temp_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            # 亲文字必须是「明日」（含下游无 ruby 字）
+            # pos2=[00:01:50] 取段尾字「日」的下一字「は」的 ts=1500ms
+            assert re.search(
+                r"@Ruby\d+=明日,あした,\[00:01:00\],\[00:01:50\]",
+                content,
+            ), f"明日 linked 未正确合并:\n{content}"
+            # 严格不允许只含「明」
+            assert not re.search(r"@Ruby\d+=明,", content), (
+                f"「明日」被错误截断为「明」:\n{content}"
+            )
+        finally:
+            os.unlink(temp_path)
+
 
 class TestExporterUtils:
     """测试导出器工具函数"""

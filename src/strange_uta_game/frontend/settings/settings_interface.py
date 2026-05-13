@@ -703,9 +703,11 @@ class SettingsInterface(ScrollArea):
                 "KRA",
                 "TXT",
                 "SRT",
+                "txt2ass",
                 "ASS",
                 "Nicokara",
                 "Nicokara (带注音)",
+                "RL 编辑模式",
             ],
             parent=self.export_group,
         )
@@ -1186,11 +1188,13 @@ class SettingsInterface(ScrollArea):
             "KRA": 3,
             "TXT": 4,
             "SRT": 5,
-            "ASS": 6,
-            "Nicokara": 7,
-            "Nicokara (带注音)": 8,
+            "txt2ass": 6,
+            "ASS": 7,
+            "Nicokara": 8,
+            "Nicokara (带注音)": 9,
+            "RL 编辑模式": 10,
             "LRC": 0,  # 旧配置兼容
-        }.get(fmt, 8)
+        }.get(fmt, 9)
         self.card_default_format.setCurrentIndex(fmt_idx)
         export_dir = self._settings.get("export.last_export_dir", "")
         if export_dir:
@@ -1287,9 +1291,11 @@ class SettingsInterface(ScrollArea):
             3: "KRA",
             4: "TXT",
             5: "SRT",
-            6: "ASS",
-            7: "Nicokara",
-            8: "Nicokara (带注音)",
+            6: "txt2ass",
+            7: "ASS",
+            8: "Nicokara",
+            9: "Nicokara (带注音)",
+            10: "RL 编辑模式",
         }
         self._settings.set(
             "export.default_format",
