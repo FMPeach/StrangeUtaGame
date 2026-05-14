@@ -60,7 +60,7 @@
     - 前端 `frontend/settings/app_settings._parse_rl_dictionary` 改为薄包装，历史导入路径保留。
 
 ### annotated_text (带注音行级文本格式)
-服务于全文本编辑界面（`frontend/editor/fulltext_interface`）的 parse/serialize。
+服务于全文本编辑（已废弃不建议使用）界面（`frontend/editor/fulltext_interface`）的 parse/serialize。
 
 - **职责**：
     - `parse_annotated_line(line_text) -> (raw_text, raw_chars, ruby_map)`：解析 `{大冒険||だ|い,ぼ|う,け|ん}` 主格式及兼容格式（`{漢|か|ん|じ}` 单字多 mora、`{赤|あか}` 单字单段、`{text}` 纯文本），ruby_map 仅收录有读音的字符索引。

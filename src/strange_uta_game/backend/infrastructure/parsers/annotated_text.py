@@ -1,6 +1,6 @@
 """带注音标注的行级文本格式 解析/序列化。
 
-用于全文本编辑界面（``frontend/editor/fulltext_interface``）在 ``Sentence.characters``
+用于全文本编辑（已废弃不建议使用）界面（``frontend/editor/fulltext_interface``）在 ``Sentence.characters``
 与单行 / 多行字符串之间互转。
 
 格式约定

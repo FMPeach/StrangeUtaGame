@@ -1,4 +1,4 @@
-"""全文本编辑界面。
+"""全文本编辑（已废弃不建议使用）界面。
 
 全文本视图编辑歌词注音（ルビ），支持批量操作。
 格式: {大冒険||だ|い,ぼ|う,け|ん} — `||` 分开汉字块与 ruby；
@@ -294,7 +294,7 @@ class RubyInterface(QWidget):
         layout.setSpacing(15)
 
         # 标题
-        title = QLabel("全文本编辑")
+        title = QLabel("全文本编辑（已废弃不建议使用）")
         title.setStyleSheet("font-size: 24px; font-weight: bold;")
         title_tip = CaptionLabel("（本页面预定删除，直接编辑本页面会导致字符改变的行，时间戳丢失需要重新打轴）")
         title_layout = QHBoxLayout()
