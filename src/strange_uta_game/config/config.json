@@ -91,6 +91,7 @@
       "play_pause": "D:short",
       "stop": "S:short",
       "tag_now": "SPACE:short",
+      "tag_now_extra": "",
       "seek_back": "Z:short",
       "seek_forward": "X:short",
       "speed_down": "Q:short",
@@ -126,13 +127,14 @@
       "save": "CTRL+S:short",
       "paste_lyrics": "CTRL+V:short",
       "timestamps_to_sentence_end": "CTRL+J:short",
-      "quick_export": "CTRL+E:short",
+      "quick_export": "CTRL+E:short"
 
     },
     "edit_mode": {
       "play_pause": "D:short",
       "stop": "S:short",
       "tag_now": "",
+      "tag_now_extra": "",
       "seek_back": "Z:short",
       "seek_forward": "X:short",
       "speed_down": "Q:short",
@@ -168,7 +170,7 @@
       "save": "CTRL+S:short",
       "paste_lyrics": "CTRL+V:short",
       "timestamps_to_sentence_end": "CTRL+J:short",
-      "quick_export": "CTRL+E:short",
+      "quick_export": "CTRL+E:short"
     },
     "play_pause": "D",
     "stop": "S",

@@ -349,6 +349,7 @@ class EditorInterface(QWidget):
         # 动作集合（所有动作在两种模式下都存在，读设置时各自取值，互不干扰）
         action_names = [
             "tag_now",
+            "tag_now_extra",
             "play_pause",
             "stop",
             "seek_back",
@@ -385,6 +386,7 @@ class EditorInterface(QWidget):
         # 默认值兜底（当设置未写入新 schema 时使用）
         defaults = {
             "tag_now": "Space",
+            "tag_now_extra": "",
             "play_pause": "D",
             "stop": "S",
             "seek_back": "Z",
@@ -2902,8 +2904,8 @@ class EditorInterface(QWidget):
         if not self._settings_loaded and action_short is None and action_long is None:
             action_short = self._default_key_action(key, modifiers)
 
-        # tag_now 使用 press/release 语义，立即执行，不走长按检测
-        if action_short == "tag_now" or action_long == "tag_now":
+        # tag_now / tag_now_extra 使用 press/release 语义，立即执行，不走长按检测
+        if action_short in ("tag_now", "tag_now_extra") or action_long in ("tag_now", "tag_now_extra"):
             if not playing:
                 self._add_checkpoint()
                 a0.accept()
@@ -2971,10 +2973,10 @@ class EditorInterface(QWidget):
 
         key_upper = key_name.upper()
 
-        # tag_now 释放处理
+        # tag_now / tag_now_extra 释放处理
         action_short = self._key_map_short.get(key_upper)
         action_long = self._key_map_long.get(key_upper)
-        if action_short == "tag_now" or action_long == "tag_now":
+        if action_short in ("tag_now", "tag_now_extra") or action_long in ("tag_now", "tag_now_extra"):
             if not (self._timing_service and self._timing_service.is_playing()):
                 a0.accept()
                 return

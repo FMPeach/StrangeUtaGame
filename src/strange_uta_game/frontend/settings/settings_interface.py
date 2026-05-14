@@ -752,6 +752,7 @@ class SettingsInterface(ScrollArea):
         ("toggle_word_join", FIF.LINK, "连词", "连词/取消连词", "F3:short", "F3:short", "both", None, None, False),
         # — 仅打轴模式 —
         ("tag_now", FIF.PLAY, "打轴键", "打轴操作的按键【仅打轴模式】", "Space:short", "", "timing_only", None, None, False),
+        ("tag_now_extra", FIF.PLAY, "打轴键 Extra", "打轴操作的备用按键【仅打轴模式】", "", "", "timing_only", None, None, False),
         ("seek_back", FIF.LEFT_ARROW, "后退", "后退跳转【仅打轴模式】", "Z:short", "", "timing_only", None, None, False),
         ("seek_forward", FIF.CHEVRON_RIGHT, "前进", "前进跳转【仅打轴模式】", "X:short", "", "timing_only", None, None, False),
         ("delete_timestamp", FIF.DELETE, "删除当前时间戳并回滚", "删除跳转【仅打轴模式】", "Backspace:short", "", "timing_only", None, None, False),
