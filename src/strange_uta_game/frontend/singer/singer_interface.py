@@ -176,6 +176,168 @@ class TransferTargetDialog(QDialog):
         return self.combo.currentData()
 
 
+class SingerPresetLoadDialog(QDialog):
+    """从软件预设加载演唱者的多选对话框（用 CheckState 驱动选中，避免 MultiSelection UI 刷新 BUG）"""
+
+    def __init__(self, presets: list, existing_names: set, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("从软件预设加载演唱者")
+        self.resize(400, 450)
+
+        self._presets = presets
+        self._existing_names = existing_names
+
+        self._init_ui()
+        self._populate_list()
+
+        self.list_widget.itemChanged.connect(self._update_stats)
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+
+        # 搜索过滤框
+        filter_layout = QHBoxLayout()
+        filter_layout.addWidget(QLabel("过滤:"))
+        self.line_filter = LineEdit()
+        self.line_filter.setPlaceholderText("输入名称搜索...")
+        self.line_filter.textChanged.connect(self._on_filter_changed)
+        filter_layout.addWidget(self.line_filter)
+        layout.addLayout(filter_layout)
+
+        # 演唱者列表（NoSelection，选中状态完全由 CheckState 驱动）
+        self.list_widget = ListWidget()
+        self.list_widget.setSelectionMode(
+            QAbstractItemView.SelectionMode.NoSelection
+        )
+        layout.addWidget(self.list_widget)
+
+        # 全选/全不选按钮
+        select_layout = QHBoxLayout()
+        btn_select_all = PushButton("全选", self)
+        btn_select_all.clicked.connect(self._on_select_all)
+        select_layout.addWidget(btn_select_all)
+
+        btn_deselect_all = PushButton("全不选", self)
+        btn_deselect_all.clicked.connect(self._on_deselect_all)
+        select_layout.addWidget(btn_deselect_all)
+
+        select_layout.addStretch()
+
+        # 统计标签
+        self.lbl_stats = CaptionLabel("")
+        select_layout.addWidget(self.lbl_stats)
+        layout.addLayout(select_layout)
+
+        # 确定/取消按钮
+        button_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        button_box.button(QDialogButtonBox.StandardButton.Ok).setText("加载选中")
+        button_box.button(QDialogButtonBox.StandardButton.Cancel).setText("取消")
+        button_box.accepted.connect(self._on_accept)
+        button_box.rejected.connect(self.reject)
+        layout.addWidget(button_box)
+
+    def _populate_list(self):
+        """填充列表"""
+        self.list_widget.blockSignals(True)
+        self.list_widget.clear()
+        for preset in self._presets:
+            name = preset.get("name", "")
+            if not name:
+                continue
+
+            is_existing = name in self._existing_names
+            color = preset.get("color", "#FF6B6B")
+
+            item = QListWidgetItem()
+            item.setText(f"{name}  (已存在)" if is_existing else name)
+
+            # 演唱者颜色作为背景
+            bg_color = QColor(color)
+            bg_color.setAlpha(80)
+            item.setBackground(bg_color)
+
+            if is_existing:
+                item.setForeground(QColor("gray"))
+                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled)
+                item.setCheckState(Qt.CheckState.Unchecked)
+            else:
+                item.setCheckState(Qt.CheckState.Checked)
+
+            item.setData(Qt.ItemDataRole.UserRole, preset)
+            item.setData(Qt.ItemDataRole.UserRole + 1, is_existing)
+
+            self.list_widget.addItem(item)
+
+        self.list_widget.blockSignals(False)
+        self._update_stats()
+
+    def _on_filter_changed(self, text: str):
+        """过滤列表，只控制显示/隐藏，不影响勾选状态"""
+        filter_text = text.strip().lower()
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            preset = item.data(Qt.ItemDataRole.UserRole)
+            name = preset.get("name", "").lower()
+            item.setHidden(filter_text != "" and filter_text not in name)
+        self._update_stats()
+
+    def _on_select_all(self):
+        """全选可见且未存在的项"""
+        self.list_widget.blockSignals(True)
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            if not item.isHidden() and not item.data(Qt.ItemDataRole.UserRole + 1):
+                item.setCheckState(Qt.CheckState.Checked)
+        self.list_widget.blockSignals(False)
+        self._update_stats()
+
+    def _on_deselect_all(self):
+        """取消勾选所有可见项"""
+        self.list_widget.blockSignals(True)
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            if not item.isHidden() and not item.data(Qt.ItemDataRole.UserRole + 1):
+                item.setCheckState(Qt.CheckState.Unchecked)
+        self.list_widget.blockSignals(False)
+        self._update_stats()
+
+    def _update_stats(self):
+        """更新统计信息（总勾选数/总数）"""
+        checked = 0
+        total = 0
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            total += 1
+            if item.checkState() == Qt.CheckState.Checked:
+                checked += 1
+        self.lbl_stats.setText(f"已选 {checked}/{total}")
+
+    def _on_accept(self):
+        """确认选择"""
+        has_checked = any(
+            self.list_widget.item(i).checkState() == Qt.CheckState.Checked
+            for i in range(self.list_widget.count())
+        )
+        if not has_checked:
+            InfoBar.warning(title="未选择", content="请至少选择一位演唱者",
+                            parent=self, duration=2000)
+            return
+        self.accept()
+
+    def get_selected_presets(self) -> list:
+        """获取勾选的预设列表"""
+        result = []
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            if item.checkState() == Qt.CheckState.Checked:
+                preset = item.data(Qt.ItemDataRole.UserRole)
+                if preset:
+                    result.append(preset)
+        return result
+
+
 class SingerManagerInterface(QWidget):
     """演唱者管理界面"""
 
@@ -744,7 +906,7 @@ class SingerManagerInterface(QWidget):
         )
 
     def _on_load_preset(self):
-        """从软件全局设置加载演唱者预设到当前项目"""
+        """从软件全局设置加载演唱者预设到当前项目（弹窗多选）"""
         if not self._project or not self._singer_service:
             self._warn("未加载项目", "请先打开或创建一个项目")
             return
@@ -759,10 +921,20 @@ class SingerManagerInterface(QWidget):
             return
 
         existing_names = {s.name for s in self._project.singers}
+
+        # 弹出多选对话框
+        dialog = SingerPresetLoadDialog(presets, existing_names, self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        selected_presets = dialog.get_selected_presets()
+        if not selected_presets:
+            return
+
         added = 0
-        for preset in presets:
+        for preset in selected_presets:
             name = preset.get("name", "")
-            if name in existing_names:
+            if not name or name in existing_names:
                 continue
             try:
                 singer = self._singer_service.add_singer(
@@ -779,8 +951,6 @@ class SingerManagerInterface(QWidget):
 
         if added > 0:
             self._info("加载成功", f"已从预设加载 {added} 位新演唱者")
-        else:
-            self._info("无需加载", "所有预设演唱者已存在于当前项目中")
 
     # ==================== 工具方法 ====================
 
