@@ -489,3 +489,94 @@ class TestEnglishWordCheckpoints:
         chars = self._apply("Heyyyyyyyyyyyyyyy")
         self._assert_word_rule(chars, 0, len(chars), "Heyyyyy")
 
+
+class TestEnglishWordEndSpaceConflict:
+    """英文单词结尾句尾 vs 空格视为句尾 冲突修复
+
+    当 check_english_word_end=False 时，英文单词结尾不应被空格规则
+    （check_space_as_line_end）间接标记为 is_sentence_end。
+    英文单词后面通常有空格，如果空格规则仍然生效，
+    则关闭英文单词结尾句尾的设置形同虚设。
+    """
+
+    def _apply_with_flags(self, text: str, flags: dict):
+        service = AutoCheckService(DummyAnalyzer(), auto_check_flags=flags)
+        sentence = Sentence.from_text(text, "s1")
+        service.apply_to_sentence(sentence)
+        return sentence.characters
+
+    def _update_with_flags(self, text: str, flags: dict):
+        service = AutoCheckService(DummyAnalyzer(), auto_check_flags=flags)
+        sentence = Sentence.from_text(text, "s1")
+        for c in sentence.characters:
+            c.check_count = 0
+        service.update_checkpoints_from_rubies(sentence)
+        return sentence.characters
+
+    def test_apply_english_word_end_disabled_not_marked_by_space(self):
+        """apply_to_sentence: check_english_word_end=False + check_space_as_line_end=True
+        → 英文单词末字母不应 is_sentence_end"""
+        flags = {
+            "check_space_as_line_end": True,
+            "check_english_word_end": False,
+        }
+        chars = self._apply_with_flags("Hello world today", flags)
+        # 'o' (idx 4) 是 "Hello" 末字母，后面有空格，但不应被标句尾
+        assert not chars[4].is_sentence_end, (
+            f"'o' (idx=4) 不应 is_sentence_end (check_english_word_end=False), "
+            f"实际 {chars[4].is_sentence_end}"
+        )
+        # 'd' (idx 10) 是 "world" 末字母，后面有空格，也不应被标句尾
+        assert not chars[10].is_sentence_end, (
+            f"'d' (idx=10) 不应 is_sentence_end (check_english_word_end=False), "
+            f"实际 {chars[10].is_sentence_end}"
+        )
+
+    def test_apply_english_word_end_enabled_still_works(self):
+        """apply_to_sentence: check_english_word_end=True → 英文单词末字母正常标句尾"""
+        flags = {
+            "check_space_as_line_end": True,
+            "check_english_word_end": True,
+        }
+        chars = self._apply_with_flags("Hello world today", flags)
+        assert chars[4].is_sentence_end, "'o' 应 is_sentence_end (check_english_word_end=True)"
+        assert chars[10].is_sentence_end, "'d' 应 is_sentence_end (check_english_word_end=True)"
+
+    def test_update_english_word_end_disabled_not_marked_by_space(self):
+        """update_checkpoints_from_rubies: check_english_word_end=False + check_space_as_line_end=True
+        → 英文单词末字母不应 is_sentence_end"""
+        flags = {
+            "check_space_as_line_end": True,
+            "check_english_word_end": False,
+        }
+        chars = self._update_with_flags("Hello world today", flags)
+        assert not chars[4].is_sentence_end, (
+            f"update: 'o' (idx=4) 不应 is_sentence_end, 实际 {chars[4].is_sentence_end}"
+        )
+        assert not chars[10].is_sentence_end, (
+            f"update: 'd' (idx=10) 不应 is_sentence_end, 实际 {chars[10].is_sentence_end}"
+        )
+
+    def test_non_english_before_space_still_marked(self):
+        """非英文字符+空格：空格规则仍然正常工作"""
+        flags = {
+            "check_space_as_line_end": True,
+            "check_english_word_end": False,
+        }
+        chars = self._apply_with_flags("あいう えお", flags)
+        # 'う' (idx 2) 后面是空格，应被标句尾
+        assert chars[2].is_sentence_end, "'う' 后有空格，应 is_sentence_end"
+
+    def test_mixed_japanese_english_conflict(self):
+        """日文+英文混排：关闭英文单词结尾时，英文词尾不受空格规则影响"""
+        flags = {
+            "check_space_as_line_end": True,
+            "check_english_word_end": False,
+        }
+        chars = self._apply_with_flags("今日はHello world", flags)
+        # 'お' (idx 2) 后面紧跟 'H'（非空格），不标句尾 — 正常
+        # 'o' (idx 7) 是 "Hello" 末字母，后面有空格，但 check_english_word_end=False
+        assert not chars[7].is_sentence_end, (
+            f"'o' (idx=7) 不应 is_sentence_end, 实际 {chars[7].is_sentence_end}"
+        )
+
