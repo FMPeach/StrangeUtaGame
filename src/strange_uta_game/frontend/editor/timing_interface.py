@@ -503,7 +503,7 @@ class EditorInterface(QWidget):
             self._timing_service.set_speed(default_speed)
         speed_pct = int(default_speed * 100)
         self.transport.edit_speed.blockSignals(True)
-        self.transport.edit_speed.setText(f"{max(50, min(200, speed_pct))}%")
+        self.transport.edit_speed.setText(f"{max(20, min(200, speed_pct))}%")
         self.transport.edit_speed.blockSignals(False)
         # 应用渲染偏移（与导出偏移联动）
         render_offset = settings.get("export.offset_ms", -100)
@@ -1555,7 +1555,7 @@ class EditorInterface(QWidget):
                     self._timing_service.set_speed(default_speed)
                     speed_pct = int(default_speed * 100)
                     self.transport.edit_speed.blockSignals(True)
-                    self.transport.edit_speed.setText(f"{max(50, min(200, speed_pct))}%")
+                    self.transport.edit_speed.setText(f"{max(20, min(200, speed_pct))}%")
                     self.transport.edit_speed.blockSignals(False)
 
             # 与 Home 页加载音频的动作对称：广播 audio 变更，使导出页等订阅者同步
@@ -2682,7 +2682,7 @@ class EditorInterface(QWidget):
                 self._on_seek(min(dur, cur + self._fast_forward_ms))
         elif action == "speed_down":
             v = self.transport.get_speed_value()
-            self.transport.set_speed_value(max(50, v - 10))
+            self.transport.set_speed_value(max(20, v - 10))
         elif action == "speed_up":
             v = self.transport.get_speed_value()
             self.transport.set_speed_value(min(200, v + 10))
