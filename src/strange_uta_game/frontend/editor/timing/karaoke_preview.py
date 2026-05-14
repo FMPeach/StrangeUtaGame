@@ -846,9 +846,10 @@ class KaraokePreview(QWidget):
 
         # 字符像素宽度（初始为字符本身的宽度）
         fm_ruby = self._fm_ruby
+        avg_char_w = main_fm.averageCharWidth()
         char_widths = []
         for ci, ch in enumerate(chars):
-            char_w = main_fm.horizontalAdvance(ch)
+            char_w = main_fm.horizontalAdvance(ch) if ch != ' ' else avg_char_w
             char_widths.append(char_w)
 
         # ---------- 连词组（仅用于视觉层，与 wipe 计算无关） ----------
