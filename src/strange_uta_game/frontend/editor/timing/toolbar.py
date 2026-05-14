@@ -66,11 +66,16 @@ class EditorToolBar(QFrame):
 
         layout.addSpacing(10)
 
-        self.btn_modify_char = PushButton("修改所选字符", self)
-        self.btn_modify_char.setIcon(FIF.EDIT)
-        self.btn_modify_char.setFixedHeight(32)
-        self.btn_modify_char.clicked.connect(self.modify_char_clicked.emit)
-        layout.addWidget(self.btn_modify_char)
+        # 编辑管理下拉菜单
+        self.btn_edit = DropDownPushButton("编辑管理", self)
+        self.btn_edit.setIcon(FIF.EDIT)
+        self.btn_edit.setFixedHeight(32)
+        edit_menu = RoundMenu(parent=self.btn_edit)
+        edit_menu.addAction(Action(FIF.EDIT, "修改所选字符", self, triggered=self.modify_char_clicked.emit))
+        edit_menu.addAction(Action(FIF.EDIT, "批量变更", self, triggered=self.bulk_change_clicked.emit))
+        edit_menu.addAction(Action(FIF.EDIT, "修改选中行", self, triggered=self.modify_line_clicked.emit))
+        self.btn_edit.setMenu(edit_menu)
+        layout.addWidget(self.btn_edit)
 
         self.btn_insert_guide = PushButton("插入导唱符", self)
         self.btn_insert_guide.setIcon(FIF.ADD)
@@ -80,29 +85,15 @@ class EditorToolBar(QFrame):
 
         layout.addSpacing(10)
 
-        self.btn_bulk_change = PushButton("批量变更", self)
-        self.btn_bulk_change.setIcon(FIF.EDIT)
-        self.btn_bulk_change.setFixedHeight(32)
-        self.btn_bulk_change.clicked.connect(self.bulk_change_clicked.emit)
-        layout.addWidget(self.btn_bulk_change)
-
-        self.btn_modify_line = PushButton("修改选中行", self)
-        self.btn_modify_line.setIcon(FIF.EDIT)
-        self.btn_modify_line.setFixedHeight(32)
-        self.btn_modify_line.clicked.connect(self.modify_line_clicked.emit)
-        layout.addWidget(self.btn_modify_line)
-
-        self.btn_analyze_rubies = PushButton("注音分析", self)
-        self.btn_analyze_rubies.setIcon(FIF.SYNC)
-        self.btn_analyze_rubies.setFixedHeight(32)
-        self.btn_analyze_rubies.clicked.connect(self.analyze_rubies_clicked.emit)
-        layout.addWidget(self.btn_analyze_rubies)
-
-        self.btn_delete_rubies_by_type = PushButton("按类型删除注音", self)
-        self.btn_delete_rubies_by_type.setIcon(FIF.DELETE)
-        self.btn_delete_rubies_by_type.setFixedHeight(32)
-        self.btn_delete_rubies_by_type.clicked.connect(self.delete_rubies_by_type_clicked.emit)
-        layout.addWidget(self.btn_delete_rubies_by_type)
+        # 自动注音管理下拉菜单
+        self.btn_ruby = DropDownPushButton("自动注音管理", self)
+        self.btn_ruby.setIcon(FIF.SYNC)
+        self.btn_ruby.setFixedHeight(32)
+        ruby_menu = RoundMenu(parent=self.btn_ruby)
+        ruby_menu.addAction(Action(FIF.SYNC, "注音分析", self, triggered=self.analyze_rubies_clicked.emit))
+        ruby_menu.addAction(Action(FIF.DELETE, "按类型删除注音", self, triggered=self.delete_rubies_by_type_clicked.emit))
+        self.btn_ruby.setMenu(ruby_menu)
+        layout.addWidget(self.btn_ruby)
 
         self.btn_set_singer_by_line = PushButton("按行设置演唱者", self)
         self.btn_set_singer_by_line.setIcon(FIF.PEOPLE)
