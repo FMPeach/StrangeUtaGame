@@ -205,6 +205,8 @@ class ExportInterface(QWidget):
                         break
             self.format_list.setCurrentRow(default_row)
         self.format_list.currentItemChanged.connect(self._on_format_selected)
+        # 信号在 setCurrentRow 之后才连接，需手动触发一次以初始化格式专属控件
+        self._on_format_selected(self.format_list.currentItem(), None)
 
     def _on_format_selected(self, current, _previous):
         """根据所选格式显示/隐藏 Nicokara 专用控件"""
@@ -259,6 +261,9 @@ class ExportInterface(QWidget):
                 item.data(Qt.ItemDataRole.UserRole)
             ) == default_format:
                 self.format_list.setCurrentRow(i)
+                # 若目标行与当前行相同，setCurrentRow 不会 emit currentItemChanged，
+                # 需手动触发以确保格式专属控件（Nicokara 区块等）正确刷新
+                self._on_format_selected(item, None)
                 return
 
     def _sync_default_output_dir(self):

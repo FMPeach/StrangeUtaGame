@@ -242,7 +242,7 @@ class SettingsInterface(ScrollArea):
         self._schedule_auto_save()
 
     def _init_ui(self):
-        self.expandLayout.setSpacing(32)
+        self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(60, 20, 60, 20)
 
         self._init_playback_group()
@@ -950,8 +950,9 @@ class SettingsInterface(ScrollArea):
 
     def _init_buttons(self):
         btn_widget = QWidget(self.scrollWidget)
+        btn_widget.setMinimumHeight(60)  # 按钮高度36 + 底部边距24
         btn_layout = QHBoxLayout(btn_widget)
-        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setContentsMargins(0, 10, 0, 24)
 
         self.btn_save = PrimaryPushButton("保存设置", btn_widget)
         self.btn_save.setIcon(FIF.SAVE)
