@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import io
+import json
 import logging
 import os
 import shutil
@@ -47,7 +48,7 @@ import time
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import requests
 
@@ -83,6 +84,11 @@ POST_EXIT_GRACE_SECONDS = 2.0
 # 备份 / 覆盖 _internal 时遇到 PermissionError 的最大重试次数与间隔。
 FILE_LOCK_RETRY_COUNT = 6
 FILE_LOCK_RETRY_INTERVAL = 1.5
+
+# 本地已安装版本/分包指纹的存放位置（相对 ``--app-dir/<internal_name>/``）。
+LOCAL_MANIFEST_FILENAME = ".installed_manifest.json"
+# manifest schema 兼容版本（远端 manifest.schema 必须 <= 该值才走增量；否则降级全量）。
+SUPPORTED_MANIFEST_SCHEMA = 1
 
 
 # ───────────────────────── 数据结构 ─────────────────────────
@@ -318,6 +324,66 @@ def try_download_from_sources(
     return False, ""
 
 
+def try_fetch_manifest(
+    args: Args,
+    log: logging.Logger,
+) -> Optional[Dict[str, Any]]:
+    """按 ``args.urls`` 顺序尝试拉取 ``manifest-vX.Y.Z.json``。
+
+    URL 推导规则：把 zip URL 末尾的文件名换成 ``manifest-v{version}.json``。
+    GitHub Release 把同 tag 下所有 assets 放同目录，镜像源透传同样的路径，所以
+    这个规则对三个源都成立。
+
+    任何失败（HTTP 错 / JSON 错 / schema 不兼容）返回 ``None`` —— 上游会优雅
+    降级到全量更新流程。
+    """
+    if not args.urls:
+        return None
+    proxies = {"http": args.proxy_url, "https": args.proxy_url} if args.proxy_url else None
+
+    for source_id, zip_url in args.urls:
+        prefix = zip_url.rsplit("/", 1)[0]
+        manifest_url = f"{prefix}/manifest-v{args.target_version}.json"
+        log.info("[%s] 尝试拉取 manifest: %s", source_id, manifest_url)
+        try:
+            resp = requests.get(
+                manifest_url,
+                headers={"User-Agent": DEFAULT_USER_AGENT, "Accept": "application/json"},
+                proxies=proxies,
+                timeout=(5, 15),
+                allow_redirects=True,
+            )
+        except requests.RequestException as e:
+            log.warning("[%s] manifest 拉取异常: %s", source_id, e)
+            continue
+        if resp.status_code != 200:
+            log.warning("[%s] manifest HTTP %d（该源可能未上传 manifest）",
+                        source_id, resp.status_code)
+            continue
+        try:
+            data = resp.json()
+        except ValueError as e:
+            log.warning("[%s] manifest 不是合法 JSON: %s", source_id, e)
+            continue
+        schema = int(data.get("schema", 0))
+        if schema > SUPPORTED_MANIFEST_SCHEMA:
+            log.warning(
+                "[%s] manifest schema=%d 超出当前 Updater 支持版本 %d，回退全量",
+                source_id, schema, SUPPORTED_MANIFEST_SCHEMA,
+            )
+            return None
+        if not isinstance(data.get("parts"), dict) or not data["parts"]:
+            log.warning("[%s] manifest 缺少 parts 字段", source_id)
+            continue
+        log.info("[%s] manifest 解析成功（version=%s, parts=%s）",
+                 source_id, data.get("version"), ",".join(data["parts"].keys()))
+        # 记录命中的 source，供后续下载 part 时优先选择
+        data["_source_id"] = source_id
+        data["_url_prefix"] = prefix
+        return data
+    return None
+
+
 def try_fetch_sha256(success_url: str, proxies: Optional[dict], log: logging.Logger) -> str:
     """主动尝试拉取与 zip 同源的 ``<url>.sha256`` 文件并解析摘要。
 
@@ -545,6 +611,289 @@ def launch_main_app(app_dir: Path, app_exe: str, log: logging.Logger) -> bool:
         return False
 
 
+# ───────────────────────── 本地清单读写 ─────────────────────────
+
+
+def _local_manifest_path(args: Args) -> Path:
+    return args.app_dir / args.internal_name / LOCAL_MANIFEST_FILENAME
+
+
+def read_local_manifest(args: Args, log: logging.Logger) -> Optional[Dict[str, Any]]:
+    p = _local_manifest_path(args)
+    if not p.exists():
+        log.info("本地 .installed_manifest.json 不存在（视为首次升级，走全量）")
+        return None
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        log.warning("本地 manifest 读取失败：%s", e)
+        return None
+
+
+def write_local_manifest(args: Args, remote_manifest: Dict[str, Any], log: logging.Logger) -> None:
+    """在更新成功后，把"当前已安装"的 part sha256 写到本地清单。"""
+    p = _local_manifest_path(args)
+    payload = {
+        "version": remote_manifest.get("version"),
+        "schema": remote_manifest.get("schema", 1),
+        "parts": {
+            pid: {"sha256": pinfo.get("sha256", ""), "asset": pinfo.get("asset", "")}
+            for pid, pinfo in remote_manifest.get("parts", {}).items()
+        },
+        "installed_at": int(time.time()),
+    }
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        log.info("已写入本地 manifest: %s", p)
+    except OSError as e:
+        log.warning("写本地 manifest 失败（不影响本次更新成功）: %s", e)
+
+
+# ───────────────────────── 增量更新流程 ─────────────────────────
+
+
+def _diff_parts(remote: Dict[str, Any], local: Optional[Dict[str, Any]]) -> List[str]:
+    """返回需要更新的 part id 列表（按 manifest 的迭代顺序）。"""
+    needed: List[str] = []
+    local_parts = (local or {}).get("parts", {}) if isinstance(local, dict) else {}
+    for pid, pinfo in remote.get("parts", {}).items():
+        remote_sha = pinfo.get("sha256", "")
+        local_sha = (local_parts.get(pid, {}) or {}).get("sha256", "")
+        if remote_sha and remote_sha != local_sha:
+            needed.append(pid)
+    return needed
+
+
+def _download_part(
+    args: Args,
+    manifest: Dict[str, Any],
+    part_id: str,
+    work_dir: Path,
+    log: logging.Logger,
+) -> Optional[Path]:
+    """下载某个 part 的 zip 并校验 sha256。
+
+    URL 推导：用拉取 manifest 成功的源 URL 前缀拼 part.asset 文件名。同一 release
+    下所有 asset 都在同一目录，URL 一定能拼出来。失败返回 ``None``。
+    """
+    proxies = {"http": args.proxy_url, "https": args.proxy_url} if args.proxy_url else None
+    part_info = manifest["parts"][part_id]
+    asset_name = part_info["asset"]
+    expected_sha = (part_info.get("sha256") or "").lower()
+    expected_size = int(part_info.get("size") or 0)
+
+    # 优先用 manifest 命中源；失败再轮转所有源
+    primary_prefix = manifest.get("_url_prefix", "")
+    candidates: List[Tuple[str, str]] = []
+    if primary_prefix:
+        candidates.append(("primary", f"{primary_prefix}/{asset_name}"))
+    for source_id, zip_url in args.urls:
+        prefix = zip_url.rsplit("/", 1)[0]
+        url = f"{prefix}/{asset_name}"
+        if url not in [u for _, u in candidates]:
+            candidates.append((source_id, url))
+
+    dest = work_dir / "parts" / asset_name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    if dest.exists():
+        try:
+            dest.unlink()
+        except OSError:
+            pass
+
+    log.info("下载 part %s（预期 %.1f MB）", part_id, expected_size / 1024 / 1024 if expected_size else 0)
+    for src_id, url in candidates:
+        log.info("  [%s] %s", src_id, url)
+        ok, err = download_one(url, dest, proxies, log)
+        if ok:
+            break
+        log.warning("  [%s] 失败: %s", src_id, err)
+    else:
+        log.error("所有源均下载失败：part=%s", part_id)
+        return None
+
+    if expected_sha and not verify_sha256(dest, expected_sha, log):
+        log.error("part %s 的 sha256 校验失败", part_id)
+        return None
+    return dest
+
+
+def _apply_part(
+    part_zip: Path,
+    targets: List[str],
+    app_dir: Path,
+    work_dir: Path,
+    part_id: str,
+    log: logging.Logger,
+) -> Tuple[bool, str]:
+    """精确替换 part 管辖的 targets。
+
+    流程：
+    1. 把 part zip 解压到独立临时目录 ``work_dir/extract-<part>/``；
+    2. 对每个 target（相对路径）：
+        a) 如果 ``app_dir/<target>`` 已存在 → 重命名为 ``<target>.bak``；
+        b) 把解压出的 ``<target>`` 复制到 ``app_dir/<target>``；
+    3. 任何一步失败 → 全部回滚 .bak；
+    4. 成功 → 清理 .bak 与解压目录。
+    """
+    extract_dir = work_dir / f"extract-{part_id}"
+    if extract_dir.exists():
+        shutil.rmtree(extract_dir, ignore_errors=True)
+    extract_dir.mkdir(parents=True, exist_ok=True)
+
+    log.info("[%s] 解压 part 包...", part_id)
+    try:
+        with zipfile.ZipFile(str(part_zip)) as zf:
+            zf.extractall(str(extract_dir))
+    except (zipfile.BadZipFile, OSError) as e:
+        return False, f"解压 part {part_id} 失败: {e}"
+
+    backups: List[Tuple[Path, Path, bool]] = []  # (orig_path, backup_path, is_dir)
+
+    def _rollback() -> None:
+        log.warning("[%s] 回滚 …", part_id)
+        for orig, bak, is_dir in reversed(backups):
+            try:
+                if orig.exists():
+                    if is_dir:
+                        shutil.rmtree(orig, ignore_errors=True)
+                    else:
+                        orig.unlink()
+                if bak.exists():
+                    os.rename(str(bak), str(orig))
+            except OSError as e:
+                log.error("[%s] 回滚 %s 失败: %s", part_id, orig.name, e)
+
+    # 1) 备份 + 写入
+    try:
+        for rel in targets:
+            new_src = extract_dir / rel
+            if not new_src.exists():
+                # zip 内没有这个 target —— 视为远端故意删除（极少见），跳过
+                log.warning("[%s] part 包内缺少 %s，跳过", part_id, rel)
+                continue
+
+            orig = app_dir / rel
+            is_dir = new_src.is_dir()
+            bak = app_dir / (rel + ".bak")
+            # 清理可能残留的 .bak
+            if bak.exists():
+                try:
+                    if bak.is_dir():
+                        shutil.rmtree(bak, ignore_errors=True)
+                    else:
+                        bak.unlink()
+                except OSError:
+                    pass
+
+            if orig.exists():
+                _retry_on_permission_error(
+                    f"备份 {rel}",
+                    lambda o=orig, b=bak: os.rename(str(o), str(b)),
+                    log,
+                )
+                backups.append((orig, bak, is_dir))
+
+            # 写入新内容
+            orig.parent.mkdir(parents=True, exist_ok=True)
+            if is_dir:
+                _retry_on_permission_error(
+                    f"写入 {rel}/",
+                    lambda s=new_src, o=orig: shutil.copytree(str(s), str(o)),
+                    log,
+                )
+            else:
+                _retry_on_permission_error(
+                    f"写入 {rel}",
+                    lambda s=new_src, o=orig: shutil.copy2(str(s), str(o)),
+                    log,
+                )
+    except (OSError, shutil.Error) as e:
+        log.error("[%s] 应用更新失败: %s", part_id, e)
+        _rollback()
+        return False, f"应用 part {part_id} 失败: {e}"
+
+    # 2) 成功 → 清理备份
+    for _orig, bak, is_dir in backups:
+        try:
+            if bak.exists():
+                if is_dir:
+                    shutil.rmtree(bak, ignore_errors=True)
+                else:
+                    bak.unlink()
+        except OSError as e:
+            log.warning("[%s] 清理备份 %s 失败（不影响功能）: %s", part_id, bak.name, e)
+
+    # 3) 清理解压目录
+    shutil.rmtree(extract_dir, ignore_errors=True)
+    return True, ""
+
+
+def run_incremental(
+    args: Args,
+    manifest: Dict[str, Any],
+    work_dir: Path,
+    log: logging.Logger,
+) -> int:
+    """基于 manifest 的增量更新主流程。失败时返回非 0，调用方会 fallback 到全量。"""
+    log.info("=" * 60)
+    log.info("尝试增量更新（manifest schema=%d）", manifest.get("schema", 1))
+    log.info("=" * 60)
+
+    local = read_local_manifest(args, log)
+    needed = _diff_parts(manifest, local)
+    if not needed:
+        # 远端版本理应比本地新；走到这里只能说明 manifest sha 与本地完全相同 ——
+        # 说明软件已经是最新版了，但我们能跑到这里说明远端版本号已经被判定 > 本地。
+        # 安全起见仍然记录本地 manifest（覆盖式更新版本号），但不重启主程序也意义不大。
+        log.info("所有 part 的 sha256 都已匹配，本地已是最新（异常路径，记录后退出）")
+        write_local_manifest(args, manifest, log)
+        return 0
+
+    log.info("需要更新的 part: %s", ", ".join(needed))
+    total_size = sum(int(manifest["parts"][p].get("size") or 0) for p in needed)
+    log.info("增量下载量约：%.1f MB（全量包约 %.1f MB）",
+             total_size / 1024 / 1024,
+             int(manifest.get("full", {}).get("size") or 0) / 1024 / 1024)
+
+    # 1) 全部下载完再开始应用（确保每个 part 都已落盘 + 校验通过，再动主程序文件）
+    part_zips: List[Tuple[str, Path]] = []
+    for pid in needed:
+        zp = _download_part(args, manifest, pid, work_dir, log)
+        if zp is None:
+            return 31  # 增量下载失败 → caller fallback 全量
+        part_zips.append((pid, zp))
+
+    # 2) 依次应用每个 part（每个 part 内部已带备份/回滚）
+    applied: List[str] = []
+    for pid, zp in part_zips:
+        targets = manifest["parts"][pid].get("targets") or []
+        if not isinstance(targets, list) or not targets:
+            log.error("[%s] manifest 缺少 targets，无法增量应用", pid)
+            return 32
+        ok, err = _apply_part(zp, targets, args.app_dir, work_dir, pid, log)
+        if not ok:
+            log.error("[%s] 应用失败：%s", pid, err)
+            # 已应用的 part 没法回滚（备份已删），用户应用应能启动 —— 不致命，但
+            # 后续走 fallback 全量也能修复
+            return 33
+        log.info("[%s] 应用成功", pid)
+        applied.append(pid)
+
+    # 3) 写本地 manifest（仅在所有 part 成功后）
+    write_local_manifest(args, manifest, log)
+    log.info("增量更新完成 ✓（已应用 part: %s）", ", ".join(applied))
+
+    # 4) 清理临时 part 包
+    for _, zp in part_zips:
+        try:
+            zp.unlink()
+        except OSError:
+            pass
+    return 0
+
+
 # ───────────────────────── 主流程 ─────────────────────────
 
 
@@ -562,25 +911,47 @@ def run(args: Args) -> int:
     log.info("下载候选: %d 个源", len(args.urls))
     log.info("=" * 60)
 
-    # 1. 等待主程序退出
+    # 1. 等待主程序退出（含文件锁释放宽限）
     wait_for_pid_exit(args.pid, log)
 
-    # 2. 下载
+    if not args.urls:
+        log.error("未提供任何下载 URL")
+        return _exit_with_pause(2)
+
+    # ───── 2a. 增量更新优先 ─────
+    manifest = try_fetch_manifest(args, log)
+    if manifest is not None:
+        rc = run_incremental(args, manifest, work_dir, log)
+        if rc == 0:
+            # 启动新版本 + 清理 + 退出
+            if args.launch_after:
+                launch_main_app(args.app_dir, args.app_exe, log)
+            log.info("更新完成 ✓（增量路径）")
+            if sys.platform == "win32":
+                try:
+                    print()
+                    print("更新完成。窗口将在 3 秒后关闭。")
+                    time.sleep(3)
+                except Exception:
+                    pass
+            return 0
+        log.warning("增量更新失败（rc=%d），回退到全量更新流程 ...", rc)
+    else:
+        log.info("未发现 manifest，使用全量更新流程")
+
+    # ───── 2b. 全量更新 fallback ─────
     download_path = work_dir / "download" / args.asset_name
     if download_path.exists():
         try:
             download_path.unlink()
         except OSError:
             pass
-    if not args.urls:
-        log.error("未提供任何下载 URL")
-        return _exit_with_pause(2)
     ok, success_url = try_download_from_sources(args, download_path, log)
     if not ok:
         log.error("所有源均下载失败")
         return _exit_with_pause(3)
 
-    # 3. 校验 —— 如果命令行未传 --sha256，尝试自动从同源 .sha256 资产拉取
+    # 校验：命令行未传 --sha256 → 主动取 .sha256
     if not args.sha256:
         proxies = (
             {"http": args.proxy_url, "https": args.proxy_url} if args.proxy_url else None
@@ -590,13 +961,11 @@ def run(args: Args) -> int:
         log.error("校验失败")
         return _exit_with_pause(4)
 
-    # 4. 解压
     extract_dir = work_dir / "extracted"
     new_root = extract_archive(download_path, extract_dir, log)
     if new_root is None:
         return _exit_with_pause(5)
 
-    # 5. 应用更新（带回滚）
     ok, err = apply_update(
         args.app_dir, args.app_exe, args.internal_name, new_root, log
     )
@@ -605,11 +974,13 @@ def run(args: Args) -> int:
         return _exit_with_pause(6)
     log.info("文件替换完成")
 
-    # 6. 启动新版本
+    # 全量路径下，如果有可用的 manifest，把它写到本地 —— 下次升级就能走增量
+    if manifest is not None:
+        write_local_manifest(args, manifest, log)
+
     if args.launch_after:
         launch_main_app(args.app_dir, args.app_exe, log)
 
-    # 7. 清理临时文件（保留 log 一段时间，便于排错）
     try:
         shutil.rmtree(str(extract_dir), ignore_errors=True)
         if download_path.exists():
@@ -617,8 +988,7 @@ def run(args: Args) -> int:
     except OSError:
         pass
 
-    log.info("更新完成 ✓")
-    # 控制台稍作停留，便于用户看清结果
+    log.info("更新完成 ✓（全量路径）")
     if sys.platform == "win32":
         try:
             print()

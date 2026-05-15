@@ -100,7 +100,7 @@ jobs:
       - name: Build main app
         run: python build.py
 
-      - name: Package zip + sha256
+      - name: Package full zip + sha256
         shell: pwsh
         run: |
           $OutputEncoding = [System.Text.UTF8Encoding]::new()
@@ -111,12 +111,23 @@ jobs:
           Compress-Archive -Path "dist/StrangeUtaGame/*" -DestinationPath $zip -CompressionLevel Optimal
 
           # 生成同名 .sha256 —— Updater 会按 ``<zip-url>.sha256`` 自动尝试拉取。
-          # 兼容 sha256sum/coreutils 格式：``<hex>  <文件名>\n``。
           $hash = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLower()
           $shaPath = "$zip.sha256"
           $line = "$hash  StrangeUtaGame-v$v.zip`n"
           Set-Content -LiteralPath $shaPath -Value $line -NoNewline -Encoding ascii
           Get-Item $zip, $shaPath | Format-List Name, Length
+
+      - name: Pack parts + manifest (incremental)
+        shell: pwsh
+        run: |
+          $OutputEncoding = [System.Text.UTF8Encoding]::new()
+          [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+          # release.py 的 _build_parts_and_manifest 已经实现：
+          #   - 分别打 app/runtime 两个 zip + 各自 .sha256
+          #   - 生成 manifest-vX.Y.Z.json 描述每个 part 的 sha256/size/targets
+          # 这里我们用一个单独的 step 单独跑这个流程，确保产物都在 dist/ 下。
+          python -c "import sys; sys.path.insert(0, 'scripts'); import release; v=release._read_version(); release._build_parts_and_manifest(v, release.RELEASE_DIST / f'StrangeUtaGame-v{v}.zip')"
+          Get-ChildItem dist | Where-Object Name -match "(-app|-runtime|^manifest)" | Format-Table Name, Length
 
       - name: Extract release notes
         shell: pwsh
@@ -136,6 +147,11 @@ jobs:
           files: |
             dist/StrangeUtaGame-v${{ steps.ver.outputs.version }}.zip
             dist/StrangeUtaGame-v${{ steps.ver.outputs.version }}.zip.sha256
+            dist/StrangeUtaGame-v${{ steps.ver.outputs.version }}-app.zip
+            dist/StrangeUtaGame-v${{ steps.ver.outputs.version }}-app.zip.sha256
+            dist/StrangeUtaGame-v${{ steps.ver.outputs.version }}-runtime.zip
+            dist/StrangeUtaGame-v${{ steps.ver.outputs.version }}-runtime.zip.sha256
+            dist/manifest-v${{ steps.ver.outputs.version }}.json
           draft: false
           prerelease: false
         env:

@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import json
 import re
 import shutil
 import subprocess
@@ -36,7 +37,7 @@ import sys
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 
 def _force_utf8_stdio() -> None:
@@ -238,21 +239,124 @@ def _pack_zip(version: str) -> Path:
     return zip_path
 
 
-def _write_sha256(target: Path) -> Path:
-    """为 ``target`` 生成同名 ``.sha256`` 文件，与 sha256sum / coreutils 兼容。
-
-    格式：``<64位十六进制>  <文件名>\\n``。Updater 拿到后用 regex 抽前 64 个 hex
-    字符做校验，对换行 / 行尾空格容忍。
-    """
+def _sha256_of(path: Path) -> str:
     h = hashlib.sha256()
-    with open(target, "rb") as f:
+    with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(64 * 1024), b""):
             h.update(chunk)
-    digest = h.hexdigest().lower()
+    return h.hexdigest().lower()
+
+
+def _write_sha256(target: Path) -> Path:
+    """为 ``target`` 生成同名 ``.sha256`` 文件，与 sha256sum / coreutils 兼容。"""
+    digest = _sha256_of(target)
     sha_path = target.with_name(target.name + ".sha256")
     sha_path.write_text(f"{digest}  {target.name}\n", encoding="ascii")
     print(f"  ✓ {sha_path.name}  (sha256={digest})")
     return sha_path
+
+
+# ───────────────────────── 增量打包：app + runtime 分包 ─────────────────────────
+
+# 局部约定：app 部分（用户自己的应用代码，~5MB），其余归 runtime（依赖，~178MB）。
+APP_TARGETS_BASE: List[str] = [
+    "StrangeUtaGame.exe",
+    "Updater.exe",
+    "_internal/strange_uta_game",
+]
+# `_internal/` 顶层下 **不** 归入 runtime 的条目（要么是 app 的、要么是 Updater 运行时维护的）。
+INTERNAL_NON_RUNTIME_NAMES = {"strange_uta_game", ".installed_manifest.json"}
+
+
+def _compute_runtime_targets(dist_root: Path) -> List[str]:
+    """扫描 ``dist_root/_internal/`` 把不属于 app 的所有顶层条目（子目录与文件）列为 runtime targets。"""
+    internal_dir = dist_root / "_internal"
+    if not internal_dir.is_dir():
+        return []
+    out: List[str] = []
+    for child in sorted(internal_dir.iterdir(), key=lambda p: p.name.lower()):
+        if child.name in INTERNAL_NON_RUNTIME_NAMES:
+            continue
+        out.append(f"_internal/{child.name}")
+    return out
+
+
+def _pack_part_zip(zip_path: Path, dist_root: Path, targets: List[str]) -> None:
+    """把 ``dist_root`` 下 targets 列出的内容（文件或目录）打成一个 zip。
+
+    zip 内的 arcname 严格相对 ``dist_root``，与全量包结构一致——这样 Updater 把
+    part-zip 解压到 ``app_dir`` 时就是原位覆盖，无需任何路径转换。
+    """
+    if zip_path.exists():
+        zip_path.unlink()
+    with zipfile.ZipFile(str(zip_path), "w", zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+        for t in targets:
+            src = dist_root / t
+            if not src.exists():
+                print(f"  ! 跳过不存在的 target: {t}")
+                continue
+            if src.is_file():
+                zf.write(src, arcname=t)
+            else:
+                for f in src.rglob("*"):
+                    if f.is_file():
+                        rel = f.relative_to(dist_root)
+                        # zipfile 在 Windows 上要用 forward-slash 当 arcname，
+                        # 否则跨平台解压会丢目录结构。
+                        zf.write(f, arcname=str(rel).replace("\\", "/"))
+
+
+def _build_parts_and_manifest(version: str, full_zip: Path) -> Path:
+    """构建 app/runtime 分包 zip + 校验 + manifest-vX.Y.Z.json。返回 manifest 路径。"""
+    dist_root = MAIN_DIST
+    parent = dist_root.parent
+
+    app_targets = list(APP_TARGETS_BASE)
+    runtime_targets = _compute_runtime_targets(dist_root)
+
+    app_zip = parent / f"StrangeUtaGame-v{version}-app.zip"
+    runtime_zip = parent / f"StrangeUtaGame-v{version}-runtime.zip"
+
+    print(f"  打包 app part → {app_zip.name}（{len(app_targets)} targets）")
+    _pack_part_zip(app_zip, dist_root, app_targets)
+    print(f"  ✓ {app_zip.name}  ({app_zip.stat().st_size / 1024 / 1024:.1f} MB)")
+    app_sha_path = _write_sha256(app_zip)
+
+    print(f"  打包 runtime part → {runtime_zip.name}（{len(runtime_targets)} targets）")
+    _pack_part_zip(runtime_zip, dist_root, runtime_targets)
+    print(f"  ✓ {runtime_zip.name}  ({runtime_zip.stat().st_size / 1024 / 1024:.1f} MB)")
+    runtime_sha_path = _write_sha256(runtime_zip)
+
+    manifest: Dict = {
+        "version": version,
+        "schema": 1,
+        "parts": {
+            "app": {
+                "asset": app_zip.name,
+                "sha256": _sha256_of(app_zip),
+                "size": app_zip.stat().st_size,
+                "targets": app_targets,
+            },
+            "runtime": {
+                "asset": runtime_zip.name,
+                "sha256": _sha256_of(runtime_zip),
+                "size": runtime_zip.stat().st_size,
+                "targets": runtime_targets,
+            },
+        },
+        "full": {
+            "asset": full_zip.name,
+            "sha256": _sha256_of(full_zip),
+            "size": full_zip.stat().st_size,
+        },
+    }
+    manifest_path = parent / f"manifest-v{version}.json"
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print(f"  ✓ {manifest_path.name}")
+    return manifest_path
 
 
 def _dump_release_notes(version: str) -> Optional[Path]:
@@ -275,6 +379,8 @@ def cmd_build() -> int:
     _run_main_build()
     zip_path = _pack_zip(version)
     sha_path = _write_sha256(zip_path)
+    # 增量分包 + manifest（与全量 zip 并存，互相 fallback）
+    manifest_path = _build_parts_and_manifest(version, zip_path)
     notes_path = _dump_release_notes(version)
 
     print()
@@ -290,8 +396,20 @@ def cmd_build() -> int:
     print(f"  - 标题：v{version}")
     if notes_path:
         print(f"  - body：直接复制 {notes_path.relative_to(ROOT)} 全文")
-    print(f"  - 资产：上传 {zip_path.relative_to(ROOT)}")
-    print(f"           以及 {sha_path.relative_to(ROOT)}（Updater 会自动校验）")
+    print(f"  - 资产（全部上传）：")
+    print(f"      • {zip_path.relative_to(ROOT)}            ← 全量包")
+    print(f"      • {sha_path.relative_to(ROOT)}     ← 全量包校验")
+    print(f"      • {manifest_path.relative_to(ROOT)}   ← 增量更新清单")
+    parent = zip_path.parent
+    for name in (
+        f"StrangeUtaGame-v{version}-app.zip",
+        f"StrangeUtaGame-v{version}-app.zip.sha256",
+        f"StrangeUtaGame-v{version}-runtime.zip",
+        f"StrangeUtaGame-v{version}-runtime.zip.sha256",
+    ):
+        p = parent / name
+        if p.exists():
+            print(f"      • {p.relative_to(ROOT)}")
     return 0
 
 

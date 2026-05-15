@@ -17,6 +17,17 @@
 - （在这里写未发布的新增内容…）
 
 ### Added
+- **增量更新（分包式）**：发布产物在原有全量 `StrangeUtaGame-vX.Y.Z.zip` 之外
+  额外生成 `-app.zip`（~5MB，含主 EXE + Updater.exe + 应用代码）、`-runtime.zip`
+  （~178MB，含 PyQt6/numpy/pyav/sudachidict 等依赖）以及一份
+  `manifest-vX.Y.Z.json` 描述各 part 的 sha256 与管辖目录。Updater 升级时优先
+  拉取 manifest，比对本地 `_internal/.installed_manifest.json` 中的 part sha256，
+  只下载哈希变化的 part 并精确替换。小版本升级（应用代码改动）通常只需要下载
+  约 5MB，节省 ~95% 带宽。
+  - **兼容策略**：找不到远端 manifest / 找不到本地 manifest / 任何 part 下载或
+    应用失败 → 自动回退到现有的全量 zip 流程，行为与旧版完全一致。
+  - **首次升级**：从未带过 manifest 的旧版本走全量，安装后写入
+    `_internal/.installed_manifest.json`，之后的升级即可走增量。
 - **发布资产自动生成 `.zip.sha256` 校验文件**：`scripts/release.py build` 与
   GitHub Actions workflow 都会同时输出 `StrangeUtaGame-vX.Y.Z.zip.sha256`
   （sha256sum / coreutils 兼容格式），并随 Release 一并上传。Updater 拿到主
