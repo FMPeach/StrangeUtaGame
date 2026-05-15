@@ -24,6 +24,17 @@
   `PYTHONUTF8=1`，并给 `build.py` / `build_updater.py` / `updater_app/main.py`
   / `scripts/release.py` 加 `_force_utf8_stdio()` 兜底。
 
+## [0.3.4] - 2026-05-16
+
+### Added
+- * None *
+
+### Changed
+- * 更改sug数据结构，以后新保存的sug会记录全局偏移信息 *
+
+### Fixed
+- * None(用作自动更新测试用)*
+
 ## [0.3.3] - 2026-05-16
 
 ### Added
