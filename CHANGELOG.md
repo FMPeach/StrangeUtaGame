@@ -9,7 +9,9 @@
 > **写作格式**：遵循 [Keep a Changelog](https://keepachangelog.com/) 风格 +
 > [SemVer](https://semver.org/lang/zh-CN/)。每段标题严格使用 `## [X.Y.Z] - YYYY-MM-DD`。
 
-## [Unreleased]
+
+
+## [0.3.5] - 2026-05-16
 
 ### Added
 - （在这里写未发布的新增内容…）
