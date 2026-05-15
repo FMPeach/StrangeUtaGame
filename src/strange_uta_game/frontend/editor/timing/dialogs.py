@@ -1178,6 +1178,7 @@ class ApplySingerDialog(QDialog):
         self.list_singers.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.list_singers.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.list_singers.itemSelectionChanged.connect(self._on_selection_changed)
+        self.list_singers.cellDoubleClicked.connect(self._on_double_click)
 
         # 填充列表
         for idx, singer in enumerate(all_singers):
@@ -1230,6 +1231,15 @@ class ApplySingerDialog(QDialog):
         if self._selected_singer_id:
             self.apply_requested.emit(self._selected_singer_id)
             self.accept()
+
+    def _on_double_click(self, row: int, column: int):
+        """双击列表项时直接应用"""
+        name_item = self.list_singers.item(row, 0)
+        if name_item:
+            singer_id = name_item.data(Qt.ItemDataRole.UserRole)
+            if singer_id:
+                self.apply_requested.emit(singer_id)
+                self.accept()
 
     def get_selected_singer_id(self) -> str:
         """返回选中的演唱者ID"""
