@@ -440,7 +440,11 @@ class NicokaraWithRubyExporter(NicokaraExporter):
         if pause_char:
             for i, line in enumerate(output_lines):
                 if line.startswith("@Ruby"):
-                    output_lines[i] = line.replace(pause_char, "")
+                    reading_only = self._check_reading_is_only_pause(line, pause_char)
+                    if reading_only:
+                        output_lines[i] = line.replace(pause_char, " ")
+                    else:
+                        output_lines[i] = line.replace(pause_char, "")
 
         try:
             # 与 nicokara3 原生格式一致：UTF-8-BOM + CRLF 行尾 + 末尾 newline
@@ -702,3 +706,14 @@ class NicokaraWithRubyExporter(NicokaraExporter):
             ms_key_parts.append(group_text)
 
         return "".join(display_parts), tuple(ms_key_parts)
+
+    @staticmethod
+    def _check_reading_is_only_pause(line: str, pause_char: str) -> bool:
+        """检查 @Ruby 行的读音部分去除时间戳后是否只剩停顿符"""
+        eq_idx = line.index("=")
+        parts = line[eq_idx + 1:].split(",", 2)
+        if len(parts) < 2:
+            return False
+        reading = parts[1]
+        reading_no_ts = re.sub(r"\[[^\]]*\]", "", reading)
+        return bool(reading_no_ts) and all(c == pause_char for c in reading_no_ts)
