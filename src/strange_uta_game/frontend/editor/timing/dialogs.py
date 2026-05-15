@@ -565,7 +565,12 @@ class InsertGuideSymbolDialog(QDialog):
     def _on_execute(self):
         from strange_uta_game.backend.domain.models import Character
 
+        # 过滤 Unicode 变体选择符（U+FE00-U+FE0F）等非用户主动输入的字符
+        # 例如 ☢︎ 会被解析为 ☢ + VS15(0xFE0E)，需要过滤掉变体选择符
         symbol = self.edit_symbol.text().strip()
+        symbol = "".join(
+            c for c in symbol if not (0xFE00 <= ord(c) <= 0xFE0F)
+        )
         if not symbol:
             return
 
@@ -599,21 +604,24 @@ class InsertGuideSymbolDialog(QDialog):
         # Actually: if symbol is multi-char, each char of the symbol is linked.
         # If count > 1, each "symbol group" is also linked.
         # Result: all guide chars are linked_to_next=True (chained as one word)
+        #
+        # Timestamp is assigned to the FIRST character of each symbol group.
+        # For symbol "ABCD": "A" gets check_count=1 and timestamp, "B"/"C"/"D" get check_count=0.
         guide_chars = []
         for i in range(count):
             for j, ch_str in enumerate(symbol):
-                is_last_of_symbol = j == len(symbol) - 1
+                is_first_of_symbol = j == 0
                 is_last_symbol = i == count - 1
-                is_last_char = is_last_of_symbol and is_last_symbol
+                is_last_char_of_last_symbol = (j == len(symbol) - 1) and is_last_symbol
                 new_ch = Character(
                     char=ch_str,
                     ruby=None,
-                    check_count=1 if is_last_of_symbol else 0,
+                    check_count=1 if is_first_of_symbol else 0,
                     singer_id=singer_id,
-                    linked_to_next=not is_last_char,
+                    linked_to_next=not is_last_char_of_last_symbol,
                 )
-                # Set timestamp if reference exists
-                if ref_ts is not None and is_last_of_symbol:
+                # Set timestamp to the first character of each symbol group
+                if ref_ts is not None and is_first_of_symbol:
                     # For i-th symbol (0-indexed), timestamp = ref_ts - duration_ms * (count - i)
                     ts = ref_ts - duration_ms * (count - i)
                     if ts < 0:
