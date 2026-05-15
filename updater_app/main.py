@@ -444,6 +444,35 @@ def verify_sha256(file_path: Path, expected_hex: str, log: logging.Logger) -> bo
     return True
 
 
+def _content_hash_of_zip(zip_path: Path) -> str:
+    """计算 zip 内所有文件的内容哈希（确定性，不受打包元数据影响）。"""
+    entries = []
+    with zipfile.ZipFile(str(zip_path), "r") as zf:
+        for info in zf.infolist():
+            if info.is_dir():
+                continue
+            content = zf.read(info.filename)
+            content_hash = hashlib.sha256(content).hexdigest()
+            entries.append((info.filename, content_hash))
+    entries.sort(key=lambda e: e[0])
+    combined = "\n".join(f"{name}:{h}" for name, h in entries)
+    return hashlib.sha256(combined.encode("ascii")).hexdigest().lower()
+
+
+def verify_content_hash(zip_path: Path, expected_hex: str, log: logging.Logger) -> bool:
+    """校验 zip 文件的内容哈希（对 zip 内文件的路径+内容计算 sha256）。"""
+    if not expected_hex:
+        log.info("未提供内容哈希，跳过校验")
+        return True
+    log.info("校验内容哈希中...")
+    actual = _content_hash_of_zip(zip_path)
+    if actual != expected_hex.lower():
+        log.error("内容哈希不匹配（期望 %s，实际 %s）", expected_hex, actual)
+        return False
+    log.info("内容哈希校验通过")
+    return True
+
+
 def extract_archive(
     archive: Path,
     extract_dir: Path,
@@ -672,7 +701,7 @@ def _download_part(
     work_dir: Path,
     log: logging.Logger,
 ) -> Optional[Path]:
-    """下载某个 part 的 zip 并校验 sha256。
+    """下载某个 part 的 zip 并校验内容哈希。
 
     URL 推导：用拉取 manifest 成功的源 URL 前缀拼 part.asset 文件名。同一 release
     下所有 asset 都在同一目录，URL 一定能拼出来。失败返回 ``None``。
@@ -680,7 +709,7 @@ def _download_part(
     proxies = {"http": args.proxy_url, "https": args.proxy_url} if args.proxy_url else None
     part_info = manifest["parts"][part_id]
     asset_name = part_info["asset"]
-    expected_sha = (part_info.get("sha256") or "").lower()
+    expected_hash = (part_info.get("sha256") or "").lower()
     expected_size = int(part_info.get("size") or 0)
 
     # 优先用 manifest 命中源；失败再轮转所有源
@@ -713,8 +742,8 @@ def _download_part(
         log.error("所有源均下载失败：part=%s", part_id)
         return None
 
-    if expected_sha and not verify_sha256(dest, expected_sha, log):
-        log.error("part %s 的 sha256 校验失败", part_id)
+    if expected_hash and not verify_content_hash(dest, expected_hash, log):
+        log.error("part %s 的内容哈希校验失败", part_id)
         return None
     return dest
 

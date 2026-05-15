@@ -359,12 +359,39 @@ def _sha256_of(path: Path) -> str:
     return h.hexdigest().lower()
 
 
+def _content_hash_of_zip(zip_path: Path) -> str:
+    """计算 zip 内所有文件的内容哈希（确定性，不受打包元数据影响）。
+
+    算法：对 zip 内每个文件计算 sha256(file_content)，然后按 arcname 排序拼接
+    ``arcname:content_hash`` 再做一次总 sha256。这样只要文件内容不变，哈希就不变，
+    无论 zip 的时间戳、文件顺序如何。
+    """
+    entries: List[tuple[str, str]] = []
+    with zipfile.ZipFile(str(zip_path), "r") as zf:
+        for info in zf.infolist():
+            if info.is_dir():
+                continue
+            content = zf.read(info.filename)
+            content_hash = hashlib.sha256(content).hexdigest()
+            entries.append((info.filename, content_hash))
+    entries.sort(key=lambda e: e[0])
+    combined = "\n".join(f"{name}:{h}" for name, h in entries)
+    return hashlib.sha256(combined.encode("ascii")).hexdigest().lower()
+
+
 def _write_sha256(target: Path) -> Path:
-    """为 ``target`` 生成同名 ``.sha256`` 文件，与 sha256sum / coreutils 兼容。"""
-    digest = _sha256_of(target)
+    """为 ``target`` 生成同名 ``.sha256`` 文件，与 sha256sum / coreutils 兼容。
+
+    对 zip 文件使用内容哈希（对 zip 内文件的路径+内容计算 sha256），
+    这样只要实际文件内容不变，哈希就不变，不受打包时间戳影响。
+    """
+    if target.suffix.lower() == ".zip":
+        digest = _content_hash_of_zip(target)
+    else:
+        digest = _sha256_of(target)
     sha_path = target.with_name(target.name + ".sha256")
     sha_path.write_text(f"{digest}  {target.name}\n", encoding="ascii")
-    print(f"  ✓ {sha_path.name}  (sha256={digest})")
+    print(f"  ✓ {sha_path.name}  (content_hash={digest})")
     return sha_path
 
 
@@ -398,6 +425,8 @@ def _pack_part_zip(zip_path: Path, dist_root: Path, targets: List[str]) -> None:
 
     zip 内的 arcname 严格相对 ``dist_root``，与全量包结构一致——这样 Updater 把
     part-zip 解压到 ``app_dir`` 时就是原位覆盖，无需任何路径转换。
+
+    哈希比较走内容哈希（对 zip 内文件的路径+内容计算 sha256），不受打包时间戳影响。
     """
     if zip_path.exists():
         zip_path.unlink()
@@ -413,8 +442,6 @@ def _pack_part_zip(zip_path: Path, dist_root: Path, targets: List[str]) -> None:
                 for f in src.rglob("*"):
                     if f.is_file():
                         rel = f.relative_to(dist_root)
-                        # zipfile 在 Windows 上要用 forward-slash 当 arcname，
-                        # 否则跨平台解压会丢目录结构。
                         zf.write(f, arcname=str(rel).replace("\\", "/"))
 
 
@@ -498,20 +525,20 @@ def _write_release_manifest(
         "parts": {
             "app": {
                 "asset": app_zip.name,
-                "sha256": _sha256_of(app_zip),
+                "sha256": _content_hash_of_zip(app_zip),
                 "size": app_zip.stat().st_size,
                 "targets": app_targets,
             },
             "runtime": {
                 "asset": runtime_zip.name,
-                "sha256": _sha256_of(runtime_zip),
+                "sha256": _content_hash_of_zip(runtime_zip),
                 "size": runtime_zip.stat().st_size,
                 "targets": runtime_targets,
             },
         },
         "full": {
             "asset": full_zip.name,
-            "sha256": _sha256_of(full_zip),
+            "sha256": _content_hash_of_zip(full_zip),
             "size": full_zip.stat().st_size,
         },
     }
