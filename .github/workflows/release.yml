@@ -100,34 +100,19 @@ jobs:
       - name: Build main app
         run: python build.py
 
-      - name: Package full zip + sha256
+      - name: Pack parts + installed manifest + full zip + release manifest
         shell: pwsh
         run: |
           $OutputEncoding = [System.Text.UTF8Encoding]::new()
           [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-          $v = "${{ steps.ver.outputs.version }}"
-          $zip = "dist/StrangeUtaGame-v$v.zip"
-          if (Test-Path $zip) { Remove-Item $zip -Force }
-          Compress-Archive -Path "dist/StrangeUtaGame/*" -DestinationPath $zip -CompressionLevel Optimal
-
-          # 生成同名 .sha256 —— Updater 会按 ``<zip-url>.sha256`` 自动尝试拉取。
-          $hash = (Get-FileHash -Path $zip -Algorithm SHA256).Hash.ToLower()
-          $shaPath = "$zip.sha256"
-          $line = "$hash  StrangeUtaGame-v$v.zip`n"
-          Set-Content -LiteralPath $shaPath -Value $line -NoNewline -Encoding ascii
-          Get-Item $zip, $shaPath | Format-List Name, Length
-
-      - name: Pack parts + manifest (incremental)
-        shell: pwsh
-        run: |
-          $OutputEncoding = [System.Text.UTF8Encoding]::new()
-          [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-          # release.py 的 _build_parts_and_manifest 已经实现：
-          #   - 分别打 app/runtime 两个 zip + 各自 .sha256
-          #   - 生成 manifest-vX.Y.Z.json 描述每个 part 的 sha256/size/targets
-          # 这里我们用一个单独的 step 单独跑这个流程，确保产物都在 dist/ 下。
-          python -c "import sys; sys.path.insert(0, 'scripts'); import release; v=release._read_version(); release._build_parts_and_manifest(v, release.RELEASE_DIST / f'StrangeUtaGame-v{v}.zip')"
-          Get-ChildItem dist | Where-Object Name -match "(-app|-runtime|^manifest)" | Format-Table Name, Length
+          # 直接复用 scripts/release.py 的 cmd_build 子逻辑，保证顺序严格一致：
+          #   1) 先打 app/runtime part-zip + 各自 .sha256
+          #   2) 把 _internal/.installed_manifest.json 写进 dist —— 让全量 zip 自带
+          #      本地清单，用户从 GitHub Web 直接下载解压安装也能享受增量
+          #   3) 再打全量 zip + .sha256
+          #   4) 写对外发布 manifest-vX.Y.Z.json
+          python -c "import sys; sys.path.insert(0, 'scripts'); import release; v=release._read_version(); (app_zip, rt_zip, app_t, rt_t) = release._pack_parts(v); release._write_installed_manifest_into_dist(v, app_zip, rt_zip); full = release._pack_zip(v); release._write_sha256(full); release._write_release_manifest(v, full, app_zip, rt_zip, app_t, rt_t)"
+          Get-ChildItem dist | Where-Object { $_.Name -match '^(StrangeUtaGame-v|manifest-v)' } | Format-Table Name, Length
 
       - name: Extract release notes
         shell: pwsh

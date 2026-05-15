@@ -26,8 +26,14 @@
   约 5MB，节省 ~95% 带宽。
   - **兼容策略**：找不到远端 manifest / 找不到本地 manifest / 任何 part 下载或
     应用失败 → 自动回退到现有的全量 zip 流程，行为与旧版完全一致。
-  - **首次升级**：从未带过 manifest 的旧版本走全量，安装后写入
-    `_internal/.installed_manifest.json`，之后的升级即可走增量。
+  - **首次升级即可走增量**：构建阶段直接把出厂版本的
+    `_internal/.installed_manifest.json` 打进全量 zip 一并发布，因此用户无论
+    通过哪种方式拿到本版本（GitHub Web 直接下载解压、Updater 全量装、Updater
+    增量装）都自带本地清单。下次升级 Updater 读到清单即可走增量路径，无需"必须
+    先经历一次全量"。
+  - **构建顺序**：part-zip 不包含 `.installed_manifest.json`（避免 sha256 循环
+    依赖）；先打 part-zip 算 sha256，再用 sha256 写本地清单到 dist，最后打全量
+    zip。全量 zip 因此天然带清单。
 - **发布资产自动生成 `.zip.sha256` 校验文件**：`scripts/release.py build` 与
   GitHub Actions workflow 都会同时输出 `StrangeUtaGame-vX.Y.Z.zip.sha256`
   （sha256sum / coreutils 兼容格式），并随 Release 一并上传。Updater 拿到主

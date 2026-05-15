@@ -34,6 +34,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time as _time
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -306,8 +307,14 @@ def _pack_part_zip(zip_path: Path, dist_root: Path, targets: List[str]) -> None:
                         zf.write(f, arcname=str(rel).replace("\\", "/"))
 
 
-def _build_parts_and_manifest(version: str, full_zip: Path) -> Path:
-    """构建 app/runtime 分包 zip + 校验 + manifest-vX.Y.Z.json。返回 manifest 路径。"""
+def _pack_parts(version: str) -> Tuple[Path, Path, List[str], List[str]]:
+    """打 app + runtime 两个 part zip 并生成各自 .sha256 文件。
+
+    返回 ``(app_zip_path, runtime_zip_path, app_targets, runtime_targets)``。
+    重要：``dist/StrangeUtaGame/_internal/.installed_manifest.json`` **不在任何
+    part targets 中**，因此它即便存在也不会影响 part-zip 的 sha256，从而避免循环
+    依赖（part sha256 → 写本地清单 → 再依赖含清单的内容）。
+    """
     dist_root = MAIN_DIST
     parent = dist_root.parent
 
@@ -320,13 +327,60 @@ def _build_parts_and_manifest(version: str, full_zip: Path) -> Path:
     print(f"  打包 app part → {app_zip.name}（{len(app_targets)} targets）")
     _pack_part_zip(app_zip, dist_root, app_targets)
     print(f"  ✓ {app_zip.name}  ({app_zip.stat().st_size / 1024 / 1024:.1f} MB)")
-    app_sha_path = _write_sha256(app_zip)
+    _write_sha256(app_zip)
 
     print(f"  打包 runtime part → {runtime_zip.name}（{len(runtime_targets)} targets）")
     _pack_part_zip(runtime_zip, dist_root, runtime_targets)
     print(f"  ✓ {runtime_zip.name}  ({runtime_zip.stat().st_size / 1024 / 1024:.1f} MB)")
-    runtime_sha_path = _write_sha256(runtime_zip)
+    _write_sha256(runtime_zip)
 
+    return app_zip, runtime_zip, app_targets, runtime_targets
+
+
+def _write_installed_manifest_into_dist(
+    version: str,
+    app_zip: Path,
+    runtime_zip: Path,
+) -> Path:
+    """把"出厂版本"的 .installed_manifest.json 直接写到 ``dist/StrangeUtaGame/_internal/``。
+
+    这样无论用户**怎么拿到**这一版（GitHub Web 下载全量 zip 解压、Updater 走全量、
+    Updater 走增量），开包后 ``_internal/`` 里都自带这份本地清单。下次升级时
+    Updater 读到清单就能直接走增量路径，**首次升级不再必走全量**。
+
+    生成的字段与 Updater 运行时 ``write_local_manifest`` 保持完全一致，避免一安装
+    完就被 Updater 覆写时格式漂移。
+    """
+    dist_root = MAIN_DIST
+    payload = {
+        "version": version,
+        "schema": 1,
+        "parts": {
+            "app": {"sha256": _sha256_of(app_zip), "asset": app_zip.name},
+            "runtime": {"sha256": _sha256_of(runtime_zip), "asset": runtime_zip.name},
+        },
+        "installed_at": int(_time.time()),
+    }
+    p = dist_root / "_internal" / ".installed_manifest.json"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    print(f"  ✓ 已写入出厂本地清单: {p.relative_to(dist_root.parent)}")
+    return p
+
+
+def _write_release_manifest(
+    version: str,
+    full_zip: Path,
+    app_zip: Path,
+    runtime_zip: Path,
+    app_targets: List[str],
+    runtime_targets: List[str],
+) -> Path:
+    """生成对外发布的 ``manifest-vX.Y.Z.json``（描述全量 + 两个 part + 各自 targets）。"""
+    parent = full_zip.parent
     manifest: Dict = {
         "version": version,
         "schema": 1,
@@ -377,10 +431,32 @@ def cmd_build() -> int:
     print(f"== build for v{version} ==")
     _ensure_updater_exe()
     _run_main_build()
+
+    # 关键顺序：
+    #   1) 先打 app + runtime part zip（不含 .installed_manifest.json）→ 算 sha256
+    #   2) 把 .installed_manifest.json 写到 dist/StrangeUtaGame/_internal/
+    #      ← 用上一步算出的 part sha256 填充。这样全量 zip / 用户首次安装都自带清单
+    #   3) 再打全量 zip（这次会一并打入 .installed_manifest.json）→ 算 sha256
+    #   4) 写对外发布的 manifest-vX.Y.Z.json
+    print()
+    print("[step] 打增量分包 part zip ...")
+    app_zip, runtime_zip, app_targets, runtime_targets = _pack_parts(version)
+
+    print()
+    print("[step] 写出厂本地清单到 _internal/.installed_manifest.json ...")
+    _write_installed_manifest_into_dist(version, app_zip, runtime_zip)
+
+    print()
+    print("[step] 打全量 zip（含本地清单）...")
     zip_path = _pack_zip(version)
     sha_path = _write_sha256(zip_path)
-    # 增量分包 + manifest（与全量 zip 并存，互相 fallback）
-    manifest_path = _build_parts_and_manifest(version, zip_path)
+
+    print()
+    print("[step] 写对外发布 manifest-vX.Y.Z.json ...")
+    manifest_path = _write_release_manifest(
+        version, zip_path, app_zip, runtime_zip, app_targets, runtime_targets,
+    )
+
     notes_path = _dump_release_notes(version)
 
     print()
@@ -397,7 +473,7 @@ def cmd_build() -> int:
     if notes_path:
         print(f"  - body：直接复制 {notes_path.relative_to(ROOT)} 全文")
     print(f"  - 资产（全部上传）：")
-    print(f"      • {zip_path.relative_to(ROOT)}            ← 全量包")
+    print(f"      • {zip_path.relative_to(ROOT)}            ← 全量包（自带 _internal/.installed_manifest.json）")
     print(f"      • {sha_path.relative_to(ROOT)}     ← 全量包校验")
     print(f"      • {manifest_path.relative_to(ROOT)}   ← 增量更新清单")
     parent = zip_path.parent
