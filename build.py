@@ -237,9 +237,9 @@ if _updater_pkg.is_dir():
     print(f"✓ strange_uta_game.updater 子包已收集（{_n} 文件）")
 else:
     print(
-        "✗ strange_uta_game.updater 子包未被打包！\n"
-        "  这将导致设置界面的"代理"和"更新"卡片消失，版本号不会刷新。\n"
-        "  请确认 build.py 中包含 --collect-submodules=strange_uta_game.updater。"
+        "✗ strange_uta_game.updater 子包未被打包!\n"
+        "  这将导致设置界面的代理和更新卡片消失, 版本号不会刷新.\n"
+        "  请确认 build.py 中包含 --collect-submodules=strange_uta_game.updater."
     )
 
 # 打包后的说明

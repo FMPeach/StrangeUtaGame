@@ -4,9 +4,10 @@ name: Release
 #
 # 工作流职责：
 #   1) 在 Windows runner 上还原 Python + 依赖
-#   2) 先打 Updater.exe，再打主程序，再打 zip
-#   3) 从 CHANGELOG.md 抽取对应版本段落
-#   4) 创建 GitHub Release 并上传 zip
+#   2) 同步版本号到 __version__.py
+#   3) 跑 scripts/release.py build（构建 Updater + 主程序 + 打包 + 自检）
+#   4) 从 CHANGELOG.md 抽取对应版本段落
+#   5) 创建 GitHub Release 并上传 zip
 #
 # 如果你只想本地发布，跑 ``python scripts/release.py all X.Y.Z``，不需要本工作流。
 
@@ -31,9 +32,6 @@ env:
 # 自 2023 年起，GitHub 新建仓库的默认 GITHUB_TOKEN 是「只读」，``softprops/action-gh-release``
 # 创建 Release / 上传 Asset 会被 GitHub API 以 ``403 Resource not accessible by integration``
 # 拒绝。这里显式声明 ``contents: write`` 即可解锁。
-#
-# 备选方案：到仓库 Settings → Actions → General → Workflow permissions 选
-# "Read and write permissions"。但当前显式写在工作流里更清楚，避免依赖仓库设置。
 permissions:
   contents: write
 
@@ -79,9 +77,6 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      # PyAV 在 Windows runner 上需要 ffmpeg；如果你的 requirements 已经声明 av，
-      # pip 会自动拉对应的 wheel；这里就不重复安装 ffmpeg。
-
       - name: Sync version
         shell: pwsh
         run: |
@@ -94,25 +89,12 @@ jobs:
             | Set-Content -LiteralPath $f -Encoding UTF8
           Get-Content $f | Select-String '__version__'
 
-      - name: Build Updater.exe
-        run: python updater_app/build_updater.py
-
-      - name: Build main app
-        run: python build.py
-
-      - name: Pack parts + installed manifest + full zip + release manifest
+      - name: Build (Updater + main app + pack parts + manifest + self-check)
         shell: pwsh
         run: |
           $OutputEncoding = [System.Text.UTF8Encoding]::new()
           [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-          # 直接复用 scripts/release.py 的 cmd_build 子逻辑，保证顺序严格一致：
-          #   1) 先打 app/runtime part-zip + 各自 .sha256
-          #   2) 把 _internal/.installed_manifest.json 写进 dist —— 让全量 zip 自带
-          #      本地清单，用户从 GitHub Web 直接下载解压安装也能享受增量
-          #   3) 再打全量 zip + .sha256
-          #   4) 写对外发布 manifest-vX.Y.Z.json
-          python -c "import sys; sys.path.insert(0, 'scripts'); import release; v=release._read_version(); (app_zip, rt_zip, app_t, rt_t) = release._pack_parts(v); release._write_installed_manifest_into_dist(v, app_zip, rt_zip); full = release._pack_zip(v); release._write_sha256(full); release._write_release_manifest(v, full, app_zip, rt_zip, app_t, rt_t)"
-          Get-ChildItem dist | Where-Object { $_.Name -match '^(StrangeUtaGame-v|manifest-v)' } | Format-Table Name, Length
+          python scripts/release.py build
 
       - name: Extract release notes
         shell: pwsh
