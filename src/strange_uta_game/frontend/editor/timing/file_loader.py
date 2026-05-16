@@ -469,6 +469,9 @@ class FileLoader:
             for s in sentences:
                 self._project.sentences.append(s)
 
+            # 应用全局偏移到新添加的字符
+            self._editor._reapply_global_offset()
+
             # 重建引擎状态
             if self._timing_service:
                 self._timing_service.set_project(self._project)
