@@ -307,7 +307,7 @@ class AppSettings:
             with open(packaged_dict_path, "r", encoding="utf-8") as f:
                 packaged_entries = json.load(f)
         except Exception as e:
-            print(f"读取内置词典失败: {e}")
+            print(f"Failed to read packaged dictionary: {e}")
             return
 
         # 加载用户词典（如果存在）
@@ -352,10 +352,8 @@ class AppSettings:
         try:
             self.save_dictionary(user_entries)
         except Exception as e:
-            print(f"保存合并词典失败: {e}")
+            print(f"Failed to save merged dictionary: {e}")
             return
-
-        print(f"词典合并完成: 更新 {updated} 条，新增 {added} 条")
 
         # 写入已应用版本号到用户 config.json
         self._settings["applied_dictionary_version"] = packaged_version
@@ -364,7 +362,7 @@ class AppSettings:
         try:
             self._save_json(self._config_path, self._settings)
         except Exception as e:
-            print(f"写入 applied_dictionary_version 失败: {e}")
+            print(f"Failed to write applied_dictionary_version: {e}")
 
     def _ensure_default_dictionary(self) -> None:
         """首次启动时，将内置 RL 字典固化为默认 dictionary.json。"""

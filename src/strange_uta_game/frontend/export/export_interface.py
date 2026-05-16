@@ -371,6 +371,11 @@ class ExportInterface(QWidget):
         for chk in self._singer_checkboxes:
             if chk.isChecked():
                 selected.add(chk.property("singer_id"))
+        if selected and self._project:
+            for s in self._project.singers:
+                if s.is_default:
+                    selected.add(s.id)
+                    break
         return selected if selected else None
 
     def _get_singer_map(self) -> Dict[str, str]:

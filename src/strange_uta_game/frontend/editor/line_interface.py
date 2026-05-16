@@ -788,8 +788,12 @@ class EditInterface(QWidget):
             return
 
         sentences = self.project.sentences
-        total_lines = len(sentences)
-        completed_lines = sum(1 for s in sentences if s.is_fully_timed())
+        meaningful_lines = [
+            s for s in sentences
+            if sum(c.total_timing_points for c in s.characters) > 0
+        ]
+        total_lines = len(meaningful_lines)
+        completed_lines = sum(1 for s in meaningful_lines if s.is_fully_timed())
         progress = (completed_lines / total_lines * 100) if total_lines > 0 else 0
 
         self.stats_label.setText(

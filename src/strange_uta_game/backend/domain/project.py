@@ -478,26 +478,35 @@ class Project:
         return -1
 
     def get_timing_statistics(self) -> Dict[str, Any]:
-        """获取打轴统计信息"""
-        total_chars = sum(len(s.characters) for s in self.sentences)
+        """获取打轴统计信息
+
+        只统计有实际打轴工作的行（总打轴点数 > 0），空白行和纯占位行不计入。
+        """
+        meaningful_lines = [
+            s for s in self.sentences
+            if sum(c.total_timing_points for c in s.characters) > 0
+        ]
+
+        total_chars = sum(len(s.characters) for s in meaningful_lines)
         total_timetags = sum(
-            sum(len(c.all_timestamps) for c in s.characters) for s in self.sentences
+            sum(len(c.all_timestamps) for c in s.characters) for s in meaningful_lines
         )
         total_checkpoints = sum(
-            sum(c.total_timing_points for c in s.characters) for s in self.sentences
+            sum(c.total_timing_points for c in s.characters) for s in meaningful_lines
         )
 
-        completed = sum(1 for s in self.sentences if s.is_fully_timed())
+        completed = sum(1 for s in meaningful_lines if s.is_fully_timed())
+        meaningful_count = len(meaningful_lines)
 
         return {
-            "total_lines": len(self.sentences),
+            "total_lines": meaningful_count,
             "total_singers": len(self.singers),
             "total_chars": total_chars,
             "total_timetags": total_timetags,
             "total_checkpoints": total_checkpoints,
             "completed_lines": completed,
             "completion_rate": (
-                completed / len(self.sentences) if self.sentences else 0
+                completed / meaningful_count if meaningful_count > 0 else 0
             ),
             "timing_progress": f"{total_timetags}/{total_checkpoints}",
         }

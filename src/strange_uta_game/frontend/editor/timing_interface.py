@@ -3779,8 +3779,12 @@ class EditorInterface(QWidget):
         if not self._project:
             self.lbl_progress.setText("行: 0/0 | 进度: 0%")
             return
-        total = len(self._project.sentences)
-        timed = sum(1 for s in self._project.sentences if s.has_timetags)
+        meaningful_lines = [
+            s for s in self._project.sentences
+            if sum(c.total_timing_points for c in s.characters) > 0
+        ]
+        total = len(meaningful_lines)
+        timed = sum(1 for s in meaningful_lines if s.has_timetags)
         pct = int(timed / total * 100) if total > 0 else 0
         self.lbl_progress.setText(f"行: {total} | 已打轴: {timed}/{total} ({pct}%)")
 

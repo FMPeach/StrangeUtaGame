@@ -361,6 +361,9 @@ class Sentence:
         """检查是否所有字符的节奏点都已打轴"""
         if not self.characters:
             return False
+        total_pts = sum(c.total_timing_points for c in self.characters)
+        if total_pts == 0:
+            return False
         return all(c.is_fully_timed for c in self.characters)
 
     def get_timing_progress(self) -> tuple[int, int]:
