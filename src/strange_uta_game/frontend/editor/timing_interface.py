@@ -617,21 +617,36 @@ class EditorInterface(QWidget):
 
     def set_project(self, project: Project):
         self._project = project
-        self.preview.set_project(project)
+        # 获取AppSettings实例（与_apply_settings使用同一个）
+        app_settings = None
+        try:
+            main_window = self.window()
+            setting_iface = getattr(main_window, "settingInterface", None)
+            if setting_iface:
+                app_settings = setting_iface.get_settings()
+        except Exception:
+            pass
         # 从项目读取全局偏移，若为None则使用config中的值（兼容旧版.sug）
         offset = project.global_offset_ms
         if offset is None:
-            try:
-                from strange_uta_game.frontend.settings.settings_interface import (
-                    AppSettings,
-                )
-                app_settings = AppSettings()
-                offset = app_settings.get("export.offset_ms", 0)
-            except Exception:
-                offset = 0
+            offset = app_settings.get("export.offset_ms", 0) if app_settings else 0
             # 写入project，保存时旧sug自动升级
             project.global_offset_ms = offset
-        # 应用偏移到所有字符
+        else:
+            # 项目有偏移量，同步到config.json
+            if app_settings:
+                app_settings.set("export.offset_ms", offset)
+                app_settings.save()
+            InfoBar.success(
+                title="已应用项目全局偏移",
+                content=f"从项目读取到全局偏移: {offset}ms，已同步到设置",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=3000,
+                parent=self,
+            )
+        # 先应用偏移到所有字符，再设置到preview（预渲染缓存会使用global_timestamps）
         for sentence in project.sentences:
             for ch in sentence.characters:
                 ch.set_offset(offset)
@@ -640,6 +655,8 @@ class EditorInterface(QWidget):
         self.toolbar.edit_offset.blockSignals(True)
         self.toolbar.edit_offset.setText(str(offset))
         self.toolbar.edit_offset.blockSignals(False)
+        # 设置到preview（会触发预渲染，此时global_timestamps已正确）
+        self.preview.set_project(project)
         self._apply_checkpoint_position(
             self._timing_service.get_current_position()
             if self._timing_service
