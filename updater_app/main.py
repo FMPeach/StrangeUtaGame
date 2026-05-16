@@ -279,45 +279,96 @@ def _is_pid_alive(pid: int) -> bool:
         return False
 
 
+# 下载失败重试次数
+DOWNLOAD_RETRY_COUNT = 3
+# 下载重试间隔（秒）
+DOWNLOAD_RETRY_INTERVAL = 2.0
+
+
 def download_one(
     url: str,
     dest: Path,
     proxies: Optional[dict],
     log: logging.Logger,
 ) -> Tuple[bool, str]:
-    """下载一个 URL；返回 ``(ok, error_message)``。"""
-    try:
-        with requests.get(
-            url,
-            headers={"User-Agent": DEFAULT_USER_AGENT, "Accept": "*/*"},
-            stream=True,
-            proxies=proxies,
-            timeout=(10, 60),
-            allow_redirects=True,
-        ) as resp:
-            if resp.status_code != 200:
-                return False, f"HTTP {resp.status_code}"
-            total = int(resp.headers.get("Content-Length") or 0)
-            done = 0
-            last_pct = -1
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            with open(dest, "wb") as f:
-                for chunk in resp.iter_content(CHUNK_SIZE):
-                    if not chunk:
+    """下载一个 URL；支持断点续传和重试；返回 ``(ok, error_message)``。"""
+    last_error = ""
+    for attempt in range(1, DOWNLOAD_RETRY_COUNT + 1):
+        try:
+            # 检查本地是否已有部分下载的文件
+            existing_size = 0
+            if dest.exists():
+                existing_size = dest.stat().st_size
+                if attempt == 1:
+                    log.info("  发现已下载部分: %.1f MB，尝试续传", existing_size / 1024 / 1024)
+
+            # 构建请求头，支持断点续传
+            headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "*/*"}
+            if existing_size > 0:
+                headers["Range"] = f"bytes={existing_size}-"
+
+            with requests.get(
+                url,
+                headers=headers,
+                stream=True,
+                proxies=proxies,
+                timeout=(10, 60),
+                allow_redirects=True,
+            ) as resp:
+                # 处理服务器不支持 Range 请求的情况
+                if existing_size > 0 and resp.status_code == 200:
+                    # 服务器不支持 Range 请求，重新下载
+                    log.info("  服务器不支持断点续传，重新下载")
+                    existing_size = 0
+                elif resp.status_code == 206:
+                    # 服务器支持 Range 请求，继续下载
+                    if attempt == 1:
+                        log.info("  服务器支持断点续传，从 %.1f MB 处继续", existing_size / 1024 / 1024)
+                elif resp.status_code != 200:
+                    last_error = f"HTTP {resp.status_code}"
+                    if attempt < DOWNLOAD_RETRY_COUNT:
+                        log.warning("  下载失败: %s，%.1fs 后重试 (%d/%d)",
+                                   last_error, DOWNLOAD_RETRY_INTERVAL, attempt, DOWNLOAD_RETRY_COUNT)
+                        time.sleep(DOWNLOAD_RETRY_INTERVAL)
                         continue
-                    f.write(chunk)
-                    done += len(chunk)
-                    if total > 0:
-                        pct = int(done * 100 / total)
-                        if pct >= last_pct + 5:
-                            log.info("  下载中: %3d%%  (%.1f / %.1f MB)",
-                                     pct, done / 1024 / 1024, total / 1024 / 1024)
-                            last_pct = pct
-        return True, ""
-    except requests.RequestException as e:
-        return False, f"网络异常: {e}"
-    except OSError as e:
-        return False, f"写文件失败: {e}"
+                    return False, last_error
+
+                total = int(resp.headers.get("Content-Length") or 0)
+                # 如果是续传，total 是剩余大小，需要加上已下载的
+                if existing_size > 0 and resp.status_code == 206:
+                    total += existing_size
+                done = existing_size
+                last_pct = -1
+                dest.parent.mkdir(parents=True, exist_ok=True)
+
+                # 以追加模式打开文件（如果是续传）或写入模式（如果是新下载）
+                mode = "ab" if existing_size > 0 and resp.status_code == 206 else "wb"
+                with open(dest, mode) as f:
+                    for chunk in resp.iter_content(CHUNK_SIZE):
+                        if not chunk:
+                            continue
+                        f.write(chunk)
+                        done += len(chunk)
+                        if total > 0:
+                            pct = int(done * 100 / total)
+                            if pct >= last_pct + 5:
+                                log.info("  下载中: %3d%%  (%.1f / %.1f MB)",
+                                         pct, done / 1024 / 1024, total / 1024 / 1024)
+                                last_pct = pct
+            return True, ""
+        except requests.RequestException as e:
+            last_error = f"网络异常: {e}"
+        except OSError as e:
+            last_error = f"写文件失败: {e}"
+
+        if attempt < DOWNLOAD_RETRY_COUNT:
+            log.warning("  下载失败: %s，%.1fs 后重试 (%d/%d)",
+                       last_error, DOWNLOAD_RETRY_INTERVAL, attempt, DOWNLOAD_RETRY_COUNT)
+            time.sleep(DOWNLOAD_RETRY_INTERVAL)
+        else:
+            log.error("  下载失败，已重试 %d 次: %s", DOWNLOAD_RETRY_COUNT, last_error)
+
+    return False, last_error
 
 
 def try_download_from_sources(
@@ -758,11 +809,7 @@ def _download_part(
 
     dest = work_dir / "parts" / asset_name
     dest.parent.mkdir(parents=True, exist_ok=True)
-    if dest.exists():
-        try:
-            dest.unlink()
-        except OSError:
-            pass
+    # 不再删除已存在的部分下载文件，让 download_one 处理断点续传
 
     log.info("下载 part %s（预期 %.1f MB）", part_id, expected_size / 1024 / 1024 if expected_size else 0)
     for src_id, url in candidates:
@@ -1023,11 +1070,7 @@ def run(args: Args) -> int:
 
     # ───── 2b. 全量更新 fallback ─────
     download_path = work_dir / "download" / args.asset_name
-    if download_path.exists():
-        try:
-            download_path.unlink()
-        except OSError:
-            pass
+    # 不再删除已存在的部分下载文件，让 download_one 处理断点续传
     ok, success_url = try_download_from_sources(args, download_path, log)
     if not ok:
         log.error("所有源均下载失败")

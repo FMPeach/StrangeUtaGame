@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
@@ -22,6 +23,10 @@ import requests
 DEFAULT_TIMEOUT: Tuple[float, float] = (10.0, 30.0)
 # 下载流的 chunk 大小。
 CHUNK_SIZE = 64 * 1024
+# 下载失败重试次数。
+DOWNLOAD_RETRY_COUNT = 3
+# 下载重试间隔（秒）。
+DOWNLOAD_RETRY_INTERVAL = 2.0
 
 UA = (
     "StrangeUtaGame-Updater/{ver} (+https://github.com/Xuan-cc/StrangeUtaGame)"
@@ -110,7 +115,7 @@ def download(
     progress_cb: Optional[Callable[[int, int], None]] = None,
     cancel_check: Optional[Callable[[], bool]] = None,
 ) -> HttpResult:
-    """流式下载到 ``dest_path``。
+    """流式下载到 ``dest_path``，支持断点续传和重试。
 
     Args:
         progress_cb: ``(bytes_done, bytes_total)``；total 未知时为 ``0``。
@@ -118,41 +123,78 @@ def download(
 
     成功时返回 ``HttpResult.file_path`` 指向已写入的文件。
     """
-    try:
-        with requests.get(
-            url,
-            headers=_headers(),
-            proxies=proxies,
-            timeout=timeout,
-            allow_redirects=True,
-            stream=True,
-        ) as resp:
-            if resp.status_code != 200:
-                return HttpResult(
-                    ok=False,
-                    status=resp.status_code,
-                    error=f"HTTP {resp.status_code}",
-                )
-            total = int(resp.headers.get("Content-Length") or 0)
-            done = 0
-            with open(dest_path, "wb") as f:
-                for chunk in resp.iter_content(CHUNK_SIZE):
-                    if cancel_check and cancel_check():
-                        return HttpResult(ok=False, error="用户取消")
-                    if not chunk:
+    import os
+
+    last_error = ""
+    for attempt in range(1, DOWNLOAD_RETRY_COUNT + 1):
+        try:
+            # 检查本地是否已有部分下载的文件
+            existing_size = 0
+            if os.path.exists(dest_path):
+                existing_size = os.path.getsize(dest_path)
+
+            # 构建请求头，支持断点续传
+            headers = _headers()
+            if existing_size > 0:
+                headers["Range"] = f"bytes={existing_size}-"
+
+            with requests.get(
+                url,
+                headers=headers,
+                proxies=proxies,
+                timeout=timeout,
+                allow_redirects=True,
+                stream=True,
+            ) as resp:
+                # 处理服务器不支持 Range 请求的情况
+                if existing_size > 0 and resp.status_code == 200:
+                    # 服务器不支持 Range 请求，重新下载
+                    existing_size = 0
+                elif resp.status_code == 206:
+                    # 服务器支持 Range 请求，继续下载
+                    pass
+                elif resp.status_code != 200:
+                    last_error = f"HTTP {resp.status_code}"
+                    if attempt < DOWNLOAD_RETRY_COUNT:
+                        time.sleep(DOWNLOAD_RETRY_INTERVAL)
                         continue
-                    f.write(chunk)
-                    done += len(chunk)
-                    if progress_cb:
-                        try:
-                            progress_cb(done, total)
-                        except Exception:
-                            pass
-    except requests.RequestException as e:
-        return HttpResult(ok=False, error=f"网络错误: {e}")
-    except OSError as e:
-        return HttpResult(ok=False, error=f"写文件失败: {e}")
-    return HttpResult(ok=True, status=200, file_path=dest_path)
+                    return HttpResult(
+                        ok=False,
+                        status=resp.status_code,
+                        error=last_error,
+                    )
+
+                total = int(resp.headers.get("Content-Length") or 0)
+                # 如果是续传，total 是剩余大小，需要加上已下载的
+                if existing_size > 0 and resp.status_code == 206:
+                    total += existing_size
+                done = existing_size
+
+                # 以追加模式打开文件（如果是续传）或写入模式（如果是新下载）
+                mode = "ab" if existing_size > 0 and resp.status_code == 206 else "wb"
+                with open(dest_path, mode) as f:
+                    for chunk in resp.iter_content(CHUNK_SIZE):
+                        if cancel_check and cancel_check():
+                            return HttpResult(ok=False, error="用户取消")
+                        if not chunk:
+                            continue
+                        f.write(chunk)
+                        done += len(chunk)
+                        if progress_cb:
+                            try:
+                                progress_cb(done, total)
+                            except Exception:
+                                pass
+            return HttpResult(ok=True, status=200, file_path=dest_path)
+        except requests.RequestException as e:
+            last_error = f"网络错误: {e}"
+        except OSError as e:
+            last_error = f"写文件失败: {e}"
+
+        if attempt < DOWNLOAD_RETRY_COUNT:
+            time.sleep(DOWNLOAD_RETRY_INTERVAL)
+
+    return HttpResult(ok=False, error=last_error)
 
 
 # ───────────────────────── 多源接力 ─────────────────────────
