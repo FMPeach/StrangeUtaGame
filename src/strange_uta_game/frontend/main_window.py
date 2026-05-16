@@ -121,17 +121,10 @@ class MainWindow(MSFluentWindow):
 
         # 设置窗口图标（左上角 + 任务栏）
         from PyQt6.QtGui import QIcon
-        from PyQt6.QtWidgets import QApplication
 
         icon_path = self._find_icon_path()
         if icon_path:
-            icon = QIcon(icon_path)
-            self.setWindowIcon(icon)
-            # 同时设置 QApplication 图标，确保任务栏图标正确显示
-            # qfluentwidgets 的 setTheme/setThemeColor 可能重置应用图标，
-            # 在窗口初始化结束后再强制设置一次。
-            QApplication.instance().setWindowIcon(icon)
-            QTimer.singleShot(0, lambda: QApplication.instance().setWindowIcon(icon))
+            self.setWindowIcon(QIcon(icon_path))
 
         # 居中
         screen = QApplication.primaryScreen()

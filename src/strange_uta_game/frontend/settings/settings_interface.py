@@ -122,7 +122,8 @@ class SettingsInterface(ScrollArea):
         super().__init__(parent)
         self._store = None
         self._settings = AppSettings()
-        self._initialized = False
+        self._initialized = False       # True = _preload 已调度（但可能还未完成）
+        self._fully_initialized = False  # True = 所有子页面全部创建并连接完毕
 
         # 防抖自动保存定时器
         self._auto_save_timer = QTimer(self)
@@ -149,8 +150,11 @@ class SettingsInterface(ScrollArea):
         self._init_widget()
         self._init_layout()
 
-        # 在主事件循环空闲时预载子页面（不阻塞 MainWindow 初始化）
-        QTimer.singleShot(0, self._preload)
+        # 在主事件循环空闲时预载子页面（不阻塞 MainWindow 初始化）。
+        # 注意：不能用 singleShot(0)，那会在 MSFluentWindow.showEvent 处理期间
+        # 触发大量子控件创建，导致窗口重新布局重置任务栏图标。
+        # 用 500ms 延迟确保窗口完全显示稳定后再初始化。
+        QTimer.singleShot(500, self._preload)
 
     # ── 初始化 ────────────────────────────────────────────────────────
 
@@ -183,23 +187,32 @@ class SettingsInterface(ScrollArea):
         self.stackedWidget.setCurrentIndex(0)
 
     def _preload(self):
-        """在主事件循环空闲时创建所有子页面并初始化数据（只执行一次）。"""
+        """分批创建子页面，每批之间让事件循环有机会处理消息，避免阻塞 UI。"""
         if self._initialized:
             return
         self._initialized = True
 
-        # 创建子页面
+        # 第一批：创建子页面实例（分两次，每次让出事件循环）
         self.playbackInterface  = PlaybackSubInterface(self)
         self.timingInterface    = TimingSubInterface(self)
         self.autoSaveInterface  = AutoSaveSubInterface(self)
         self.autoCheckInterface = AutoCheckSubInterface(self)
         self.dictionaryInterface= DictionarySubInterface(self)
+
+        QTimer.singleShot(0, self._preload_second_batch)
+
+    def _preload_second_batch(self):
+        """第二批：创建剩余子页面。"""
         self.uiInterface        = UISubInterface(self)
         self.exportInterface    = ExportSubInterface(self)
         self.shortcutInterface  = ShortcutSubInterface(self)
         self.networkInterface   = NetworkSubInterface(self)
         self.aboutInterface     = AboutSubInterface(self)
 
+        QTimer.singleShot(0, self._preload_finalize)
+
+    def _preload_finalize(self):
+        """第三批：连接信号、加载设置、注入 updater UI。"""
         # 把所有子页面按顺序加入 stackedWidget
         for iface in [
             self.playbackInterface, self.timingInterface, self.autoSaveInterface,
@@ -233,6 +246,8 @@ class SettingsInterface(ScrollArea):
         # 注入 updater UI（只在初始化阶段执行一次）
         self.networkInterface.attach_updater_ui(self._settings)
 
+        self._fully_initialized = True
+
     # ── 选项卡切换 ────────────────────────────────────────────────────
 
     def _on_tab_changed(self, routeKey: str):
@@ -244,7 +259,7 @@ class SettingsInterface(ScrollArea):
     def set_store(self, store):
         """由 MainWindow 注入 ProjectStore。"""
         self._store = store
-        if self._initialized:
+        if self._fully_initialized:
             self.uiInterface.set_store(store)
 
     def get_settings(self) -> AppSettings:
@@ -253,7 +268,7 @@ class SettingsInterface(ScrollArea):
     def reload_from_disk(self):
         """从磁盘重新加载配置并刷新 UI（由 MainWindow.switchTo 调用）。"""
         self._settings.reload()
-        if self._initialized:
+        if self._fully_initialized:
             self._load_current_settings()
 
     # ── 自动保存 ──────────────────────────────────────────────────────
@@ -264,7 +279,7 @@ class SettingsInterface(ScrollArea):
         self._auto_save_timer.start()
 
     def _do_auto_save(self):
-        if not self._initialized:
+        if not self._fully_initialized:
             return
         self._collect_settings()
         self._settings.save()
@@ -308,14 +323,14 @@ class SettingsInterface(ScrollArea):
     # ── 事件 ──────────────────────────────────────────────────────────
 
     def showEvent(self, a0):
-        """切换到设置页面时刷新数据（已初始化才刷新）。"""
-        if self._initialized:
+        """切换到设置页面时刷新数据（完全初始化后才刷新）。"""
+        if self._fully_initialized:
             self._load_current_settings()
         super().showEvent(a0)
 
     def hideEvent(self, a0):
         """离开设置页面时：关闭校准弹窗、flush 未完成的自动保存。"""
-        if self._initialized:
+        if self._fully_initialized:
             self.timingInterface.close_calibration()
             if self._auto_save_timer.isActive():
                 self._auto_save_timer.stop()

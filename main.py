@@ -10,6 +10,17 @@ from pathlib import Path
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
+# 设置 Windows 任务栏图标（AppUserModelID）必须在 QApplication 创建之前调用
+if sys.platform == "win32":
+    try:
+        import ctypes
+
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+            "xuancc.strangeutagame.app.1"
+        )
+    except Exception:
+        pass
+
 # 必须先创建 QApplication，再导入任何 QWidget
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
@@ -23,18 +34,7 @@ QApplication.setHighDpiScaleFactorRoundingPolicy(
 # 创建应用实例
 app = QApplication(sys.argv)
 
-# 设置 Windows 任务栏图标（AppUserModelID）
-if sys.platform == "win32":
-    try:
-        import ctypes
-
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-            "xuancc.strangeutagame.app.1"
-        )
-    except Exception:
-        pass
-
-# 设置应用图标
+# 确定图标路径（后续多次使用）
 _icon_path = (
     Path(__file__).parent / "src" / "strange_uta_game" / "resource" / "icon.ico"
 )
@@ -42,8 +42,6 @@ if not _icon_path.exists():
     # PyInstaller 打包后的路径
     _base = getattr(sys, "_MEIPASS", Path(__file__).parent)
     _icon_path = Path(_base) / "strange_uta_game" / "resource" / "icon.ico"
-if _icon_path.exists():
-    app.setWindowIcon(QIcon(str(_icon_path)))
 
 # 初始化主题管理器（必须在创建主窗口之前）
 from strange_uta_game.frontend.theme import theme
@@ -60,8 +58,54 @@ mode_map = {
 }
 theme.mode = mode_map.get(theme_value, ThemeMode.AUTO)
 
+# 在主题初始化完成后设置应用图标，避免 setTheme 内部重置图标
+if _icon_path.exists():
+    app.setWindowIcon(QIcon(str(_icon_path)))
+
 # 现在可以安全导入其他模块
 from strange_uta_game.frontend.main_window import MainWindow
+
+
+def _force_taskbar_icon(window, icon_path: Path) -> None:
+    """在窗口显示后强制刷新 Windows 任务栏图标。
+
+    Qt 的 setWindowIcon 在 python.exe 宿主进程下有时无法正确更新任务栏，
+    需要直接通过 Win32 API 向 HWND 发送 WM_SETICON 并通知 Shell 刷新。
+    """
+    if sys.platform != "win32" or not icon_path.exists():
+        return
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        user32 = ctypes.windll.user32
+        shell32 = ctypes.windll.shell32
+
+        # 加载图标（大图标 32x32，小图标 16x16）
+        LR_LOADFROMFILE = 0x0010
+        IMAGE_ICON = 1
+        hicon_big = user32.LoadImageW(
+            None, str(icon_path), IMAGE_ICON, 32, 32, LR_LOADFROMFILE
+        )
+        hicon_small = user32.LoadImageW(
+            None, str(icon_path), IMAGE_ICON, 16, 16, LR_LOADFROMFILE
+        )
+
+        hwnd = int(window.winId())
+        WM_SETICON = 0x0080
+        ICON_SMALL = 0
+        ICON_BIG = 1
+        if hicon_big:
+            user32.SendMessageW(hwnd, WM_SETICON, ICON_BIG, hicon_big)
+        if hicon_small:
+            user32.SendMessageW(hwnd, WM_SETICON, ICON_SMALL, hicon_small)
+
+        # 通知 Shell 图标已更改，强制刷新任务栏
+        SHCNE_ASSOCCHANGED = 0x08000000
+        SHCNF_IDLIST = 0x0000
+        shell32.SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, None, None)
+    except Exception:
+        pass
 
 
 def main():
@@ -77,10 +121,15 @@ def main():
     window = MainWindow()
     window.show()
 
+    from PyQt6.QtCore import QTimer
+
+    # 在事件循环启动后强制补设图标：
+    # QTimer.singleShot(0, _preload) 会在第一个 tick 运行并可能重置图标，
+    # 用 100ms 延迟确保在 _preload 之后再补设一次。
+    QTimer.singleShot(100, lambda: _force_taskbar_icon(window, _icon_path))
+
     # 如果有命令行传入的项目文件，延迟加载（等事件循环启动后执行）
     if initial_project:
-        from PyQt6.QtCore import QTimer
-
         QTimer.singleShot(200, lambda: window.open_initial_project(initial_project))
 
     # 运行应用
