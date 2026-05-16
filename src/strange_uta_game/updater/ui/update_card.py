@@ -109,8 +109,10 @@ class _SourceOrderCard(SettingCard):
                 short.append("GitHub")
             elif sid == "ghproxy":
                 short.append("GHProxy")
-            elif sid == "fastgit":
-                short.append("FastGit")
+            elif sid == "gh-proxy":
+                short.append("GH-Proxy")
+            elif sid == "ghproxy-net":
+                short.append("GHProxy.net")
             else:
                 short.append(sid)
         self.setContent(" → ".join(short))

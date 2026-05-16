@@ -226,7 +226,7 @@
     "enabled": true,
     "check_on_startup": true,
     "min_check_interval_hours": 8,
-    "source_order": ["github", "ghproxy", "fastgit"],
+    "source_order": ["github", "ghproxy", "gh-proxy", "ghproxy-net"],
     "proxy": {
       "mode": "system",
       "manual_url": ""

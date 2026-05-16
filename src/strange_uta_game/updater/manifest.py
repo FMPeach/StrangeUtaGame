@@ -169,7 +169,7 @@ def override_asset_urls(
     """把 release 的资产下载 URL 替换为指定源的 URL。
 
     GitHub Release JSON 里的 ``browser_download_url`` 永远是 github.com 的，但
-    用户走 ``ghproxy`` / ``fastgit`` 下载时需要把 URL 改写。
+    用户走 ``ghproxy`` / ``gh-proxy`` 等反代下载时需要把 URL 改写。
     """
     new_assets: List[ReleaseAsset] = []
     for a in release.assets:
