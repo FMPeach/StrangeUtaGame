@@ -936,6 +936,7 @@ class EditorInterface(QWidget):
                 self._update_time_tags_display()
                 self._apply_checkpoint_position(self._timing_service.get_current_position())
                 self._update_status()
+            self._sync_focus_from_timing_service()
 
     def _on_redo(self):
         if self._timing_service and self._timing_service.can_redo():
@@ -951,6 +952,13 @@ class EditorInterface(QWidget):
                 self._update_time_tags_display()
                 self._apply_checkpoint_position(self._timing_service.get_current_position())
                 self._update_status()
+            self._sync_focus_from_timing_service()
+
+    def _sync_focus_from_timing_service(self):
+        """将 TimingService 当前位置同步到 focus 域。"""
+        if self._timing_service:
+            pos = self._timing_service.get_current_position()
+            self.preview.set_focus_position(pos.line_idx, pos.char_idx)
 
     def _on_bulk_change(self):
         """Ctrl+H — 打开批量変更对话框，自动填充当前焦点字符的连词或划选区域"""
@@ -1731,31 +1739,41 @@ class EditorInterface(QWidget):
         ):
             return
 
-        sentence = self._project.sentences[line_idx]
+        project = self._project
 
-        # 更新选中范围内每个字符的 singer_id
-        for ci in range(start_char, end_char + 1):
-            if ci < len(sentence.characters):
-                sentence.characters[ci].singer_id = singer_id
-                sentence.characters[ci].push_to_ruby()
+        def _mutate():
+            sentence = project.sentences[line_idx]
+            changed = False
 
-        # 如果选中了整行，也更新 sentence.singer_id
-        if start_char == 0 and end_char >= len(sentence.chars) - 1:
-            sentence.singer_id = singer_id
+            for ci in range(start_char, end_char + 1):
+                if ci < len(sentence.characters):
+                    ch = sentence.characters[ci]
+                    if ch.singer_id != singer_id:
+                        ch.singer_id = singer_id
+                        ch.push_to_ruby()
+                        changed = True
 
-        if hasattr(self, "_store") and self._store:
-            self._store.notify("lyrics")
-        self.preview.update()
+            if start_char == 0 and end_char >= len(sentence.chars) - 1:
+                if sentence.singer_id != singer_id:
+                    sentence.singer_id = singer_id
+                    changed = True
 
-        InfoBar.success(
-            title="演唱者已更新",
-            content=f"已将第 {line_idx + 1} 行第 {start_char + 1}~{end_char + 1} 字的演唱者更改",
-            orient=Qt.Orientation.Horizontal,
-            isClosable=True,
-            position=InfoBarPosition.TOP,
-            duration=2000,
-            parent=self,
-        )
+            if not changed:
+                return None
+            return line_idx, start_char, None, "lyrics"
+
+        ok = self._execute_structural_edit("划选设置演唱者", _mutate)
+
+        if ok:
+            InfoBar.success(
+                title="演唱者已更新",
+                content=f"已将第 {line_idx + 1} 行第 {start_char + 1}~{end_char + 1} 字的演唱者更改",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2000,
+                parent=self,
+            )
 
     def load_audio(self, file_path: str) -> bool:
         if not self._timing_service:
@@ -2129,13 +2147,41 @@ class EditorInterface(QWidget):
         sentence = self._project.sentences[line_idx]
         if char_idx >= len(sentence.chars):
             return
+
+        before_sentences = deepcopy(self._project.sentences)
+
         dialog = CharEditDialog(sentence, char_idx, self)
         dialog.exec()
         if dialog.was_modified():
+            command_manager = None
+            if self._timing_service:
+                command_manager = self._timing_service.command_manager
+            if command_manager is not None:
+                after_sentences = deepcopy(self._project.sentences)
+                # 用连词范围的起始字符描述
+                word_start, word_end = sentence.get_word_char_range(char_idx)
+                if word_end - word_start > 1:
+                    desc = f"编辑连词（第 {line_idx + 1} 句 第 {word_start + 1}-{word_end} 字）"
+                else:
+                    desc = f"编辑字符（第 {line_idx + 1} 句 第 {char_idx + 1} 字）"
+                cmd = SentenceSnapshotCommand(
+                    self._project,
+                    before_sentences,
+                    after_sentences,
+                    desc,
+                )
+                cursor_pos = (self._current_line_idx, self.preview._current_char_idx)
+                cmd.undo_position = cursor_pos
+                cmd.redo_position = cursor_pos
+                command_manager.execute(cmd)
+
+            self._reapply_global_offset()
+            if self._timing_service:
+                self._timing_service.rebuild_global_checkpoints()
             self.preview._update_display()
             self._update_time_tags_display()
             self._update_status()
-            if hasattr(self, "_store"):
+            if hasattr(self, "_store") and self._store:
                 self._store.notify("rubies")
                 self._store.notify("checkpoints")
                 self._store.notify("lyrics")
@@ -2274,6 +2320,7 @@ class EditorInterface(QWidget):
 
         self._update_selected_checkpoint(line_idx, char_idx, checkpoint_idx)
         self.preview.set_current_position(line_idx, char_idx)
+        self.preview.set_focus_position(line_idx, char_idx)
         self._current_line_idx = line_idx
 
         if self._timing_service and sentence.characters:
@@ -3743,34 +3790,30 @@ class EditorInterface(QWidget):
                 user_dictionary=user_dict,
                 annotate_katakana_with_english=annotate_katakana_with_english,
             )
-            # apply_user_dict=False：先分析注音，推迟用户词典覆盖（Phase 5）
-            # 到按类型删除注音之后，确保用户词典不会被删除操作误删
             delete_types = auto_check_flags.get("delete_ruby_types", [])
-            auto_check.apply_to_project(
-                self._project,
-                only_noruby=only_noruby,
-                apply_user_dict=not bool(delete_types),
-            )
-            auto_check.update_checkpoints_for_project(self._project)
 
-            # 自动删除指定类型的注音（在用户词典覆盖之前）
-            deleted_count = 0
-            if delete_types:
-                deleted_count = delete_rubies_by_type_names(
-                    self._project, delete_types
+            deleted_count = [0]
+
+            def _mutate():
+                auto_check.apply_to_project(
+                    self._project,
+                    only_noruby=only_noruby,
+                    apply_user_dict=not bool(delete_types),
                 )
-                # 删除注音后再应用用户词典覆盖（Phase 5）
-                auto_check.apply_user_dict_to_project(self._project)
+                auto_check.update_checkpoints_for_project(self._project)
+                if delete_types:
+                    deleted_count[0] = delete_rubies_by_type_names(
+                        self._project, delete_types
+                    )
+                    auto_check.apply_user_dict_to_project(self._project)
+                return (self._current_line_idx, self.preview._current_char_idx, None, "rubies")
 
-            self.refresh_lyric_display()
-            if hasattr(self, "_store") and self._store:
-                self._store.notify("rubies")
-                self._store.notify("checkpoints")
+            self._execute_structural_edit("注音分析", _mutate)
 
-            if deleted_count > 0:
+            if deleted_count[0] > 0:
                 InfoBar.success(
                     title="注音分析完成",
-                    content=f"已重新分析注音，并自动删除了 {deleted_count} 个注音",
+                    content=f"已重新分析注音，并自动删除了 {deleted_count[0]} 个注音",
                     orient=Qt.Orientation.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP,

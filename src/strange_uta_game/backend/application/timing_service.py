@@ -133,8 +133,6 @@ class TimingService:
         # 全局 Checkpoint 缓存
         self._global_checkpoints: List[CheckpointPosition] = []
         self._global_checkpoint_idx = 0
-        # 打轴时保存位置历史，用于撤回时恢复光标
-        self._checkpoint_history: List[int] = []
 
         # 音频播放位置回调
         self._audio_engine.set_position_callback(self._on_audio_position_changed)
@@ -202,34 +200,48 @@ class TimingService:
         return self._command_manager
 
     def can_undo(self) -> bool:
-        """是否可以撤销打轴命令"""
+        """是否可以撤销结构编辑命令"""
         return self._command_manager.can_undo() if self._command_manager else False
 
     def can_redo(self) -> bool:
-        """是否可以重做打轴命令"""
+        """是否可以重做结构编辑命令"""
         return self._command_manager.can_redo() if self._command_manager else False
 
     def undo(self) -> Optional[str]:
-        """撤销上一个打轴命令"""
+        """撤销上一个命令"""
         if not self._command_manager:
             return None
         result = self._command_manager.undo()
-        # 恢复打轴前的光标位置
-        if result is not None and self._checkpoint_history:
-            prev_idx = self._checkpoint_history.pop()
-            if 0 <= prev_idx < len(self._global_checkpoints):
-                self._global_checkpoint_idx = prev_idx
-                self._current_position = self._global_checkpoints[prev_idx]
-                self._notify_checkpoint_moved()
-                # 通知前端将当前行居中滚动
-                self._global_qt._center_current_line_signal.emit()
+        self._restore_cursor_from_command(
+            self._command_manager.get_last_undone_command(), "undo"
+        )
         return result
 
     def redo(self) -> Optional[str]:
-        """重做上一个打轴命令"""
+        """重做下一个命令"""
         if not self._command_manager:
             return None
-        return self._command_manager.redo()
+        result = self._command_manager.redo()
+        self._restore_cursor_from_command(
+            self._command_manager.get_last_redone_command(), "redo"
+        )
+        return result
+
+    def _restore_cursor_from_command(self, cmd, direction: str) -> None:
+        """从命令上读取光标位置并恢复全局 checkpoint 索引。
+
+        Args:
+            cmd: 刚被撤销/重做的命令（可为 None）
+            direction: "undo" 或 "redo"
+        """
+        if cmd is None:
+            return
+        attr = f"{direction}_cp_idx"
+        cp_idx = getattr(cmd, attr, None)
+        if cp_idx is not None and 0 <= cp_idx < len(self._global_checkpoints):
+            self._global_checkpoint_idx = cp_idx
+            self._current_position = self._global_checkpoints[cp_idx]
+            self._notify_checkpoint_moved()
 
     # ==================== Checkpoint 管理 ====================
 
@@ -517,8 +529,8 @@ class TimingService:
         if not sentence or not char:
             return
 
-        # 保存当前位置，以便撤回时恢复
-        self._checkpoint_history.append(self._global_checkpoint_idx)
+        checkpoint_idx = self._current_position.checkpoint_idx
+        before_cp_idx = self._global_checkpoint_idx
 
         if self._command_manager and self._project:
             from strange_uta_game.backend.application.commands import AddTimeTagCommand
@@ -528,11 +540,14 @@ class TimingService:
                 sentence_id=sentence.id,
                 char_idx=self._current_position.char_idx,
                 timestamp_ms=timestamp_ms,
-                checkpoint_idx=self._current_position.checkpoint_idx,
+                checkpoint_idx=checkpoint_idx,
+            )
+            cmd.undo_cp_idx = before_cp_idx
+            cmd.redo_cp_idx = min(
+                before_cp_idx + 1, len(self._global_checkpoints) - 1
             )
             self._command_manager.execute(cmd)
         else:
-            checkpoint_idx = self._current_position.checkpoint_idx
             if char.is_sentence_end and checkpoint_idx == char.check_count:
                 char.set_sentence_end_ts(timestamp_ms)
             else:
@@ -777,7 +792,9 @@ class TimingService:
         sentence = self._project.sentences[line_idx]
         count = sum(len(c.all_timestamps) for c in sentence.characters)
 
-        if self._command_manager and self._project:
+        before_cp_idx = self._global_checkpoint_idx
+
+        if self._command_manager and count > 0:
             from strange_uta_game.backend.application.commands import (
                 ClearLineTimeTagsCommand,
             )
@@ -786,6 +803,8 @@ class TimingService:
                 project=self._project,
                 sentence_id=sentence.id,
             )
+            cmd.undo_cp_idx = before_cp_idx
+            cmd.redo_cp_idx = before_cp_idx
             self._command_manager.execute(cmd)
         else:
             sentence.clear_all_timestamps()

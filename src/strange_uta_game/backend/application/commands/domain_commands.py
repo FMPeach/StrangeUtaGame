@@ -35,6 +35,9 @@ class AddTimeTagCommand(Command):
         self.checkpoint_idx = checkpoint_idx
         self._old_timestamps: Optional[list] = None
         self._old_sentence_end_ts: Optional[int] = None
+        # 光标追踪：撤销/重做后应恢复的全局 checkpoint 索引
+        self.undo_cp_idx: Optional[int] = None
+        self.redo_cp_idx: Optional[int] = None
 
     def execute(self) -> None:
         sentence = self.project.get_sentence(self.sentence_id)
@@ -134,6 +137,9 @@ class ClearLineTimeTagsCommand(Command):
         self.sentence_id = sentence_id
         self._old_timestamps: Optional[Dict[int, list]] = None
         self._old_sentence_end_ts: Optional[Dict[int, Optional[int]]] = None
+        # 光标追踪：撤销/重做后应恢复的全局 checkpoint 索引
+        self.undo_cp_idx: Optional[int] = None
+        self.redo_cp_idx: Optional[int] = None
 
     def execute(self) -> None:
         sentence = self.project.get_sentence(self.sentence_id)

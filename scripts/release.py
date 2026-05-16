@@ -379,19 +379,19 @@ def _content_hash_of_zip(zip_path: Path) -> str:
     return hashlib.sha256(combined.encode("ascii")).hexdigest().lower()
 
 
-def _write_sha256(target: Path) -> Path:
+def _write_sha256(target: Path, use_content_hash: bool = False) -> Path:
     """为 ``target`` 生成同名 ``.sha256`` 文件，与 sha256sum / coreutils 兼容。
 
-    对 zip 文件使用内容哈希（对 zip 内文件的路径+内容计算 sha256），
-    这样只要实际文件内容不变，哈希就不变，不受打包时间戳影响。
+    ``use_content_hash=True`` 时对 zip 内文件的路径+内容计算 sha256（用于 manifest 中）。
+    默认使用文件本身的 sha256（用于 .sha256 校验文件，兼容旧 Updater）。
     """
-    if target.suffix.lower() == ".zip":
+    if use_content_hash and target.suffix.lower() == ".zip":
         digest = _content_hash_of_zip(target)
     else:
         digest = _sha256_of(target)
     sha_path = target.with_name(target.name + ".sha256")
     sha_path.write_text(f"{digest}  {target.name}\n", encoding="ascii")
-    print(f"  ✓ {sha_path.name}  (content_hash={digest})")
+    print(f"  ✓ {sha_path.name}  (sha256={digest})")
     return sha_path
 
 
