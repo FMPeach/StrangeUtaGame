@@ -30,6 +30,7 @@
     "auto_on_load": true,
     "check_n": false,
     "check_sokuon": false,
+    "check_long_vowel": true,
     "check_parentheses": true,
     "check_empty_lines": false,
     "check_line_start": true,
@@ -61,17 +62,28 @@
     "cp_size": 8,
     "line_height_factor": 1.2,
     "lyrics_alignment": "left",
-    "alignment_margin": 168
+    "alignment_margin": 168,
+    "checkpoint_markers": {
+      "cp_first_timed": "▶",
+      "cp_first_empty": "▷",
+      "cp_multi_timed": "▮",
+      "cp_multi_empty": "▯",
+      "cp_sentence_end_timed": "⬟",
+      "cp_sentence_end_empty": "⬠"
+    }
   },
   "export": {
     "default_format": "Nicokara (带注音)",
     "auto_add_extension": true,
-    "last_export_dir": "E:\\ニコカラ\\044livetune,初音ミク - Hand in Hand",
-    "offset_ms": -390
+    "last_export_dir": "E:\\ニコカラ\\050_5緋色の空",
+    "offset_ms": -100,
+    "software_compensation_ms": 0,
+    "nicokara_pause_char": "^"
   },
   "ruby_split_mode": "mora",
   "ruby_dictionary": {
-    "enabled": true
+    "enabled": true,
+    "annotate_katakana_with_english": false
   },
   "dictionary_version": 1,
   "nicokara_tags": {
@@ -86,11 +98,25 @@
     "enabled": true,
     "interval_minutes": 5
   },
+  "complete_timestamp": {
+    "scope_types": [
+      "kanji",
+      "hiragana",
+      "katakana",
+      "sokuon",
+      "long_vowel",
+      "chisai_kana"
+    ],
+    "exclude_rules": [
+      "linked"
+    ]
+  },
   "shortcuts": {
     "timing_mode": {
       "play_pause": "D:short",
       "stop": "S:short",
       "tag_now": "SPACE:short",
+      "tag_now_extra": "",
       "seek_back": "Z:short",
       "seek_forward": "X:short",
       "speed_down": "Q:short",
@@ -127,12 +153,14 @@
       "paste_lyrics": "CTRL+V:short",
       "timestamps_to_sentence_end": "CTRL+J:short",
       "quick_export": "CTRL+E:short",
+      "insert_space": "M:short",
       "clear_timestamp": ""
     },
     "edit_mode": {
       "play_pause": "D:short",
       "stop": "S:short",
       "tag_now": "",
+      "tag_now_extra": "",
       "seek_back": "Z:short",
       "seek_forward": "X:short",
       "speed_down": "Q:short",
@@ -169,6 +197,7 @@
       "paste_lyrics": "CTRL+V:short",
       "timestamps_to_sentence_end": "CTRL+J:short",
       "quick_export": "CTRL+E:short",
+      "insert_space": "M:short",
       "clear_timestamp": ""
     },
     "play_pause": "D",
@@ -192,6 +221,24 @@
     "clear_tags": "",
     "cycle_checkpoint_prev": "ALT+LEFT",
     "cycle_checkpoint": "ALT+RIGHT"
+  },
+  "nicokara_emoji_default": "透明画像1x1.png,,Zoom=1,NoDecor,MarginRight=-170",
+  "updater": {
+    "enabled": true,
+    "check_on_startup": true,
+    "min_check_interval_hours": 8,
+    "source_order": [
+      "github",
+      "ghproxy",
+      "fastgit"
+    ],
+    "proxy": {
+      "mode": "system",
+      "manual_url": "http://127.0.0.1:7897"
+    },
+    "skipped_version": "",
+    "last_seen_version": "",
+    "last_check_at": 1778915786
   },
   "applied_dictionary_version": 1
 }
