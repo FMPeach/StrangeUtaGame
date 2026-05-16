@@ -260,8 +260,10 @@ class ExportInterface(QWidget):
             # 音频变更即刻反映到默认文件名（无需等待"创建项目"）
             self._sync_default_filename()
             self._sync_default_output_dir()
-        elif change_type == "singers":
-            self._refresh_singer_checkboxes()
+    elif change_type == "singers":
+        if self._store and self._store.project:
+            self._project = self._store.project
+        self._refresh_singer_checkboxes()
         elif change_type == "settings":
             self._sync_default_format()
 

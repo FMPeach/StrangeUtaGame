@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import ctypes
 import heapq
 import os
 import sys
@@ -38,6 +39,23 @@ from pedalboard.io import AudioFile
 ProgressCallback = Callable[[float, float], None]  # (speed, 0.0~1.0)
 DoneCallback = Callable[[float], None]              # (speed,)
 LoadProgressCallback = Callable[[str, float], None]  # (stage, 0.0~1.0)
+
+
+# ---- Windows 线程优先级 ----
+_THREAD_PRIORITY_BELOW_NORMAL = -1
+
+
+def _set_worker_thread_priority() -> None:
+    """将当前线程（TSMWorker）降到 BELOW_NORMAL，让音频线程优先获得 CPU。
+    仅 Windows 生效，其他平台静默忽略。
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        handle = ctypes.windll.kernel32.GetCurrentThread()
+        ctypes.windll.kernel32.SetThreadPriority(handle, _THREAD_PRIORITY_BELOW_NORMAL)
+    except Exception:
+        pass
 
 _SPEED_QUANT = 2  # round(speed, 2)，0.01 精度
 _CACHE_DIR_NAME = ".cache"
@@ -182,9 +200,15 @@ class SpeedTask:
 _executor: Optional[ThreadPoolExecutor] = None
 _executor_lock = threading.Lock()
 
+# 专用 finalizer 线程池：单线程，负责 merge + MP3 编码 + 磁盘写入。
+# 与 TSMWorker 池隔离，确保这些重操作不占用渲染 worker 槽，
+# 且 Worker 的 done_callback 只做检查和投递，立即返回。
+_finalizer_executor: Optional[ThreadPoolExecutor] = None
+_finalizer_lock = threading.Lock()
+
 
 def _get_executor() -> ThreadPoolExecutor:
-    """获取全局线程池（懒初始化）。"""
+    """获取全局渲染线程池（懒初始化）。"""
     global _executor
     with _executor_lock:
         if _executor is None:
@@ -192,6 +216,15 @@ def _get_executor() -> ThreadPoolExecutor:
             _executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="TSMWorker")
             print(f"[TSM] Thread pool initialized with {max_workers} workers")
         return _executor
+
+
+def _get_finalizer_executor() -> ThreadPoolExecutor:
+    """获取专用 finalizer 线程池（单线程，懒初始化）。"""
+    global _finalizer_executor
+    with _finalizer_lock:
+        if _finalizer_executor is None:
+            _finalizer_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="TSMFinalizer")
+        return _finalizer_executor
 
 
 class TSMRenderCache:
@@ -496,6 +529,9 @@ class TSMRenderCache:
         render_version: int,
     ) -> Optional[tuple]:
         """渲染单个块（在线程池中执行）。返回 (chunk_index, rendered_pcm) 或 None。"""
+        # 降低 worker 线程优先级，避免与 AudioProducer 抢 CPU。
+        _set_worker_thread_priority()
+
         if task.cancelled or self._render_version != render_version:
             return None
 
@@ -519,14 +555,18 @@ class TSMRenderCache:
             return None
 
     def _on_chunk_done(self, future: Future) -> None:
-        """块完成回调（在线程池 worker 线程中执行）。"""
+        """块完成回调（在 TSMWorker 线程中执行）。
+
+        此回调必须极轻量：只做结果存储、进度上报、完成检测和 finalizer 投递，
+        绝不执行 merge / MP3编码 / 磁盘IO 等重操作（那些移到 TSMFinalizer 线程）。
+        """
         result = future.result()
         if result is None:
             return
 
         chunk_index, rendered_pcm = result
 
-        # 找到对应的 SpeedTask
+        # 找到对应的 SpeedTask（用 chunk_index 在活跃任务中反查）
         task = None
         with self._active_lock:
             for t in self._active_tasks.values():
@@ -537,35 +577,35 @@ class TSMRenderCache:
         if task is None or task.cancelled:
             return
 
+        all_done = False
         with task.lock:
             task.results[chunk_index] = rendered_pcm
             task.pending_chunks.discard(chunk_index)
             progress = len(task.results) / len(task.chunks)
+            # 检查是否所有块都成功完成
+            if (len(task.results) == len(task.chunks)
+                    and not task.completed.is_set()
+                    and all(v is not None for v in task.results.values())):
+                task.completed.set()
+                all_done = True
 
-        # 报告进度
+        # 报告渲染进度（Worker 线程，轻量）
         if task.progress_cb is not None:
             try:
                 task.progress_cb(task.speed, progress * 0.9)
             except Exception:
                 pass
 
-        # 检查是否所有块都完成了
-        self._check_and_finalize(task)
+        # 所有块完成 → 投递到专用 finalizer 线程执行 merge+保存，立即返回
+        if all_done:
+            _get_finalizer_executor().submit(self._finalize_task, task)
 
-    def _check_and_finalize(self, task: SpeedTask) -> None:
-        """检查所有块是否完成，完成后拼接并保存。"""
-        with task.lock:
-            if task.completed.is_set():
-                return
-            if len(task.results) < len(task.chunks):
-                return
-            # 检查是否有失败的块
-            for idx, result in task.results.items():
-                if result is None:
-                    return
-            task.completed.set()
+    def _finalize_task(self, task: SpeedTask) -> None:
+        """在 TSMFinalizer 线程中执行：merge + MP3编码 + 磁盘写入。
 
-        # 所有块完成，拼接
+        此函数在专用单线程 finalizer 中运行，与 TSMWorker 池完全隔离，
+        不会占用渲染 worker 槽，也不会在 Worker 的 done_callback 里阻塞。
+        """
         try:
             print(f"[TSM] All chunks done for speed {task.speed}x, merging...")
             if task.progress_cb:
@@ -580,6 +620,10 @@ class TSMRenderCache:
             cache_path = _get_cache_path(self._song_name, task.speed)
             self._save_as_mp3(final_pcm, cache_path)
             print(f"[TSM] Render complete for speed {task.speed}x, saved to {cache_path}")
+
+            # 释放 chunk results 占用的内存（merge 后不再需要）
+            with task.lock:
+                task.results.clear()
 
             if task.progress_cb:
                 try:
@@ -600,14 +644,26 @@ class TSMRenderCache:
                 self._active_tasks.pop(task.speed, None)
 
     def _merge_chunks(self, task: SpeedTask) -> np.ndarray:
-        """拼接所有块（测试：无交叉淡化，直接硬切）。
+        """拼接所有块（无交叉淡化，直接硬切）。
 
         渲染时每个块向两侧扩展 10% overlap 保证 TSM 质量，
-        此处仅提取 core 区域直接拼接，不做任何淡化，测试听感。
+        此处仅提取 core 区域直接拼接。
+
+        使用 np.empty + 逐段 copyto 代替 np.concatenate：
+        - np.concatenate 会先构建 view 列表再一次性分配，内存峰值 ≈ 输入之和 + 输出
+        - np.empty 预分配输出缓冲区后逐段 copyto，内存峰值只有输出大小一份
         """
         sorted_chunks = sorted(task.chunks, key=lambda c: c.index)
 
-        core_segments = []
+        # 预先计算输出总帧数，一次性分配目标缓冲区
+        total_core_samples = sum(c.core_end - c.core_start for c in sorted_chunks)
+        total_rendered = int(total_core_samples / task.speed)
+        if total_rendered <= 0:
+            return np.zeros((0, self._channels), dtype=np.float32)
+
+        result = np.empty((total_rendered, self._channels), dtype=np.float32)
+        write_pos = 0
+
         for chunk in sorted_chunks:
             rendered = task.results[chunk.index]
             if rendered is None:
@@ -618,22 +674,18 @@ class TSMRenderCache:
             core_start_ratio = (chunk.core_start - chunk.src_start) / src_len
             core_end_ratio = (chunk.core_end - chunk.src_start) / src_len
 
-            rendered_core_start = int(len(rendered) * core_start_ratio)
-            rendered_core_end = int(len(rendered) * core_end_ratio)
+            core_start = int(len(rendered) * core_start_ratio)
+            core_end = int(len(rendered) * core_end_ratio)
+            segment = rendered[core_start:core_end]  # view，不分配新内存
 
-            core_segments.append(rendered[rendered_core_start:rendered_core_end])
+            seg_len = min(len(segment), total_rendered - write_pos)
+            if seg_len <= 0:
+                break
+            np.copyto(result[write_pos : write_pos + seg_len], segment[:seg_len])
+            write_pos += seg_len
 
-        if not core_segments:
-            return np.zeros((0, self._channels), dtype=np.float32)
-
-        result = np.concatenate(core_segments, axis=0)
-
-        # 裁剪到正确长度
-        total_core_samples = sum(c.core_end - c.core_start for c in sorted_chunks)
-        total_rendered = int(total_core_samples / task.speed)
-        result = result[:total_rendered]
-
-        return result
+        # 若实际写入比预计少（浮点对齐），截断
+        return result[:write_pos]
 
     def _save_as_mp3(self, pcm: np.ndarray, path: Path) -> None:
         """将 PCM 数据保存为 MP3 文件。"""
