@@ -1289,11 +1289,11 @@ class CompleteTimestampDialog(QDialog):
             from strange_uta_game.frontend.settings.app_settings import AppSettings
             settings = AppSettings()
             self._saved_scope_types = settings.get("complete_timestamp.scope_types", [
-                "kanji", "hiragana", "katakana", "sokuon", "long_vowel", "chisai_kana"
+                "kanji", "hiragana", "katakana", "sokuon", "long_vowel", "chon", "chisai_kana"
             ])
             self._saved_exclude_rules = settings.get("complete_timestamp.exclude_rules", ["linked"])
         except Exception:
-            self._saved_scope_types = ["kanji", "hiragana", "katakana", "sokuon", "long_vowel", "chisai_kana"]
+            self._saved_scope_types = ["kanji", "hiragana", "katakana", "sokuon", "long_vowel", "chon", "chisai_kana"]
             self._saved_exclude_rules = ["linked"]
 
         layout = QVBoxLayout(self)
@@ -1318,6 +1318,7 @@ class CompleteTimestampDialog(QDialog):
             ("katakana", "片假名"),
             ("sokuon", "促音（っ/ッ）"),
             ("long_vowel", "长音符号"),
+            ("chon", "拨音（ん/ン）"),
             ("chisai_kana", "捨仮名"),
             ("alphabet", "英文字母"),
             ("number", "数字"),

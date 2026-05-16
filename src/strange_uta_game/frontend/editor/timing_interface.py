@@ -1606,6 +1606,10 @@ class EditorInterface(QWidget):
         include_chisai_kana = "chisai_kana" in scope_types
         _SMALL_KANA = set("ぁぃぅぇぉゃゅょゎァィゥェォャュョヮゕゖ")
 
+        # 拨音需要特殊处理
+        include_chon = "chon" in scope_types
+        _CHON_CHARS = set("んン")
+
         exclude_linked = "linked" in exclude_rules
 
         def _is_target_char(ch_obj) -> bool:
@@ -1623,6 +1627,10 @@ class EditorInterface(QWidget):
 
             # 捨仮名检查
             if include_chisai_kana and char in _SMALL_KANA:
+                return True
+
+            # 拨音检查
+            if include_chon and char in _CHON_CHARS:
                 return True
 
             # 普通类型检查

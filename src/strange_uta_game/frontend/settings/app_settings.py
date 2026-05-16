@@ -109,6 +109,7 @@ class AppSettings:
                 "katakana",
                 "sokuon",
                 "long_vowel",
+                "chon",
                 "chisai_kana",
             ],
             "exclude_rules": [
