@@ -328,9 +328,10 @@ def _verify_release_assets(version: str, dist_root: Path, full_zip: Path) -> Non
     print(f"      • {updater_pkg.relative_to(ROOT)}/  (updater 子包，{len(list(updater_pkg.iterdir()))} 文件)")
 
 
-def _run_main_build() -> None:
+def _run_main_build(clean: bool = False) -> None:
     print("  构建主程序 (PyInstaller --onedir) …")
-    rc = _run_python(MAIN_BUILD)
+    extra = ["--clean"] if clean else []
+    rc = _run_python(MAIN_BUILD, extra)
     if rc != 0:
         raise SystemExit(f"主程序构建失败，退出码 {rc}")
 
@@ -564,11 +565,11 @@ def _dump_release_notes(version: str) -> Optional[Path]:
     return notes_path
 
 
-def cmd_build(rebuild_updater: bool = False) -> int:
+def cmd_build(rebuild_updater: bool = False, clean: bool = False) -> int:
     version = _read_version()
     print(f"== build for v{version} ==")
     _ensure_updater_exe(force=rebuild_updater)
-    _run_main_build()
+    _run_main_build(clean=clean)
 
     # 关键顺序：
     #   1) 先打 app + runtime part zip（不含 .installed_manifest.json）→ 算 sha256
@@ -636,7 +637,7 @@ def cmd_build(rebuild_updater: bool = False) -> int:
     return 0
 
 
-def cmd_all(version: str, rebuild_updater: bool = False) -> int:
+def cmd_all(version: str, rebuild_updater: bool = False, clean: bool = False) -> int:
     rc = cmd_prepare(version)
     if rc != 0:
         return rc
@@ -647,7 +648,7 @@ def cmd_all(version: str, rebuild_updater: bool = False) -> int:
     if answer not in ("y", "yes"):
         print("已取消 build。")
         return 0
-    return cmd_build(rebuild_updater=rebuild_updater)
+    return cmd_build(rebuild_updater=rebuild_updater, clean=clean)
 
 
 # ───────────────────────── entry ─────────────────────────
@@ -670,13 +671,23 @@ def main(argv: Optional[list] = None) -> int:
         action="store_true",
         help="强制重新打包 Updater.exe，即便源码 mtime 未变（用于排查/确认）",
     )
+    sp_build.add_argument(
+        "--clean",
+        action="store_true",
+        help="传给 PyInstaller --clean，完整重建（改了 import 或打包配置时使用）",
+    )
 
     sp_all = sub.add_parser("all", help="prepare + build")
-    sp_all.add_argument("version", help="版本号 X.Y.Z")
+    sp_all.add_argument("version", help="目标版本号 X.Y.Z")
     sp_all.add_argument(
         "--rebuild-updater",
         action="store_true",
         help="强制重新打包 Updater.exe",
+    )
+    sp_all.add_argument(
+        "--clean",
+        action="store_true",
+        help="传给 PyInstaller --clean，完整重建（改了 import 或打包配置时使用）",
     )
 
     args = p.parse_args(argv)
@@ -685,9 +696,9 @@ def main(argv: Optional[list] = None) -> int:
     if args.cmd == "extract-notes":
         return cmd_extract_notes(args.version, args.output)
     if args.cmd == "build":
-        return cmd_build(rebuild_updater=args.rebuild_updater)
+        return cmd_build(rebuild_updater=args.rebuild_updater, clean=args.clean)
     if args.cmd == "all":
-        return cmd_all(args.version, rebuild_updater=args.rebuild_updater)
+        return cmd_all(args.version, rebuild_updater=args.rebuild_updater, clean=args.clean)
     p.print_help()
     return 1
 

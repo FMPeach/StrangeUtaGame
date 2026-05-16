@@ -8,6 +8,7 @@
 5. 使用 --onedir 模式避免单文件解压问题
 """
 
+import argparse
 import PyInstaller.__main__
 import os
 import sys
@@ -28,6 +29,11 @@ def _force_utf8_stdio() -> None:
 
 
 _force_utf8_stdio()
+
+# 命令行参数
+parser = argparse.ArgumentParser(description="PyInstaller 打包脚本")
+parser.add_argument("--clean", action="store_true", help="传给 PyInstaller --clean，完整重建")
+_cli_args = parser.parse_args()
 
 # 项目根目录
 PROJECT_ROOT = Path(__file__).parent.absolute()
@@ -149,6 +155,11 @@ args = [
     # 图标
     "--icon=src/strange_uta_game/resource/icon.ico",
 ]
+
+# --clean 由命令行参数控制（改了 import 或打包配置时使用）
+if _cli_args.clean:
+    args.append("--clean")
+    print("启用 PyInstaller --clean（完整重建）")
 
 # 平台特定配置
 if sys.platform == "win32":
