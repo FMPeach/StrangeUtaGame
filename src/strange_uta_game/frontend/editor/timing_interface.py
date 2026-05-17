@@ -2915,7 +2915,9 @@ class EditorInterface(QWidget):
         if char_idx >= len(sentence.chars):
             return
 
-        jump_before = getattr(self, "_jump_before_ms", 3000)
+        jump_before_raw = getattr(self, "_jump_before_ms", 3000)
+        speed = self._timing_service.get_speed() if self._timing_service else 1.0
+        jump_before = int(jump_before_raw * speed)
         char = sentence.get_character(char_idx)
 
         before_sentences = deepcopy(self._project.sentences)
@@ -3133,12 +3135,14 @@ class EditorInterface(QWidget):
         elif action == "seek_back":
             if self._timing_service and self._timing_service.is_playing():
                 cur = self._timing_service.get_position_ms()
-                self._on_seek(max(0, cur - self._rewind_ms))
+                speed = self._timing_service.get_speed()
+                self._on_seek(max(0, cur - int(self._rewind_ms * speed)))
         elif action == "seek_forward":
             if self._timing_service and self._timing_service.is_playing():
                 cur = self._timing_service.get_position_ms()
                 dur = self._timing_service.get_duration_ms()
-                self._on_seek(min(dur, cur + self._fast_forward_ms))
+                speed = self._timing_service.get_speed()
+                self._on_seek(min(dur, cur + int(self._fast_forward_ms * speed)))
         elif action == "speed_down":
             v = self.transport.get_speed_value()
             self.transport.set_speed_value(max(20, v - 10))
