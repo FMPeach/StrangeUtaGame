@@ -1,6 +1,356 @@
 [
   {
     "enabled": true,
+    "word": "マキアート",
+    "reading": "{マキアート||ma,cchiato,,,}"
+  },
+  {
+    "enabled": true,
+    "word": "ジレンマ",
+    "reading": "{ジレンマ||di,lem,,ma}"
+  },
+  {
+    "enabled": true,
+    "word": "ココア",
+    "reading": "{ココア||co,co,a}"
+  },
+  {
+    "enabled": true,
+    "word": "ビター",
+    "reading": "{ビター||bi,tter,}"
+  },
+  {
+    "enabled": true,
+    "word": "クッキー",
+    "reading": "{クッキー||coo,,kie,}"
+  },
+  {
+    "enabled": true,
+    "word": "ソフト",
+    "reading": "{ソフト||soft,,}"
+  },
+  {
+    "enabled": true,
+    "word": "エスプレッソ",
+    "reading": "{エスプレッソ||e,spre,,,,sso}"
+  },
+  {
+    "enabled": true,
+    "word": "カプチーノ",
+    "reading": "{カプチーノ||ca,ppu,cc,i,no}"
+  },
+  {
+    "enabled": true,
+    "word": "トッピング",
+    "reading": "{トッピング||to,,ppin,,g}"
+  },
+  {
+    "enabled": true,
+    "word": "メニュー",
+    "reading": "{メニュー||me,nu,,}"
+  },
+  {
+    "enabled": true,
+    "word": "シュガー",
+    "reading": "{シュガー||su,,gar,}"
+  },
+  {
+    "enabled": true,
+    "word": "ブレンド",
+    "reading": "{ブレンド||blen,,,d}"
+  },
+  {
+    "enabled": true,
+    "word": "クリーミー",
+    "reading": "{クリーミー||crea,,,my,}"
+  },
+  {
+    "enabled": true,
+    "word": "オーダー",
+    "reading": "{オーダー||or,,der,}"
+  },
+  {
+    "enabled": true,
+    "word": "スウィーツ",
+    "reading": "{スウィーツ||s,wee,,,ts}"
+  },
+  {
+    "enabled": true,
+    "word": "リキュール",
+    "reading": "{リキュール||li,que,,,ur}"
+  },
+  {
+    "enabled": true,
+    "word": "ロリータ",
+    "reading": "{ロリータ||Lo,li,,ta}"
+  },
+  {
+    "enabled": true,
+    "word": "何光年",
+    "reading": "{何||なん}{光||こう}{年||ねん}"
+  },
+  {
+    "enabled": true,
+    "word": "ストーリー",
+    "reading": "{ストーリー||s,to,,ry,}"
+  },
+  {
+    "enabled": true,
+    "word": "サイン",
+    "reading": "{サイン||si,g,n}"
+  },
+  {
+    "enabled": true,
+    "word": "タイトル",
+    "reading": "{タイトル||t,i,t,le}"
+  },
+  {
+    "enabled": true,
+    "word": "サンセット",
+    "reading": "{サンセット||sun,,set,,}"
+  },
+  {
+    "enabled": true,
+    "word": "アクセント",
+    "reading": "{アクセント||a,c,ce,n,t}"
+  },
+  {
+    "enabled": true,
+    "word": "ブルー",
+    "reading": "{ブルー||b,lue,}"
+  },
+  {
+    "enabled": true,
+    "word": "パステル",
+    "reading": "{パステル||pa,s,te,l}"
+  },
+  {
+    "enabled": true,
+    "word": "オレンジ",
+    "reading": "{オレンジ||o,ran,,ge}"
+  },
+  {
+    "enabled": true,
+    "word": "タイム",
+    "reading": "{タイム||t,i,me}"
+  },
+  {
+    "enabled": true,
+    "word": "ランチ",
+    "reading": "{ランチ||lun,,ch}"
+  },
+  {
+    "enabled": true,
+    "word": "シーン",
+    "reading": "{シーン||sce,,ne}"
+  },
+  {
+    "enabled": true,
+    "word": "マーメイド",
+    "reading": "{マーメイド||mer,,maid,,}"
+  },
+  {
+    "enabled": true,
+    "word": "スコール",
+    "reading": "{スコール||s,qua,,ll}"
+  },
+  {
+    "enabled": true,
+    "word": "ガス",
+    "reading": "{ガス||ga,s}"
+  },
+  {
+    "enabled": true,
+    "word": "メタファー",
+    "reading": "{メタファー||me,ta,phor,,}"
+  },
+  {
+    "enabled": true,
+    "word": "ルール",
+    "reading": "{ルール||ru,,le}"
+  },
+  {
+    "enabled": true,
+    "word": "メタ",
+    "reading": "{メタ||me,ta}"
+  },
+  {
+    "enabled": true,
+    "word": "ユートピア",
+    "reading": "{ユートピア||u,,to,pi,a}"
+  },
+  {
+    "enabled": true,
+    "word": "バイアス",
+    "reading": "{バイアス||bi,,a,s}"
+  },
+  {
+    "enabled": true,
+    "word": "チート",
+    "reading": "{チート||chea,,t}"
+  },
+  {
+    "enabled": true,
+    "word": "サンダル",
+    "reading": "{サンダル||san,,da,l}"
+  },
+  {
+    "enabled": true,
+    "word": "マグネット",
+    "reading": "{マグネット||ma,g,n,e,t}"
+  },
+  {
+    "enabled": true,
+    "word": "ファン",
+    "reading": "{ファン||fan,,}"
+  },
+  {
+    "enabled": true,
+    "word": "ブローチ",
+    "reading": "{ブローチ||broo,,,ch}"
+  },
+  {
+    "enabled": true,
+    "word": "ポーション",
+    "reading": "{ポーション||po,,tion,,}"
+  },
+  {
+    "enabled": true,
+    "word": "チョコ",
+    "reading": "{チョコ||cho,,co}"
+  },
+  {
+    "enabled": true,
+    "word": "ステッキ",
+    "reading": "{ステッキ||s,ti,,ck}"
+  },
+  {
+    "enabled": true,
+    "word": "ポーズ",
+    "reading": "{ポーズ||po,,se}"
+  },
+  {
+    "enabled": true,
+    "word": "シグネチャ",
+    "reading": "{シグネチャ||si,g,na,ture,}"
+  },
+  {
+    "enabled": true,
+    "word": "パレード",
+    "reading": "{パレード||pa,ra,,de}"
+  },
+  {
+    "enabled": true,
+    "word": "インク",
+    "reading": "{インク||i,n,k}"
+  },
+  {
+    "enabled": true,
+    "word": "ヒーロー",
+    "reading": "{ヒーロー||he,,ro,}"
+  },
+  {
+    "enabled": true,
+    "word": "エモーション",
+    "reading": "{エモーション||e,mo,,tion,,}"
+  },
+  {
+    "enabled": true,
+    "word": "ソング",
+    "reading": "{ソング||song,,}"
+  },
+  {
+    "enabled": true,
+    "word": "レート",
+    "reading": "{レート||ra,,te}"
+  },
+  {
+    "enabled": true,
+    "word": "ジェット",
+    "reading": "{ジェット||je,,,t}"
+  },
+  {
+    "enabled": true,
+    "word": "コースター",
+    "reading": "{コースター||coa,,ster,,}"
+  },
+  {
+    "enabled": true,
+    "word": "スター",
+    "reading": "{スター||star,,}"
+  },
+  {
+    "enabled": true,
+    "word": "シューティング",
+    "reading": "{シューティング||shoo,,,ting,,,}"
+  },
+  {
+    "enabled": true,
+    "word": "カジュアル",
+    "reading": "{カジュアル||ca,su,,a,l}"
+  },
+  {
+    "enabled": true,
+    "word": "チャンス",
+    "reading": "{チャンス||chan,,,ce}"
+  },
+  {
+    "enabled": true,
+    "word": "フェーズ",
+    "reading": "{フェーズ||pha,,,se}"
+  },
+  {
+    "enabled": true,
+    "word": "スピード",
+    "reading": "{スピード||s,pee,,d}"
+  },
+  {
+    "enabled": true,
+    "word": "独り占め",
+    "reading": "{独||ひ|と}り{占||じ}め"
+  },
+  {
+    "enabled": true,
+    "word": "テクニック",
+    "reading": "{テクニック||te,ch,ni,,que}"
+  },
+  {
+    "enabled": true,
+    "word": "プラトニック",
+    "reading": "{プラトニック||p,la,to,ni,,c}"
+  },
+  {
+    "enabled": true,
+    "word": "クリック",
+    "reading": "{クリック||c,li,,ck}"
+  },
+  {
+    "enabled": true,
+    "word": "キーワード",
+    "reading": "{キーワード||key,,wo,r,d}"
+  },
+  {
+    "enabled": true,
+    "word": "デザイン",
+    "reading": "{デザイン||de,si,gn,}"
+  },
+  {
+    "enabled": true,
+    "word": "グット",
+    "reading": "{グット||goo,,d}"
+  },
+  {
+    "enabled": true,
+    "word": "ベリー",
+    "reading": "{ベリー||be,rry,}"
+  },
+  {
+    "enabled": true,
+    "word": "マフィン",
+    "reading": "{マフィン||mu,ffin,,}"
+  },
+  {
+    "enabled": true,
     "word": "立た",
     "reading": "{立||た}た"
   },
@@ -822,7 +1172,7 @@
   {
     "enabled": true,
     "word": "二人",
-    "reading": "{二||ふ}{人||た|り}"
+    "reading": "{二人||ふ||た|り,}"
   },
   {
     "enabled": true,
