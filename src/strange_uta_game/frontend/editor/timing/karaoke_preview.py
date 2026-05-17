@@ -174,6 +174,7 @@ class KaraokePreview(QWidget):
         # 单击时锁定 hitbox 快照，双击时使用快照判断，避免居中导致 hitbox 变化
         self._pending_click: Optional[dict] = None  # 按下时记录的待处理点击
         self._click_snapshot: Optional[dict] = None  # 单击后保存的快照（用于双击判断）
+        self._double_click_handled: bool = False  # 双击已处理标志，防止 Release #2 触发单击逻辑
         self._click_timer = QTimer(self)
         self._click_timer.setSingleShot(True)
         self._click_timer.setInterval(300)  # 双击间隔
@@ -693,6 +694,13 @@ class KaraokePreview(QWidget):
             return
 
         self._focus_dragging = False
+
+        # 双击的 Release #2：双击事件已处理，跳过一切单击逻辑
+        if self._double_click_handled:
+            self._double_click_handled = False
+            self._pending_click = None
+            self._press_pos = None
+            return
 
         # 如果已有快照（双击的第二次松开），跳过单击
         if self._click_snapshot is not None:
@@ -1264,6 +1272,9 @@ class KaraokePreview(QWidget):
 
         # 双击时停止单击定时器
         self._click_timer.stop()
+        # 标记双击已处理，防止随后的 Release #2 触发单击逻辑（Qt 双击序列：
+        # Press→Release→DblClick→Release，Release #2 需要跳过）
+        self._double_click_handled = True
 
         # 优先使用快照判断双击目标（快照在单击时锁定，避免居中导致 hitbox 变化）
         # 禁用单击跳转时不使用快照，直接走当前 hitbox 判断
