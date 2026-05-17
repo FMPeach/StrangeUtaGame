@@ -795,6 +795,18 @@ class RubyInterface(QWidget):
         # 过滤掉 None（不应该有，但安全处理）
         self._project.sentences = [s for s in result_sentences if s is not None]
 
+        # 重新应用全局偏移到所有字符（新建字符的 _global_offset_ms 默认为 0）
+        offset = self._project.global_offset_ms
+        if offset is None:
+            try:
+                from strange_uta_game.frontend.settings.settings_interface import AppSettings
+                offset = AppSettings().get("export.offset_ms", 0)
+            except Exception:
+                offset = 0
+        for sentence in self._project.sentences:
+            for ch in sentence.characters:
+                ch.set_offset(offset)
+
         if hasattr(self, "_store"):
             self._store.notify("lyrics")
             self._store.notify("rubies")

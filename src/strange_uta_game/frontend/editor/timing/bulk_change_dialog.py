@@ -552,6 +552,9 @@ class BulkChangeDialog(QDialog):
                 timing_service.rebuild_global_checkpoints()
             except Exception:
                 pass
+        reapply_offset = getattr(parent, "_reapply_global_offset", None)
+        if callable(reapply_offset):
+            reapply_offset()
         refresh = getattr(parent, "refresh_lyric_display", None)
         if callable(refresh):
             refresh()

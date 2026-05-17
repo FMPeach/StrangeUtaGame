@@ -620,6 +620,9 @@ class EditorInterface(QWidget):
                     ch.set_offset(offset_ms)
         # 更新渲染
         self.preview.set_global_offset(offset_ms)
+        # 通知 ProjectStore，使 Settings 页面等监听者同步更新
+        if hasattr(self, "_store") and self._store:
+            self._store.notify("settings")
 
     def set_project(self, project: Project):
         self._project = project
@@ -652,6 +655,10 @@ class EditorInterface(QWidget):
                 duration=3000,
                 parent=self,
             )
+        # 通知 ProjectStore，使 Settings 页面等监听者与项目偏移保持同步
+        if hasattr(self, "_store") and self._store:
+            self._store.notify("settings")
+
         # 先应用偏移到所有字符，再设置到preview（预渲染缓存会使用global_timestamps）
         for sentence in project.sentences:
             for ch in sentence.characters:
