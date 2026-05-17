@@ -294,16 +294,16 @@ class EditorInterface(QWidget):
         status = QHBoxLayout()
         status.setContentsMargins(5, 2, 5, 2)
         self.lbl_status = QLabel("就绪")
-        self.lbl_status.setStyleSheet(f"font-size: 11px; color: {theme.text_hint.name()};")
+        self.lbl_status.setStyleSheet(f"font-size: 12px; color: {theme.text_primary.name()};")
         status.addWidget(self.lbl_status)
         status.addStretch()
         # 行号/字符/时间戳信息（#5：从打轴栏移到此处，与播放状态一同显示）
         self.lbl_line_info = QLabel("当前行: -")
-        self.lbl_line_info.setStyleSheet(f"font-size: 11px; color: {theme.text_hint.name()};")
+        self.lbl_line_info.setStyleSheet(f"font-size: 12px; color: {theme.text_primary.name()};")
         status.addWidget(self.lbl_line_info)
         status.addStretch()
         self.lbl_progress = QLabel("行: 0/0 | 进度: 0%")
-        self.lbl_progress.setStyleSheet(f"font-size: 11px; color: {theme.text_hint.name()};")
+        self.lbl_progress.setStyleSheet(f"font-size: 12px; color: {theme.text_primary.name()};")
         status.addWidget(self.lbl_progress)
         layout.addLayout(status)
 
@@ -1543,6 +1543,8 @@ class EditorInterface(QWidget):
 
         scope_types = dlg.get_scope_types()
         exclude_rules = dlg.get_exclude_rules()
+        head_offset_ms = dlg.get_head_offset_ms()
+        tail_offset_ms = dlg.get_tail_offset_ms()
 
         if not scope_types:
             InfoBar.warning(
@@ -1557,7 +1559,7 @@ class EditorInterface(QWidget):
             return
 
         # 执行补全时间戳
-        count = self._execute_complete_timestamp(scope_types, exclude_rules)
+        count = self._execute_complete_timestamp(scope_types, exclude_rules, head_offset_ms, tail_offset_ms)
 
         if count > 0:
             InfoBar.success(
@@ -1580,12 +1582,14 @@ class EditorInterface(QWidget):
                 parent=self,
             )
 
-    def _execute_complete_timestamp(self, scope_types: set[str], exclude_rules: list[str]) -> int:
+    def _execute_complete_timestamp(self, scope_types: set[str], exclude_rules: list[str], head_offset_ms: int = 150, tail_offset_ms: int = 150) -> int:
         """执行补全时间戳的核心逻辑
 
         Args:
             scope_types: 选中的字符类型集合
             exclude_rules: 选中的排除规则列表
+            head_offset_ms: 行首无前方时间戳时，向后找到时间戳后扣除的毫秒数
+            tail_offset_ms: 行尾无后方时间戳时，向前找到时间戳后增加的毫秒数
 
         Returns:
             补全的字符数量
@@ -1737,17 +1741,19 @@ class EditorInterface(QWidget):
                                 chars[ci].push_to_ruby()
                                 total_count += 1
                     elif prev_ts is not None:
-                        # 只有前面的时间戳：赋给所有待补全字符
+                        # 只有前面的时间戳：行尾无后方时间戳，向前找到时间戳后加上偏移
+                        adjusted_ts = prev_ts + tail_offset_ms
                         for ci in range(segment_start, segment_end):
-                            chars[ci].timestamps = [prev_ts]
+                            chars[ci].timestamps = [adjusted_ts]
                             chars[ci].check_count = 1
                             chars[ci]._update_offset_timestamps()
                             chars[ci].push_to_ruby()
                             total_count += 1
                     elif next_ts is not None:
-                        # 只有后面的时间戳：赋给所有待补全字符
+                        # 只有后面的时间戳：行首无前方时间戳，向后找到时间戳后减去偏移
+                        adjusted_ts = max(0, next_ts - head_offset_ms)
                         for ci in range(segment_start, segment_end):
-                            chars[ci].timestamps = [next_ts]
+                            chars[ci].timestamps = [adjusted_ts]
                             chars[ci].check_count = 1
                             chars[ci]._update_offset_timestamps()
                             chars[ci].push_to_ruby()
