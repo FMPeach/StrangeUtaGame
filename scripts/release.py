@@ -504,20 +504,114 @@ def _diff_requirements(old_lines: List[str], new_lines: List[str]) -> str:
     return "\n".join(parts) if parts else "  （无差异）"
 
 
+def _scan_dist_packages(dist_root: Optional[Path] = None) -> Dict[str, str]:
+    """扫描 ``dist/StrangeUtaGame/_internal/*.dist-info``，返回 ``{规范名: 版本}``。
+
+    这是判断 runtime 是否需要重建的"地基"：直接读取 PyInstaller 实际打进去的包
+    版本，而不是 requirements.txt 里列出的包。好处是：
+
+    * 不会遗漏没在 requirements.txt 里列出的传递依赖
+      （如 Pillow、cryptography、brotlicffi、pywin32 等只有 8 个包有 dist-info，
+      其余依赖虽在 dist 里但无 dist-info，改变时 PyInstaller 源码 mtime 会不同）。
+    * 不受 conda base 环境污染影响：只看 dist 里实际存在的 dist-info。
+    * 和 Updater 打增量包的逻辑解耦：runtime 是否变化只靠包版本判断，
+      不依赖 zip 文件的时间戳或打包顺序。
+
+    若 dist 尚未构建（首次 build），返回空字典；调用方负责降级到 requirements 逻辑。
+    """
+    if dist_root is None:
+        dist_root = MAIN_DIST
+    internal = dist_root / "_internal"
+    if not internal.is_dir():
+        return {}
+    result: Dict[str, str] = {}
+    for dist_info in internal.glob("*.dist-info"):
+        metadata_file = dist_info / "METADATA"
+        if not metadata_file.exists():
+            metadata_file = dist_info / "PKG-INFO"  # 极少数包用旧格式
+        if not metadata_file.exists():
+            continue
+        name = version = ""
+        try:
+            for line in metadata_file.read_text(encoding="utf-8", errors="replace").splitlines():
+                if line.startswith("Name:"):
+                    name = line.split(":", 1)[1].strip().lower().replace("_", "-")
+                elif line.startswith("Version:"):
+                    version = line.split(":", 1)[1].strip()
+                if name and version:
+                    break
+        except OSError:
+            continue
+        if name and version:
+            result[name] = version
+    return result
+
+
+def _current_installed_versions(pkg_names: List[str]) -> Dict[str, str]:
+    """查询当前环境中指定包的已安装版本，返回 ``{规范名: 版本}``。
+
+    使用 ``importlib.metadata``，不需要跑 pip 子进程，速度快。
+    找不到的包用空字符串占位（表示未安装或版本无法读取）。
+    """
+    import importlib.metadata as _meta
+
+    result: Dict[str, str] = {}
+    for raw_name in pkg_names:
+        norm = raw_name.lower().replace("_", "-")
+        found = False
+        for probe in (norm, norm.replace("-", "_")):
+            try:
+                result[norm] = _meta.version(probe)
+                found = True
+                break
+            except _meta.PackageNotFoundError:
+                continue
+        if not found:
+            result[norm] = ""
+    return result
+
+
+def _diff_dist_packages(
+    cached: Dict[str, str],
+    current: Dict[str, str],
+) -> str:
+    """对比缓存与当前环境的包版本，返回人可读的 diff 字符串。"""
+    added   = [f"{k}=={v}" for k, v in current.items() if k not in cached]
+    removed = [f"{k}=={cached[k]}" for k in cached if k not in current]
+    changed = [
+        f"{k}: {cached[k]}  →  {v}"
+        for k, v in current.items()
+        if k in cached and cached[k] != v and v  # v=="" 表示未安装，不重复报 removed
+    ]
+    parts: List[str] = []
+    if added:
+        parts.append("  新增: " + ", ".join(sorted(added)))
+    if removed:
+        parts.append("  移除: " + ", ".join(sorted(removed)))
+    if changed:
+        parts.append("  变更:\n    " + "\n    ".join(sorted(changed)))
+    return "\n".join(parts) if parts else "  （无差异）"
+
+
 def _save_runtime_cache(
     version: str,
     content_hash: str,
     size: int,
     requirements_hash: str = "",
     req_lines: Optional[List[str]] = None,
+    dist_packages: Optional[Dict[str, str]] = None,
 ) -> None:
     data = {
         "version": version,
         "content_hash": content_hash,
         "size": size,
         "requirements_hash": requirements_hash,
-        # req_lines 供下次 build 时 diff，方便排查为何触发重建
+        # req_lines 供下次 build 时 diff，方便排查为何触发重建（requirements 降级路径）
         "req_lines": list(req_lines) if req_lines else [],
+        # dist_packages：上次 PyInstaller 产物里实际存在的包及版本（*.dist-info 扫描结果）。
+        # 这是主要的变更检测依据，比 requirements.txt 更准确——能捕获没在
+        # requirements.txt 里列出的传递依赖（Pillow、cryptography、brotlicffi 等）。
+        "dist_packages": dist_packages if dist_packages is not None else {},
     }
     RUNTIME_HASH_CACHE.write_text(
         json.dumps(data, indent=2, ensure_ascii=False) + "\n",
@@ -623,7 +717,6 @@ def _pack_parts(
 
     # ── runtime part：自动判断是否可复用 ──
     reused = False
-    current_freeze = ""  # 延迟求值，避免不必要的 pip freeze 调用
 
     # --reuse-runtime：无条件复用，不做任何 hash 检查
     if reuse_runtime and not rebuild_runtime:
@@ -635,17 +728,19 @@ def _pack_parts(
             if candidate.exists():
                 prev_zip = candidate
         if prev_zip is not None:
-            prev_hash = (_load_runtime_cache() or {}).get("content_hash", "")
+            _cache_for_reuse = _load_runtime_cache() or {}
+            prev_hash = _cache_for_reuse.get("content_hash", "")
             print(f"  --reuse-runtime：无条件复用 {prev_zip.name} → {runtime_zip.name}")
             shutil.copy2(str(prev_zip), str(runtime_zip))
             print(f"  ✓ {runtime_zip.name}  ({runtime_zip.stat().st_size / 1024 / 1024:.1f} MB)")
             _write_sha256(runtime_zip)
-            # 更新缓存版本号，但保留原 content_hash / requirements_hash（内容未变）
+            # 更新缓存版本号，但保留原 content_hash / requirements_hash / dist_packages（内容未变）
             _save_runtime_cache(
                 version, prev_hash,
                 runtime_zip.stat().st_size,
-                (_load_runtime_cache() or {}).get("requirements_hash", ""),
-                (_load_runtime_cache() or {}).get("req_lines"),
+                _cache_for_reuse.get("requirements_hash", ""),
+                _cache_for_reuse.get("req_lines"),
+                dist_packages=_cache_for_reuse.get("dist_packages"),
             )
             reused = True
         else:
@@ -653,49 +748,89 @@ def _pack_parts(
 
     if not reused and not rebuild_runtime:
         cache = _load_runtime_cache()
-        current_req_hash = _requirements_hash()
         current_req_lines = _requirements_runtime_lines()
-        if not current_req_hash:
-            print(f"  ! 找不到 {REQUIREMENTS_FILE.name}，无法判断依赖变化，重新打包 runtime")
-        elif cache and cache.get("requirements_hash") == current_req_hash:
-            prev_hash = cache.get("content_hash", "")
+        current_req_hash = _requirements_hash()
+
+        # ── 主路径：比对本次 PyInstaller 产物与上次缓存的 dist-info 包版本 ────────
+        #
+        # 关键点：cmd_build 在调 _pack_parts 之前已经跑完 _run_main_build()，
+        # 所以 dist_root/_internal/ 里的 .dist-info 已经是本次新鲜构建的结果。
+        # 直接把它和缓存的 dist_packages 对比，不需要查 Python 环境。
+        # 好处：
+        #   - 完全绕开 conda base 污染问题
+        #   - 能捕获 requirements.txt 没列出的传递依赖（Pillow、cryptography 等）
+        #   - importlib.metadata 查不到 conda 包的问题不存在
+        cached_dist_pkgs: Dict[str, str] = (cache or {}).get("dist_packages", {})
+        current_dist_pkgs: Dict[str, str] = _scan_dist_packages(dist_root)
+
+        if cached_dist_pkgs and current_dist_pkgs:
+            # 两次构建都有 dist-info 记录 → 直接比对
+            if cached_dist_pkgs == current_dist_pkgs:
+                dep_changed = False
+                dep_reason = (
+                    f"dist-info 包版本与上次构建完全吻合"
+                    f"（{len(current_dist_pkgs)} 个包：{', '.join(f'{k}=={v}' for k, v in sorted(current_dist_pkgs.items()))}）"
+                )
+            else:
+                dep_changed = True
+                dep_reason = "dist-info 包版本已变化（新构建与缓存不同）"
+                dep_diff = _diff_dist_packages(cached_dist_pkgs, current_dist_pkgs)
+
+        # ── 降级路径 A：旧缓存（无 dist_packages）→ 用 requirements.txt hash ────
+        elif cache is not None:
+            # 旧缓存格式（v0.3.x 及更早），升级后第一次 build 走这里；
+            # 构建完成后缓存会写入 dist_packages，下次 build 自动走主路径。
+            if cache.get("requirements_hash") == current_req_hash:
+                dep_changed = False
+                dep_reason = "requirements.txt hash 未变（旧缓存格式，本次构建后将升级为 dist-info 检测）"
+            else:
+                dep_changed = True
+                dep_reason = "requirements.txt 运行时依赖已变化（旧缓存格式）"
+                dep_diff = _diff_requirements(
+                    cache.get("req_lines", []), current_req_lines
+                )
+
+        # ── 降级路径 B：没有缓存 → 首次构建 ─────────────────────────────────────
+        else:
+            dep_changed = True
+            dep_reason = "无缓存记录（首次构建），打包 runtime 并建立缓存"
+
+        if not dep_changed:
+            prev_hash = (cache or {}).get("content_hash", "")
             # 优先用稳定名称的备份（不依赖旧版本号是否还在 dist/）
-            prev_zip: Optional[Path] = RUNTIME_LATEST_ZIP if RUNTIME_LATEST_ZIP.exists() else None
-            if prev_zip is None:
-                # 兼容旧缓存：尝试按版本号查找
-                prev_version = cache.get("version", "")
+            prev_zip_auto: Optional[Path] = RUNTIME_LATEST_ZIP if RUNTIME_LATEST_ZIP.exists() else None
+            if prev_zip_auto is None:
+                prev_version = (cache or {}).get("version", "")
                 candidate = parent / f"StrangeUtaGame-v{prev_version}-runtime.zip"
                 if candidate.exists():
-                    prev_zip = candidate
-            if prev_hash and prev_zip is not None:
-                print(
-                    f"  requirements.txt 未变，复用 runtime"
-                    f" ({prev_zip.name}) → {runtime_zip.name}"
-                )
-                shutil.copy2(str(prev_zip), str(runtime_zip))
+                    prev_zip_auto = candidate
+            if prev_hash and prev_zip_auto is not None:
+                print(f"  {dep_reason}")
+                print(f"  复用 {prev_zip_auto.name} → {runtime_zip.name}")
+                shutil.copy2(str(prev_zip_auto), str(runtime_zip))
                 print(
                     f"  ✓ {runtime_zip.name}"
                     f"  ({runtime_zip.stat().st_size / 1024 / 1024:.1f} MB)"
                     f"  [content hash 与上次相同，用户不会重新下载]"
                 )
                 _write_sha256(runtime_zip)
+                # 复用 runtime 时也扫描当前 dist-info，让旧格式缓存在下次 build 时
+                # 就能直接走 dist-info 路径（不需要等到下一次真正的重建）。
+                reuse_dist_pkgs = (cache or {}).get("dist_packages") or current_dist_pkgs
                 _save_runtime_cache(
                     version, prev_hash, runtime_zip.stat().st_size,
                     current_req_hash, current_req_lines,
+                    dist_packages=reuse_dist_pkgs,
                 )
                 reused = True
             else:
-                reason = "content_hash 缺失" if not prev_hash else "runtime-latest.zip 不存在"
-                print(f"  ! requirements.txt 未变，但缓存 zip 不可用（{reason}），重新打包 runtime")
-        elif cache:
-            # 打印 requirements.txt 里哪些包变了
-            old_lines = cache.get("req_lines", [])
-            diff_msg = _diff_requirements(old_lines, current_req_lines)
-            print("  requirements.txt 运行时依赖已变化，重新打包 runtime")
-            print("  变化详情：")
-            print(diff_msg)
+                reason_no_zip = "content_hash 缺失" if not prev_hash else "runtime-latest.zip 不存在"
+                print(f"  ! {dep_reason}，但缓存 zip 不可用（{reason_no_zip}），重新打包 runtime")
         else:
-            print("  无缓存记录（首次构建），打包 runtime 并建立缓存")
+            print(f"  {dep_reason}，重新打包 runtime")
+            if "dep_diff" in dir():
+                print("  变化详情：")
+                print(dep_diff)
 
     if rebuild_runtime:
         print("  --rebuild-runtime：强制重新打包 runtime")
@@ -708,8 +843,16 @@ def _pack_parts(
         content_hash = _content_hash_of_zip(runtime_zip)
         req_hash = _requirements_hash()
         req_lines = _requirements_runtime_lines()
+        # 扫描本次构建产物里实际有 dist-info 的包，作为下次 build 的比对基准。
+        # 这比 requirements.txt 更准确：能捕获传递依赖（Pillow、cryptography 等）。
+        new_dist_pkgs = _scan_dist_packages(dist_root)
+        if new_dist_pkgs:
+            pkg_list = ", ".join(f"{k}=={v}" for k, v in sorted(new_dist_pkgs.items()))
+            print(f"  ✓ 扫描 dist-info：{len(new_dist_pkgs)} 个包 → {pkg_list}")
+        else:
+            print("  ! 未在 _internal/ 中找到任何 .dist-info，runtime 变更检测将降级到 requirements.txt")
         _save_runtime_cache(version, content_hash, runtime_zip.stat().st_size,
-                            req_hash, req_lines)
+                            req_hash, req_lines, dist_packages=new_dist_pkgs)
         # 存一份稳定名称的备份，下次 build 可直接复用，不依赖旧版本号 zip 是否存在
         shutil.copy2(str(runtime_zip), str(RUNTIME_LATEST_ZIP))
         print(f"  ✓ 已更新 runtime 备份: {RUNTIME_LATEST_ZIP.relative_to(ROOT)}")
