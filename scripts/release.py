@@ -411,22 +411,46 @@ def _load_runtime_cache() -> Optional[Dict]:
         return None
 
 
-def _requirements_hash() -> str:
-    """对 ``pip freeze`` 输出取 SHA-256，作为"依赖是否变化"的快速判断。
-
-    只要安装的包列表/版本不变，哈希就不变 —— 即使改了 import 语句、
-    也没有增删第三方包，runtime 里的 DLL/pyd 文件就不会变。
-    运行失败时返回空字符串（调用方视为"无法判断，保守重建"）。
-    """
+def _requirements_freeze() -> str:
+    """返回当前 ``pip freeze`` 的原始文本；失败返回空字符串。"""
     try:
-        out = subprocess.check_output(
+        return subprocess.check_output(
             [sys.executable, "-m", "pip", "freeze"],
             stderr=subprocess.DEVNULL,
             encoding="utf-8",
         )
     except subprocess.CalledProcessError:
         return ""
-    return hashlib.sha256(out.encode("utf-8")).hexdigest().lower()
+
+
+def _requirements_hash(freeze_text: str = "") -> str:
+    """对 ``pip freeze`` 输出取 SHA-256，作为"依赖是否变化"的快速判断。
+
+    只要安装的包列表/版本不变，哈希就不变 —— 即使改了 import 语句、
+    也没有增删第三方包，runtime 里的 DLL/pyd 文件就不会变。
+    运行失败时返回空字符串（调用方视为"无法判断，保守重建"）。
+    """
+    text = freeze_text or _requirements_freeze()
+    if not text:
+        return ""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest().lower()
+
+
+def _diff_requirements(old_lines: List[str], new_lines: List[str]) -> str:
+    """返回两次 pip freeze 间新增/删除/变更的包（供人工确认用）。"""
+    old_set = {line.split("==")[0].lower(): line for line in old_lines if line.strip() and not line.startswith("#")}
+    new_set = {line.split("==")[0].lower(): line for line in new_lines if line.strip() and not line.startswith("#")}
+    added   = [new_set[k] for k in new_set if k not in old_set]
+    removed = [old_set[k] for k in old_set if k not in new_set]
+    changed = [f"{old_set[k]}  →  {new_set[k]}" for k in new_set if k in old_set and old_set[k] != new_set[k]]
+    parts: List[str] = []
+    if added:
+        parts.append("  新增: " + ", ".join(added))
+    if removed:
+        parts.append("  移除: " + ", ".join(removed))
+    if changed:
+        parts.append("  变更:\n    " + "\n    ".join(changed))
+    return "\n".join(parts) if parts else "  （无差异）"
 
 
 def _save_runtime_cache(
@@ -434,12 +458,15 @@ def _save_runtime_cache(
     content_hash: str,
     size: int,
     requirements_hash: str = "",
+    freeze_text: str = "",
 ) -> None:
     data = {
         "version": version,
         "content_hash": content_hash,
         "size": size,
         "requirements_hash": requirements_hash,
+        # freeze_lines 供下次 build 时 diff，方便排查为何触发重建
+        "freeze_lines": [l for l in freeze_text.splitlines() if l.strip() and not l.startswith("#")],
     }
     RUNTIME_HASH_CACHE.write_text(
         json.dumps(data, indent=2, ensure_ascii=False) + "\n",
@@ -545,9 +572,11 @@ def _pack_parts(
 
     # ── runtime part：自动判断是否可复用 ──
     reused = False
+    current_freeze = ""  # 延迟求值，避免不必要的 pip freeze 调用
     if not rebuild_runtime:
         cache = _load_runtime_cache()
-        current_req_hash = _requirements_hash()
+        current_freeze = _requirements_freeze()
+        current_req_hash = _requirements_hash(current_freeze)
         if not current_req_hash:
             print("  ! pip freeze 失败，无法自动判断依赖变化，重新打包 runtime")
         elif cache and cache.get("requirements_hash") == current_req_hash:
@@ -573,14 +602,21 @@ def _pack_parts(
                 )
                 _write_sha256(runtime_zip)
                 _save_runtime_cache(
-                    version, prev_hash, runtime_zip.stat().st_size, current_req_hash
+                    version, prev_hash, runtime_zip.stat().st_size,
+                    current_req_hash, current_freeze,
                 )
                 reused = True
             else:
                 reason = "content_hash 缺失" if not prev_hash else "runtime-latest.zip 不存在"
                 print(f"  ! 依赖未变，但缓存 zip 不可用（{reason}），重新打包 runtime")
         elif cache:
+            # 打印具体哪些包变了，方便排查是否真的需要重建
+            old_lines = cache.get("freeze_lines", [])
+            new_lines = [l for l in current_freeze.splitlines() if l.strip() and not l.startswith("#")]
+            diff_msg = _diff_requirements(old_lines, new_lines)
             print("  依赖已变化（pip freeze hash 不同），重新打包 runtime")
+            print("  变化详情：")
+            print(diff_msg)
         else:
             print("  无缓存记录（首次构建），打包 runtime 并建立缓存")
 
@@ -593,8 +629,11 @@ def _pack_parts(
         print(f"  ✓ {runtime_zip.name}  ({runtime_zip.stat().st_size / 1024 / 1024:.1f} MB)")
         _write_sha256(runtime_zip)
         content_hash = _content_hash_of_zip(runtime_zip)
-        req_hash = _requirements_hash() if not rebuild_runtime else _requirements_hash()
-        _save_runtime_cache(version, content_hash, runtime_zip.stat().st_size, req_hash)
+        if not current_freeze:
+            current_freeze = _requirements_freeze()
+        req_hash = _requirements_hash(current_freeze)
+        _save_runtime_cache(version, content_hash, runtime_zip.stat().st_size,
+                            req_hash, current_freeze)
         # 存一份稳定名称的备份，下次 build 可直接复用，不依赖旧版本号 zip 是否存在
         shutil.copy2(str(runtime_zip), str(RUNTIME_LATEST_ZIP))
         print(f"  ✓ 已更新 runtime 备份: {RUNTIME_LATEST_ZIP.relative_to(ROOT)}")
