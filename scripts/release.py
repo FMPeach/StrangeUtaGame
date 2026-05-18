@@ -65,6 +65,8 @@ MAIN_DIST = ROOT / "dist" / "StrangeUtaGame"
 RELEASE_DIST = ROOT / "dist"
 # 记录上次成功打包的 runtime 内容哈希，随 git 提交，供 --reuse-runtime 使用。
 RUNTIME_HASH_CACHE = ROOT / "scripts" / ".runtime-hash-cache.json"
+# 稳定名称的 runtime zip 备份，不随版本号变化，供下次 build 复用。
+RUNTIME_LATEST_ZIP = ROOT / "dist" / "runtime-latest.zip"
 
 VERSION_RE = re.compile(r'^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)$')
 
@@ -549,28 +551,33 @@ def _pack_parts(
         if not current_req_hash:
             print("  ! pip freeze 失败，无法自动判断依赖变化，重新打包 runtime")
         elif cache and cache.get("requirements_hash") == current_req_hash:
-            prev_version = cache.get("version", "")
             prev_hash = cache.get("content_hash", "")
-            prev_zip = parent / f"StrangeUtaGame-v{prev_version}-runtime.zip"
-            if prev_hash and prev_zip.exists():
+            # 优先用稳定名称的备份（不依赖旧版本号是否还在 dist/）
+            prev_zip: Optional[Path] = RUNTIME_LATEST_ZIP if RUNTIME_LATEST_ZIP.exists() else None
+            if prev_zip is None:
+                # 兼容旧缓存：尝试按版本号查找
+                prev_version = cache.get("version", "")
+                candidate = parent / f"StrangeUtaGame-v{prev_version}-runtime.zip"
+                if candidate.exists():
+                    prev_zip = candidate
+            if prev_hash and prev_zip is not None:
                 print(
-                    f"  依赖未变（pip freeze hash 相同），复用 v{prev_version} runtime"
-                    f" → {runtime_zip.name}"
+                    f"  依赖未变（pip freeze hash 相同），复用 runtime"
+                    f" ({prev_zip.name}) → {runtime_zip.name}"
                 )
                 shutil.copy2(str(prev_zip), str(runtime_zip))
                 print(
                     f"  ✓ {runtime_zip.name}"
                     f"  ({runtime_zip.stat().st_size / 1024 / 1024:.1f} MB)"
-                    f"  [content hash 与 v{prev_version} 相同，用户不会重新下载]"
+                    f"  [content hash 与上次相同，用户不会重新下载]"
                 )
                 _write_sha256(runtime_zip)
-                # 更新缓存版本号（指向当前版本 zip，供下次使用）
                 _save_runtime_cache(
                     version, prev_hash, runtime_zip.stat().st_size, current_req_hash
                 )
                 reused = True
             else:
-                reason = "content_hash 缺失" if not prev_hash else f"找不到 {prev_zip.name}"
+                reason = "content_hash 缺失" if not prev_hash else "runtime-latest.zip 不存在"
                 print(f"  ! 依赖未变，但缓存 zip 不可用（{reason}），重新打包 runtime")
         elif cache:
             print("  依赖已变化（pip freeze hash 不同），重新打包 runtime")
@@ -588,6 +595,9 @@ def _pack_parts(
         content_hash = _content_hash_of_zip(runtime_zip)
         req_hash = _requirements_hash() if not rebuild_runtime else _requirements_hash()
         _save_runtime_cache(version, content_hash, runtime_zip.stat().st_size, req_hash)
+        # 存一份稳定名称的备份，下次 build 可直接复用，不依赖旧版本号 zip 是否存在
+        shutil.copy2(str(runtime_zip), str(RUNTIME_LATEST_ZIP))
+        print(f"  ✓ 已更新 runtime 备份: {RUNTIME_LATEST_ZIP.relative_to(ROOT)}")
 
     return app_zip, runtime_zip, app_targets, runtime_targets
 
