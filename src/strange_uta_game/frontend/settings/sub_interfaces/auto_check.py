@@ -32,6 +32,7 @@ class AutoCheckSubInterface(SubSettingInterface):
                 ("check_line_end", "行尾check"), ("space_after_japanese", "日语后空格check"),
                 ("space_after_alphabet", "字母后空格check"), ("space_after_symbol", "符号数字后空格check"),
                 ("space_as_line_end", "空格视为句尾"), ("check_english_word_end", "英文单词结尾句尾"),
+                ("english_syllable_check", "按音节Check英文单词"),
             ], parent=g)
         self.card_auto_on_load = SwitchSettingCard(FIF.ACCEPT, "读取时自动check",
             "导入文本后自动执行check分析", parent=g)
@@ -82,6 +83,7 @@ class AutoCheckSubInterface(SubSettingInterface):
             "space_after_symbol": s.get("auto_check.space_after_symbol", True),
             "space_as_line_end": s.get("auto_check.check_space_as_line_end", True),
             "check_english_word_end": s.get("auto_check.check_english_word_end", True),
+            "english_syllable_check": s.get("auto_check.english_syllable_check", True),
         })
         self.card_auto_on_load.setChecked(s.get("auto_check.auto_on_load", True))
         saved_delete_types = s.get("auto_check.delete_ruby_types", [])

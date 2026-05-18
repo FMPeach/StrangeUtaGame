@@ -33,6 +33,7 @@ from strange_uta_game.backend.infrastructure.parsers.inline_format import (
 from strange_uta_game.backend.infrastructure.parsers.english_ruby import (
     EnglishRubyLookup,
     find_english_words,
+    get_syllable_start_offsets,
 )
 from strange_uta_game.backend.infrastructure.parsers.e2k_engine import (
     EnglishToKanaEngine,
@@ -1200,16 +1201,20 @@ class AutoCheckService:
             if i < len(check_counts) and ch in PUNCTUATION_SET:
                 check_counts[i] = max(check_counts[i], 1) if _enable_punct_cp else 0
 
-        # 批 18 #9：英文词组节奏点规则（首字=1，其余=0）
+        # 批 18 #9：英文词组节奏点规则（按音节首字=1，其余=0；关闭时整词首字=1）
         # 必须放在 e2k mora 分配之后，覆盖 e2k 命中分支的 per-char mora 计数。
         # english_fallback 分支已在前面手动应用过同样规则；此处再次覆盖是幂等的。
         # find_english_words 基于 text 的字符索引，与 chars/check_counts 一一对应。
+        _english_syllable_check = self._flags.get("english_syllable_check", True)
         for _start, _end, _word in find_english_words(text):
             if _end - _start <= 1:
                 continue  # 单字母词不强制（"I"/"a" 保留默认行为）
+            _syllable_starts = (
+                get_syllable_start_offsets(_word) if _english_syllable_check else {0}
+            )
             for _idx in range(_start, _end):
                 if _idx < len(check_counts):
-                    check_counts[_idx] = 1 if _idx == _start else 0
+                    check_counts[_idx] = 1 if (_idx - _start) in _syllable_starts else 0
 
         # 构建结果
         results = []
@@ -1822,18 +1827,22 @@ class AutoCheckService:
             if i < len(check_counts) and ch in PUNCTUATION_SET:
                 check_counts[i] = max(check_counts[i], 1) if _enable_punct_cp2 else 0
 
-        # 批 18 #9：英文词组节奏点规则（首字=1，其余=0，末字母标句尾）
+        # 批 18 #9：英文词组节奏点规则（按音节首字=1，其余=0，末字母标句尾）
         # find_english_words 基于 sentence.text 的字符索引，与 sentence.characters 一一对应
         # （文本拆分器对英文走逐字符路径，保持字符-文本索引对齐）。
         english_sentence_end_idx: set[int] = set()
         english_word_end_idx: set[int] = set()  # 所有英文单词结尾索引（不受开关控制）
         check_english_word_end = self._flags.get("check_english_word_end", True)
+        _english_syllable_check = self._flags.get("english_syllable_check", True)
         for start, end, word in find_english_words(sentence.text):
             _is_single = end - start <= 1
             if not _is_single:
+                _syllable_starts = (
+                    get_syllable_start_offsets(word) if _english_syllable_check else {0}
+                )
                 for idx in range(start, end):
                     if idx < len(check_counts):
-                        check_counts[idx] = 1 if idx == start else 0
+                        check_counts[idx] = 1 if (idx - start) in _syllable_starts else 0
             if end - 1 < len(sentence.characters):
                 english_word_end_idx.add(end - 1)  # 含单字母词，确保空格豁免生效
                 if not _is_single and check_english_word_end:

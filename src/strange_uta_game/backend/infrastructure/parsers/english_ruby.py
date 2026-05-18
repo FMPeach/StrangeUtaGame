@@ -7,7 +7,7 @@
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 
 class EnglishRubyLookup:
@@ -118,6 +118,22 @@ _APOSTROPHE_TRANSLATIONS = str.maketrans(
 def normalize_apostrophes(text: str) -> str:
     """将常见弯引号/全角撇号统一为 ASCII 撇号，便于分词与词典查询。"""
     return text.translate(_APOSTROPHE_TRANSLATIONS)
+
+
+def get_syllable_start_offsets(word: str) -> Set[int]:
+    """返回 word 内各音节首字母的偏移集合（始终含 0）。
+
+    使用 pyphen（en_US 连字词典）拆分音节。pyphen 不可用时退化为仅返回 {0}。
+    撇号/点号不参与断点，positions() 返回的索引直接对应 word 内字符偏移。
+    """
+    try:
+        import pyphen
+        d = pyphen.Pyphen(lang="en_US")
+        offsets: Set[int] = {0}
+        offsets.update(d.positions(word))
+        return offsets
+    except Exception:
+        return {0}
 
 
 def find_english_words(text: str) -> List[Tuple[int, int, str]]:
