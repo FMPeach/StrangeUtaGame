@@ -147,7 +147,7 @@ class BulkChangeDialog(QDialog):
     def _append_char_row(
         self, char_str: str, ruby_str: str, check_str: str, linked: bool = False
     ):
-        """追加一行：[字符] [注音] [节奏点] [是否连词]。"""
+        """追加一行：[字符] [注音] [节奏点] [向后连词]。"""
         row_widget = QWidget()
         row_layout = QHBoxLayout(row_widget)
         row_layout.setContentsMargins(0, 0, 0, 0)
@@ -160,7 +160,7 @@ class BulkChangeDialog(QDialog):
         edit_check = QLineEdit(check_str)
         edit_check.setPlaceholderText("节奏点")
         edit_check.setFixedWidth(64)
-        chk_linked = QCheckBox("是否连词")
+        chk_linked = QCheckBox("向后连词")
         chk_linked.setChecked(bool(linked))
         chk_linked.setToolTip(
             "连接到下一字符（末字/行尾不可连词，提交时将跳过并提示；句尾=停顿点，允许连词）"
