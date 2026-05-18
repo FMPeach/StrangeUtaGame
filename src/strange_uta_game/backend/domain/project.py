@@ -149,8 +149,15 @@ class Project:
             for sentence in self.sentences:
                 if sentence.singer_id == singer_id:
                     sentence.singer_id = transfer_to
+                for ch in sentence.characters:
+                    if ch.singer_id == singer_id:
+                        ch.singer_id = transfer_to
         else:
             self.sentences = [s for s in self.sentences if s.singer_id != singer_id]
+            for sentence in self.sentences:
+                for ch in sentence.characters:
+                    if ch.singer_id == singer_id:
+                        ch.singer_id = sentence.singer_id
 
         self.singers = [s for s in self.singers if s.id != singer_id]
         self._update_timestamp()

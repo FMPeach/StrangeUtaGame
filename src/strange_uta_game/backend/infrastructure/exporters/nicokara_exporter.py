@@ -100,6 +100,7 @@ class NicokaraExporter(BaseExporter):
         prev_end_ms = 0
         prev_singer_id: Optional[str] = None
         default_singer_id = self._get_default_singer_id(project)
+        known_singer_ids: Set[str] = {s.id for s in project.singers}
 
         for i, sentence in enumerate(project.sentences):
             # 空行（用户排版意图）无条件保留
@@ -107,7 +108,7 @@ class NicokaraExporter(BaseExporter):
             # 演唱者过滤：检查行内是否有选中的演唱者字符
             if singer_ids is not None and not is_blank_line:
                 if not self._sentence_has_singer(
-                    sentence, singer_ids, default_singer_id
+                    sentence, singer_ids, default_singer_id, known_singer_ids
                 ):
                     continue
 
@@ -121,6 +122,7 @@ class NicokaraExporter(BaseExporter):
                 singer_map,
                 prev_singer_id,
                 default_singer_id,
+                known_singer_ids,
             )
             # 过滤后无字符的行需要区分：原本就是空行（保留）vs 被过滤掉内容的行（跳过）
             stripped = line_text.strip()
@@ -161,10 +163,14 @@ class NicokaraExporter(BaseExporter):
 
     @staticmethod
     def _normalize_singer_id(
-        singer_id: Optional[str], default_singer_id: Optional[str]
+        singer_id: Optional[str],
+        default_singer_id: Optional[str],
+        known_singer_ids: Optional[Set[str]] = None,
     ) -> Optional[str]:
-        """将空/未知/? 演唱者 ID 归一化为默认演唱者"""
+        """将空/未知/? 演唱者 ID 或项目中不存在的 ID 归一化为默认演唱者"""
         if not singer_id or singer_id in ("?", "未知"):
+            return default_singer_id
+        if known_singer_ids is not None and singer_id not in known_singer_ids:
             return default_singer_id
         return singer_id
 
@@ -173,18 +179,19 @@ class NicokaraExporter(BaseExporter):
         sentence: Sentence,
         singer_ids: Set[str],
         default_singer_id: Optional[str] = None,
+        known_singer_ids: Optional[Set[str]] = None,
     ) -> bool:
         """检查行内是否有属于指定演唱者的字符
 
-        未知/空/? 演唱者视为默认演唱者。
+        未知/空/?/项目中不存在的演唱者 ID 视为默认演唱者。
         """
-        eff = self._normalize_singer_id(sentence.singer_id, default_singer_id)
+        eff = self._normalize_singer_id(sentence.singer_id, default_singer_id, known_singer_ids)
         if eff in singer_ids:
             return True
         # per-char 级别检查
         for ch in sentence.characters:
             eff_ch = self._normalize_singer_id(
-                ch.singer_id or sentence.singer_id, default_singer_id
+                ch.singer_id or sentence.singer_id, default_singer_id, known_singer_ids
             )
             if eff_ch in singer_ids:
                 return True
@@ -198,6 +205,7 @@ class NicokaraExporter(BaseExporter):
         singer_map: Optional[Dict[str, str]],
         prev_singer_id: Optional[str] = None,
         default_singer_id: Optional[str] = None,
+        known_singer_ids: Optional[Set[str]] = None,
     ) -> Tuple[str, Optional[str]]:
         """导出一行，支持演唱者过滤和标签插入
 
@@ -212,9 +220,9 @@ class NicokaraExporter(BaseExporter):
         for i, ch in enumerate(sentence.characters):
             # 有效演唱者：优先使用 per-char，回退到行级别
             effective_singer = ch.singer_id or sentence.singer_id
-            # 归一化未知演唱者为默认演唱者
+            # 归一化未知/不存在演唱者为默认演唱者
             effective_singer = self._normalize_singer_id(
-                effective_singer, default_singer_id
+                effective_singer, default_singer_id, known_singer_ids
             )
 
             # 演唱者过滤：跳过不属于选定演唱者的字符
@@ -246,7 +254,7 @@ class NicokaraExporter(BaseExporter):
                 and ch.global_sentence_end_ts is not None
             ):
                 eff = self._normalize_singer_id(
-                    ch.singer_id or sentence.singer_id, default_singer_id
+                    ch.singer_id or sentence.singer_id, default_singer_id, known_singer_ids
                 )
                 if singer_ids is None or eff in singer_ids:
                     parts.append(_format_nicokara_ts(ch.global_sentence_end_ts))
@@ -260,7 +268,7 @@ class NicokaraExporter(BaseExporter):
             ):
                 # 演唱者过滤：只有该字符属于选定演唱者时才输出
                 eff = self._normalize_singer_id(
-                    last_char.singer_id or sentence.singer_id, default_singer_id
+                    last_char.singer_id or sentence.singer_id, default_singer_id, known_singer_ids
                 )
                 if singer_ids is None or eff in singer_ids:
                     parts.append(_format_nicokara_ts(last_char.global_sentence_end_ts))
