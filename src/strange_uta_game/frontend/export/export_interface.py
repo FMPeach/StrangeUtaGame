@@ -43,6 +43,7 @@ from strange_uta_game.frontend.settings.settings_interface import (
     AppSettings,
     NicokaraTagsDialog,
 )
+from strange_uta_game.frontend.theme import theme as _theme
 
 
 class ExportInterface(QWidget):
@@ -59,9 +60,9 @@ class ExportInterface(QWidget):
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(20)
 
-        # 标题
-        title = TitleLabel("导出")
-        layout.addWidget(title)
+        # 标题（保存为实例变量，防止 Python GC 清出 WeakKeyDictionary 导致主题失效）
+        self.title_label = TitleLabel("导出")
+        layout.addWidget(self.title_label)
 
         desc = CaptionLabel("将项目导出为多种歌词格式")
         layout.addWidget(desc)
@@ -149,6 +150,9 @@ class ExportInterface(QWidget):
             Qt.ScrollBarPolicy.ScrollBarAsNeeded
         )
         self._singer_scroll_area.setWidget(self._singer_checkbox_widget)
+        # 断开 autoFillBackground 对系统 QPalette 的依赖
+        self._singer_scroll_area.viewport().setAutoFillBackground(False)
+        self._singer_checkbox_widget.setAutoFillBackground(False)
         singer_group_layout.addWidget(self._singer_scroll_area)
 
         self._chk_insert_singer_tags = CheckBox("在演唱者切换处插入【演唱者名】标签")
@@ -185,6 +189,48 @@ class ExportInterface(QWidget):
 
         # 所有控件创建完毕后再填充格式列表（_populate_formats 会访问 btn_tags 等控件）
         self._populate_formats()
+
+        # 主题变化时刷新 QListWidget 和标题标签样式（二者不在 qfluentwidgets 管理中）
+        _theme.changed.connect(self._update_theme_style)
+        self._update_theme_style()
+
+    def _update_theme_style(self) -> None:
+        """主题变化时刷新不受 qfluentwidgets 管理的控件样式。
+
+        - title_label (TitleLabel)：局部变量创建后可能被 GC 移出
+          styleSheetManager 的 WeakKeyDictionary，需显式更新颜色。
+        - format_list (QListWidget)：纯 Qt 控件，依赖 QPalette 渲染，
+          需要显式 QSS 覆盖。
+        """
+        text = _theme.text_primary.name()
+        self.title_label.setStyleSheet(f"color: {text};")
+
+        bg     = _theme.bg_primary.name()
+        border = _theme.border_primary.name()
+        hover  = _theme.bg_hover.name()
+        sel    = _theme.bg_selected.name()
+        # 选中行始终用白字（bg_selected 是深蓝色，深浅模式下均与白字对比度最佳）
+        self.format_list.setStyleSheet(f"""
+            QListWidget {{
+                background-color: {bg};
+                color: {text};
+                border: 1px solid {border};
+                border-radius: 6px;
+                padding: 4px;
+                outline: none;
+            }}
+            QListWidget::item {{
+                padding: 6px 8px;
+                border-radius: 4px;
+            }}
+            QListWidget::item:selected {{
+                background-color: {sel};
+                color: #ffffff;
+            }}
+            QListWidget::item:hover:!selected {{
+                background-color: {hover};
+            }}
+        """)
 
     @staticmethod
     def _strip_extension_hint(name: str) -> str:

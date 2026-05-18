@@ -395,9 +395,57 @@ class Theme(QObject):
         if old_dark != self._system_is_dark:
             self._apply_theme_change()
 
+    def _sync_app_palette(self) -> None:
+        """强制 QApplication palette 与当前主题一致。
+
+        系统主题改变时，Qt 平台层会自动更新 QApplication.palette()，导致
+        所有依赖 palette 渲染的控件（QListWidget、autoFillBackground=True 的
+        QWidget 等）跟随系统主题变化。通过强制覆盖 palette，确保强制主题
+        模式下外观正确。在 AUTO 模式中也调用，保证 palette 始终与
+        qfluentwidgets 主题保持一致。
+        """
+        app = QApplication.instance()
+        if not app:
+            return
+        palette = QPalette()
+        if self.is_dark:
+            palette.setColor(QPalette.ColorRole.Window,          QColor(32, 32, 32))
+            palette.setColor(QPalette.ColorRole.WindowText,      QColor(255, 255, 255))
+            palette.setColor(QPalette.ColorRole.Base,            QColor(25, 25, 25))
+            palette.setColor(QPalette.ColorRole.AlternateBase,   QColor(45, 45, 45))
+            palette.setColor(QPalette.ColorRole.Text,            QColor(255, 255, 255))
+            palette.setColor(QPalette.ColorRole.BrightText,      QColor(255, 255, 255))
+            palette.setColor(QPalette.ColorRole.Button,          QColor(45, 45, 45))
+            palette.setColor(QPalette.ColorRole.ButtonText,      QColor(255, 255, 255))
+            palette.setColor(QPalette.ColorRole.Highlight,       QColor(42, 130, 218))
+            palette.setColor(QPalette.ColorRole.HighlightedText, QColor(0, 0, 0))
+            palette.setColor(QPalette.ColorRole.ToolTipBase,     QColor(45, 45, 45))
+            palette.setColor(QPalette.ColorRole.ToolTipText,     QColor(255, 255, 255))
+            palette.setColor(QPalette.ColorRole.Link,            QColor(42, 130, 218))
+            palette.setColor(QPalette.ColorRole.Mid,             QColor(60, 60, 60))
+            palette.setColor(QPalette.ColorRole.Dark,            QColor(20, 20, 20))
+        else:
+            palette.setColor(QPalette.ColorRole.Window,          QColor(243, 243, 243))
+            palette.setColor(QPalette.ColorRole.WindowText,      QColor(0, 0, 0))
+            palette.setColor(QPalette.ColorRole.Base,            QColor(255, 255, 255))
+            palette.setColor(QPalette.ColorRole.AlternateBase,   QColor(233, 231, 227))
+            palette.setColor(QPalette.ColorRole.Text,            QColor(0, 0, 0))
+            palette.setColor(QPalette.ColorRole.BrightText,      QColor(0, 0, 0))
+            palette.setColor(QPalette.ColorRole.Button,          QColor(240, 240, 240))
+            palette.setColor(QPalette.ColorRole.ButtonText,      QColor(0, 0, 0))
+            palette.setColor(QPalette.ColorRole.Highlight,       QColor(0, 103, 192))
+            palette.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
+            palette.setColor(QPalette.ColorRole.ToolTipBase,     QColor(255, 255, 220))
+            palette.setColor(QPalette.ColorRole.ToolTipText,     QColor(0, 0, 0))
+            palette.setColor(QPalette.ColorRole.Link,            QColor(0, 0, 255))
+            palette.setColor(QPalette.ColorRole.Mid,             QColor(160, 160, 160))
+            palette.setColor(QPalette.ColorRole.Dark,            QColor(160, 160, 160))
+        app.setPalette(palette)
+
     def _apply_theme_change(self) -> None:
         """应用主题变更（统一入口）"""
         self._invalidate()
+        self._sync_app_palette()
         self._apply_qfluentwidgets_theme(lazy=True)
         self._refresh_all_widgets()
         self.changed.emit()
@@ -412,13 +460,15 @@ class Theme(QObject):
         2. 用户手动切换主题时，确保 event loop 完全 settle 后标题栏/背景状态正确。
 
         与 _apply_theme_change 的区别：
+        - _sync_app_palette()：在 setTheme 之前先强制 QPalette，覆盖 Qt 平台层刚
+          写入的系统 dark palette，使 autoFillBackground 控件立即呈现正确背景；
         - lazy=False：对 styleSheetManager 中的 **所有** 控件（含隐藏页）立即写入
           正确的 QSS，不依赖 DirtyStyleSheetWatcher 的延迟机制，从根本上消除
           「隐藏子界面切出来时仍显示系统颜色」的问题；
-        - _refresh_all_widgets()：unpolish/polish 所有可见控件，覆盖系统 QPalette
-          更新带来的背景色污染；
+        - _refresh_all_widgets()：unpolish/polish 所有可见控件，使样式重新生效；
         - 不重复调用 _invalidate()，因 _mode 未变，颜色缓存无需重建。
         """
+        self._sync_app_palette()
         self._apply_qfluentwidgets_theme(lazy=False)
         self._refresh_all_widgets()
         self.changed.emit()

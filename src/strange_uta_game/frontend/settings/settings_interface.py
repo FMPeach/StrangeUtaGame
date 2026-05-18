@@ -183,6 +183,10 @@ class SettingsInterface(ScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setObjectName("settingInterface")
         self.scrollWidget.setObjectName("scrollWidget")
+        # 断开 autoFillBackground 对系统 QPalette 的依赖，避免 OS 主题改变时
+        # viewport / scrollWidget 的背景色跟随系统走（深色污染）。
+        self.viewport().setAutoFillBackground(False)
+        self.scrollWidget.setAutoFillBackground(False)
 
     def _init_layout(self):
         self.vBoxLayout.setContentsMargins(30, 20, 30, 0)

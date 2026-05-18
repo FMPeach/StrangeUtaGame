@@ -42,6 +42,9 @@ class SubSettingInterface(ScrollArea):
         self.setWidgetResizable(True)
         self.setObjectName("subSettingInterface")
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        # 断开 autoFillBackground 对系统 QPalette 的依赖
+        self.viewport().setAutoFillBackground(False)
+        self.scrollWidget.setAutoFillBackground(False)
 
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(20, 20, 20, 20)
