@@ -907,7 +907,7 @@
   {
     "enabled": true,
     "word": "1人",
-    "reading": "{1||ひ}{人||と|り}"
+    "reading": "{1人||ひ|と|り,}"
   },
   {
     "enabled": true,
@@ -1127,7 +1127,7 @@
   {
     "enabled": true,
     "word": "一人",
-    "reading": "{一||ひ}{人||と|り}"
+    "reading": "{一人||ひ|と|り,}"
   },
   {
     "enabled": true,
@@ -1602,7 +1602,7 @@
   {
     "enabled": true,
     "word": "明日",
-    "reading": "{明||あ}{日||し|た}"
+    "reading": "{明日||あ|し|た,}"
   },
   {
     "enabled": true,
@@ -1672,7 +1672,7 @@
   {
     "enabled": true,
     "word": "昨日",
-    "reading": "{昨||き}{日||の|う}"
+    "reading": "{昨日||き|の|う,}"
   },
   {
     "enabled": true,
