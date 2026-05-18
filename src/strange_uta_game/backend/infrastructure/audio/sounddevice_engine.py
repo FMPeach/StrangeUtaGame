@@ -617,9 +617,9 @@ class SoundDeviceEngine(IAudioEngine):
 
             remaining = total - pos
             if remaining <= 0:
-                # EOF：自动停止
+                # EOF：暂停播放，保持流存活以便 seek 后继续播放
                 self._on_eof()
-                break
+                continue
 
             chunk_n = min(free, remaining)
             chunk = pcm[pos : pos + chunk_n]
@@ -668,7 +668,11 @@ class SoundDeviceEngine(IAudioEngine):
         # ring buffer 中的旧数据会被新数据自然覆盖
 
     def _on_eof(self) -> None:
-        """active PCM 喂完了：等 ring 排空，置 STOPPED。"""
+        """active PCM 喂完了：等 ring 排空，置 PAUSED。
+
+        播放结束后保持流存活，状态设为 PAUSED 而非 STOPPED，
+        这样用户拖动时间戳后可以继续播放，无需重建流。
+        """
         # 等待 ring 自然排空（最多 1s）
         if self._ring is not None:
             t0 = time.time()
@@ -676,7 +680,7 @@ class SoundDeviceEngine(IAudioEngine):
                 if self._producer_stop.is_set():
                     return
                 time.sleep(_PRODUCER_TICK)
-        self._state = PlaybackState.STOPPED
+        self._state = PlaybackState.PAUSED
 
     def _perform_hot_recovery(self) -> None:
         """执行音频流热重载（断线重连）
