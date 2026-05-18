@@ -379,17 +379,23 @@ class TimingService:
         return True
 
     def move_to_checkpoint(
-        self, line_idx: int, char_idx: int, checkpoint_idx: int = 0
+        self,
+        line_idx: int,
+        char_idx: int,
+        checkpoint_idx: int = 0,
+        prefer_backward: bool = False,
     ) -> bool:
         """移动到指定 checkpoint
 
-        如果目标字符的 check_count=0（无 checkpoint），自动跳到该位置之后
-        最近的有效 checkpoint。
+        如果目标字符的 check_count=0（无 checkpoint），自动跳到最近的
+        有效 checkpoint。
 
         Args:
             line_idx: 行索引
             char_idx: 字符索引
             checkpoint_idx: checkpoint 索引（默认 0）
+            prefer_backward: 若为 True，优先向前（向文件开头方向）查找；
+                找不到再向后查找。默认 False（向后查找）。
 
         Returns:
             是否成功移动
@@ -399,17 +405,34 @@ class TimingService:
 
         target = (line_idx, char_idx, checkpoint_idx)
 
-        # 查找精确匹配或最近的下一个有效 checkpoint
-        best_idx: Optional[int] = None
-        for i, pos in enumerate(self._global_checkpoints):
-            pos_key = (pos.line_idx, pos.char_idx, pos.checkpoint_idx)
-            if pos_key == target:
-                # 精确匹配
-                best_idx = i
-                break
-            if pos_key >= target and best_idx is None:
-                # 目标不存在（check_count=0）→ 取最近的下一个
-                best_idx = i
+        if prefer_backward:
+            # 优先向前查找：找最后一个 pos_key <= target 的 checkpoint
+            best_idx: Optional[int] = None
+            for i, pos in enumerate(self._global_checkpoints):
+                pos_key = (pos.line_idx, pos.char_idx, pos.checkpoint_idx)
+                if pos_key == target:
+                    best_idx = i
+                    break
+                if pos_key <= target:
+                    best_idx = i
+
+            # 向前找不到时，向后查找
+            if best_idx is None:
+                for i, pos in enumerate(self._global_checkpoints):
+                    pos_key = (pos.line_idx, pos.char_idx, pos.checkpoint_idx)
+                    if pos_key >= target:
+                        best_idx = i
+                        break
+        else:
+            # 默认行为：向后查找（保持原有逻辑）
+            best_idx = None
+            for i, pos in enumerate(self._global_checkpoints):
+                pos_key = (pos.line_idx, pos.char_idx, pos.checkpoint_idx)
+                if pos_key == target:
+                    best_idx = i
+                    break
+                if pos_key >= target and best_idx is None:
+                    best_idx = i
 
         if best_idx is not None:
             pos = self._global_checkpoints[best_idx]

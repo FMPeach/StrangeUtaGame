@@ -2209,8 +2209,11 @@ class EditorInterface(QWidget):
             return
 
         # 无 checkpoint 分支也触发 timing_service 移动（便于随后空格赋时间戳）
+        # 优先向前查找最近的CP，找不到再向后找
         if self._timing_service:
-            self._timing_service.move_to_checkpoint(line_idx, char_idx, 0)
+            self._timing_service.move_to_checkpoint(
+                line_idx, char_idx, 0, prefer_backward=True
+            )
 
         self._update_line_info()
         self._update_time_tags_display()
@@ -2853,6 +2856,36 @@ class EditorInterface(QWidget):
                     return tags[-1]  # 返回该字符最后一个时间戳（最近的）
         return None
 
+    def _find_previous_timestamp_with_position(
+        self, line_idx: int, char_idx: int
+    ) -> Optional[tuple[int, int, int]]:
+        """向前查找最近的时间戳，同时返回该时间戳所在的字符位置
+
+        Args:
+            line_idx: 当前行索引
+            char_idx: 当前字符索引
+
+        Returns:
+            找到的 (timestamp, line_idx, char_idx) 或 None
+        """
+        if not self._project:
+            return None
+
+        # 从当前行往前找
+        for li in range(line_idx, -1, -1):
+            sentence = self._project.sentences[li]
+            # 确定本行搜索的字符范围
+            end_char = char_idx if li == line_idx else len(sentence.characters) - 1
+
+            for ci in range(end_char, -1, -1):
+                char = sentence.get_character(ci)
+                if not char:
+                    continue
+                tags = char.all_global_timestamps
+                if tags:
+                    return (tags[-1], li, ci)
+        return None
+
     def _find_prev_char_with_cp(
         self, line_idx: int, char_idx: int
     ) -> Optional[Tuple[int, int, int]]:
@@ -2884,7 +2917,14 @@ class EditorInterface(QWidget):
         return None
 
     def _on_seek_to_char(self, line_idx: int, char_idx: int):
-        """双击字符 → 跳转到该字符的时间戳（无时间戳则向前查找）"""
+        """双击字符 → 跳转到该字符的时间戳（无时间戳则向前查找）
+
+        对于无CP字符：
+        - 有时间戳：跳转到该时间戳，CP挪到该字符
+        - 无时间戳但找到前一个时间戳：跳转到前一个时间戳，CP挪到时间戳所在的字符
+        - 完全没有时间戳：跳转到歌曲开头(0)，CP挪到全文键第一个CP
+        不动focus域的字符选中。
+        """
         if not self._project or line_idx >= len(self._project.sentences):
             return
         sentence = self._project.sentences[line_idx]
@@ -2895,20 +2935,53 @@ class EditorInterface(QWidget):
         if not char:
             return
 
+        # 判断当前字符是否有 checkpoint
+        no_checkpoint = char.check_count == 0 and not char.is_sentence_end
+
         tags = char.all_global_timestamps
         if tags:
+            # 有时间戳：跳转到该时间戳
             self._on_seek(tags[0])
-        else:
-            # 向前查找最近的时间戳，仅跳转音频
-            prev_ts = self._find_previous_timestamp(line_idx, char_idx)
-            if prev_ts is not None:
+            # CP挪到当前字符
+            if self._timing_service:
+                self._timing_service.move_to_checkpoint(line_idx, char_idx, 0)
+        elif no_checkpoint:
+            # 无CP字符且无时间戳：向前查找最近的时间戳
+            result = self._find_previous_timestamp_with_position(line_idx, char_idx)
+            if result is not None:
+                prev_ts, ts_line_idx, ts_char_idx = result
                 self._on_seek(prev_ts)
+                # CP挪到时间戳所在的字符
+                if self._timing_service:
+                    self._timing_service.move_to_checkpoint(
+                        ts_line_idx, ts_char_idx, 0
+                    )
+            else:
+                # 完全没有时间戳：跳转到歌曲开头
+                self._on_seek(0)
+                # CP挪到全文键第一个CP
+                if self._timing_service:
+                    self._timing_service.move_to_checkpoint(0, 0, 0)
+        else:
+            # 有CP但无时间戳：向前查找最近的时间戳
+            result = self._find_previous_timestamp_with_position(line_idx, char_idx)
+            if result is not None:
+                prev_ts, ts_line_idx, ts_char_idx = result
+                self._on_seek(prev_ts)
+                # CP挪到时间戳所在的字符
+                if self._timing_service:
+                    self._timing_service.move_to_checkpoint(
+                        ts_line_idx, ts_char_idx, 0
+                    )
+            else:
+                # 完全没有时间戳：跳转到歌曲开头
+                self._on_seek(0)
+                # CP挪到全文键第一个CP
+                if self._timing_service:
+                    self._timing_service.move_to_checkpoint(0, 0, 0)
 
-        # 移动打轴位置到当前双击的字符
-        if self._timing_service:
-            self._timing_service.move_to_checkpoint(line_idx, char_idx, 0)
-            self._update_time_tags_display()
-            self._update_status()
+        self._update_time_tags_display()
+        self._update_status()
 
     def _on_seek_to_checkpoint(self, line_idx: int, char_idx: int, cp_idx: int):
         """双击 checkpoint → 跳转到该 checkpoint 的时间戳（无时间戳则向前查找）"""
