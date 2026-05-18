@@ -67,6 +67,31 @@ RELEASE_DIST = ROOT / "dist"
 RUNTIME_HASH_CACHE = ROOT / "scripts" / ".runtime-hash-cache.json"
 # 稳定名称的 runtime zip 备份，不随版本号变化，供下次 build 复用。
 RUNTIME_LATEST_ZIP = ROOT / "dist" / "runtime-latest.zip"
+# 不参与 pip freeze hash 计算的包名前缀列表（纯开发工具，不会进入打包产物）。
+# 每行一个前缀（不区分大小写），以 # 开头的行视为注释。随 git 提交。
+RUNTIME_FREEZE_EXCLUDE = ROOT / "scripts" / ".runtime-freeze-exclude.txt"
+
+# 内置默认排除项（若排除文件不存在则使用此列表；文件存在则完全以文件为准）
+_DEFAULT_FREEZE_EXCLUDES = [
+    "pip",
+    "setuptools",
+    "wheel",
+    "pyinstaller",
+    "pyinstaller-hooks-contrib",
+    "build",
+    "twine",
+    "pytest",
+    "pytest-cov",
+    "coverage",
+    "black",
+    "ruff",
+    "flake8",
+    "mypy",
+    "isort",
+    "pylint",
+    "pre-commit",
+    "nox",
+]
 
 VERSION_RE = re.compile(r'^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)$')
 
@@ -411,8 +436,30 @@ def _load_runtime_cache() -> Optional[Dict]:
         return None
 
 
+def _load_freeze_excludes() -> List[str]:
+    """加载排除包名前缀列表。文件存在则用文件；否则用内置默认值。"""
+    if RUNTIME_FREEZE_EXCLUDE.exists():
+        lines = RUNTIME_FREEZE_EXCLUDE.read_text(encoding="utf-8").splitlines()
+        return [l.strip().lower() for l in lines if l.strip() and not l.startswith("#")]
+    return [p.lower() for p in _DEFAULT_FREEZE_EXCLUDES]
+
+
+def _filter_freeze(raw: str, excludes: List[str]) -> str:
+    """从 pip freeze 输出中去掉匹配任一排除前缀的行。"""
+    result = []
+    for line in raw.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        pkg_lower = stripped.split("==")[0].split(" @ ")[0].lower().replace("_", "-")
+        if any(pkg_lower == ex or pkg_lower.startswith(ex + "-") for ex in excludes):
+            continue
+        result.append(line)
+    return "\n".join(result)
+
+
 def _requirements_freeze() -> str:
-    """返回当前 ``pip freeze`` 的原始文本；失败返回空字符串。"""
+    """返回当前 ``pip freeze`` 的原始文本（未过滤）；失败返回空字符串。"""
     try:
         return subprocess.check_output(
             [sys.executable, "-m", "pip", "freeze"],
@@ -421,6 +468,19 @@ def _requirements_freeze() -> str:
         )
     except subprocess.CalledProcessError:
         return ""
+
+
+def _requirements_freeze_filtered() -> str:
+    """返回过滤掉开发工具后的 pip freeze 文本，用于 hash 计算。"""
+    raw = _requirements_freeze()
+    if not raw:
+        return ""
+    excludes = _load_freeze_excludes()
+    filtered = _filter_freeze(raw, excludes)
+    skipped = len(raw.splitlines()) - len(filtered.splitlines())
+    if skipped:
+        print(f"  (pip freeze: 共 {len(raw.splitlines())} 个包，排除 {skipped} 个开发工具后参与 hash 计算)")
+    return filtered
 
 
 def _requirements_hash(freeze_text: str = "") -> str:
@@ -536,6 +596,7 @@ def _pack_part_zip(zip_path: Path, dist_root: Path, targets: List[str]) -> None:
 def _pack_parts(
     version: str,
     rebuild_runtime: bool = False,
+    reuse_runtime: bool = False,
 ) -> Tuple[Path, Path, List[str], List[str]]:
     """打 app + runtime 两个 part zip 并生成各自 .sha256 文件。
 
@@ -544,16 +605,15 @@ def _pack_parts(
     part targets 中**，因此它即便存在也不会影响 part-zip 的 sha256，从而避免循环
     依赖（part sha256 → 写本地清单 → 再依赖含清单的内容）。
 
-    **runtime 自动判断策略**（``rebuild_runtime=False`` 时）：
+    **runtime 判断策略**：
 
-    1. 读取 ``scripts/.runtime-hash-cache.json`` 中上次打包时的 ``pip freeze`` 哈希；
-    2. 对当前环境重新执行 ``pip freeze`` 并计算哈希；
-    3. 两者相同 → 依赖包未变 → 复用上次的 runtime zip（content hash 与上次一致
-       → Updater 不会让用户重新下载 runtime）；
-    4. 不同 → 重新打包，更新缓存。
-
-    ``rebuild_runtime=True`` 时跳过上述判断，强制重打（用于 PyInstaller 版本升级、
-    手动确认依赖有变化等场景）。
+    * ``reuse_runtime=True``     —— 无条件复用上次的 runtime zip，不检查 hash，
+                                     适合"我确认依赖没变"的快速发版。
+    * ``rebuild_runtime=True``   —— 无条件重新打包，忽略一切缓存。
+    * 两者均 False（默认）       —— 自动判断：对过滤后的 pip freeze 取 hash，
+                                     与缓存对比；hash 相同则复用，不同则重建。
+                                     开发工具类包通过 ``scripts/.runtime-freeze-exclude.txt``
+                                     或内置默认列表排除在外，不影响判断结果。
     """
     dist_root = MAIN_DIST
     parent = dist_root.parent
@@ -573,9 +633,36 @@ def _pack_parts(
     # ── runtime part：自动判断是否可复用 ──
     reused = False
     current_freeze = ""  # 延迟求值，避免不必要的 pip freeze 调用
-    if not rebuild_runtime:
+
+    # --reuse-runtime：无条件复用，不做任何 hash 检查
+    if reuse_runtime and not rebuild_runtime:
+        prev_zip: Optional[Path] = RUNTIME_LATEST_ZIP if RUNTIME_LATEST_ZIP.exists() else None
+        if prev_zip is None:
+            cache = _load_runtime_cache()
+            prev_version = (cache or {}).get("version", "")
+            candidate = parent / f"StrangeUtaGame-v{prev_version}-runtime.zip"
+            if candidate.exists():
+                prev_zip = candidate
+        if prev_zip is not None:
+            prev_hash = (_load_runtime_cache() or {}).get("content_hash", "")
+            print(f"  --reuse-runtime：无条件复用 {prev_zip.name} → {runtime_zip.name}")
+            shutil.copy2(str(prev_zip), str(runtime_zip))
+            print(f"  ✓ {runtime_zip.name}  ({runtime_zip.stat().st_size / 1024 / 1024:.1f} MB)")
+            _write_sha256(runtime_zip)
+            # 更新缓存版本号，但保留原 content_hash / requirements_hash（内容未变）
+            _save_runtime_cache(
+                version, prev_hash,
+                runtime_zip.stat().st_size,
+                (_load_runtime_cache() or {}).get("requirements_hash", ""),
+                "\n".join((_load_runtime_cache() or {}).get("freeze_lines", [])),
+            )
+            reused = True
+        else:
+            print("  ! --reuse-runtime：找不到可用的 runtime zip（runtime-latest.zip 不存在且缓存无效），将重新打包")
+
+    if not reused and not rebuild_runtime:
         cache = _load_runtime_cache()
-        current_freeze = _requirements_freeze()
+        current_freeze = _requirements_freeze_filtered()
         current_req_hash = _requirements_hash(current_freeze)
         if not current_req_hash:
             print("  ! pip freeze 失败，无法自动判断依赖变化，重新打包 runtime")
@@ -630,7 +717,7 @@ def _pack_parts(
         _write_sha256(runtime_zip)
         content_hash = _content_hash_of_zip(runtime_zip)
         if not current_freeze:
-            current_freeze = _requirements_freeze()
+            current_freeze = _requirements_freeze_filtered()
         req_hash = _requirements_hash(current_freeze)
         _save_runtime_cache(version, content_hash, runtime_zip.stat().st_size,
                             req_hash, current_freeze)
@@ -734,6 +821,7 @@ def cmd_build(
     rebuild_updater: bool = False,
     clean: bool = False,
     rebuild_runtime: bool = False,
+    reuse_runtime: bool = False,
 ) -> int:
     version = _read_version()
     print(f"== build for v{version} ==")
@@ -749,7 +837,7 @@ def cmd_build(
     print()
     print("[step] 打增量分包 part zip ...")
     app_zip, runtime_zip, app_targets, runtime_targets = _pack_parts(
-        version, rebuild_runtime=rebuild_runtime
+        version, rebuild_runtime=rebuild_runtime, reuse_runtime=reuse_runtime
     )
 
     print()
@@ -813,6 +901,7 @@ def cmd_all(
     rebuild_updater: bool = False,
     clean: bool = False,
     rebuild_runtime: bool = False,
+    reuse_runtime: bool = False,
 ) -> int:
     rc = cmd_prepare(version)
     if rc != 0:
@@ -825,7 +914,8 @@ def cmd_all(
         print("已取消 build。")
         return 0
     return cmd_build(
-        rebuild_updater=rebuild_updater, clean=clean, rebuild_runtime=rebuild_runtime
+        rebuild_updater=rebuild_updater, clean=clean,
+        rebuild_runtime=rebuild_runtime, reuse_runtime=reuse_runtime,
     )
 
 
@@ -863,6 +953,15 @@ def main(argv: Optional[list] = None) -> int:
             "哈希未变（极少见）等场景。正常情况下不需要加此标志。"
         ),
     )
+    sp_build.add_argument(
+        "--reuse-runtime",
+        action="store_true",
+        help=(
+            "无条件复用上次打包的 runtime zip（跳过 pip freeze hash 检查）。"
+            "适合只改了应用代码、确认第三方依赖没有任何变化的快速发版。"
+            "与 --rebuild-runtime 互斥（同时传时 --rebuild-runtime 优先）。"
+        ),
+    )
 
     sp_all = sub.add_parser("all", help="prepare + build")
     sp_all.add_argument("version", help="目标版本号 X.Y.Z")
@@ -881,6 +980,11 @@ def main(argv: Optional[list] = None) -> int:
         action="store_true",
         help="强制重新打包 runtime zip（正常情况下不需要）",
     )
+    sp_all.add_argument(
+        "--reuse-runtime",
+        action="store_true",
+        help="无条件复用上次打包的 runtime zip，跳过 pip freeze hash 检查",
+    )
 
     args = p.parse_args(argv)
     if args.cmd == "prepare":
@@ -892,6 +996,7 @@ def main(argv: Optional[list] = None) -> int:
             rebuild_updater=args.rebuild_updater,
             clean=args.clean,
             rebuild_runtime=args.rebuild_runtime,
+            reuse_runtime=args.reuse_runtime,
         )
     if args.cmd == "all":
         return cmd_all(
@@ -899,6 +1004,7 @@ def main(argv: Optional[list] = None) -> int:
             rebuild_updater=args.rebuild_updater,
             clean=args.clean,
             rebuild_runtime=args.rebuild_runtime,
+            reuse_runtime=args.reuse_runtime,
         )
     p.print_help()
     return 1
