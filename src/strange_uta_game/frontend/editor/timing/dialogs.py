@@ -565,12 +565,9 @@ class InsertGuideSymbolDialog(QDialog):
     def _on_execute(self):
         from strange_uta_game.backend.domain.models import Character
 
-        # 过滤 Unicode 变体选择符（U+FE00-U+FE0F）等非用户主动输入的字符
-        # 例如 ☢︎ 会被解析为 ☢ + VS15(0xFE0E)，需要过滤掉变体选择符
+        # 不再过滤 Unicode 变体选择符（U+FE00-U+FE0F）等非用户主动输入的字符
+        # 例如 ☢︎ 会被解析为 ☢ + VS15(0xFE0E)，不需要过滤掉变体选择符
         symbol = self.edit_symbol.text().strip()
-        symbol = "".join(
-            c for c in symbol if not (0xFE00 <= ord(c) <= 0xFE0F)
-        )
         if not symbol:
             return
 
