@@ -371,8 +371,10 @@ def _show_update_dialog(parent: "SettingsInterface", result: CheckResult) -> Non
         parent=parent,
     )
 
-    worker = _LaunchUpdaterWorker(plan, parent=parent)
-    # 挂到 parent 上防止被 GC（QThread 是 QObject，parent 管理其生命周期）
+    # parent=None：不让 Qt 把 QThread 的生命周期绑到 SettingsInterface 上。
+    # 若 parent 被销毁时线程还在运行，Qt 会 destroy 运行中的 QThread（崩溃）。
+    # 用 Python 引用（_update_launch_worker）防 GC 即可，由 os._exit(0) 统一结束。
+    worker = _LaunchUpdaterWorker(plan, parent=None)
     parent._update_launch_worker = worker  # type: ignore[attr-defined]
 
     def _on_done(launch_result: object) -> None:

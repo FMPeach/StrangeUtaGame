@@ -467,31 +467,53 @@ class MainWindow(MSFluentWindow):
                 download_urls=list(result.download_candidates),
                 proxy_url=proxy_url,
             )
-            launched = upd_installer.launch_updater(plan)
-            if not launched.launched:
-                InfoBar.error(
-                    title="启动 Updater 失败",
-                    content=launched.reason or "未知错误",
+
+            # launch_updater 内部会调用 _update_updater_from_remote 发起 HTTP 请求，
+            # 同步调用会冻结 UI；改为在后台线程中执行（与 update_card.py 保持一致）。
+            from strange_uta_game.updater.ui.update_card import _LaunchUpdaterWorker
+
+            InfoBar.info(
+                title="正在准备更新",
+                content="正在获取最新更新器，请稍候…",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=False,
+                position=InfoBarPosition.TOP,
+                duration=30000,
+                parent=self,
+            )
+
+            worker = _LaunchUpdaterWorker(plan, parent=None)
+            self._startup_update_launch_worker = worker  # 防 GC
+
+            def _on_launch_done(launch_result: object) -> None:
+                from strange_uta_game.updater import installer as _inst
+                lr: _inst.LaunchResult = launch_result  # type: ignore[assignment]
+                if not lr.launched:
+                    InfoBar.error(
+                        title="启动 Updater 失败",
+                        content=lr.reason or "未知错误",
+                        orient=Qt.Orientation.Horizontal,
+                        isClosable=True,
+                        position=InfoBarPosition.TOP,
+                        duration=6000,
+                        parent=self,
+                    )
+                    return
+
+                InfoBar.success(
+                    title="更新已启动",
+                    content="即将退出应用，由 Updater 完成替换并自动重启…",
                     orient=Qt.Orientation.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP,
-                    duration=6000,
+                    duration=3500,
                     parent=self,
                 )
-                return
+                # 用强制退出而非 QApplication.quit()
+                QTimer.singleShot(1200, self.request_force_quit)
 
-            InfoBar.success(
-                title="更新已启动",
-                content="即将退出应用，由 Updater 完成替换并自动重启…",
-                orient=Qt.Orientation.Horizontal,
-                isClosable=True,
-                position=InfoBarPosition.TOP,
-                duration=3500,
-                parent=self,
-            )
-            # 用强制退出而非 ``QApplication.quit()`` —— 后者遇到脏项目、modal、
-            # 未停的 QThread 时不一定真退出，会让 Updater 卡在 _internal 锁住。
-            QTimer.singleShot(1200, self.request_force_quit)
+            worker.done.connect(_on_launch_done)
+            worker.start()
         except Exception:
             import logging
             logging.getLogger(__name__).warning(

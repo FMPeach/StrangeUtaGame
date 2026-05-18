@@ -260,8 +260,17 @@ def _update_updater_from_remote(
                         log.info("[self-update] Updater.exe 内容一致，无需更新")
                         return True
 
-                # 写入新 Updater.exe
-                local_updater.write_bytes(new_bytes)
+                # 写入新 Updater.exe（带重试：Windows 下句柄释放可能有短暂延迟）
+                import time as _time
+                for _attempt in range(3):
+                    try:
+                        local_updater.write_bytes(new_bytes)
+                        break
+                    except PermissionError:
+                        if _attempt < 2:
+                            _time.sleep(1.0)
+                        else:
+                            raise
                 log.info("[self-update] 已更新 Updater.exe（%d bytes）", len(new_bytes))
                 return True
 
