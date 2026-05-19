@@ -29,9 +29,13 @@ from PyQt6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QVBoxLayout,
+    QWidget,
 )
+from PyQt6.QtGui import QIntValidator
 from qfluentwidgets import (
+    ComboBox,
     FluentIcon as FIF,
+    LineEdit,
     PrimaryPushButton,
     PushButton,
     SettingCard,
@@ -181,6 +185,32 @@ class DictionarySubInterface(SubSettingInterface):
         net_card.hBoxLayout.addSpacing(16)
         self.net_card = net_card
 
+        # 3b. 网络源自动更新开关
+        self.card_auto_update_enabled = SwitchSettingCard(
+            FIF.SYNC, "启用网络源自动更新",
+            "应用启动时检查所有启用的网络源是否到期，到期则后台自动拉取",
+            parent=g)
+
+        # 3c. 自动更新间隔（LineEdit 数字输入 + ComboBox 内嵌到 SettingCard）
+        interval_card = SettingCard(FIF.DATE_TIME, "网络源自动更新间隔",
+            "距上次自动同步超过此间隔后，下次启动触发后台拉取", g)
+        self._interval_edit = LineEdit(interval_card)
+        self._interval_edit.setFixedWidth(120)
+        self._interval_edit.setPlaceholderText("数值")
+        self._interval_edit.setValidator(QIntValidator(1, 9999, self._interval_edit))
+        self._interval_edit.setClearButtonEnabled(False)
+        self._interval_combo = ComboBox(interval_card)
+        # 显示文本 ↔ 内部 unit key
+        self._UNIT_LABELS = [("周", "week"), ("天", "day"), ("小时", "hour")]
+        for label, _key in self._UNIT_LABELS:
+            self._interval_combo.addItem(label)
+        self._interval_combo.setFixedWidth(90)
+        interval_card.hBoxLayout.addWidget(self._interval_edit, 0, Qt.AlignmentFlag.AlignRight)
+        interval_card.hBoxLayout.addSpacing(8)
+        interval_card.hBoxLayout.addWidget(self._interval_combo, 0, Qt.AlignmentFlag.AlignRight)
+        interval_card.hBoxLayout.addSpacing(16)
+        self.interval_card = interval_card
+
         # 4. 字典源优先级（按钮卡片 → 打开 PriorityOrderDialog）
         prio_card = SettingCard(FIF.ALIGNMENT, "字典源优先级",
             "调整本地词典与各网络源的全局优先级（自顶向下递减）", g)
@@ -200,6 +230,8 @@ class DictionarySubInterface(SubSettingInterface):
         g.addSettingCard(self.dict_card)
         g.addSettingCard(self.card_network_enabled)
         g.addSettingCard(self.net_card)
+        g.addSettingCard(self.card_auto_update_enabled)
+        g.addSettingCard(self.interval_card)
         g.addSettingCard(self.prio_card)
         g.addSettingCard(self.card_annotate_katakana_with_english)
         self.expandLayout.addWidget(g)
@@ -263,6 +295,41 @@ class DictionarySubInterface(SubSettingInterface):
     def connect_signals(self):
         self.card_annotate_katakana_with_english.checked_changed.connect(self._notify_changed)
         self.card_network_enabled.checked_changed.connect(self._on_network_enabled_changed)
+        self.card_auto_update_enabled.checked_changed.connect(self._on_auto_update_enabled_changed)
+        self._interval_edit.editingFinished.connect(self._on_interval_changed)
+        self._interval_combo.currentIndexChanged.connect(lambda _: self._on_interval_changed())
+
+    def _on_auto_update_enabled_changed(self, _checked: bool):
+        if self._settings_ref is None:
+            return
+        self._settings_ref.set(
+            "network_dictionary.auto_update.enabled",
+            self.card_auto_update_enabled.isChecked(),
+        )
+        self._settings_ref.save()
+        self._notify_changed()
+
+    def _on_interval_changed(self):
+        if self._settings_ref is None:
+            return
+        unit_idx = self._interval_combo.currentIndex()
+        if unit_idx < 0 or unit_idx >= len(self._UNIT_LABELS):
+            return
+        unit_key = self._UNIT_LABELS[unit_idx][1]
+        # LineEdit 文本 → 整数（validator 已保证字符合法，但仍兜底）
+        raw = (self._interval_edit.text() or "").strip()
+        try:
+            value = max(1, int(raw)) if raw else 1
+        except ValueError:
+            value = 1
+        # 把规范化值写回控件，避免空 / 0 / 负数显示残留
+        self._interval_edit.blockSignals(True)
+        self._interval_edit.setText(str(value))
+        self._interval_edit.blockSignals(False)
+        self._settings_ref.set("network_dictionary.auto_update.interval_value", value)
+        self._settings_ref.set("network_dictionary.auto_update.interval_unit", unit_key)
+        self._settings_ref.save()
+        self._notify_changed()
 
     def _on_network_enabled_changed(self, _checked: bool):
         if self._settings_ref is None:
@@ -280,9 +347,29 @@ class DictionarySubInterface(SubSettingInterface):
             s.get("ruby_dictionary.annotate_katakana_with_english", False))
         self.card_network_enabled.setChecked(
             bool(s.get("network_dictionary.enabled", False)))
+        self.card_auto_update_enabled.setChecked(
+            bool(s.get("network_dictionary.auto_update.enabled", False)))
+        self._interval_edit.setText(
+            str(int(s.get("network_dictionary.auto_update.interval_value", 1) or 1)))
+        unit_key = str(s.get("network_dictionary.auto_update.interval_unit", "week") or "week")
+        for i, (_label, key) in enumerate(self._UNIT_LABELS):
+            if key == unit_key:
+                self._interval_combo.setCurrentIndex(i)
+                break
 
     def collect_settings(self, s):
         s.set("ruby_dictionary.annotate_katakana_with_english",
               self.card_annotate_katakana_with_english.isChecked())
         s.set("network_dictionary.enabled",
               self.card_network_enabled.isChecked())
+        s.set("network_dictionary.auto_update.enabled",
+              self.card_auto_update_enabled.isChecked())
+        try:
+            iv = max(1, int((self._interval_edit.text() or "1").strip()))
+        except ValueError:
+            iv = 1
+        s.set("network_dictionary.auto_update.interval_value", iv)
+        unit_idx = self._interval_combo.currentIndex()
+        if 0 <= unit_idx < len(self._UNIT_LABELS):
+            s.set("network_dictionary.auto_update.interval_unit",
+                  self._UNIT_LABELS[unit_idx][1])

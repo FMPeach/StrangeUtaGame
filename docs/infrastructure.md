@@ -104,6 +104,16 @@
     - "字典源优先级"按钮卡片：点击 "编辑优先级" 打开 `PriorityOrderDialog`，列表式 + 上下移；每次打开都重新 `load_network_dictionary()`，故管理对话框中刚添加的源能立刻在此调整。
     - 管理对话框内按钮"刷新所有启用源"批量 HTTP 拉取（不依赖单击选中行）；"查看/编辑条目" 打开 `NetworkSourceEntriesDialog` 对所选源的 entries 进行表格 CRUD。
 - **HTTPS 证书**：`fetch_source_entries` 默认用 `certifi.where()` 根证书包；遇到 `CERTIFICATE_VERIFY_FAILED` 自动回退一次无验证上下文重试（Windows 系统证书链缺失场景常见），`allow_insecure_fallback=False` 可关闭该兜底。
+- **自动更新**（``config.json["network_dictionary"]["auto_update"]``）：
+    - 字段：``enabled``（默认 false）、``interval_value``（默认 1）、``interval_unit``（``week`` / ``day`` / ``hour``，默认 ``week``）。
+    - 时间戳：``network_dictionary.last_auto_update_at``（Unix 秒）。
+    - 触发：`main.py` 启动后 500ms 内 `QTimer.singleShot` 调度，在后台线程调 `AppSettings.maybe_auto_update_network_dictionary()`。
+    - 行为：仅在 `enabled=True` 且 `is_auto_update_due(last_at, value, unit)` 时遍历所有 `enabled=True` 的源批量 HTTP 拉取（复用 `auto_update_enabled_sources`），落盘并更新时间戳；`force=True` 可强制（未来"立即同步"按钮可用）。
+    - UI（读音字典子页面）：SwitchSettingCard "启用网络源自动更新" + SettingCard "网络源自动更新间隔"（**LineEdit** + QIntValidator(1-9999) + ComboBox 周/天/小时）。控件改动即时落 `config.json`。
+- **UI 非阻塞**：所有 HTTP 拉取均在工作线程执行：
+    - 启动自动更新：`main.py` 用 `threading.Thread(daemon=True)` 后台跑 `maybe_auto_update_network_dictionary()`。
+    - "管理网络词典"对话框的"刷新所有启用源"：`QThread + _FetchWorker` 工作线程跑 `fetch_source_entries`，`finished` 信号通过 queued connection 回主线程更新表格；操作期间按钮禁用防重入，重入再次点击会被 ``isRunning()`` 拦截。
+    - 文件 IO / JSON 读写 / 字典操作均为本地内存 / 小文件级别，无需后台。
 
 ### annotated_text (带注音行级文本格式)
 服务于全文本编辑（已废弃不建议使用）界面（`frontend/editor/fulltext_interface`）的 parse/serialize。

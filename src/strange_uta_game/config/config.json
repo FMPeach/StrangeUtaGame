@@ -250,7 +250,13 @@
         "builtin": true,
         "enabled": true
       }
-    ]
+    ],
+    "auto_update": {
+      "enabled": false,
+      "interval_value": 1,
+      "interval_unit": "week"
+    },
+    "last_auto_update_at": 0
   },
   "updater": {
     "enabled": true,

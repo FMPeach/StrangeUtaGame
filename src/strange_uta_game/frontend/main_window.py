@@ -75,6 +75,9 @@ class MainWindow(MSFluentWindow):
         # 失败/无网时静默跳过，绝不阻塞主流程。
         QTimer.singleShot(2500, self._check_for_app_update)
 
+        # 启动期网络词典自动更新（独立于应用版本检查；HTTP 在后台线程跑，不阻塞 UI）
+        QTimer.singleShot(3000, self._schedule_network_dict_auto_update)
+
         # 由 updater 流程主动设置；closeEvent 检测到此标志即 bypass dirty 弹窗，
         # 走"兜底保存 + 直接退出"路径。
         self._force_quitting = False
@@ -395,6 +398,7 @@ class MainWindow(MSFluentWindow):
 
     def _on_startup_update_check(self, result_obj: object) -> None:
         """处理启动期 UpdateChecker 的回调。"""
+        """处理启动器 字典update 相关内容"""
         try:
             from strange_uta_game.__version__ import __version__
             from strange_uta_game.updater.settings import UpdaterSettings
@@ -520,6 +524,37 @@ class MainWindow(MSFluentWindow):
             import logging
             logging.getLogger(__name__).warning(
                 "处理启动更新回调时异常，已忽略", exc_info=True
+            )
+
+    def _schedule_network_dict_auto_update(self) -> None:
+        """启动期网络词典自动更新调度（独立于应用版本检查）。
+
+        由 ``__init__`` 中 ``QTimer.singleShot(3000, ...)`` 触发；HTTP 拉取
+        放在 daemon 线程，绝不阻塞 UI。是否真的拉取由
+        ``AppSettings.maybe_auto_update_network_dictionary`` 内部根据
+        ``network_dictionary.auto_update.{enabled, interval_value, interval_unit}``
+        与 ``last_auto_update_at`` 判断。
+        """
+        import threading
+
+        def _worker() -> None:
+            try:
+                from strange_uta_game.frontend.settings.app_settings import AppSettings
+                AppSettings().maybe_auto_update_network_dictionary()
+            except Exception:
+                import logging
+                logging.getLogger(__name__).warning(
+                    "网络词典自动更新失败，已忽略", exc_info=True
+                )
+
+        try:
+            threading.Thread(
+                target=_worker, daemon=True, name="net-dict-auto-update"
+            ).start()
+        except Exception:
+            import logging
+            logging.getLogger(__name__).warning(
+                "网络词典自动更新调度失败，已忽略", exc_info=True
             )
 
     # ==================== 启动时打开项目 ====================

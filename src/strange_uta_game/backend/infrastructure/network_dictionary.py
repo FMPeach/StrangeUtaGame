@@ -338,6 +338,62 @@ def merge_meta_and_cache(
     }
 
 
+_INTERVAL_UNIT_SECONDS = {
+    "hour": 3600,
+    "day": 86400,
+    "week": 604800,
+}
+
+
+def interval_to_seconds(value: int, unit: str) -> int:
+    """把 (value, unit) 转换为秒数；非法 unit 退回到 ``week``。"""
+    base = _INTERVAL_UNIT_SECONDS.get(unit, _INTERVAL_UNIT_SECONDS["week"])
+    try:
+        v = max(1, int(value))
+    except (TypeError, ValueError):
+        v = 1
+    return v * base
+
+
+def is_auto_update_due(last_at: float, interval_value: int, interval_unit: str) -> bool:
+    """根据上次自动同步时间戳判断是否到期。``last_at <= 0`` 视为从未同步 → 直接到期。"""
+    if not last_at or last_at <= 0:
+        return True
+    return (time.time() - float(last_at)) >= interval_to_seconds(interval_value, interval_unit)
+
+
+def auto_update_enabled_sources(
+    doc: Dict[str, Any],
+    *,
+    timeout: float = 8.0,
+) -> "Tuple[List[str], List[str]]":
+    """遍历 ``doc`` 中所有启用且 URL 非空的源并 HTTP 拉取，原地写回 entries / last_fetched。
+
+    Args:
+        doc: 统一形态的网络词典文档（含 ``sources``）。
+        timeout: 单源拉取超时。
+
+    Returns:
+        ``(ok_msgs, fail_msgs)``：成功 / 失败的人类可读消息列表，供日志或 UI 显示。
+    """
+    ok_msgs: List[str] = []
+    fail_msgs: List[str] = []
+    for src in doc.get("sources") or []:
+        if not src.get("enabled"):
+            continue
+        url = (src.get("url") or "").strip()
+        if not url:
+            continue
+        try:
+            entries = fetch_source_entries(url, timeout=timeout)
+            src["entries"] = entries
+            src["last_fetched"] = int(time.time())
+            ok_msgs.append(f"{src.get('name', src.get('id', '?'))}: {len(entries)} 条")
+        except Exception as e:
+            fail_msgs.append(f"{src.get('name', src.get('id', '?'))}: {e}")
+    return ok_msgs, fail_msgs
+
+
 __all__ = [
     "BUILTIN_SOURCES",
     "DEFAULT_NETWORK_DICTIONARY",
@@ -348,4 +404,7 @@ __all__ = [
     "ensure_builtin_sources",
     "split_meta_and_cache",
     "merge_meta_and_cache",
+    "interval_to_seconds",
+    "is_auto_update_due",
+    "auto_update_enabled_sources",
 ]

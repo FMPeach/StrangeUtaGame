@@ -655,6 +655,48 @@ class AppSettings:
         self.save()  # 立即落盘 meta 到 config.json
         self._save_json(self._network_dict_path, cache)
 
+    def maybe_auto_update_network_dictionary(self, force: bool = False) -> "tuple[list, list, bool]":
+        """检查并按需自动拉取所有启用的网络源。
+
+        触发条件：``network_dictionary.auto_update.enabled=True`` 且距离
+        ``last_auto_update_at`` 已超过 ``(interval_value, interval_unit)``。
+        ``force=True`` 时无视条件强制执行（"立即同步"按钮可用）。
+
+        非阻塞建议：调用方在后台线程中调用本方法（HTTP 慢，UI 线程不可阻塞）。
+
+        Args:
+            force: 是否无视开关与间隔强制拉取。
+
+        Returns:
+            ``(ok_msgs, fail_msgs, ran)``：成功/失败消息列表 + 是否真的执行了拉取。
+            未到期 / 未启用 / ``enabled=False`` → ``ran=False`` 且 msgs 为空。
+        """
+        from strange_uta_game.backend.infrastructure.network_dictionary import (
+            auto_update_enabled_sources,
+            is_auto_update_due,
+        )
+
+        au_enabled = bool(self.get("network_dictionary.auto_update.enabled", False))
+        if not force and not au_enabled:
+            return ([], [], False)
+
+        interval_value = int(self.get("network_dictionary.auto_update.interval_value", 1) or 1)
+        interval_unit = str(self.get("network_dictionary.auto_update.interval_unit", "week") or "week")
+        last_at = float(self.get("network_dictionary.last_auto_update_at", 0) or 0)
+        if not force and not is_auto_update_due(last_at, interval_value, interval_unit):
+            return ([], [], False)
+
+        # 网络词典总开关未启用时，自动更新无意义（用户也看不到结果）—— 仍允许拉取以保持
+        # entries 最新；但若希望节流可以这里返回。当前选择"拉取"，因为下次启用立即生效。
+        doc = self.load_network_dictionary()
+        ok_msgs, fail_msgs = auto_update_enabled_sources(doc)
+        self.save_network_dictionary(doc)
+
+        import time as _time
+        self.set("network_dictionary.last_auto_update_at", int(_time.time()))
+        self.save()
+        return (ok_msgs, fail_msgs, True)
+
     def load_effective_dictionary(self) -> list:
         """加载用于注音 lookup 的完整词典：本地 + 启用的网络源，按全局优先级拼接。
 

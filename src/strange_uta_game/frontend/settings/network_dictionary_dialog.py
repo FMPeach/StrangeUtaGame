@@ -23,7 +23,7 @@ import json
 import time
 from typing import Any, Dict, List
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QObject, Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (
     QDialog,
@@ -53,6 +53,37 @@ from strange_uta_game.backend.infrastructure.network_dictionary import (
 
 _LOCAL_LABEL = "📒 本地词典"
 _LOCAL_ID = "local"
+
+
+class _FetchWorker(QObject):
+    """后台 HTTP 拉取 worker。
+
+    在 QThread 中执行 `fetch_source_entries` 列表化拉取，避免阻塞 UI 线程。
+    `finished` 信号 emit 自工作线程；用 `Qt.AutoConnection`（默认）跨线程
+    自动走 queued connection 到主线程槽。
+    """
+
+    finished = pyqtSignal(list, list, list)  # results, ok_msgs, fail_msgs
+
+    def __init__(self, targets: List[Dict[str, Any]]):
+        super().__init__()
+        self._targets = targets
+
+    def run(self) -> None:
+        results: List[Dict[str, Any]] = []
+        ok_msgs: List[str] = []
+        fail_msgs: List[str] = []
+        for src in self._targets:
+            sid = src.get("id")
+            name = src.get("name", sid or "?")
+            url = (src.get("url") or "").strip()
+            try:
+                entries = fetch_source_entries(url)
+                results.append({"id": sid, "entries": entries, "ts": int(time.time())})
+                ok_msgs.append(f"{name}: {len(entries)} 条")
+            except Exception as e:
+                fail_msgs.append(f"{name}: {e}")
+        self.finished.emit(results, ok_msgs, fail_msgs)
 
 
 class NetworkSourceEntriesDialog(QDialog):
@@ -194,6 +225,10 @@ class NetworkDictionaryDialog(QDialog):
         self.setMinimumSize(760, 600)
         self._doc: Dict[str, Any] = json.loads(json.dumps(doc))
         self._cache_path = cache_path
+        # 后台拉取所需句柄
+        self._fetch_thread: QThread | None = None
+        self._fetch_worker: _FetchWorker | None = None
+        self._fetch_btn_ref = None
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
@@ -308,24 +343,79 @@ class NetworkDictionaryDialog(QDialog):
         return rows[0] if rows else -1
 
     def _on_fetch_all_enabled(self) -> None:
-        """按 enabled=True 的所有源批量拉取（而非依赖单击选中）。"""
+        """后台批量拉取所有 ``enabled=True`` 的源；不阻塞 UI 线程。
+
+        使用 ``QThread + _FetchWorker``：worker.run 在工作线程跑 HTTP，
+        ``finished`` 信号通过 queued connection 回到主线程，进而更新表格 / 提示。
+        操作期间禁用刷新按钮，避免重入。
+        """
         self._collect_table_into_doc()
         sources = self._doc.get("sources") or []
         targets = [s for s in sources if s.get("enabled") and (s.get("url") or "").strip()]
         if not targets:
             self._warn("没有启用且 URL 非空的源")
             return
-        ok_msgs: List[str] = []
-        fail_msgs: List[str] = []
-        for src in targets:
-            try:
-                entries = fetch_source_entries(src["url"])
-                src["entries"] = entries
-                src["last_fetched"] = int(time.time())
-                ok_msgs.append(f"{src.get('name', src['id'])}: {len(entries)} 条")
-            except Exception as e:
-                fail_msgs.append(f"{src.get('name', src['id'])}: {e}")
+        if getattr(self, "_fetch_thread", None) is not None and self._fetch_thread.isRunning():
+            self._warn("已有拉取任务在进行中")
+            return
+
+        # 找到"刷新所有启用源"按钮以禁用（按 sender 取，不依赖具体引用）
+        sender_btn = self.sender()
+        if sender_btn is not None and hasattr(sender_btn, "setEnabled"):
+            sender_btn.setEnabled(False)
+        self._fetch_btn_ref = sender_btn
+
+        # 深拷贝传给 worker，避免跨线程引用 _doc 内的可变 dict
+        import json as _json
+        worker_targets = _json.loads(_json.dumps([
+            {"id": s.get("id"), "name": s.get("name"), "url": s.get("url")} for s in targets
+        ]))
+
+        self._fetch_worker = _FetchWorker(worker_targets)
+        self._fetch_thread = QThread(self)
+        self._fetch_worker.moveToThread(self._fetch_thread)
+        self._fetch_thread.started.connect(self._fetch_worker.run)
+        self._fetch_worker.finished.connect(self._on_fetch_all_done)
+        # 清理：worker 完成后退出线程并 deleteLater
+        self._fetch_worker.finished.connect(self._fetch_thread.quit)
+        self._fetch_worker.finished.connect(self._fetch_worker.deleteLater)
+        self._fetch_thread.finished.connect(self._fetch_thread.deleteLater)
+        self._fetch_thread.start()
+
+        InfoBar.success(
+            title="开始拉取",
+            content=f"后台同步 {len(targets)} 个源，UI 不会卡顿",
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2500,
+            parent=self,
+        )
+
+    def _on_fetch_all_done(
+        self,
+        results: List[Dict[str, Any]],
+        ok_msgs: List[str],
+        fail_msgs: List[str],
+    ) -> None:
+        """worker.finished 槽：把后台拉取结果写回 _doc 并刷新 UI。主线程。"""
+        # 按 id 回写 entries / last_fetched
+        by_id = {s.get("id"): s for s in (self._doc.get("sources") or []) if s.get("id")}
+        for r in results:
+            src = by_id.get(r["id"])
+            if src is not None:
+                src["entries"] = r["entries"]
+                src["last_fetched"] = r["ts"]
         self._reload_table()
+
+        # 解禁刷新按钮
+        btn = getattr(self, "_fetch_btn_ref", None)
+        if btn is not None and hasattr(btn, "setEnabled"):
+            btn.setEnabled(True)
+        self._fetch_btn_ref = None
+        self._fetch_worker = None
+        self._fetch_thread = None
+
         summary = "; ".join(ok_msgs) if ok_msgs else "(均失败)"
         if fail_msgs:
             summary += "  |  失败: " + "; ".join(fail_msgs)
