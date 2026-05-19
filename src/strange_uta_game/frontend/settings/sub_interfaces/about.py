@@ -114,7 +114,7 @@ class AboutSubInterface(SubSettingInterface):
                 import shutil
                 new_dir_path.mkdir(exist_ok=True)
                 shutil.copy2(str(old_path), str(new_path))
-                for fname in ("dictionary.json", "singers.json"):
+                for fname in ("dictionary.json", "network_dictionary.json", "singers.json"):
                     op = old_path.parent / fname
                     np = new_dir_path / fname
                     if op.exists() and op != np:
@@ -126,6 +126,7 @@ class AboutSubInterface(SubSettingInterface):
 
         s._config_path = new_path
         s._dict_path = new_dir_path / "dictionary.json"
+        s._network_dict_path = new_dir_path / "network_dictionary.json"
         s._singers_path = new_dir_path / "singers.json"
         self._path_card.setContent(str(new_path))
         InfoBar.success(title="配置位置已更改", content=f"配置文件将保存到: {new_path}",

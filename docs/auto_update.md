@@ -309,7 +309,7 @@ Updater.exe (独立控制台进程, 标准库 + requests, 12 MB)
 ```
 
 **用户数据始终安全**：Updater 严格只动 `StrangeUtaGame.exe` 与 `_internal/`，
-绝不触碰 `config.json` / `dictionary.json` / `singers.json` / 任何
+绝不触碰 `config.json` / `dictionary.json` / `network_dictionary.json` / `singers.json` / 任何
 `.config_redirect` 指向的文件。
 
 ---

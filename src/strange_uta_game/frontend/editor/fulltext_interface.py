@@ -519,7 +519,7 @@ class RubyInterface(QWidget):
         app_settings = AppSettings()
         all_settings = app_settings.get_all()
         auto_check_flags = all_settings.get("auto_check", {})
-        user_dict = app_settings.load_dictionary()
+        user_dict = app_settings.load_effective_dictionary()
         annotate_katakana_with_english = app_settings.get(
             "ruby_dictionary.annotate_katakana_with_english", False
         )

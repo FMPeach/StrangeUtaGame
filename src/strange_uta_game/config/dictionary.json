@@ -4662,7 +4662,7 @@
   {
     "enabled": true,
     "word": "彷徨っ",
-    "reading": "{彷||さ}{徨||ま|よ}っ"
+    "reading": "{彷徨||さ|ま|よ,}っ"
   },
   {
     "enabled": true,
@@ -5147,7 +5147,7 @@
   {
     "enabled": true,
     "word": "盛り上",
-    "reading": "{盛り上||も,,あ}"
+    "reading": "{盛||も}り{上||あ}"
   },
   {
     "enabled": true,

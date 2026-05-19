@@ -86,7 +86,7 @@
     "enabled": true,
     "annotate_katakana_with_english": false
   },
-  "dictionary_version": 4,
+  "dictionary_version": 5,
   "nicokara_tags": {
     "title": "",
     "artist": "",
@@ -228,6 +228,30 @@
     "merge_line_up": "Shift+Enter"
   },
   "nicokara_emoji_default": "透明画像1x1.png,,Zoom=1,NoDecor,MarginRight=-170",
+  "network_dictionary": {
+    "enabled": false,
+    "source_order": [
+      "local",
+      "rl_official",
+      "fmpeach"
+    ],
+    "sources": [
+      {
+        "id": "rl_official",
+        "name": "RhythmicaLyrics 官方",
+        "url": "http://timetag.main.jp/RhythmicaLyrics/kakuteiyominet.php",
+        "builtin": true,
+        "enabled": true
+      },
+      {
+        "id": "fmpeach",
+        "name": "键盘office",
+        "url": "https://rl.fmpeach.top/Rhythmicalyrics/kakuteiyominet.php",
+        "builtin": true,
+        "enabled": true
+      }
+    ]
+  },
   "updater": {
     "enabled": true,
     "check_on_startup": true,

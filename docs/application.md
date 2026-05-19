@@ -71,5 +71,6 @@
 - **定时自动保存**：可配置周期（默认 5 分钟），保存到程序目录 `.cache` 文件夹下的 `.项目名.sug.temp` 或 `.untitled.sug.temp`。退出清理。
 - **防抖设置保存**：设置项变更 500ms 后写盘。`_loading_settings` 标志防止加载触发写入。
 - **闪退恢复**：启动检查 `.cache` 目录下的 `.sug.temp` 文件提示恢复。
-- **配置位置**：默认位于程序目录，通过 `.config_redirect` 重定向到用户自定义目录。配置文件分离为 `config.json`（主配置）、`dictionary.json`（用户词典，首次启动自动种入 1757 条 RL 内置词典）、`singers.json`（演唱者预设）。重置配置不影响字典和演唱者。
+- **配置位置**：默认位于程序目录，通过 `.config_redirect` 重定向到用户自定义目录。配置文件分离为 `config.json`（主配置）、`dictionary.json`（用户本地词典，首次启动自动种入 1757 条 RL 内置词典）、`network_dictionary.json`（网络词典源容器，含 RL 官方内置预设）、`singers.json`（演唱者预设）。重置配置不影响字典和演唱者。
+- **用户词典优先级**：lookup 时使用 `AppSettings.load_effective_dictionary()` —— 按 `network_dictionary.json:source_order` 自顶向下拼接本地 + 启用的网络源 entries，每源内部按 entries 顺序匹配，自顶向下首个命中即停。允许同 word 多 reading 共存（仅 `(word, reading)` 完全相同时去重），新导入条目整批插顶并保留原顺序 → 最新导入自然获得最高优先级。
 - **配置自动重载**：切换到设置标签页时 `AppSettings.reload()`，确保外部修改（字典添加等）立即可见。

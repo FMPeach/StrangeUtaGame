@@ -19,6 +19,9 @@ from .app_settings import _parse_rl_dictionary
 from strange_uta_game.backend.infrastructure.parsers.annotated_text import (
     parse_annotated_line,
 )
+from strange_uta_game.backend.infrastructure.parsers.rl_dictionary import (
+    read_rl_dictionary_file,
+)
 
 
 class DictionaryEditDialog(QDialog):
@@ -184,8 +187,7 @@ class DictionaryEditDialog(QDialog):
             return
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                text = f.read()
+            text = read_rl_dictionary_file(path)
         except Exception as e:
             InfoBar.warning(
                 title="读取失败",
@@ -211,35 +213,32 @@ class DictionaryEditDialog(QDialog):
             )
             return
 
-        # 逆序导入：重复条目以新导入覆盖并置顶（最高优先级）
-        # word -> row 索引，随插入/删除动态重建
-        def _rebuild_index() -> dict:
-            idx = {}
-            for r in range(self._table.rowCount()):
-                item = self._table.item(r, 1)
-                if item:
-                    idx[item.text().strip()] = r
-            return idx
+        # 允许同 word 多读音并存：仅去重 (word, reading) 完全一致的条目；
+        # 新条目整批插入顶部，保留导入文件原顺序（首条最优先）。
+        existing: set = set()
+        for r in range(self._table.rowCount()):
+            w_item = self._table.item(r, 1)
+            r_item = self._table.item(r, 2)
+            if w_item and r_item:
+                existing.add((w_item.text().strip(), r_item.text().strip()))
 
-        index = _rebuild_index()
         added = 0
-        updated = 0
+        skipped = 0
+        # 逆序插入到位置 0：最终顺序与 new_entries 一致（首条在顶）
         for entry in reversed(new_entries):
             word = entry["word"]
             reading = entry["reading"]
-            if word in index:
-                # 覆盖旧条目：删除后插入顶部
-                self._table.removeRow(index[word])
-                updated += 1
-            else:
-                added += 1
+            if (word, reading) in existing:
+                skipped += 1
+                continue
+            existing.add((word, reading))
             self._insert_row_at(0, True, word, reading)
-            index = _rebuild_index()
+            added += 1
 
         self._table.scrollToTop()
         InfoBar.success(
             title="导入完成",
-            content=f"新增 {added} 条，覆盖 {updated} 条（共 {len(new_entries)} 条，已全部置顶）",
+            content=f"新增 {added} 条，跳过重复 {skipped} 条（共 {len(new_entries)} 条，新增条目已置顶）",
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,

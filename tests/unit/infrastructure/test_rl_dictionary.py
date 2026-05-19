@@ -1,7 +1,11 @@
-"""RL 字典解析器单元测试。
+"""RL 字典解析器单元测试（RL 真语义版）。
 
-新格式：``parse_rl_dictionary`` 输出的 ``reading`` 是 annotated 行内格式
-（参见 ``annotated_text``），而不是逗号分隔的字符级读音。
+新解析与 RL 源码 ``@RhythmicaLyrics.hsp:12636+`` 应用路径对齐：
+* piece 末尾 ``＋``（U+FF0B）→ 该字符与下一字符连词；
+* piece 末尾 ``/<N>`` → 强制 cp 数（注音格式不携带）；
+* 整段数字 piece → 无 ruby（注音格式不携带 cp 数）；
+* ruby 多 mora → 按 mora（小假名 / ``ー`` 附属前拍）拆分为 ``|`` 段；
+* ruby == 字符（kata→hira 归一化）→ 字面输出（不包 ``{...||...}``）。
 """
 
 from __future__ import annotations
@@ -12,45 +16,68 @@ from strange_uta_game.backend.infrastructure.parsers.rl_dictionary import (
 
 
 class TestParseRlDictionary:
-    def test_basic_entry(self):
-        # 段数 == 字符数 且每段非空 → 直转为单 annotated block
+    def test_basic_entry_independent_blocks(self):
+        # 无 ＋ 连词标记 → 每个字符独立成块，多 mora 按 | 拆
         text = "赤い\tあ,かい\n"
         entries = parse_rl_dictionary(text)
         assert entries == [
-            {"enabled": True, "word": "赤い", "reading": "{赤い||あ,かい}"}
+            {"enabled": True, "word": "赤い", "reading": "{赤||あ}{い||か|い}"}
         ]
+
+    def test_kanji_word_mora_split(self):
+        # 「ほん」「とう」均 2 mora → ほ|ん / と|う
+        text = "本当\tほん,とう\n"
+        entries = parse_rl_dictionary(text)
+        assert entries[0]["reading"] == "{本||ほ|ん}{当||と|う}"
+
+    def test_kana_tail_outputs_literal(self):
+        # 末位假名字符 ruby == 字面 → 字面输出
+        text = "本当に\tほん,とう,に\n"
+        entries = parse_rl_dictionary(text)
+        assert entries[0]["reading"] == "{本||ほ|ん}{当||と|う}に"
 
     def test_skip_empty_and_malformed_lines(self):
         text = "\n   \n漢字 no-tab\n本当\tほん,とう\n"
         entries = parse_rl_dictionary(text)
         assert len(entries) == 1
         assert entries[0]["word"] == "本当"
-        assert entries[0]["reading"] == "{本当||ほん,とう}"
 
-    def test_link_marker_stripped(self):
-        # ＋ (U+FF0B) 剥离，仅含 ＋ 的读音项在尾部被去除 → 段数对齐字符数后直转
+    def test_trailing_link_only_piece_dropped(self):
+        # 尾部仅含 ＋ 的占位 piece 被剥离，剩 3 piece 对齐 3 字
         text = "本当に\tほん,とう,に,＋\n"
         entries = parse_rl_dictionary(text)
-        assert entries[0]["reading"] == "{本当に||ほん,とう,に}"
+        assert entries[0]["reading"] == "{本||ほ|ん}{当||と|う}に"
 
-    def test_link_marker_inside_reading_stripped_but_kept(self):
+    def test_link_marker_makes_linked_block(self):
+        # piece 末尾 ＋ → 该字符与下一字符连词 → 单个 {...||...} 块
         text = "特別\tとく＋,べつ\n"
         entries = parse_rl_dictionary(text)
-        # 剥离 ＋ 后还有 "とく"，与 "べつ" 一起直转
-        assert entries[0]["reading"] == "{特別||とく,べつ}"
+        assert entries[0]["reading"] == "{特別||と|く,べ|つ}"
 
-    def test_trailing_empty_readings_removed(self):
-        # 尾部空段移除后 segs=["ここ","ろ"]，len=2 != len("心")=1 → 走 reanalyze 兜底
+    def test_excess_pieces_merged_to_last_char(self):
+        # 1 字 + 多 piece → 多 piece ruby 合并到末字符并按 mora 拆
         text = "心\tここ,ろ,,,\n"
         entries = parse_rl_dictionary(text)
-        # 单字 + 整词单块兜底
-        assert entries[0]["reading"] == "{心||こころ}"
+        assert entries[0]["reading"] == "{心||こ|こ|ろ}"
 
     def test_entry_dropped_when_all_readings_empty(self):
-        # 读音全为空或仅 ＋ → 丢弃整条
+        # 全部 ＋ → ruby 全空 → 丢弃整条
         text = "空\t＋,＋,＋\n"
         entries = parse_rl_dictionary(text)
         assert entries == []
+
+    def test_cp_override_slash_suffix_stripped(self):
+        # ruby/<N> 后缀 → cp 信息丢弃（注音格式不承载），ruby 保留
+        text = "山\tやま/3\n"
+        entries = parse_rl_dictionary(text)
+        assert entries[0]["reading"] == "{山||や|ま}"
+
+    def test_digit_only_piece_is_empty_ruby(self):
+        # 整段数字 piece → 无 ruby，该字符字面输出
+        text = "山田\t3,やま\n"
+        entries = parse_rl_dictionary(text)
+        # 山 数字 piece → 字面；田 ruby やま → {田||や|ま}
+        assert entries[0]["reading"] == "山{田||や|ま}"
 
     def test_multiple_entries_preserve_order(self):
         text = "一\tいち\n二\tに\n三\tさん\n"

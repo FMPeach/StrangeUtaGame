@@ -253,6 +253,7 @@ class AppSettings:
             self._config_path = Path(config_path)
 
         self._dict_path = self._config_path.parent / "dictionary.json"
+        self._network_dict_path = self._config_path.parent / "network_dictionary.json"
         self._singers_path = self._config_path.parent / "singers.json"
         self._settings = self._load_settings()
         self._migrate_to_separate_files()
@@ -539,50 +540,133 @@ class AppSettings:
         self._save_json(self._dict_path, entries)
 
     def register_dictionary_word(self, word: str, reading: str) -> None:
-        """新增或更新单个词条：如已存在则删除旧条目，将新条目置顶（最高优先级）。"""
+        """新增单个词条到词典顶部（最高优先级）。
+
+        允许同 word 多条共存：完全相同 (word, reading) 才去重，避免重复点击产生
+        无意义副本；其他读音变体并存，由 lookup 顺序（自顶向下首个命中）决定应用。
+        """
         word = (word or "").strip()
         reading = (reading or "").strip()
         if not word:
             return
         entries = self.load_dictionary()
-        entries = [e for e in entries if (e.get("word") or "").strip() != word]
-        entries.insert(0, {"enabled": True, "word": word, "reading": reading})
+        new_entry = {"enabled": True, "word": word, "reading": reading}
+        # 仅当存在完全一致 (word, reading) 时跳过添加；不再清除其他读音变体
+        for e in entries:
+            if (e.get("word") or "").strip() == word and (e.get("reading") or "").strip() == reading:
+                return
+        entries.insert(0, new_entry)
         self.save_dictionary(entries)
 
     def import_rl_dictionary(self, text: str) -> tuple:
-        """导入 RL 字典文本：逆序遍历，重复条目以新导入覆盖并置顶。
+        """导入 RL 字典文本：新条目整体插入到顶部，保持原文件顺序。
+
+        允许同 word 多条共存：仅当 (word, reading) 与已有条目完全一致时跳过（去重），
+        其他读音变体并存。lookup 时由顺序（自顶向下首个命中）决定优先级。
 
         Returns:
-            (added, updated): 新增数量与覆盖数量。
+            (added, skipped): 新增数量与因完全重复被跳过的数量。
         """
         new_entries = _parse_rl_dictionary(text)
         if not new_entries:
             return (0, 0)
         entries = self.load_dictionary()
-        index = {(e.get("word") or "").strip(): i for i, e in enumerate(entries)}
+        existing_keys = {
+            ((e.get("word") or "").strip(), (e.get("reading") or "").strip())
+            for e in entries
+        }
+        to_prepend: list = []
         added = 0
-        updated = 0
-        # 逆序遍历：使原文件顺序靠前的词条最终置顶
-        for entry in reversed(new_entries):
+        skipped = 0
+        for entry in new_entries:
             word = (entry.get("word") or "").strip()
+            reading = (entry.get("reading") or "").strip()
             if not word:
                 continue
-            if word in index:
-                # 覆盖旧条目：删除后插入顶部
-                old_idx = index[word]
-                entries.pop(old_idx)
-                updated += 1
-            else:
-                added += 1
-            entries.insert(0, {
-                "enabled": True,
-                "word": word,
-                "reading": entry.get("reading", ""),
-            })
-            # 重建索引（位置已变）
-            index = {(e.get("word") or "").strip(): i for i, e in enumerate(entries)}
+            key = (word, reading)
+            if key in existing_keys:
+                skipped += 1
+                continue
+            existing_keys.add(key)
+            to_prepend.append({"enabled": True, "word": word, "reading": reading})
+            added += 1
+        # 整批插入到顶部，保留 new_entries 原顺序（首条最优先）
+        entries = to_prepend + entries
         self.save_dictionary(entries)
-        return (added, updated)
+        return (added, skipped)
+
+    # ──────────────────────────────────────────────
+    # 网络词典：meta 存 config.json[network_dictionary]，
+    #          cache（entries + last_fetched）存 network_dictionary.json
+    # ──────────────────────────────────────────────
+
+    def load_network_dictionary(self) -> dict:
+        """加载统一形态的网络词典文档（合并 meta + cache）。
+
+        meta（启用/源列表/源排序/URL/名称等设置）从 ``config.json[network_dictionary]``
+        读取；cache（每源 entries / last_fetched）从 ``network_dictionary.json`` 读取。
+        缺失任一文件用 :data:`DEFAULT_NETWORK_DICTIONARY_META` 兜底；自动补齐内置源。
+        旧版（一体式 ``network_dictionary.json``）会被自动迁移：拆分后写回。
+        """
+        from strange_uta_game.backend.infrastructure.network_dictionary import (
+            DEFAULT_NETWORK_DICTIONARY_META,
+            ensure_builtin_sources,
+            merge_meta_and_cache,
+        )
+
+        meta = self.get("network_dictionary", None)
+        if not isinstance(meta, dict):
+            meta = json.loads(json.dumps(DEFAULT_NETWORK_DICTIONARY_META))
+
+        cache: dict = {}
+        if self._network_dict_path.exists():
+            try:
+                with open(self._network_dict_path, "r", encoding="utf-8") as f:
+                    raw = json.load(f)
+            except Exception:
+                raw = None
+            # 兼容旧一体式文档：``{"enabled","sources":[{...,"entries":[...]}],
+            # "source_order":[...]}`` —— 拆出 meta 部分覆盖到 config.json，cache 留下。
+            if isinstance(raw, dict) and "sources" in raw and isinstance(raw["sources"], list):
+                if raw["sources"] and "entries" in raw["sources"][0]:
+                    # 旧形态：拆分 + 迁移
+                    from strange_uta_game.backend.infrastructure.network_dictionary import (
+                        split_meta_and_cache,
+                    )
+                    migrated_meta, cache = split_meta_and_cache(raw)
+                    self.set("network_dictionary", migrated_meta)
+                    self._save_json(self._network_dict_path, cache)
+                    meta = migrated_meta
+                else:
+                    cache = raw
+            elif isinstance(raw, dict):
+                cache = raw
+
+        doc = merge_meta_and_cache(meta, cache)
+        return ensure_builtin_sources(doc)
+
+    def save_network_dictionary(self, doc: dict) -> None:
+        """保存统一文档：meta → ``config.json``，cache → ``network_dictionary.json``。"""
+        from strange_uta_game.backend.infrastructure.network_dictionary import (
+            split_meta_and_cache,
+        )
+        meta, cache = split_meta_and_cache(doc)
+        self.set("network_dictionary", meta)
+        self.save()  # 立即落盘 meta 到 config.json
+        self._save_json(self._network_dict_path, cache)
+
+    def load_effective_dictionary(self) -> list:
+        """加载用于注音 lookup 的完整词典：本地 + 启用的网络源，按全局优先级拼接。
+
+        ``DictionaryEditDialog`` 等编辑场景仍使用 :meth:`load_dictionary`
+        （仅本地）；只读消费者（``analyze_sentence`` 等）应改调本方法。
+        """
+        from strange_uta_game.backend.infrastructure.network_dictionary import (
+            flatten_effective_dictionary,
+        )
+        local = self.load_dictionary()
+        net = self.load_network_dictionary()
+        return flatten_effective_dictionary(local, net)
 
     def load_singer_presets(self) -> list:
         """从 singers.json 加载演唱者预设。"""

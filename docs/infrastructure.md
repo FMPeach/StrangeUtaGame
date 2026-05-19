@@ -55,9 +55,55 @@
 用户字典导入的纯文本解析。
 
 - **职责**：
-    - `parse_rl_dictionary(text) -> List[Dict]`：解析 `原文\t注音1,注音2,...` 格式，全角 `＋`（U+FF0B）作为连词占位符剥离；仅含 `＋` 的尾部读音项与空串一并去除；读音全空则丢弃整条。
+    - `parse_rl_dictionary(text) -> List[Dict]`：自动识别多种 RL 文本格式 → annotated 条目列表。
+        - **输入格式识别**（HSP 字面体 → INI ``[AutoCheckDefine]`` 段 → tab 行 → 成对行兜底）。
+        - **piece 语义**（按 RL 源码 ``@RhythmicaLyrics.hsp:12636+`` 应用路径还原）：
+            * 末尾全角 `＋`（U+FF0B）→ 该字符与下一字符**连词**（同 annotated 块）；
+            * 末尾 `/<N>` → 强制 cp 数（注音格式不承载，下游按 RubyPart 派生）；
+            * 整段为半角数字 → 该字符**无 ruby + 显式 cp**（注音格式不承载）；
+            * 多 mora ruby → 按 mora（小假名 / ``ー`` 附属前拍）拆分为 ``|`` 段（复用 `inline_format.split_into_moras`）；
+            * ruby == 字符（kata→hira 归一化）→ 字面输出（不包 ``{...||...}``）。
+        - **整体规则**：尾部 `@<digit>` 标志位（a_chk_kakute_flg 字段）剥离；空 / 仅 `＋` 的尾部 piece 剥离；piece 数与 word 字符数对齐（超出合并到末字符、不足补空）；含 ASCII 字母的 word 丢弃；ruby 全空的条目丢弃。
+    - `read_rl_dictionary_file(path) -> str`：utf-8-sig → utf-8 → cp932 → shift_jis 顺序解码。
     - 返回 `[{"enabled": True, "word": str, "reading": str}, ...]`，顺序与输入一致。
     - 前端 `frontend/settings/app_settings._parse_rl_dictionary` 改为薄包装，历史导入路径保留。
+
+### network_dictionary (网络读音词典)
+独立于本地词典的多源网络词典容器，与 RhythmicaLyrics 服务端协议兼容。
+
+- **存储**：**meta 与 cache 分离**。
+    - **meta**（用户设置）放在 `config.json["network_dictionary"]`：
+        ```json
+        {"enabled": false,
+         "source_order": ["local", "rl_official", "fmpeach", ...],
+         "sources": [{"id": "rl_official", "name": "...", "url": "...",
+                      "builtin": true, "enabled": true}, ...]}
+        ```
+        `source_order` 中 sentinel `"local"` 代表本地 `dictionary.json`。
+    - **cache**（抓取到的 entries + last_fetched）放在 `network_dictionary.json`（与 config.json 同目录）：
+        ```json
+        {"rl_official": {"entries": [...], "last_fetched": 1745000000}, ...}
+        ```
+        UI 中的"条目缓存文件"路径栏明示。
+    - 旧版一体式 `network_dictionary.json` 会在首次 `load_network_dictionary` 时自动迁移：拆分 meta → config.json，cache 留下。
+- **优先级模型**：两层 —— 源列表序（`source_order`） + 各源内 entries 自顶向下序。
+- **职责**：
+    - `fetch_source_entries(url)`：HTTP GET `<url>?req=get&dummy=<ms>` → `[success]` + tab 行体 → 复用 `parse_rl_dictionary` 解析。与 RL `kakuteiyominet.php` 协议一致（来源：`routin_func.hsp:6876`）。
+    - `import_file_to_entries(path)`：本地文件 → entries（utf-8 / cp932 自动识别，多格式自适应）。
+    - `flatten_effective_dictionary(local_entries, net_doc)`：按 `source_order` 拼接本地 + 启用网络源 → 全局 entries，供 `analyze_sentence` 消费。`enabled=False` 退化为仅本地。
+    - `ensure_builtin_sources(doc)`：补齐缺失的内置预设（向前兼容）。
+    - `split_meta_and_cache(doc)` / `merge_meta_and_cache(meta, cache)`：统一 doc ↔ 分离存储的双向转换。
+- **内置预设**（packaged `src/strange_uta_game/config/config.json` 即含）：
+    - `rl_official` — `http://timetag.main.jp/RhythmicaLyrics/kakuteiyominet.php`
+    - `fmpeach` 键盘office — `https://rl.fmpeach.top/Rhythmicalyrics/kakuteiyominet.php`
+    - 不可删除（仅可禁用 / 改 URL）。用户可任意添加自定义 URL 源。
+- **AppSettings 接口**：`load_network_dictionary()` / `save_network_dictionary()` 自动桥接 meta/cache 双文件；`load_effective_dictionary()` 是注音管线（`AutoCheckService` 各调用点）的统一入口；编辑场景用 `load_dictionary()` 仅取本地。
+- **UI**：设置页"读音词典"组中：
+    - SwitchSettingCard "启用网络词典" 直接落 `network_dictionary.enabled`（即时保存）。
+    - "管理网络词典" 按钮打开管理对话框；对话框只编辑源列表 + 条目缓存，**不再承载总开关与优先级**。
+    - "字典源优先级"按钮卡片：点击 "编辑优先级" 打开 `PriorityOrderDialog`，列表式 + 上下移；每次打开都重新 `load_network_dictionary()`，故管理对话框中刚添加的源能立刻在此调整。
+    - 管理对话框内按钮"刷新所有启用源"批量 HTTP 拉取（不依赖单击选中行）；"查看/编辑条目" 打开 `NetworkSourceEntriesDialog` 对所选源的 entries 进行表格 CRUD。
+- **HTTPS 证书**：`fetch_source_entries` 默认用 `certifi.where()` 根证书包；遇到 `CERTIFICATE_VERIFY_FAILED` 自动回退一次无验证上下文重试（Windows 系统证书链缺失场景常见），`allow_insecure_fallback=False` 可关闭该兜底。
 
 ### annotated_text (带注音行级文本格式)
 服务于全文本编辑（已废弃不建议使用）界面（`frontend/editor/fulltext_interface`）的 parse/serialize。

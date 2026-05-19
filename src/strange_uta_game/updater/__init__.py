@@ -6,7 +6,8 @@
   与 ``_internal``，主程序无法在不退出的前提下替换。
 * **不触碰用户数据** —— 仅替换主程序所在目录下的 ``StrangeUtaGame.exe`` 与
   ``_internal/`` 内的内容。``config.json`` / ``dictionary.json`` /
-  ``singers.json`` 以及任何 ``.config_redirect`` 指向的目录保持原样。
+  ``network_dictionary.json`` / ``singers.json`` 以及任何
+  ``.config_redirect`` 指向的目录保持原样。
 * **多源接力** —— 默认顺序 ``github → ghproxy → gh-proxy → ghproxy-net``，
   可由用户在设置中拖动排序；前一源失败后自动降级到下一源。
 * **代理友好** —— 主动检测 Windows 系统代理；亦可扫描常见本地代理端口；用户
