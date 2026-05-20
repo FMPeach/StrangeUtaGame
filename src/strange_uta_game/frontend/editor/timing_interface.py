@@ -813,6 +813,7 @@ class EditorInterface(QWidget):
         节奏点/时间戳/演唱者等）。纯文本：逐字构造为新歌词字符。
         纯文本含换行时按行拆分，首段插入当前行，后续段依次新建行；
         光标后的原有字符拼接至最后一段末尾。
+        纯文本粘贴后自动对受影响字符范围执行局部注音分析（不影响已有注音）。
         插入经 _execute_structural_edit 包装，纳入 undo/redo。
         """
         if not self._project:
@@ -866,24 +867,29 @@ class EditorInterface(QWidget):
                     return
 
                 project = self._project
+                original_len = len(sentence.characters)
+                pos = max(0, min(insert_at, original_len))
+                affected = set(range(pos, pos + len(lines[0])))
 
                 def _mutate():
                     s = project.sentences[line_idx]
-                    pos = max(0, min(insert_at, len(s.characters)))
                     for off, ch in enumerate(new_chars):
                         s.insert_character(pos + off, ch)
                     return line_idx, pos + len(new_chars) - 1, 0, "lyrics"
 
                 self._execute_structural_edit("粘贴字符", _mutate)
+                self._analyze_rubies_subset(line_idx, affected, "粘贴字符注音分析")
                 return
 
             # 多行：拆行粘贴
             singer_id = sentence.singer_id
             project = self._project
+            original_len = len(sentence.characters)
+            pos = max(0, min(insert_at, original_len))
+            has_after = pos < original_len
 
             def _mutate_multi():
                 s = project.sentences[line_idx]
-                pos = max(0, min(insert_at, len(s.characters)))
                 after_chars = list(s.characters[pos:])
                 s.characters = s.characters[:pos]
 
@@ -923,6 +929,23 @@ class EditorInterface(QWidget):
                 return last_line, last_char, 0, "lyrics"
 
             self._execute_structural_edit("粘贴字符", _mutate_multi)
+            # 首行：仅分析光标后新增的字符
+            if lines[0]:
+                affected_first = set(range(pos, pos + len(lines[0])))
+                self._analyze_rubies_subset(line_idx, affected_first, "粘贴字符注音分析")
+            # 中间行：整行新增
+            for li in range(line_idx + 1, line_idx + len(lines) - 1):
+                self._analyze_rubies_subset(li, None, "粘贴字符注音分析")
+            # 末行：仅分析段文本部分，排除拼接的原有字符
+            if len(lines) > 1 and lines[-1]:
+                affected_last = (
+                    set(range(0, len(lines[-1]))) if has_after else None
+                )
+                self._analyze_rubies_subset(
+                    line_idx + len(lines) - 1,
+                    affected_last,
+                    "粘贴字符注音分析",
+                )
 
     def _on_save(self):
         if not self._project:
