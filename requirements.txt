@@ -11,8 +11,11 @@ soundfile==0.13.1
 pedalboard==0.9.22
 numpy==2.4.4
 pykakasi==2.3.0
-sudachipy==0.6.11
-sudachidict-core==20260116
+# 日语分词/注音主引擎：WinRT IME（Windows.Globalization.JapanesePhoneticAnalyzer）
+# 运行时依赖系统日语 IME 功能 Language.Basic~~~ja-JP（应用内探测+引导安装）
+winrt-Windows.Globalization==3.2.1
+winrt-Windows.Foundation==3.2.1
+winrt-Windows.Foundation.Collections==3.2.1
 av==17.0.1
 jaconv==0.5.0
 pyphen==0.17.2

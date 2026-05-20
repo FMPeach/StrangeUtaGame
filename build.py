@@ -3,7 +3,8 @@
 注意事项：
 1. sounddevice 和 soundfile 依赖 PortAudio / libsndfile，需要确保 DLL 被打包
 2. PyQt6 有平台插件需要处理
-3. sudachipy / sudachidict_core 需要 collect-data 才能正常加载词典
+3. 日语注音用 WinRT IME（winrt.windows.globalization）；运行时依赖系统日语
+   功能 Language.Basic~~~ja-JP，应用内探测并引导安装（不再打包 Sudachi 词典）
 4. numpy 是音频引擎核心依赖，不可排除
 5. 使用 --onedir 模式避免单文件解压问题
 """
@@ -48,8 +49,7 @@ try:
     import pykakasi
     import qfluentwidgets
     import numpy
-    import sudachipy
-    import sudachidict_core
+    import winrt.windows.globalization  # 日语注音主引擎（WinRT IME）
     import jaconv
     import av
 
@@ -61,8 +61,6 @@ try:
     print(f"  pedalboard: {pedalboard.__version__}")
     print(f"  numpy: {numpy.__version__}")
     print(f"  pykakasi: {getattr(pykakasi, '__version__', 'unknown')}")
-    print(f"  sudachipy: {getattr(sudachipy, '__version__', 'unknown')}")
-    print(f"  sudachidict_core: {getattr(sudachidict_core, '__version__', 'unknown')}")
     print(f"  jaconv: {getattr(jaconv, '__version__', 'unknown')}")
     print(f"  av: {av.__version__}")
 except ImportError as e:
@@ -119,8 +117,9 @@ args = [
     # 日语处理
     "--hidden-import=pykakasi",
     "--hidden-import=pykakasi.kakasi",
-    "--hidden-import=sudachipy",
-    "--hidden-import=sudachidict_core",
+    "--hidden-import=winrt.windows.globalization",
+    "--hidden-import=winrt.windows.foundation",
+    "--hidden-import=winrt.windows.foundation.collections",
     "--hidden-import=jaconv",
     # Qt / UI
     "--hidden-import=qfluentwidgets",
@@ -149,8 +148,7 @@ args = [
     "--collect-all=pedalboard",
     "--collect-all=pykakasi",
     "--collect-all=qfluentwidgets",
-    "--collect-data=sudachipy",
-    "--collect-data=sudachidict_core",
+    "--collect-all=winrt",
     "--collect-binaries=soundfile",
     # 图标
     "--icon=src/strange_uta_game/resource/icon.ico",
@@ -259,7 +257,7 @@ print("=" * 60)
 print("1. 测试音频功能是否正常（播放/暂停/变速）")
 print("2. 检查项目保存和打开功能")
 print("3. 验证导出功能（LRC/KRA/ASS 等）")
-print("4. 测试日语注音功能（依赖 sudachipy + pykakasi）")
+print("4. 测试日语注音功能（WinRT IME；缺日语功能时应弹出安装引导）")
 print("5. 如缺少 DLL，请安装 Visual C++ Redistributable")
 print("   https://aka.ms/vs/17/release/vc_redist.x64.exe")
 print("=" * 60)
