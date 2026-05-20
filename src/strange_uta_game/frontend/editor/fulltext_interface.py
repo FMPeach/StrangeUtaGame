@@ -542,6 +542,13 @@ class RubyInterface(QWidget):
         if not self._project:
             return
 
+        from strange_uta_game.frontend.winrt_japanese_guide import (
+            ensure_winrt_japanese,
+        )
+
+        if not ensure_winrt_japanese(self):
+            return
+
         # 三选项对话框
         msg = QMessageBox(self)
         msg.setWindowTitle("自动分析全部注音")

@@ -4108,6 +4108,13 @@ class EditorInterface(QWidget):
         """
         if not self._project:
             return
+        # 注音前确保 WinRT 日语引擎可用，否则弹引导（含 UAC 安装）
+        from strange_uta_game.frontend.winrt_japanese_guide import (
+            ensure_winrt_japanese,
+        )
+
+        if not ensure_winrt_japanese(self):
+            return
         try:
             from strange_uta_game.backend.application import AutoCheckService
             from strange_uta_game.backend.application.auto_check_service import (

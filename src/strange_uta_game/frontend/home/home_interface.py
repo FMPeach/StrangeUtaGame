@@ -451,7 +451,13 @@ class HomeInterface(QWidget):
 
                 app_settings = AppSettings()
                 auto_check_flags = app_settings.get_all().get("auto_check", {})
-                if auto_check_flags.get("auto_on_load", True):
+                from strange_uta_game.frontend.winrt_japanese_guide import (
+                    ensure_winrt_japanese,
+                )
+
+                if auto_check_flags.get("auto_on_load", True) and ensure_winrt_japanese(
+                    self
+                ):
                     user_dict = app_settings.load_effective_dictionary()
                     annotate_katakana_with_english = app_settings.get(
                         "ruby_dictionary.annotate_katakana_with_english", False
