@@ -278,12 +278,20 @@ def parse_lyric_content(
         sentences = parse_to_sentences(parsed_lines, default_singer_id)
         return _apply_compensation(sentences), False, []
 
-    # 纯文本：按行分割
-    sentences = []
-    lines = [line.strip() for line in content.split("\n") if line.strip()]
-    for line_text in lines:
-        from strange_uta_game.backend.domain import Character
+    # 纯文本：按行分割，保留空行作为空 Sentence（维持用户排版）。
+    # 仅丢弃文件末尾换行符产生的终止空段，避免无谓追加空行。
+    from strange_uta_game.backend.domain import Character
 
+    raw_lines = content.split("\n")
+    if len(raw_lines) > 1 and raw_lines[-1] == "" and content.endswith("\n"):
+        raw_lines.pop()
+
+    sentences = []
+    for raw_line in raw_lines:
+        line_text = raw_line.strip()
+        if not line_text:
+            sentences.append(Sentence(singer_id=default_singer_id, characters=[]))
+            continue
         sentence = Sentence(
             singer_id=default_singer_id,
             characters=[Character(char=c) for c in line_text],
