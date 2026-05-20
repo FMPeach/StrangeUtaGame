@@ -1707,7 +1707,7 @@
   {
     "enabled": true,
     "word": "今日",
-    "reading": "{今||きょ}{日||う}"
+    "reading": "{今日||きょ,う}"
   },
   {
     "enabled": true,
@@ -2412,7 +2412,7 @@
   {
     "enabled": true,
     "word": "大人",
-    "reading": "{大||お}{人||と|な}"
+    "reading": "{大人||お,と|な}"
   },
   {
     "enabled": true,
