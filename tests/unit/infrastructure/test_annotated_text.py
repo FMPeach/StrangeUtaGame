@@ -169,16 +169,3 @@ class TestRoundTrip:
         assert rmap == {2: ["あか"]}
 
 
-# ──────────────────────────────────────────────
-# Frontend shim 兼容
-# ──────────────────────────────────────────────
-
-
-class TestFrontendShim:
-    def test_frontend_parse_shim_delegates(self):
-        from strange_uta_game.frontend.editor.fulltext_interface import (
-            _parse_annotated_line,
-        )
-
-        line = "{大冒険||だ|い,ぼ|う,け|ん}abc"
-        assert _parse_annotated_line(line) == parse_annotated_line(line)
