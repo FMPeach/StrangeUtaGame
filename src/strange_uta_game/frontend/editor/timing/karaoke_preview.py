@@ -1329,7 +1329,12 @@ class KaraokePreview(QWidget):
         # 渲染时间：播放中主动拉取基于 perf_counter 外推的高精度时间，
         # 消除 QTimer 间隔 + Qt paint 调度带来的 ~16ms 抖动。
         if self._is_playing and self._audio_engine is not None:
-            current_time = self._audio_engine.get_position_ms()
+            display_getter = getattr(self._audio_engine, "get_display_position_ms", None)
+            current_time = (
+                int(display_getter())
+                if callable(display_getter)
+                else self._audio_engine.get_position_ms()
+            )
             self._current_time_ms = current_time
         else:
             current_time = self._current_time_ms

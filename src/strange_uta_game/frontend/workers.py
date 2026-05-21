@@ -12,9 +12,7 @@ from typing import TYPE_CHECKING
 from PyQt6.QtCore import QObject, pyqtSignal
 
 if TYPE_CHECKING:
-    from strange_uta_game.backend.infrastructure.audio.sounddevice_engine import (
-        SoundDeviceEngine,
-    )
+    from strange_uta_game.backend.infrastructure.audio import IAudioEngine
     from strange_uta_game.backend.domain import Project
 
 
@@ -30,7 +28,7 @@ class AudioLoadWorker(QObject):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, engine: SoundDeviceEngine, file_path: str):
+    def __init__(self, engine: IAudioEngine, file_path: str):
         super().__init__()
         self._engine = engine
         self._file_path = file_path
@@ -51,7 +49,7 @@ class VideoExtractWorker(QObject):
     finished = pyqtSignal(str)  # temp_path，供调用方清理
     error = pyqtSignal(str)
 
-    def __init__(self, engine: SoundDeviceEngine, file_path: str):
+    def __init__(self, engine: IAudioEngine, file_path: str):
         super().__init__()
         self._engine = engine
         self._file_path = file_path
