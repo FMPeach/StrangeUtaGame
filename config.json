@@ -8,7 +8,7 @@
     "default_check_count": 1,
     "auto_advance_after_tag": true,
     "show_preview_lines": 5,
-    "tag_offset_ms": 0,
+    "tag_offset_ms": -230,
     "speed_correction": 100,
     "fast_forward_ms": 3000,
     "rewind_ms": 2000,
@@ -49,7 +49,8 @@
       "other",
       "space"
     ],
-    "space_as_line_end": true
+    "space_as_line_end": true,
+    "english_syllable_check": true
   },
   "ui": {
     "theme": "auto",
@@ -74,8 +75,8 @@
   "export": {
     "default_format": "Nicokara (带注音)",
     "auto_add_extension": true,
-    "last_export_dir": "E:\\ニコカラ\\046小原好美,佐倉綾音,種崎敦美 - なかよしセンセーション",
-    "offset_ms": -80,
+    "last_export_dir": "C:\\Users\\FMPeach\\Downloads",
+    "offset_ms": 0,
     "software_compensation_ms": 0,
     "nicokara_pause_char": "^"
   },
@@ -114,8 +115,8 @@
     "timing_mode": {
       "play_pause": "D:short",
       "stop": "S:short",
-      "tag_now": "SPACE:short",
-      "tag_now_extra": "",
+      "tag_now": "SPACE:short,V:short",
+      "tag_now_extra": "B:short,N:short",
       "seek_back": "Z:short",
       "seek_forward": "X:short",
       "speed_down": "Q:short",
@@ -149,6 +150,7 @@
       "undo": "CTRL+Z:short",
       "redo": "CTRL+Y:short",
       "save": "CTRL+S:short",
+      "copy_chars": "CTRL+C:short",
       "paste_lyrics": "CTRL+V:short",
       "timestamps_to_sentence_end": "J:short",
       "quick_export": "CTRL+E:short",
@@ -194,6 +196,7 @@
       "undo": "CTRL+Z:short",
       "redo": "CTRL+Y:short",
       "save": "CTRL+S:short",
+      "copy_chars": "CTRL+C:short",
       "paste_lyrics": "CTRL+V:short",
       "timestamps_to_sentence_end": "J:short",
       "quick_export": "CTRL+E:short",
@@ -225,6 +228,36 @@
     "merge_line_up": "Shift+Enter"
   },
   "nicokara_emoji_default": "透明画像1x1.png,,Zoom=1,NoDecor,MarginRight=-170",
+  "network_dictionary": {
+    "enabled": false,
+    "source_order": [
+      "local",
+      "rl_official",
+      "fmpeach"
+    ],
+    "sources": [
+      {
+        "id": "rl_official",
+        "name": "RhythmicaLyrics 官方",
+        "url": "http://timetag.main.jp/RhythmicaLyrics/kakuteiyominet.php",
+        "builtin": true,
+        "enabled": true
+      },
+      {
+        "id": "fmpeach",
+        "name": "键盘office",
+        "url": "https://rl.fmpeach.top/Rhythmicalyrics/kakuteiyominet.php",
+        "builtin": true,
+        "enabled": true
+      }
+    ],
+    "auto_update": {
+      "enabled": false,
+      "interval_value": 1,
+      "interval_unit": "week"
+    },
+    "last_auto_update_at": 0
+  },
   "updater": {
     "enabled": true,
     "check_on_startup": true,
@@ -239,9 +272,9 @@
       "mode": "system",
       "manual_url": "http://127.0.0.1:7897"
     },
-    "skipped_version": "",
-    "last_seen_version": "",
-    "last_check_at": 1779109193
+    "skipped_version": "0.3.18",
+    "last_seen_version": "0.3.18",
+    "last_check_at": 1779342485
   },
-  "applied_dictionary_version": 4
+  "applied_dictionary_version": 6
 }

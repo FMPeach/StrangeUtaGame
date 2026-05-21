@@ -105,7 +105,7 @@ class TimingService:
     """
 
     # 常量
-    DEFAULT_TIMING_OFFSET_MS = 0  # 默认打轴偏移量
+    DEFAULT_TIMING_OFFSET_MS = -230  # 默认打轴偏移量（ms，负值=提前，补偿反应延迟）
 
     def __init__(
         self,
@@ -523,7 +523,10 @@ class TimingService:
             self._audio_engine.play()
 
         raw_time = self._audio_engine.get_position_ms()
-        timestamp_ms = max(0, raw_time - queue_delay_ms + self._timing_offset_ms)
+        # BASS 硬件定位已达 ±2ms 精度，不再需要 queue_delay_ms 补偿
+        #（旧 sounddevice 引擎基于 perf_counter 外推才需要此补偿）
+        timestamp_ms = max(0, raw_time + self._timing_offset_ms)
+
         self.on_key_changed(timestamp_ms, "pressed")
 
     def on_timing_key_released(self, key: str, queue_delay_ms: int = 0) -> None:
@@ -539,7 +542,8 @@ class TimingService:
             return
 
         raw_time = self._audio_engine.get_position_ms()
-        timestamp_ms = max(0, raw_time - queue_delay_ms + self._timing_offset_ms)
+        # BASS 硬件定位已达 ±2ms 精度，不再需要 queue_delay_ms 补偿
+        timestamp_ms = max(0, raw_time + self._timing_offset_ms)
         self.on_key_changed(timestamp_ms, "released")
 
     def _add_timetag_at_current_checkpoint(self, timestamp_ms: int) -> None:

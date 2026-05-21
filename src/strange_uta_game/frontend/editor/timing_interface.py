@@ -2581,7 +2581,8 @@ class EditorInterface(QWidget):
         """手动注册撤销命令（不走 _sync_after_structure_change）。"""
         if not self._project:
             return
-        after_sentences = deepcopy(self._project.sentences)
+        # after_sentences 不深拷贝 —— execute() 内会自行 deepcopy，省去一次全量拷贝
+        after_sentences = self._project.sentences
         command_manager = None
         if self._timing_service:
             command_manager = self._timing_service.command_manager

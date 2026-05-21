@@ -1357,7 +1357,7 @@
   {
     "enabled": true,
     "word": "今日",
-    "reading": "{今||きょ}{日||う}"
+    "reading": "{今日||きょ,う}"
   },
   {
     "enabled": true,
@@ -2062,7 +2062,7 @@
   {
     "enabled": true,
     "word": "大人",
-    "reading": "{大||お}{人||と|な}"
+    "reading": "{大人||お,と|な}"
   },
   {
     "enabled": true,
@@ -4312,7 +4312,7 @@
   {
     "enabled": true,
     "word": "彷徨っ",
-    "reading": "{彷||さ}{徨||ま|よ}っ"
+    "reading": "{彷徨||さ|ま|よ,}っ"
   },
   {
     "enabled": true,
@@ -4797,7 +4797,7 @@
   {
     "enabled": true,
     "word": "盛り上",
-    "reading": "{盛り上||も,,あ}"
+    "reading": "{盛||も}り{上||あ}"
   },
   {
     "enabled": true,
@@ -7653,5 +7653,10 @@
     "enabled": true,
     "word": "マフィン",
     "reading": "{マフィン||mu,ffin,,}"
+  },
+  {
+    "enabled": true,
+    "word": "傷痕",
+    "reading": "{傷||しょ|う}{痕||こ|ん}"
   }
 ]

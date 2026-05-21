@@ -70,7 +70,7 @@ class TimingSubInterface(SubSettingInterface):
         self.card_disable_click_jump.checked_changed.connect(self._notify_changed)
 
     def load_settings(self, s):
-        self.card_offset.setValue(s.get("timing.tag_offset_ms", 0))
+        self.card_offset.setValue(s.get("timing.tag_offset_ms", -230))
         self.card_speed_correction.setValue(s.get("timing.speed_correction", 80))
         self.card_export_offset.setValue(s.get("export.offset_ms", 0))
         self.card_timing_step.setValue(s.get("timing.timing_adjust_step_ms", 10))
