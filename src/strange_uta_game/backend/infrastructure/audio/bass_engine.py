@@ -176,6 +176,11 @@ class BassEngine(IAudioEngine):
         self._state = PlaybackState.STOPPED
         self._file_path: Optional[str] = None
         self._playback_path: Optional[str] = None
+        # Path of a cache file we generated (video extraction / soundfile
+        # fallback). Tracked so the next load()/release() can delete it — the
+        # old TSM engine used to sweep .cache on every load; BASS doesn't, so
+        # we clean up our own products to avoid unbounded growth.
+        self._generated_playback_path: Optional[str] = None
         self._duration_ms: int = 0
         self._speed: float = 1.0
         self._volume: float = 1.0
@@ -242,6 +247,9 @@ class BassEngine(IAudioEngine):
         with self._stream_lock:
             self.stop()
             self._free_streams()
+            # Sweep the previous run's generated cache file before loading a new
+            # one (streams are now freed, so it is safe to delete).
+            self._cleanup_generated_playback()
 
             if not Path(file_path).is_file():
                 raise AudioLoadError(f"加载音频失败: 文件不存在: {file_path}")
@@ -261,6 +269,11 @@ class BassEngine(IAudioEngine):
                 self._create_streams(file_path)
                 playback_path = file_path
             except AudioLoadError:
+                # _convert_for_bass records its soundfile-fallback wav in
+                # _generated_playback_path for later sweeping. Video extractions
+                # are NOT tracked here — they become the project's persistent
+                # audio (file_loader stores that path), so deleting them would
+                # break saved video projects.
                 playback_path = self._convert_for_bass(file_path, progress_cb)
                 self._create_streams(playback_path)
 
@@ -307,6 +320,8 @@ class BassEngine(IAudioEngine):
             cache_dir = self._fallback_cache_dir()
             wav_path = cache_dir / f"{Path(file_path).stem}_bass_fallback.wav"
             sf.write(str(wav_path), data, sr)
+            # Track only our own fallback product for later cleanup.
+            self._generated_playback_path = str(wav_path)
             return str(wav_path)
         except Exception as exc:
             raise AudioLoadError(f"BASS 无法打开文件，且转换失败: {exc}") from exc
@@ -478,10 +493,33 @@ class BassEngine(IAudioEngine):
             _bass.BASS_StreamFree(self._decode_stream)
             self._decode_stream = 0
 
+    def _cleanup_generated_playback(self) -> None:
+        """Delete the cache file we generated for the previous load, if any.
+
+        Only touches files we created under the cache dir; never deletes the
+        user's original media. Streams must already be freed.
+        """
+        path = self._generated_playback_path
+        self._generated_playback_path = None
+        if not path:
+            return
+        try:
+            p = Path(path)
+            # Defensive: only remove our own fallback wavs inside the cache dir.
+            if (
+                p.is_file()
+                and p.name.endswith("_bass_fallback.wav")
+                and p.parent == self._fallback_cache_dir()
+            ):
+                p.unlink()
+        except Exception:
+            pass
+
     def release(self) -> None:
         with self._stream_lock:
             self.stop()
             self._free_streams()
+            self._cleanup_generated_playback()
             if self._initialized:
                 _bass.BASS_Free()
                 self._initialized = False
