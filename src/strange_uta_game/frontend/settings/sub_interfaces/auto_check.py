@@ -69,8 +69,8 @@ class AutoCheckSubInterface(SubSettingInterface):
             "space": s.get("auto_check.space", False),
         })
         self.card_check_rules.setValues({
-            "check_n": s.get("auto_check.check_n", False),
-            "check_sokuon": s.get("auto_check.check_sokuon", False),
+            "check_n": s.get("auto_check.check_n", True),
+            "check_sokuon": s.get("auto_check.check_sokuon", True),
             "check_long_vowel": s.get("auto_check.check_long_vowel", False),
             "small_kana": s.get("auto_check.small_kana", False),
             "check_parentheses": s.get("auto_check.check_parentheses", True),

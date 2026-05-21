@@ -65,14 +65,14 @@ BUILTIN_SOURCES: List[Dict[str, Any]] = [
 
 # 默认 *设置* 文档（meta 部分 —— 与 ``config.json["network_dictionary"]`` 同形）
 DEFAULT_NETWORK_DICTIONARY_META: Dict[str, Any] = {
-    "enabled": False,
+    "enabled": True,
     "source_order": ["local"] + [s["id"] for s in BUILTIN_SOURCES],
     "sources": [dict(s) for s in BUILTIN_SOURCES],
 }
 
 # 旧字段 - 兼容外部调用方
 DEFAULT_NETWORK_DICTIONARY: Dict[str, Any] = {
-    "enabled": False,
+    "enabled": True,
     "source_order": list(DEFAULT_NETWORK_DICTIONARY_META["source_order"]),
     "sources": [
         {**s, "last_fetched": None, "entries": []}
@@ -267,7 +267,7 @@ def ensure_builtin_sources(doc: Dict[str, Any]) -> Dict[str, Any]:
     for b in BUILTIN_SOURCES:
         if b["id"] not in order:
             order.append(b["id"])
-    doc.setdefault("enabled", False)
+    doc.setdefault("enabled", True)
     return doc
 
 
@@ -279,7 +279,7 @@ def split_meta_and_cache(doc: Dict[str, Any]) -> "Tuple[Dict[str, Any], Dict[str
     便于用户判断"拉取后存到哪儿"。
     """
     meta: Dict[str, Any] = {
-        "enabled": bool(doc.get("enabled", False)),
+        "enabled": bool(doc.get("enabled", True)),
         "source_order": list(doc.get("source_order") or []),
         "sources": [],
     }
@@ -332,7 +332,7 @@ def merge_meta_and_cache(
             "last_fetched": cached.get("last_fetched"),
         })
     return {
-        "enabled": bool(meta.get("enabled", False)),
+        "enabled": bool(meta.get("enabled", True)),
         "source_order": list(meta.get("source_order") or [_LOCAL_SOURCE_ID]),
         "sources": sources,
     }

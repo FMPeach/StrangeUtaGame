@@ -518,15 +518,14 @@ class EditorInterface(QWidget):
         self.transport.slider_volume.blockSignals(True)
         self.transport.slider_volume.setValue(default_volume)
         self.transport.slider_volume.blockSignals(False)
-        # 应用默认速度
-        default_speed = settings.get("audio.default_speed", 1.0)
-        # 同步到音频引擎，避免 UI 与引擎速度分道扬镳
-        if self._timing_service:
-            self._timing_service.set_speed(default_speed)
-        speed_pct = int(default_speed * 100)
-        self.transport.edit_speed.blockSignals(True)
-        self.transport.edit_speed.setText(f"{max(20, min(200, speed_pct))}%")
-        self.transport.edit_speed.blockSignals(False)
+        old_speed_pct = self.transport.get_speed_value()
+        new_speed_pct = self.transport.set_speed_range(
+            settings.get("audio.speed_slider_min", 0.5),
+            settings.get("audio.speed_slider_max", 1.0),
+            emit_signal=False,
+        )
+        if self._timing_service and new_speed_pct != old_speed_pct:
+            self._timing_service.set_speed(new_speed_pct / 100.0)
         # 应用渲染偏移（与导出偏移联动）
         render_offset = settings.get("export.offset_ms", 0)
         self.preview.set_global_offset(render_offset)
@@ -2147,12 +2146,16 @@ class EditorInterface(QWidget):
                 self.transport.slider_volume.blockSignals(True)
                 self.transport.slider_volume.setValue(default_volume)
                 self.transport.slider_volume.blockSignals(False)
+                self.transport.set_speed_range(
+                    settings.get("audio.speed_slider_min", 0.5),
+                    settings.get("audio.speed_slider_max", 1.0),
+                    emit_signal=False,
+                )
                 default_speed = settings.get("audio.default_speed", 1.0)
-                self._timing_service.set_speed(default_speed)
-                speed_pct = int(default_speed * 100)
-                self.transport.edit_speed.blockSignals(True)
-                self.transport.edit_speed.setText(f"{max(20, min(200, speed_pct))}%")
-                self.transport.edit_speed.blockSignals(False)
+                speed_pct = self.transport.set_speed_value(
+                    int(default_speed * 100), emit_signal=False
+                )
+                self._timing_service.set_speed(speed_pct / 100.0)
 
         # 与 Home 页加载音频的动作对称：广播 audio 变更，使导出页等订阅者同步
         if hasattr(self, "_store") and self._store:
@@ -3569,10 +3572,10 @@ class EditorInterface(QWidget):
                 self._on_seek(min(dur, cur + int(self._fast_forward_ms * speed)))
         elif action == "speed_down":
             v = self.transport.get_speed_value()
-            self.transport.set_speed_value(max(20, v - 10))
+            self.transport.set_speed_value(v - 5)
         elif action == "speed_up":
             v = self.transport.get_speed_value()
-            self.transport.set_speed_value(min(200, v + 10))
+            self.transport.set_speed_value(v + 5)
         elif action == "volume_up":
             v = self.transport.slider_volume.value()
             self.transport.slider_volume.setValue(min(100, v + 5))
@@ -3884,7 +3887,7 @@ class EditorInterface(QWidget):
 
         # 无绑定的按键
         if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
-            # 如果焦点在 QLineEdit 上（如速度/偏移输入框），不拦截回车
+            # 如果焦点在 QLineEdit 上（如偏移输入框），不拦截回车
             focused = QApplication.focusWidget()
             if isinstance(focused, QLineEdit):
                 return

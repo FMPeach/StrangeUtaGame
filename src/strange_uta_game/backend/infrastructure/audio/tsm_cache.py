@@ -25,7 +25,7 @@ import sys
 import threading
 import time
 from collections import OrderedDict
-from concurrent.futures import ThreadPoolExecutor, Future
+from concurrent.futures import CancelledError, ThreadPoolExecutor, Future
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Set
@@ -560,7 +560,10 @@ class TSMRenderCache:
         此回调必须极轻量：只做结果存储、进度上报、完成检测和 finalizer 投递，
         绝不执行 merge / MP3编码 / 磁盘IO 等重操作（那些移到 TSMFinalizer 线程）。
         """
-        result = future.result()
+        try:
+            result = future.result()
+        except CancelledError:
+            return
         if result is None:
             return
 

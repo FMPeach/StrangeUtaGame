@@ -134,7 +134,13 @@ class BassTsmEngine(IAudioEngine):
 
     def _ensure_initialized(self) -> bool:
         if self._initialized:
-            return True
+            info = BASS_INFO()
+            if _bass.BASS_GetInfo(ctypes.byref(info)):
+                self._output_latency_ms = max(0, int(info.latency))
+                return True
+            # BASS is process-global. Another engine instance may have called
+            # BASS_Free(), so our per-instance flag can become stale.
+            self._initialized = False
         if _bass.BASS_Init(-1, 44100, BASS_DEVICE_LATENCY, None, None):
             self._initialized = True
             self._cache_output_latency()
@@ -210,7 +216,8 @@ class BassTsmEngine(IAudioEngine):
             self._tempo_speed = 1.0
             self._pending_speed = None
             self._ready_speed = None
-            self._build_stream_locked(target_original_ms=0, resume=False)
+            if not self._build_stream_locked(target_original_ms=0, resume=False):
+                raise AudioLoadError(f"BASS 无法打开播放流: {playback_path}")
 
             self._file_path = file_path
             self._state = PlaybackState.STOPPED
@@ -363,6 +370,9 @@ class BassTsmEngine(IAudioEngine):
           - tempo: real-time BASS_FX on the 1x source at ``_tempo_speed``;
           - file:  plain playable stream of ``_current_source_path``.
         """
+        if not self._ensure_initialized():
+            return False
+
         if self._is_tempo:
             new_stream = self._create_tempo_stream(self._source_1x_path, self._tempo_speed)
         else:
@@ -375,12 +385,29 @@ class BassTsmEngine(IAudioEngine):
             print(f"[BassTsmEngine] open stream failed (error {err}, tempo={self._is_tempo})")
             return False
 
-        self._free_stream()
+        scale = self._effective_scale()
+        stream_ms = max(0, target_original_ms) / max(scale, 1e-6)
+        byte_pos = _bass.BASS_ChannelSeconds2Bytes(
+            new_stream, ctypes.c_double(stream_ms / 1000.0)
+        )
+        _bass.BASS_ChannelSetPosition(new_stream, byte_pos, BASS_POS_BYTE)
+        _bass.BASS_ChannelSetAttribute(
+            new_stream, BASS_ATTRIB_VOL, ctypes.c_float(self._volume)
+        )
+
+        if resume and not _bass.BASS_ChannelPlay(new_stream, 0):
+            err = _bass.BASS_ErrorGetCode()
+            _bass.BASS_StreamFree(new_stream)
+            print(
+                f"[BassTsmEngine] play new stream failed "
+                f"(error {err}, tempo={self._is_tempo})"
+            )
+            return False
+
+        old_stream = self._stream
         self._stream = new_stream
-        self._apply_volume()
-        self._seek_stream(target_original_ms)
-        if resume:
-            _bass.BASS_ChannelPlay(self._stream, 0)
+        if old_stream:
+            _bass.BASS_StreamFree(old_stream)
         return True
 
     def _create_tempo_stream(self, source_path: Optional[str], speed: float) -> int:
@@ -441,7 +468,9 @@ class BassTsmEngine(IAudioEngine):
             # Not rendered yet → play the requested speed RIGHT NOW via real-time
             # BASS_FX tempo (may crackle), and kick off the offline render. When
             # it finishes we swap to the clean file (see _maybe_apply_ready_speed).
-            if not (self._is_tempo and abs(_quantize(self._tempo_speed) - q) < 1e-9):
+            if self._is_tempo:
+                self._retune_tempo(self._speed)
+            else:
                 self._switch_to_tempo(self._speed)
             self._pending_speed = q
             self._cache.ensure(
@@ -471,6 +500,14 @@ class BassTsmEngine(IAudioEngine):
             f"[BassTsmEngine] 速度 {speed:.2f}x → 实时 BASS_FX(临时, 可能爆音), "
             f"后台渲染中, 完成后自动换无损"
         )
+
+    def _retune_tempo(self, speed: float) -> None:
+        """Change an existing real-time BASS_FX tempo stream in place."""
+        self._tempo_speed = speed
+        if self._stream:
+            _bass.BASS_ChannelSetAttribute(
+                self._stream, BASS_ATTRIB_TEMPO, ctypes.c_float((speed - 1.0) * 100.0)
+            )
 
     def get_speed_mode(self) -> str:
         """当前变速音源类型，便于上层/调试判断是否已用上无爆音音频。

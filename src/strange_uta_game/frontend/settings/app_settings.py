@@ -20,10 +20,12 @@ class AppSettings:
         "audio": {
             "default_volume": 80,
             "default_speed": 1.0,
+            "speed_slider_min": 0.5,
+            "speed_slider_max": 1.0,
             "auto_play_on_load": False,
             # 高质量音频变速：开启用离线 TSM 预渲染（变速不变调、无爆音，占用 .cache
             # 磁盘缓存）；关闭仅用原版 BASS 实时变速（零缓存，但可能爆音）。
-            "hq_speed_change": True,
+            "hq_speed_change": False,
         },
         "timing": {
             "default_check_count": 1,
@@ -49,9 +51,9 @@ class AppSettings:
             "symbol": False,
             "space": False,
             "auto_on_load": True,
-            "check_n": False,
-            "check_sokuon": False,
-            "check_long_vowel": True,
+            "check_n": True,
+            "check_sokuon": True,
+            "check_long_vowel": False,
             "check_parentheses": True,
             "check_empty_lines": False,
             "check_line_start": False,

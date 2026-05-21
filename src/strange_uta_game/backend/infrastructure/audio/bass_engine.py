@@ -222,7 +222,13 @@ class BassEngine(IAudioEngine):
     def _ensure_initialized(self) -> bool:
         """Initialize BASS, retrying on load/recovery if construction failed."""
         if self._initialized:
-            return True
+            info = BASS_INFO()
+            if _bass.BASS_GetInfo(ctypes.byref(info)):
+                self._output_latency_ms = max(0, int(info.latency))
+                return True
+            # BASS is process-global. Another engine instance may have called
+            # BASS_Free(), so our per-instance flag can become stale.
+            self._initialized = False
 
         if _bass.BASS_Init(-1, 44100, BASS_DEVICE_LATENCY, None, None):
             self._initialized = True

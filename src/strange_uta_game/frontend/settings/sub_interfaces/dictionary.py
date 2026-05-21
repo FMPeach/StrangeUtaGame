@@ -346,7 +346,7 @@ class DictionarySubInterface(SubSettingInterface):
         self.card_annotate_katakana_with_english.setChecked(
             s.get("ruby_dictionary.annotate_katakana_with_english", False))
         self.card_network_enabled.setChecked(
-            bool(s.get("network_dictionary.enabled", False)))
+            bool(s.get("network_dictionary.enabled", True)))
         self.card_auto_update_enabled.setChecked(
             bool(s.get("network_dictionary.auto_update.enabled", False)))
         self._interval_edit.setText(

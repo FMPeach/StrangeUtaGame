@@ -2,7 +2,10 @@
   "audio": {
     "default_volume": 60,
     "default_speed": 1.0,
-    "auto_play_on_load": false
+    "speed_slider_min": 0.5,
+    "speed_slider_max": 1.0,
+    "auto_play_on_load": false,
+    "hq_speed_change": false
   },
   "timing": {
     "default_check_count": 1,
@@ -156,7 +159,10 @@
       "quick_export": "CTRL+E:short",
       "insert_space": "M:short",
       "clear_timestamp": "",
-      "merge_line_up": "Shift+Enter:short"
+      "merge_line_up": "Shift+Enter:short",
+      "open_fulltext": "CTRL+T:short",
+      "analyze_rubies_by_line": "CTRL+SHIFT+A:short",
+      "analyze_rubies_selected": "CTRL+A:short"
     },
     "edit_mode": {
       "play_pause": "D:short",
@@ -202,7 +208,10 @@
       "quick_export": "CTRL+E:short",
       "insert_space": "M:short",
       "clear_timestamp": "",
-      "merge_line_up": "Shift+Enter:short"
+      "merge_line_up": "Shift+Enter:short",
+      "open_fulltext": "CTRL+T:short",
+      "analyze_rubies_by_line": "CTRL+SHIFT+A:short",
+      "analyze_rubies_selected": "CTRL+A:short"
     },
     "play_pause": "D",
     "stop": "S",
@@ -231,9 +240,9 @@
   "network_dictionary": {
     "enabled": true,
     "source_order": [
+      "fmpeach",
       "local",
-      "rl_official",
-      "fmpeach"
+      "rl_official"
     ],
     "sources": [
       {
@@ -255,8 +264,7 @@
       "enabled": false,
       "interval_value": 1,
       "interval_unit": "week"
-    },
-    "last_auto_update_at": 0
+    }
   },
   "updater": {
     "enabled": true,
@@ -274,7 +282,7 @@
     },
     "skipped_version": "0.3.18",
     "last_seen_version": "0.3.18",
-    "last_check_at": 1779348007
+    "last_check_at": 1779368698
   },
   "applied_dictionary_version": 6
 }

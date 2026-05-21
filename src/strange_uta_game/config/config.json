@@ -2,7 +2,10 @@
   "audio": {
     "default_volume": 80,
     "default_speed": 1.0,
-    "auto_play_on_load": false
+    "speed_slider_min": 0.5,
+    "speed_slider_max": 1.0,
+    "auto_play_on_load": false,
+    "hq_speed_change": false
   },
   "timing": {
     "default_check_count": 1,
@@ -28,9 +31,9 @@
     "symbol": false,
     "space": false,
     "auto_on_load": true,
-    "check_n": false,
-    "check_sokuon": false,
-    "check_long_vowel": true,
+    "check_n": true,
+    "check_sokuon": true,
+    "check_long_vowel": false,
     "check_parentheses": true,
     "check_empty_lines": false,
     "check_line_start": true,
@@ -237,7 +240,7 @@
   },
   "nicokara_emoji_default": "透明画像1x1.png,,Zoom=1,NoDecor,MarginRight=-170",
   "network_dictionary": {
-    "enabled": false,
+    "enabled": true,
     "source_order": [
       "local",
       "rl_official",

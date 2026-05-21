@@ -1,27 +1,37 @@
-"""播放控制栏。
-
-包含播放/暂停/停止按钮、进度条、速度/音量滑块、进度预渲染显示。
-"""
+"""Playback transport bar."""
 
 from __future__ import annotations
 
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QLineEdit
+from PyQt6.QtGui import QWheelEvent
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel
 from qfluentwidgets import (
+    CaptionLabel,
     FluentIcon as FIF,
     PrimaryToolButton,
     Slider,
     ToolButton,
-    CaptionLabel,
 )
 
 
-# ──────────────────────────────────────────────
-# 播放控制栏
-# ──────────────────────────────────────────────
+class WheelSpeedSlider(Slider):
+    """Speed slider that accepts wheel input while hovered."""
+
+    def wheelEvent(self, event: QWheelEvent | None) -> None:
+        if event is None:
+            return
+        delta = event.angleDelta().y() or event.angleDelta().x()
+        if delta == 0:
+            event.ignore()
+            return
+        step = self.singleStep() or 5
+        value = self.value() + (step if delta > 0 else -step)
+        self.setValue(max(self.minimum(), min(self.maximum(), value)))
+        event.accept()
+
 
 class TransportBar(QFrame):
-    """播放控制栏 - 紧凑水平布局"""
+    """Compact playback transport bar."""
 
     play_clicked = pyqtSignal()
     pause_clicked = pyqtSignal()
@@ -35,7 +45,7 @@ class TransportBar(QFrame):
         self._duration_ms = 0
         self._current_ms = 0
         self._is_playing = False
-        self._is_dragging = False  # 手动拖拽标记，比 isSliderDown() 更可靠
+        self._is_dragging = False
         self.setFixedHeight(56)
         self._init_ui()
 
@@ -44,25 +54,21 @@ class TransportBar(QFrame):
         layout.setContentsMargins(10, 5, 10, 5)
         layout.setSpacing(8)
 
-        # 停止
         self.btn_stop = ToolButton(FIF.CANCEL, self)
         self.btn_stop.setFixedSize(40, 40)
         self.btn_stop.clicked.connect(self.stop_clicked.emit)
         layout.addWidget(self.btn_stop)
 
-        # 播放/暂停
         self.btn_play = PrimaryToolButton(FIF.PLAY, self)
         self.btn_play.setFixedSize(40, 40)
         self.btn_play.clicked.connect(self._on_play_clicked)
         layout.addWidget(self.btn_play)
 
-        # 时间
         self.lbl_time = QLabel("00:00.00 / 00:00.00")
         self.lbl_time.setStyleSheet("font-family: monospace; font-size: 12px;")
         self.lbl_time.setMinimumWidth(140)
         layout.addWidget(self.lbl_time)
 
-        # 进度条
         self.slider_progress = Slider(Qt.Orientation.Horizontal, self)
         self.slider_progress.setRange(0, 10000)
         self.slider_progress.setValue(0)
@@ -72,27 +78,30 @@ class TransportBar(QFrame):
         self.slider_progress.sliderReleased.connect(self._on_seek)
         layout.addWidget(self.slider_progress, stretch=1)
 
-        # 速度（百分比显示，输入框，内部转换为倍率）
-        lbl_speed = CaptionLabel("速度")
-        layout.addWidget(lbl_speed)
-        self.edit_speed = QLineEdit(self)
-        self.edit_speed.setText("100%")
-        self.edit_speed.setFixedWidth(60)
-        self.edit_speed.setFixedHeight(32)
-        self.edit_speed.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.edit_speed.setStyleSheet("font-size: 12px;")
-        self.edit_speed.editingFinished.connect(self._on_speed_editing_finished)
-        layout.addWidget(self.edit_speed)
+        layout.addWidget(CaptionLabel("速度"))
+        self.slider_speed = WheelSpeedSlider(Qt.Orientation.Horizontal, self)
+        self.slider_speed.setRange(50, 100)
+        self.slider_speed.setSingleStep(5)
+        self.slider_speed.setPageStep(5)
+        self.slider_speed.setValue(100)
+        self.slider_speed.setFixedWidth(116)
+        self.slider_speed.valueChanged.connect(self._on_speed_slider_changed)
+        layout.addWidget(self.slider_speed)
 
-        # 渲染进度提示：固定宽度避免速度输入框被挤动；默认空字符串隐身。
+        self.lbl_speed_value = CaptionLabel("1.00x", self)
+        self.lbl_speed_value.setFixedWidth(44)
+        self.lbl_speed_value.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.lbl_speed_value)
+        self._set_speed_label(100)
+
         self.lbl_render = CaptionLabel("", self)
         self.lbl_render.setFixedWidth(96)
-        self.lbl_render.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.lbl_render.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+        )
         layout.addWidget(self.lbl_render)
 
-        # 音量
-        lbl_vol = CaptionLabel("音量")
-        layout.addWidget(lbl_vol)
+        layout.addWidget(CaptionLabel("音量"))
         self.slider_volume = Slider(Qt.Orientation.Horizontal, self)
         self.slider_volume.setRange(0, 100)
         self.slider_volume.setValue(100)
@@ -107,32 +116,26 @@ class TransportBar(QFrame):
             self.play_clicked.emit()
 
     def _on_slider_pressed(self):
-        """滑块按下 — 标记拖拽开始（handle 拖拽路径）"""
         self._is_dragging = True
 
     def _on_slider_clicked(self, value: int):
-        """轨道点击 — qfluentwidgets 专有信号，点击轨道时不会触发 sliderPressed/Moved"""
         self._is_dragging = True
         if self._duration_ms > 0:
-            ratio = value / 10000
-            ms = int(ratio * self._duration_ms)
+            ms = int((value / 10000) * self._duration_ms)
             self._update_label_with_time(ms)
             self.seek_requested.emit(ms)
 
     def _on_slider_moved(self, value: int):
-        """滑块拖动中 — 更新时间标签预览（不触发 seek）"""
-        self._is_dragging = True  # 兜底：某些情况下 sliderPressed 可能不触发
+        self._is_dragging = True
         if self._duration_ms > 0:
-            ratio = value / 10000
-            preview_ms = int(ratio * self._duration_ms)
-            self._update_label_with_time(preview_ms)
+            self._update_label_with_time(int((value / 10000) * self._duration_ms))
 
     def _on_seek(self):
-        """滑块松手 — seek 到最终位置"""
         self._is_dragging = False
         if self._duration_ms > 0:
-            ratio = self.slider_progress.value() / 10000
-            self.seek_requested.emit(int(ratio * self._duration_ms))
+            self.seek_requested.emit(
+                int((self.slider_progress.value() / 10000) * self._duration_ms)
+            )
 
     def set_duration(self, ms: int):
         self._duration_ms = ms
@@ -140,7 +143,6 @@ class TransportBar(QFrame):
 
     def set_position(self, ms: int):
         self._current_ms = ms
-        # 用户拖拽时不覆盖进度条，避免闪跳
         if self._duration_ms > 0 and not self._is_dragging:
             self.slider_progress.setValue(int((ms / self._duration_ms) * 10000))
             self._update_label()
@@ -160,45 +162,73 @@ class TransportBar(QFrame):
 
         self.lbl_time.setText(f"{fmt(current_ms)} / {fmt(self._duration_ms)}")
 
-    def _on_speed_editing_finished(self):
-        """速度输入框编辑完成 — 解析并发射信号"""
-        text = self.edit_speed.text().strip().replace("%", "")
-        try:
-            val = int(text)
-            val = max(20, min(200, val))
-        except ValueError:
-            val = 100
-        self.edit_speed.setText(f"{val}%")
-        self.speed_changed.emit(val / 100.0)
+    @classmethod
+    def _speed_to_pct(cls, speed: float) -> int:
+        return int(round(float(speed) * 100.0))
 
-    def set_speed_value(self, pct: int):
-        """设置速度值（百分比整数，如 100）"""
-        pct = max(20, min(200, pct))
-        self.edit_speed.setText(f"{pct}%")
+    @staticmethod
+    def _hard_clamp_speed_pct(pct: int) -> int:
+        return max(25, min(200, int(pct)))
+
+    def _clamp_speed_pct(self, pct: int | float) -> int:
+        pct = self._hard_clamp_speed_pct(int(round(float(pct))))
+        return max(self.slider_speed.minimum(), min(self.slider_speed.maximum(), pct))
+
+    def _set_speed_label(self, pct: int) -> None:
+        self.lbl_speed_value.setText(f"{pct / 100.0:.2f}x")
+        self.slider_speed.setToolTip(
+            f"{self.slider_speed.minimum() / 100.0:.2f}x - "
+            f"{self.slider_speed.maximum() / 100.0:.2f}x"
+        )
+
+    def _on_speed_slider_changed(self, pct: int):
+        pct = self._clamp_speed_pct(pct)
+        self._set_speed_label(pct)
         self.speed_changed.emit(pct / 100.0)
 
+    def set_speed_range(
+        self,
+        min_speed: float,
+        max_speed: float,
+        emit_signal: bool = False,
+    ) -> int:
+        min_pct = self._hard_clamp_speed_pct(self._speed_to_pct(min_speed))
+        max_pct = self._hard_clamp_speed_pct(self._speed_to_pct(max_speed))
+        if min_pct > max_pct:
+            min_pct, max_pct = max_pct, min_pct
+        current = self.slider_speed.value()
+        clamped = max(min_pct, min(max_pct, current))
+
+        self.slider_speed.blockSignals(True)
+        self.slider_speed.setRange(min_pct, max_pct)
+        self.slider_speed.setSingleStep(5)
+        self.slider_speed.setPageStep(5)
+        self.slider_speed.setValue(clamped)
+        self.slider_speed.blockSignals(False)
+        self._set_speed_label(clamped)
+
+        if emit_signal and clamped != current:
+            self.speed_changed.emit(clamped / 100.0)
+        return clamped
+
+    def set_speed_value(self, pct: int, emit_signal: bool = True) -> int:
+        pct = self._clamp_speed_pct(pct)
+        if emit_signal:
+            self.slider_speed.setValue(pct)
+            self._set_speed_label(pct)
+        else:
+            self.slider_speed.blockSignals(True)
+            self.slider_speed.setValue(pct)
+            self.slider_speed.blockSignals(False)
+            self._set_speed_label(pct)
+        return pct
+
     def get_speed_value(self) -> int:
-        """获取当前速度值（百分比整数，如 100）"""
-        text = self.edit_speed.text().strip().replace("%", "")
-        try:
-            return max(20, min(200, int(text)))
-        except ValueError:
-            return 100
+        return self._clamp_speed_pct(self.slider_speed.value())
 
     def set_render_progress(self, speed: float, progress: float) -> None:
-        """更新渲染进度指示。``progress>=1.0`` 时清空。
-
-        ``speed`` 已经由引擎量化（保留 2 位小数），直接 ``{:.2f}`` 显示。
-        """
         if progress >= 0.999:
-            # 渲染完成 → 已切到无损预渲染音频（标签清空即代表“无爆音版生效”）
             self.lbl_render.setText("")
         else:
-            # 渲染中：此刻听到的是实时 BASS_FX 变速（可能爆音），完成后自动换无损
             pct = max(0, min(99, int(progress * 100)))
-            self.lbl_render.setText(f"{speed:.2f}× 实时变速·渲染中 {pct}%")
-
-
-# ──────────────────────────────────────────────
-# 工具栏
-# ──────────────────────────────────────────────
+            self.lbl_render.setText(f"{speed:.2f}x 渲染 {pct}%")
