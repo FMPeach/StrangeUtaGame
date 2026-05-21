@@ -1872,33 +1872,35 @@ class EditorInterface(QWidget):
         def _find_prev_timestamp(line_idx: int, char_idx: int) -> Optional[int]:
             """向前逐字查找最近的时间戳（在同一行内）
 
-            查找顺序：单字内先从后往前找普通时间戳，找不到再找句尾时间戳。
+            同时检查普通时间戳和句尾时间戳，取较大者（更接近目标字符）。
             """
             sentence = self._project.sentences[line_idx]
             for ci in range(char_idx - 1, -1, -1):
                 ch = sentence.characters[ci]
-                # 先从后往前找普通时间戳
+                candidates = []
                 if ch.timestamps:
-                    return ch.timestamps[-1]
-                # 再找句尾时间戳
-                if ch.is_sentence_end and ch.timestamps:
-                    return ch.timestamps[-1]
+                    candidates.append(ch.timestamps[-1])
+                if ch.is_sentence_end and ch.sentence_end_ts is not None:
+                    candidates.append(ch.sentence_end_ts)
+                if candidates:
+                    return max(candidates)
             return None
 
         def _find_next_timestamp(line_idx: int, char_idx: int) -> Optional[int]:
             """向后逐字查找最近的时间戳（在同一行内）
 
-            查找顺序：单字内先从前往后找普通时间戳，找不到再找句尾时间戳。
+            同时检查普通时间戳和句尾时间戳，取较小者（更接近目标字符）。
             """
             sentence = self._project.sentences[line_idx]
             for ci in range(char_idx + 1, len(sentence.characters)):
                 ch = sentence.characters[ci]
-                # 先从前往后找普通时间戳
+                candidates = []
                 if ch.timestamps:
-                    return ch.timestamps[0]
-                # 再找句尾时间戳
-                if ch.is_sentence_end and ch.timestamps:
-                    return ch.timestamps[0]
+                    candidates.append(ch.timestamps[0])
+                if ch.is_sentence_end and ch.sentence_end_ts is not None:
+                    candidates.append(ch.sentence_end_ts)
+                if candidates:
+                    return min(candidates)
             return None
 
         total_count = 0
