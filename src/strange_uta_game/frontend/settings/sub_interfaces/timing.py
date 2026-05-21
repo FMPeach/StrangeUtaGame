@@ -26,7 +26,7 @@ class TimingSubInterface(SubSettingInterface):
         self.card_speed_correction = SpinSettingCard(FIF.SPEED_MEDIUM, "速度补正",
             "打轴时间戳的速度修正系数", min_val=50, max_val=200, step=5, suffix=" %", parent=g)
         self.card_export_offset = SpinSettingCard(FIF.HISTORY, "全局偏移",
-            "全局偏移（原RL内默认为-230补偿）,用于控制本软件内整体轴时间偏移（毫秒），（负值=提前，正值=延后）",
+            "全局偏移，用于控制本软件内整体轴时间偏移（毫秒），（负值=提前，正值=延后）",
             min_val=-5000, max_val=5000, step=10, suffix=" ms", parent=g)
         self.card_timing_step = SpinSettingCard(FIF.UP, "微调时间戳步长",
             "Alt+↑/Alt+↓ 微调选中节奏点时间戳的步长",
@@ -70,7 +70,7 @@ class TimingSubInterface(SubSettingInterface):
         self.card_disable_click_jump.checked_changed.connect(self._notify_changed)
 
     def load_settings(self, s):
-        self.card_offset.setValue(s.get("timing.tag_offset_ms", 0))
+        self.card_offset.setValue(s.get("timing.tag_offset_ms", -230))
         self.card_speed_correction.setValue(s.get("timing.speed_correction", 80))
         self.card_export_offset.setValue(s.get("export.offset_ms", 0))
         self.card_timing_step.setValue(s.get("timing.timing_adjust_step_ms", 10))

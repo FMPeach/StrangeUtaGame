@@ -8,7 +8,7 @@
     "default_check_count": 1,
     "auto_advance_after_tag": true,
     "show_preview_lines": 5,
-    "tag_offset_ms": 0,
+    "tag_offset_ms": -230,
     "speed_correction": 100,
     "fast_forward_ms": 3000,
     "rewind_ms": 2000,
@@ -77,7 +77,7 @@
     "default_format": "Nicokara (带注音)",
     "auto_add_extension": true,
     "last_export_dir": "D:\\",
-    "offset_ms": -230,
+    "offset_ms": 0,
     "software_compensation_ms": 0,
     "nicokara_pause_char": "^"
   },

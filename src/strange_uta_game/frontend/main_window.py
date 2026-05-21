@@ -23,7 +23,7 @@ from typing import Optional
 
 from strange_uta_game.backend.application import CommandManager, TimingService
 from strange_uta_game.backend.domain import Project
-from strange_uta_game.backend.infrastructure.audio import SoundDeviceEngine
+from strange_uta_game.backend.infrastructure.audio import BassEngine
 from strange_uta_game.frontend.project_store import ProjectStore
 from strange_uta_game.frontend.theme import theme
 
@@ -34,7 +34,7 @@ class MainWindow(MSFluentWindow):
     def __init__(self):
         super().__init__()
 
-        self._audio_engine = SoundDeviceEngine()
+        self._audio_engine = BassEngine()
         self._command_manager = CommandManager()
         self._timing_service = TimingService(self._audio_engine, self._command_manager)
         self._store = ProjectStore(self)
@@ -299,7 +299,7 @@ class MainWindow(MSFluentWindow):
         elif change_type == "settings":
             # 同步打轴偏移到 TimingService
             settings = self.settingInterface.get_settings()
-            offset_ms = settings.get("timing.tag_offset_ms", 0)
+            offset_ms = settings.get("timing.tag_offset_ms", -230)
             self._timing_service.set_timing_offset(offset_ms)
             # 同步自动保存配置到 ProjectStore
             self._apply_auto_save_settings()

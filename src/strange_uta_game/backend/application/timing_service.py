@@ -105,11 +105,11 @@ class TimingService:
     """
 
     # 常量
-    DEFAULT_TIMING_OFFSET_MS = 0  # 默认打轴偏移量
+    DEFAULT_TIMING_OFFSET_MS = -230  # 默认打轴偏移量（ms），用户在设置面板自行校准
 
     def __init__(
         self,
-        audio_engine: IAudioEngine, # 目前实际使用SoundDeviceEngine
+        audio_engine: IAudioEngine,
         command_manager: Optional[CommandManager] = None,
     ):
         """
@@ -178,6 +178,9 @@ class TimingService:
         return self._audio_engine.get_original_samples()
 
     def get_position_ms(self) -> int:
+        display_getter = getattr(self._audio_engine, "get_display_position_ms", None)
+        if callable(display_getter):
+            return int(display_getter())
         return self._audio_engine.get_position_ms()
 
     def get_duration_ms(self) -> int:
@@ -522,8 +525,11 @@ class TimingService:
         if not self._audio_engine.is_playing():
             self._audio_engine.play()
 
-        raw_time = self._audio_engine.get_position_ms()
-        timestamp_ms = max(0, raw_time - queue_delay_ms + self._timing_offset_ms)
+        timing_pos_ms = self._audio_engine.get_position_ms()
+        # queue_delay_ms：由前端用同一时钟源（time.monotonic 入口/出口差值）计算，
+        # 补偿事件从进入 handler 到 get_position_ms() 之间的处理耗时
+        timestamp_ms = max(0, timing_pos_ms - queue_delay_ms + self._timing_offset_ms)
+
         self.on_key_changed(timestamp_ms, "pressed")
 
     def on_timing_key_released(self, key: str, queue_delay_ms: int = 0) -> None:
@@ -538,8 +544,8 @@ class TimingService:
         if not self._project:
             return
 
-        raw_time = self._audio_engine.get_position_ms()
-        timestamp_ms = max(0, raw_time - queue_delay_ms + self._timing_offset_ms)
+        timing_pos_ms = self._audio_engine.get_position_ms()
+        timestamp_ms = max(0, timing_pos_ms - queue_delay_ms + self._timing_offset_ms)
         self.on_key_changed(timestamp_ms, "released")
 
     def _add_timetag_at_current_checkpoint(self, timestamp_ms: int) -> None:

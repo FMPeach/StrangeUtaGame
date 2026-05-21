@@ -35,6 +35,7 @@ class TransportBar(QFrame):
         self._duration_ms = 0
         self._current_ms = 0
         self._is_playing = False
+        self._is_dragging = False  # 手动拖拽标记，比 isSliderDown() 更可靠
         self.setFixedHeight(56)
         self._init_ui()
 
@@ -65,6 +66,8 @@ class TransportBar(QFrame):
         self.slider_progress = Slider(Qt.Orientation.Horizontal, self)
         self.slider_progress.setRange(0, 10000)
         self.slider_progress.setValue(0)
+        self.slider_progress.clicked.connect(self._on_slider_clicked)
+        self.slider_progress.sliderPressed.connect(self._on_slider_pressed)
         self.slider_progress.sliderMoved.connect(self._on_slider_moved)
         self.slider_progress.sliderReleased.connect(self._on_seek)
         layout.addWidget(self.slider_progress, stretch=1)
@@ -103,14 +106,30 @@ class TransportBar(QFrame):
         else:
             self.play_clicked.emit()
 
+    def _on_slider_pressed(self):
+        """滑块按下 — 标记拖拽开始（handle 拖拽路径）"""
+        self._is_dragging = True
+
+    def _on_slider_clicked(self, value: int):
+        """轨道点击 — qfluentwidgets 专有信号，点击轨道时不会触发 sliderPressed/Moved"""
+        self._is_dragging = True
+        if self._duration_ms > 0:
+            ratio = value / 10000
+            ms = int(ratio * self._duration_ms)
+            self._update_label_with_time(ms)
+            self.seek_requested.emit(ms)
+
     def _on_slider_moved(self, value: int):
         """滑块拖动中 — 更新时间标签预览（不触发 seek）"""
+        self._is_dragging = True  # 兜底：某些情况下 sliderPressed 可能不触发
         if self._duration_ms > 0:
             ratio = value / 10000
             preview_ms = int(ratio * self._duration_ms)
             self._update_label_with_time(preview_ms)
 
     def _on_seek(self):
+        """滑块松手 — seek 到最终位置"""
+        self._is_dragging = False
         if self._duration_ms > 0:
             ratio = self.slider_progress.value() / 10000
             self.seek_requested.emit(int(ratio * self._duration_ms))
@@ -121,8 +140,8 @@ class TransportBar(QFrame):
 
     def set_position(self, ms: int):
         self._current_ms = ms
-        # 用户拖动滑块时不覆盖位置和时间标签，避免拖动失效
-        if self._duration_ms > 0 and not self.slider_progress.isSliderDown():
+        # 用户拖拽时不覆盖进度条，避免闪跳
+        if self._duration_ms > 0 and not self._is_dragging:
             self.slider_progress.setValue(int((ms / self._duration_ms) * 10000))
             self._update_label()
 

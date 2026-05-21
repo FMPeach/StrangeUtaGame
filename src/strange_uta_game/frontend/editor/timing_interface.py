@@ -2669,7 +2669,8 @@ class EditorInterface(QWidget):
         """手动注册撤销命令（不走 _sync_after_structure_change）。"""
         if not self._project:
             return
-        after_sentences = deepcopy(self._project.sentences)
+        # after_sentences 不深拷贝 —— execute() 内会自行 deepcopy，省去一次全量拷贝
+        after_sentences = self._project.sentences
         command_manager = None
         if self._timing_service:
             command_manager = self._timing_service.command_manager
@@ -3693,6 +3694,8 @@ class EditorInterface(QWidget):
             self._action_from_keyboard = False
 
     def _keyPressEvent_impl(self, a0: QKeyEvent):
+        # 用 time.monotonic() 统一时钟源，避免跨时钟（GetMessageTime vs QPC）的固定偏移
+        handler_entry_s = time.monotonic()
         key = a0.key()
         modifiers = a0.modifiers()
         playing = bool(self._timing_service and self._timing_service.is_playing())
@@ -3746,11 +3749,8 @@ class EditorInterface(QWidget):
             if self._timing_service and key_name not in self._pressed_keys:
                 try:
                     self._pressed_keys.add(key_name)
-                    # 用事件时间戳计算 Qt 队列实际延迟
-                    # event.timestamp() 与 time.monotonic() 在 Windows 上共享时基
-                    # （系统启动时间），但 32 位 GetMessageTime 49.7 天归零，
-                    # 且跨平台时基可能不同，故限制合理范围（0~200ms）。
-                    queue_delay_ms = max(0, int(time.monotonic() * 1000 - a0.timestamp()))
+                    # 用 handler_entry_s 替代 a0.timestamp()，同一时钟源避免固定偏移
+                    queue_delay_ms = max(0, int((time.monotonic() - handler_entry_s) * 1000))
                     if queue_delay_ms > 500:
                         queue_delay_ms = 0
                     self._timing_service.on_timing_key_pressed(key_name, queue_delay_ms)
@@ -3794,6 +3794,7 @@ class EditorInterface(QWidget):
     def keyReleaseEvent(self, a0: Optional[QKeyEvent]):
         if a0 is None:
             return
+        handler_entry_s = time.monotonic()
         key = a0.key()
         modifiers = a0.modifiers()
         key_name = self._qt_key_to_name(key, modifiers)
@@ -3815,7 +3816,7 @@ class EditorInterface(QWidget):
                 return
             if self._timing_service and key_name in self._pressed_keys:
                 try:
-                    queue_delay_ms = max(0, int(time.monotonic() * 1000 - a0.timestamp()))
+                    queue_delay_ms = max(0, int((time.monotonic() - handler_entry_s) * 1000))
                     if queue_delay_ms > 500:
                         queue_delay_ms = 0
                     self._timing_service.on_timing_key_released(key_name, queue_delay_ms)
@@ -3978,8 +3979,8 @@ class EditorInterface(QWidget):
         if not self._timing_service:
             return
         engine = self._timing_service._audio_engine
-        position_ms = engine.get_position_ms()
-        duration_ms = engine.get_duration_ms()
+        position_ms = self._timing_service.get_position_ms()
+        duration_ms = self._timing_service.get_duration_ms()
 
         self.transport.set_duration(duration_ms)
         self.timeline.set_duration(duration_ms)

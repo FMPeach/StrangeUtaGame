@@ -8,7 +8,7 @@ from .base import (
     PlaybackState,
     AudioInfo,
 )
-from .sounddevice_engine import SoundDeviceEngine
+from .bass_engine import BassEngine
 
 __all__ = [
     "IAudioEngine",
@@ -17,5 +17,5 @@ __all__ = [
     "AudioPlaybackError",
     "PlaybackState",
     "AudioInfo",
-    "SoundDeviceEngine",
+    "BassEngine",
 ]
