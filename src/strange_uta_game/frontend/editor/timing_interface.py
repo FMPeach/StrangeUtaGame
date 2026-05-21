@@ -3694,7 +3694,10 @@ class EditorInterface(QWidget):
             self._action_from_keyboard = False
 
     def _keyPressEvent_impl(self, a0: QKeyEvent):
-        # 用 time.monotonic() 统一时钟源，避免跨时钟（GetMessageTime vs QPC）的固定偏移
+        # 记录 handler 进入时刻（time.monotonic 同一时钟源）。
+        # 注意：这里测的是“handler 入口 → 读取音频位置”之间的同步处理耗时，
+        # 不是事件在 Qt 队列里排队等待的时间（旧版 a0.timestamp() 那种语义已废弃，
+        # 因其与 QPC 跨时钟会引入稳定的固定偏移）。UI 卡顿导致的排队等待不在此补偿范围内。
         handler_entry_s = time.monotonic()
         key = a0.key()
         modifiers = a0.modifiers()
@@ -3749,7 +3752,7 @@ class EditorInterface(QWidget):
             if self._timing_service and key_name not in self._pressed_keys:
                 try:
                     self._pressed_keys.add(key_name)
-                    # 用 handler_entry_s 替代 a0.timestamp()，同一时钟源避免固定偏移
+                    # handler 入口到此刻的同步处理耗时（非 Qt 队列等待时间）
                     queue_delay_ms = max(0, int((time.monotonic() - handler_entry_s) * 1000))
                     if queue_delay_ms > 500:
                         queue_delay_ms = 0
@@ -3794,6 +3797,8 @@ class EditorInterface(QWidget):
     def keyReleaseEvent(self, a0: Optional[QKeyEvent]):
         if a0 is None:
             return
+        # handler 进入时刻；queue_delay_ms 测的是入口→读位置的同步处理耗时，
+        # 非 Qt 队列等待（详见 _keyPressEvent_impl 处说明）。
         handler_entry_s = time.monotonic()
         key = a0.key()
         modifiers = a0.modifiers()
@@ -3816,6 +3821,7 @@ class EditorInterface(QWidget):
                 return
             if self._timing_service and key_name in self._pressed_keys:
                 try:
+                    # handler 入口到此刻的同步处理耗时（非 Qt 队列等待时间）
                     queue_delay_ms = max(0, int((time.monotonic() - handler_entry_s) * 1000))
                     if queue_delay_ms > 500:
                         queue_delay_ms = 0
