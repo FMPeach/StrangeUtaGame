@@ -8,7 +8,7 @@
     "default_check_count": 1,
     "auto_advance_after_tag": true,
     "show_preview_lines": 5,
-    "tag_offset_ms": -230,
+    "tag_offset_ms": 0,
     "speed_correction": 100,
     "fast_forward_ms": 3000,
     "rewind_ms": 2000,
@@ -28,9 +28,9 @@
     "symbol": false,
     "space": false,
     "auto_on_load": true,
-    "check_n": false,
-    "check_sokuon": false,
-    "check_long_vowel": true,
+    "check_n": true,
+    "check_sokuon": true,
+    "check_long_vowel": false,
     "check_parentheses": true,
     "check_empty_lines": false,
     "check_line_start": true,
@@ -229,7 +229,7 @@
   },
   "nicokara_emoji_default": "透明画像1x1.png,,Zoom=1,NoDecor,MarginRight=-170",
   "network_dictionary": {
-    "enabled": false,
+    "enabled": true,
     "source_order": [
       "local",
       "rl_official",
@@ -274,7 +274,7 @@
     },
     "skipped_version": "0.3.18",
     "last_seen_version": "0.3.18",
-    "last_check_at": 1779342485
+    "last_check_at": 1779348007
   },
   "applied_dictionary_version": 6
 }

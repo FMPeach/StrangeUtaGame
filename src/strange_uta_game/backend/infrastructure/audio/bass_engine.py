@@ -1,17 +1,16 @@
-"""BASS audio engine — hardware-clock position, real-time tempo, no jitter.
+"""BASS audio engine.
 
-Replaces: sounddevice_engine.py + ring_buffer.py + tsm_cache.py (~1200 lines)
-With:     bass.dll + bass_fx.dll direct ctypes (~250 lines)
-
-Key differences from SoundDeviceEngine:
-  - get_position_ms() → BASS_ChannelGetPosition (DMA pointer, ±2ms jitter)
-  - set_speed()       → BASS_ATTRIB_TEMPO (instant, no offline rendering)
-  - No RingBuffer, no Producer thread, no TSMRenderCache.
+The public timing position intentionally stays free of UI-only smoothing.  The
+editor can ask for a monotonic display position separately, while timing keys
+always read the raw audio-clock position.
 """
 
 from __future__ import annotations
 
 import ctypes
+import os
+import sys
+import time
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -27,10 +26,15 @@ from .base import (
 )
 
 # ═══════════════════════════════════════════════════════════════════
-# Load BASS DLLs (x64)
+# Load BASS DLLs
 # ═══════════════════════════════════════════════════════════════════
 
-_BASS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "bass" / "x64"
+_BASS_ROOT = Path(__file__).resolve().parent.parent.parent.parent / "bass"
+_IS_64BIT = ctypes.sizeof(ctypes.c_void_p) == 8
+_BASS_DIR = _BASS_ROOT / "x64" if _IS_64BIT and (_BASS_ROOT / "x64").exists() else _BASS_ROOT
+
+if sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+    os.add_dll_directory(str(_BASS_DIR))
 
 _bass = ctypes.CDLL(str(_BASS_DIR / "bass.dll"))
 _bass_fx = ctypes.CDLL(str(_BASS_DIR / "bass_fx.dll"))
@@ -42,14 +46,19 @@ _bass_fx = ctypes.CDLL(str(_BASS_DIR / "bass_fx.dll"))
 BASS_POS_BYTE = 0
 BASS_ACTIVE_STOPPED = 0
 BASS_ACTIVE_PLAYING = 1
+BASS_ACTIVE_STALLED = 2
 BASS_ACTIVE_PAUSED = 3
+BASS_ACTIVE_PAUSED_DEVICE = 4
 BASS_ATTRIB_VOL = 2
 BASS_ATTRIB_TEMPO = 0x10000
 BASS_SAMPLE_FLOAT = 256
+BASS_DATA_FLOAT = 0x40000000
 BASS_STREAM_DECODE = 0x200000
 BASS_STREAM_PRESCAN = 0x20000
 BASS_FX_FREESOURCE = 0x10000
 BASS_UNICODE = 0x80000000
+BASS_DEVICE_LATENCY = 0x100
+BASS_ERROR_ALREADY = 14
 
 # ═══════════════════════════════════════════════════════════════════
 # ctypes signatures — BASS core
@@ -57,6 +66,12 @@ BASS_UNICODE = 0x80000000
 
 _bass.BASS_Init.restype = ctypes.c_int
 _bass.BASS_Init.argtypes = [ctypes.c_int, ctypes.c_uint, ctypes.c_uint, ctypes.c_void_p, ctypes.c_void_p]
+
+_bass.BASS_Free.restype = ctypes.c_int
+_bass.BASS_Free.argtypes = []
+
+_bass.BASS_Start.restype = ctypes.c_int
+_bass.BASS_Start.argtypes = []
 
 _bass.BASS_StreamCreateFile.restype = ctypes.c_uint
 _bass.BASS_StreamCreateFile.argtypes = [ctypes.c_int, ctypes.c_void_p, ctypes.c_uint64, ctypes.c_uint64, ctypes.c_uint]
@@ -91,6 +106,9 @@ _bass.BASS_ChannelBytes2Seconds.argtypes = [ctypes.c_uint, ctypes.c_uint64]
 _bass.BASS_ChannelSeconds2Bytes.restype = ctypes.c_uint64
 _bass.BASS_ChannelSeconds2Bytes.argtypes = [ctypes.c_uint, ctypes.c_double]
 
+_bass.BASS_ChannelGetData.restype = ctypes.c_int
+_bass.BASS_ChannelGetData.argtypes = [ctypes.c_uint, ctypes.c_void_p, ctypes.c_uint]
+
 _bass.BASS_StreamFree.restype = ctypes.c_int
 _bass.BASS_StreamFree.argtypes = [ctypes.c_uint]
 
@@ -119,6 +137,23 @@ class BASS_INFO(ctypes.Structure):
 _bass.BASS_GetInfo.restype = ctypes.c_int
 _bass.BASS_GetInfo.argtypes = [ctypes.POINTER(BASS_INFO)]
 
+
+class BASS_CHANNELINFO(ctypes.Structure):
+    _fields_ = [
+        ("freq", ctypes.c_uint),
+        ("chans", ctypes.c_uint),
+        ("flags", ctypes.c_uint),
+        ("ctype", ctypes.c_uint),
+        ("origres", ctypes.c_uint),
+        ("plugin", ctypes.c_uint),
+        ("sample", ctypes.c_uint),
+        ("filename", ctypes.c_char_p),
+    ]
+
+
+_bass.BASS_ChannelGetInfo.restype = ctypes.c_int
+_bass.BASS_ChannelGetInfo.argtypes = [ctypes.c_uint, ctypes.POINTER(BASS_CHANNELINFO)]
+
 # ═══════════════════════════════════════════════════════════════════
 # ctypes signatures — BASS_FX
 # ═══════════════════════════════════════════════════════════════════
@@ -128,48 +163,63 @@ _bass_fx.BASS_FX_TempoCreate.argtypes = [ctypes.c_uint, ctypes.c_uint]
 
 
 class BassEngine(IAudioEngine):
-    """BASS 音频引擎 — 硬件时钟定位、实时变速、零抖动。"""
+    """BASS 音频引擎。"""
 
     def __init__(self) -> None:
         self._state = PlaybackState.STOPPED
         self._file_path: Optional[str] = None
+        self._playback_path: Optional[str] = None
         self._duration_ms: int = 0
         self._speed: float = 1.0
         self._volume: float = 1.0
         self._tempo_stream: int = 0
         self._decode_stream: int = 0
         self._position_callback: Optional[Callable[[int], None]] = None
+        self._render_progress_cb: Optional[Callable[[float, float], None]] = None
 
         # waveform data (read via soundfile, for get_original_samples)
         self._original_data: Optional[np.ndarray] = None
         self._original_sample_rate: int = 44100
         self._channels: int = 2
 
-        # Cached BASS output latency (ms) – queried once on init, stable forever.
+        # Cached BASS output latency (ms).
         self._output_latency_ms: int = 0
+        self._initialized = False
+        self._recovering = False
+        self._last_recovery_attempt = 0.0
 
-        # Monotonic guard – prevent progress bar flash
+        # UI-only monotonic guard, never used by timing keys.
         self._last_reported_ms: int = 0
 
-        if not _bass.BASS_Init(-1, 44100, 0, None, None):
-            err = _bass.BASS_ErrorGetCode()
-            print(f"[BassEngine] BASS_Init failed (error {err}), will retry on load")
-        else:
-            print("[BassEngine] BASS initialized")
-            self._cache_output_latency()
+        self._ensure_initialized()
 
     def _cache_output_latency(self) -> None:
-        """Query BASS_INFO once and cache output latency (static, never changes)."""
+        """Query BASS_INFO and cache output latency in milliseconds."""
         info = BASS_INFO()
         if _bass.BASS_GetInfo(ctypes.byref(info)):
-            buf_ms = 0
-            if info.latency > 0 and self._original_sample_rate > 0:
-                buf_ms = int(
-                    info.latency
-                    / (4 * self._channels * self._original_sample_rate)
-                    * 1000
-                )
-            self._output_latency_ms = buf_ms + int(info.minbuf)
+            # BASS_INFO.latency is already expressed in milliseconds when
+            # BASS_DEVICE_LATENCY was used at init time.
+            self._output_latency_ms = max(0, int(info.latency))
+
+    def _ensure_initialized(self) -> bool:
+        """Initialize BASS, retrying on load/recovery if construction failed."""
+        if self._initialized:
+            return True
+
+        if _bass.BASS_Init(-1, 44100, BASS_DEVICE_LATENCY, None, None):
+            self._initialized = True
+            self._cache_output_latency()
+            return True
+
+        err = _bass.BASS_ErrorGetCode()
+        if err == BASS_ERROR_ALREADY:
+            self._initialized = True
+            self._cache_output_latency()
+            return True
+
+        print(f"[BassEngine] BASS_Init failed (error {err}), will retry later")
+        self._initialized = False
+        return False
 
     # ═══════════════════════════════════════════════════════════════
     # IAudioEngine — load / release
@@ -179,60 +229,172 @@ class BassEngine(IAudioEngine):
         self.stop()
         self._free_streams()
 
+        if not Path(file_path).is_file():
+            raise AudioLoadError(f"加载音频失败: 文件不存在: {file_path}")
+
+        if not self._ensure_initialized():
+            err = _bass.BASS_ErrorGetCode()
+            raise AudioLoadError(f"BASS 初始化失败 (error {err})")
+
         if progress_cb:
             progress_cb("读取音频...", 0.0)
-
-        # Read original PCM for waveform display
-        try:
-            data, sr = sf.read(str(file_path), dtype="float32")
-            if data.ndim == 1:
-                data = data.reshape(-1, 1)
-            self._original_data = np.ascontiguousarray(data, dtype=np.float32)
-            self._original_sample_rate = int(sr)
-            self._channels = self._original_data.shape[1]
-        except Exception as e:
-            raise AudioLoadError(f"读取音频文件失败: {e}")
 
         if progress_cb:
             progress_cb("创建 BASS 流...", 0.3)
 
-        # BASS decode stream
-        self._decode_stream = _bass.BASS_StreamCreateFile(
-            0, ctypes.c_wchar_p(file_path), 0, 0,
-            BASS_STREAM_DECODE | BASS_STREAM_PRESCAN | BASS_UNICODE,
-        )
-        if not self._decode_stream:
-            err = _bass.BASS_ErrorGetCode()
-            raise AudioLoadError(f"BASS 无法打开文件 (error {err}): {file_path}")
+        playback_path = self._prepare_playback_path(file_path, progress_cb)
+        self._create_streams(playback_path)
 
-        # BASS_FX tempo stream → handles speed + playback
-        # NOTE: Do NOT use BASS_FX_FREESOURCE — we keep the decode stream alive
-        # so get_position_ms() can query it directly (like RL does),
-        # avoiding SoundTouch buffer latency.
-        self._tempo_stream = _bass_fx.BASS_FX_TempoCreate(
-            self._decode_stream, 0  # no BASS_FX_FREESOURCE
-        )
-        if not self._tempo_stream:
-            err = _bass.BASS_ErrorGetCode()
-            _bass.BASS_StreamFree(self._decode_stream)
-            self._decode_stream = 0
-            raise AudioLoadError(f"BASS_FX_TempoCreate 失败 (error {err})")
-
-        # duration from tempo stream
         byte_len = _bass.BASS_ChannelGetLength(self._tempo_stream, BASS_POS_BYTE)
         self._duration_ms = int(
             _bass.BASS_ChannelBytes2Seconds(self._tempo_stream, byte_len) * 1000
         )
 
+        self._load_waveform_data(file_path, playback_path)
+
         self._file_path = file_path
+        self._playback_path = playback_path
         self._state = PlaybackState.STOPPED
         self._last_reported_ms = 0
+        self._speed = 1.0
+        self._apply_speed()
+        self._apply_volume()
 
         # Re-cache latency with actual file params
         self._cache_output_latency()
 
         if progress_cb:
             progress_cb("就绪", 1.0)
+
+    def _prepare_playback_path(self, file_path: str, progress_cb=None) -> str:
+        """Return a path BASS can open, converting unsupported containers."""
+        try:
+            self._create_streams(file_path)
+            self._free_streams()
+            return file_path
+        except AudioLoadError:
+            self._free_streams()
+
+        try:
+            from .video_converter import VIDEO_EXTENSIONS, extract_audio
+
+            if Path(file_path).suffix.lower() in VIDEO_EXTENSIONS:
+                return extract_audio(file_path, progress_cb=progress_cb)
+        except Exception as exc:
+            raise AudioLoadError(str(exc)) from exc
+
+        # Last fallback for formats soundfile can decode but BASS cannot, such as
+        # FLAC when bassflac.dll is not bundled.
+        try:
+            data, sr = sf.read(str(file_path), dtype="float32")
+            if data.ndim == 1:
+                data = data.reshape(-1, 1)
+            cache_dir = Path(sys.argv[0]).resolve().parent / ".cache"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            wav_path = cache_dir / f"{Path(file_path).stem}_bass_fallback.wav"
+            sf.write(str(wav_path), data, sr)
+            return str(wav_path)
+        except Exception as exc:
+            raise AudioLoadError(f"BASS 无法打开文件，且转换失败: {exc}") from exc
+
+    def _create_streams(self, playback_path: str) -> None:
+        self._decode_stream = _bass.BASS_StreamCreateFile(
+            0,
+            ctypes.c_wchar_p(playback_path),
+            0,
+            0,
+            BASS_STREAM_DECODE | BASS_STREAM_PRESCAN | BASS_UNICODE,
+        )
+        if not self._decode_stream:
+            err = _bass.BASS_ErrorGetCode()
+            raise AudioLoadError(f"BASS 无法打开文件 (error {err}): {playback_path}")
+
+        self._tempo_stream = _bass_fx.BASS_FX_TempoCreate(
+            self._decode_stream, BASS_FX_FREESOURCE
+        )
+        if not self._tempo_stream:
+            err = _bass.BASS_ErrorGetCode()
+            _bass.BASS_StreamFree(self._decode_stream)
+            self._decode_stream = 0
+            raise AudioLoadError(f"BASS_FX_TempoCreate 失败 (error {err})")
+        self._decode_stream = 0
+
+    def _load_waveform_data(self, file_path: str, playback_path: str) -> None:
+        """Best-effort waveform decode; playback must not depend on it."""
+        if self._load_waveform_data_from_bass(playback_path):
+            return
+
+        for candidate in (file_path, playback_path):
+            try:
+                data, sr = sf.read(str(candidate), dtype="float32")
+                if data.ndim == 1:
+                    data = data.reshape(-1, 1)
+                self._original_data = np.ascontiguousarray(data, dtype=np.float32)
+                self._original_sample_rate = int(sr)
+                self._channels = self._original_data.shape[1]
+                return
+            except Exception:
+                continue
+
+        self._original_data = None
+        self._original_sample_rate = 44100
+        self._channels = 2
+
+    def _load_waveform_data_from_bass(self, playback_path: str) -> bool:
+        decode_stream = _bass.BASS_StreamCreateFile(
+            0,
+            ctypes.c_wchar_p(playback_path),
+            0,
+            0,
+            BASS_STREAM_DECODE
+            | BASS_STREAM_PRESCAN
+            | BASS_SAMPLE_FLOAT
+            | BASS_UNICODE,
+        )
+        if not decode_stream:
+            return False
+
+        try:
+            info = BASS_CHANNELINFO()
+            if not _bass.BASS_ChannelGetInfo(decode_stream, ctypes.byref(info)):
+                return False
+            byte_len = _bass.BASS_ChannelGetLength(decode_stream, BASS_POS_BYTE)
+            if byte_len == 0 or byte_len > (1 << 62):
+                return False
+
+            total_floats = int(byte_len // 4)
+            if total_floats <= 0:
+                return False
+
+            raw = np.empty(total_floats, dtype=np.float32)
+            offset = 0
+            chunk_floats = 262144
+            while offset < total_floats:
+                take = min(chunk_floats, total_floats - offset)
+                ptr = ctypes.c_void_p(raw.ctypes.data + offset * 4)
+                got = _bass.BASS_ChannelGetData(
+                    decode_stream, ptr, (take * 4) | BASS_DATA_FLOAT
+                )
+                if got <= 0:
+                    break
+                offset += got // 4
+
+            if offset <= 0:
+                return False
+            raw = raw[:offset]
+            channels = max(1, int(info.chans))
+            frame_count = len(raw) // channels
+            if frame_count <= 0:
+                return False
+            self._original_data = np.ascontiguousarray(
+                raw[: frame_count * channels].reshape(frame_count, channels),
+                dtype=np.float32,
+            )
+            self._original_sample_rate = int(info.freq) or 44100
+            self._channels = channels
+            return True
+        finally:
+            _bass.BASS_StreamFree(decode_stream)
 
     def _free_streams(self) -> None:
         if self._tempo_stream:
@@ -247,6 +409,7 @@ class BassEngine(IAudioEngine):
         self._free_streams()
         self._original_data = None
         self._file_path = None
+        self._playback_path = None
         self._duration_ms = 0
         self._position_callback = None
 
@@ -255,7 +418,11 @@ class BassEngine(IAudioEngine):
             raise AudioPlaybackError("没有加载音频文件")
         if self._state == PlaybackState.PLAYING:
             return
-        _bass.BASS_ChannelPlay(self._tempo_stream, 0)
+        if not _bass.BASS_ChannelPlay(self._tempo_stream, 0):
+            self._recover_device("play failed")
+            if not _bass.BASS_ChannelPlay(self._tempo_stream, 0):
+                err = _bass.BASS_ErrorGetCode()
+                raise AudioPlaybackError(f"BASS 播放失败 (error {err})")
         self._state = PlaybackState.PLAYING
 
     def pause(self) -> None:
@@ -275,16 +442,44 @@ class BassEngine(IAudioEngine):
     # ═══════════════════════════════════════════════════════════════
 
     def get_position_ms(self) -> int:
+        """Return the raw timing position in ms.
+
+        No monotonic clamp is applied here; timing keys use this method.
+        """
+        self._sync_state_from_bass()
+        return self._read_position_ms(apply_latency=self._state == PlaybackState.PLAYING)
+
+    def get_display_position_ms(self) -> int:
+        """Return a UI-friendly monotonic position for progress displays."""
+        self._sync_state_from_bass()
+        latency_adjusted_ms = self._read_position_ms(
+            apply_latency=self._state == PlaybackState.PLAYING
+        )
+        reported_ms = latency_adjusted_ms
+        if (
+            self._state == PlaybackState.PLAYING
+            and reported_ms < self._last_reported_ms
+        ):
+            reported_ms = self._last_reported_ms
+        self._last_reported_ms = reported_ms
+
+        return reported_ms
+
+    def _read_position_ms(self, apply_latency: bool) -> int:
         if self._tempo_stream == 0:
             return 0
         pos = _bass.BASS_ChannelGetPosition(self._tempo_stream, BASS_POS_BYTE)
         ms = int(_bass.BASS_ChannelBytes2Seconds(self._tempo_stream, pos) * 1000)
-        ms = max(0, ms - self._output_latency_ms)
-        # Monotonic guard: progress bar never goes backwards
-        if ms < self._last_reported_ms:
-            ms = self._last_reported_ms
-        self._last_reported_ms = ms
-        return ms
+        if (
+            self._state != PlaybackState.PLAYING
+            and self._duration_ms > 0
+            and self._last_reported_ms >= self._duration_ms
+            and ms == 0
+        ):
+            ms = self._duration_ms
+        if apply_latency:
+            ms = max(0, ms - self._output_latency_ms)
+        return min(max(ms, 0), self._duration_ms)
 
     def set_position_ms(self, position_ms: int) -> None:
         if self._tempo_stream == 0:
@@ -303,10 +498,72 @@ class BassEngine(IAudioEngine):
     # ═══════════════════════════════════════════════════════════════
 
     def get_playback_state(self) -> PlaybackState:
+        self._sync_state_from_bass()
         return self._state
 
     def is_playing(self) -> bool:
+        self._sync_state_from_bass()
         return self._state == PlaybackState.PLAYING
+
+    def _sync_state_from_bass(self) -> None:
+        if self._tempo_stream == 0 or self._recovering:
+            return
+
+        active = _bass.BASS_ChannelIsActive(self._tempo_stream)
+        if self._state == PlaybackState.PLAYING:
+            if active == BASS_ACTIVE_PLAYING or active == BASS_ACTIVE_STALLED:
+                return
+            if active == BASS_ACTIVE_PAUSED_DEVICE:
+                self._recover_device("device paused")
+                return
+            if active == BASS_ACTIVE_STOPPED:
+                pos = self._read_position_ms(apply_latency=False)
+                if self._duration_ms > 0 and pos >= self._duration_ms - 100:
+                    self._state = PlaybackState.PAUSED
+                    self._last_reported_ms = self._duration_ms
+                else:
+                    self._recover_device("unexpected stop")
+
+    def _recover_device(self, reason: str) -> None:
+        if self._recovering or not self._playback_path:
+            return
+
+        now = time.monotonic()
+        if now - self._last_recovery_attempt < 1.0:
+            return
+        self._last_recovery_attempt = now
+        self._recovering = True
+
+        position_ms = self._read_position_ms(apply_latency=False)
+        should_resume = self._state == PlaybackState.PLAYING
+        speed = self._speed
+        volume = self._volume
+
+        try:
+            self._free_streams()
+            _bass.BASS_Free()
+            self._initialized = False
+            if not self._ensure_initialized():
+                self._state = PlaybackState.PAUSED
+                return
+            self._create_streams(self._playback_path)
+            self._speed = speed
+            self._volume = volume
+            self._apply_speed()
+            self._apply_volume()
+            self.set_position_ms(position_ms)
+            if should_resume:
+                _bass.BASS_Start()
+                if _bass.BASS_ChannelPlay(self._tempo_stream, 0):
+                    self._state = PlaybackState.PLAYING
+                else:
+                    self._state = PlaybackState.PAUSED
+            self._cache_output_latency()
+        except Exception as exc:
+            print(f"[BassEngine] device recovery failed: {exc}")
+            self._state = PlaybackState.PAUSED
+        finally:
+            self._recovering = False
 
     # ═══════════════════════════════════════════════════════════════
     # IAudioEngine — speed (real-time via BASS_FX)
@@ -316,9 +573,16 @@ class BassEngine(IAudioEngine):
         if not 0.2 <= speed <= 2.0:
             raise ValueError(f"速度 {speed} 超出范围 [0.2, 2.0]")
         self._speed = float(speed)
+        self._apply_speed()
+        if self._render_progress_cb is not None:
+            try:
+                self._render_progress_cb(self._speed, 1.0)
+            except Exception:
+                pass
+
+    def _apply_speed(self) -> None:
         if self._tempo_stream:
-            # BASS tempo: 0% = normal, -50% = half, +100% = double
-            tempo_pct = (speed - 1.0) * 100.0
+            tempo_pct = (self._speed - 1.0) * 100.0
             _bass.BASS_ChannelSetAttribute(
                 self._tempo_stream, BASS_ATTRIB_TEMPO, ctypes.c_float(tempo_pct)
             )
@@ -332,6 +596,9 @@ class BassEngine(IAudioEngine):
 
     def set_volume(self, volume: float) -> None:
         self._volume = max(0.0, min(1.0, float(volume)))
+        self._apply_volume()
+
+    def _apply_volume(self) -> None:
         if self._tempo_stream:
             _bass.BASS_ChannelSetAttribute(
                 self._tempo_stream, BASS_ATTRIB_VOL, ctypes.c_float(self._volume)
@@ -353,8 +620,7 @@ class BassEngine(IAudioEngine):
     def set_render_progress_callback(
         self, callback: Optional[Callable[[float, float], None]] = None
     ) -> None:
-        """No-op: BASS has no offline rendering. Speed changes are instant."""
-        pass
+        self._render_progress_cb = callback
 
     # ═══════════════════════════════════════════════════════════════
     # IAudioEngine — info / waveform data

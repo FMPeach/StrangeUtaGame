@@ -6,7 +6,7 @@ import soundfile as sf
 from pathlib import Path
 
 from strange_uta_game.backend.infrastructure.audio import (
-    SoundDeviceEngine,
+    BassEngine,
     AudioLoadError,
     PlaybackState,
 )
@@ -28,12 +28,12 @@ def test_audio_file(tmp_path):
     return str(file_path)
 
 
-class TestSoundDeviceEngine:
-    """测试 SoundDevice 音频引擎"""
+class TestBassEngine:
+    """测试 BASS 音频引擎"""
 
     def test_load_audio(self, test_audio_file):
         """测试加载音频文件"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         info = engine.get_audio_info()
@@ -44,7 +44,7 @@ class TestSoundDeviceEngine:
 
     def test_load_nonexistent_file(self):
         """测试加载不存在的文件应该报错"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
 
         with pytest.raises(AudioLoadError) as exc_info:
             engine.load("/nonexistent/file.wav")
@@ -56,7 +56,7 @@ class TestSoundDeviceEngine:
 
     def test_get_duration(self, test_audio_file):
         """测试获取音频时长"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         duration = engine.get_duration_ms()
@@ -65,7 +65,7 @@ class TestSoundDeviceEngine:
 
     def test_set_and_get_position(self, test_audio_file):
         """测试设置和获取位置"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         # 设置位置
@@ -78,7 +78,7 @@ class TestSoundDeviceEngine:
 
     def test_set_position_out_of_range(self, test_audio_file):
         """测试设置超出范围的位置"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         # 设置超出范围的位置应该被限制
@@ -94,7 +94,7 @@ class TestSoundDeviceEngine:
 
     def test_playback_state(self, test_audio_file):
         """测试播放状态"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
 
         # 初始状态
         assert engine.get_playback_state() == PlaybackState.STOPPED
@@ -107,7 +107,7 @@ class TestSoundDeviceEngine:
 
     def test_set_and_get_speed(self, test_audio_file):
         """测试设置和获取播放速度"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         # 默认速度为 1.0
@@ -122,7 +122,7 @@ class TestSoundDeviceEngine:
 
     def test_set_speed_out_of_range(self, test_audio_file):
         """测试设置超出范围的速度"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         with pytest.raises(ValueError):
@@ -133,7 +133,7 @@ class TestSoundDeviceEngine:
 
     def test_set_and_get_volume(self, test_audio_file):
         """测试设置和获取音量"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         # 默认音量为 1.0
@@ -148,7 +148,7 @@ class TestSoundDeviceEngine:
 
     def test_set_volume_out_of_range(self, test_audio_file):
         """测试设置超出范围的音量"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         # 超出范围应该被限制
@@ -160,7 +160,7 @@ class TestSoundDeviceEngine:
 
     def test_position_callback(self, test_audio_file):
         """测试位置回调"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         positions = []
@@ -176,7 +176,7 @@ class TestSoundDeviceEngine:
 
     def test_release(self, test_audio_file):
         """测试释放资源"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         # 释放资源
@@ -187,7 +187,7 @@ class TestSoundDeviceEngine:
 
     def test_stop_resets_position(self, test_audio_file):
         """测试停止后位置重置"""
-        engine = SoundDeviceEngine()
+        engine = BassEngine()
         engine.load(test_audio_file)
 
         # 设置位置
