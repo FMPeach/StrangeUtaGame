@@ -24,11 +24,18 @@ class PlaybackSubInterface(SubSettingInterface):
         self.card_rewind = SpinSettingCard(FIF.LEFT_ARROW, "快退量", "按下快退键后退的时间",
             min_val=1000, max_val=30000, step=1000, suffix=" ms", parent=g)
         self.card_auto_play = SwitchSettingCard(FIF.PLAY, "自动播放", "加载音频文件后自动开始播放", parent=g)
+        self.card_hq_speed = SwitchSettingCard(
+            FIF.SPEED_HIGH, "启用高质量音频变速",
+            "开启后变速不变调且无爆音，但需占用 .cache 进行离线预渲染；"
+            "关闭则仅使用原版 BASS 引擎实时变速（零缓存，但可能爆音）。默认开启。",
+            parent=g,
+        )
         self.card_jump_before = SpinSettingCard(FIF.HISTORY, "删除节奏点跳转提前量",
             "删除节奏点时跳转到该时间戳前的毫秒数",
             min_val=0, max_val=30000, step=500, suffix=" ms", parent=g)
         for c in [self.card_volume, self.card_speed, self.card_fast_forward,
-                  self.card_rewind, self.card_auto_play, self.card_jump_before]:
+                  self.card_rewind, self.card_auto_play, self.card_hq_speed,
+                  self.card_jump_before]:
             g.addSettingCard(c)
         self.expandLayout.addWidget(g)
 
@@ -38,6 +45,7 @@ class PlaybackSubInterface(SubSettingInterface):
         self.card_fast_forward.value_changed.connect(self._notify_changed)
         self.card_rewind.value_changed.connect(self._notify_changed)
         self.card_auto_play.checked_changed.connect(self._notify_changed)
+        self.card_hq_speed.checked_changed.connect(self._notify_changed)
         self.card_jump_before.value_changed.connect(self._notify_changed)
 
     def load_settings(self, s):
@@ -46,12 +54,14 @@ class PlaybackSubInterface(SubSettingInterface):
         self.card_fast_forward.setValue(s.get("timing.fast_forward_ms", 5000))
         self.card_rewind.setValue(s.get("timing.rewind_ms", 5000))
         self.card_auto_play.setChecked(s.get("audio.auto_play_on_load", False))
+        self.card_hq_speed.setChecked(s.get("audio.hq_speed_change", True))
         self.card_jump_before.setValue(s.get("timing.jump_before_ms", 3000))
 
     def collect_settings(self, s):
         s.set("audio.default_volume", self.card_volume.value())
         s.set("audio.default_speed", self.card_speed.value())
         s.set("audio.auto_play_on_load", self.card_auto_play.isChecked())
+        s.set("audio.hq_speed_change", self.card_hq_speed.isChecked())
         s.set("timing.fast_forward_ms", self.card_fast_forward.value())
         s.set("timing.rewind_ms", self.card_rewind.value())
         s.set("timing.jump_before_ms", self.card_jump_before.value())

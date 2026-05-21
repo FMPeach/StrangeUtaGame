@@ -673,6 +673,26 @@ class TimingService:
         if fn is not None:
             fn(callback)
 
+    def swap_audio_engine(self, new_engine: IAudioEngine) -> None:
+        """运行时替换音频引擎（用于切换"高质量变速"开关）。
+
+        释放旧引擎，接入新引擎，并把已注册的位置回调与渲染进度回调迁移过去。
+        不负责重载音频——由调用方在切换后决定是否重新加载当前曲目。
+        """
+        old = self._audio_engine
+        # 迁移渲染进度回调（两个 BASS 引擎都把它存在 _render_progress_cb 上）
+        render_cb = getattr(old, "_render_progress_cb", None)
+        try:
+            old.release()
+        except Exception:
+            pass
+        self._audio_engine = new_engine
+        new_engine.set_position_callback(self._on_audio_position_changed)
+        if render_cb is not None:
+            fn = getattr(new_engine, "set_render_progress_callback", None)
+            if fn is not None:
+                fn(render_cb)
+
     def release(self) -> None:
         self.stop()
         self._audio_engine.release()

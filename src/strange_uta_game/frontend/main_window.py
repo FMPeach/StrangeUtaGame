@@ -34,9 +34,10 @@ class MainWindow(MSFluentWindow):
     def __init__(self):
         super().__init__()
 
-        # 变速不变调走离线 TSM 预渲染（30s/3s，pedalboard），绕开 BASS_FX 实时
-        # 变速的爆音。如需回退到 BASS_FX 实时变速，改用 BassEngine() 即可。
-        self._audio_engine = BassTsmEngine()
+        # 引擎按"启用高质量音频变速"设置选择：
+        #   开（默认）→ BassTsmEngine：离线 TSM 预渲染，变速不变调、无爆音；
+        #   关        → BassEngine：原版 BASS 实时变速，零缓存但可能爆音。
+        self._audio_engine = self._make_audio_engine()
         self._command_manager = CommandManager()
         self._timing_service = TimingService(self._audio_engine, self._command_manager)
         self._store = ProjectStore(self)
@@ -305,6 +306,8 @@ class MainWindow(MSFluentWindow):
             self._timing_service.set_timing_offset(offset_ms)
             # 同步自动保存配置到 ProjectStore
             self._apply_auto_save_settings()
+            # 按"高质量音频变速"开关切换引擎（仅在实际变化时重建+重载）
+            self._apply_audio_engine_setting()
         elif change_type in ("lyrics", "checkpoints"):
             # 歌词/轴点变更后重建全局 checkpoint 列表
             self._timing_service.rebuild_global_checkpoints()
@@ -316,6 +319,63 @@ class MainWindow(MSFluentWindow):
             audio_path = self._store.audio_path
             if audio_path and getattr(self.editorInterface, "_audio_file_path", None) != audio_path:
                 self.editorInterface.load_audio(audio_path)
+
+    # ==================== 音频引擎选择 ====================
+
+    def _hq_speed_enabled(self) -> bool:
+        """读取"启用高质量音频变速"设置（默认开启）。
+
+        优先用 settingInterface 的实时值（反映用户刚改的设置）；启动期
+        settingInterface 尚未创建时回退到磁盘 AppSettings。
+        """
+        try:
+            setting_iface = getattr(self, "settingInterface", None)
+            if setting_iface is not None:
+                return bool(setting_iface.get_settings().get("audio.hq_speed_change", True))
+            from strange_uta_game.frontend.settings.app_settings import AppSettings
+
+            return bool(AppSettings().get("audio.hq_speed_change", True))
+        except Exception:
+            return True
+
+    def _make_audio_engine(self):
+        """按设置创建音频引擎。"""
+        return BassTsmEngine() if self._hq_speed_enabled() else BassEngine()
+
+    def _apply_audio_engine_setting(self):
+        """设置变更时按"高质量音频变速"开关切换引擎。
+
+        仅在引擎类型实际改变时重建：释放旧引擎、接入新引擎，并重载当前曲目
+        （位置重置为 0）。切换是用户在设置里的低频操作，可接受短暂中断。
+        """
+        desired = BassTsmEngine if self._hq_speed_enabled() else BassEngine
+        if isinstance(self._audio_engine, desired):
+            return
+
+        editor = getattr(self, "editorInterface", None)
+        audio_path = getattr(editor, "_audio_file_path", None) if editor else None
+
+        new_engine = desired()
+        self._timing_service.swap_audio_engine(new_engine)
+        self._audio_engine = new_engine
+        # 重新指向 preview 缓存的引擎引用
+        if editor is not None:
+            try:
+                editor.preview.set_audio_engine(new_engine)
+            except Exception:
+                pass
+            # 重载当前曲目到新引擎（清空守卫以放行）
+            if audio_path:
+                editor._audio_file_path = None
+                editor.load_audio(audio_path)
+
+        InfoBar.success(
+            title="音频引擎已切换",
+            content=("已启用高质量变速（离线预渲染）" if desired is BassTsmEngine
+                     else "已关闭高质量变速（实时变速，可能爆音）"),
+            orient=Qt.Orientation.Horizontal, isClosable=True,
+            position=InfoBarPosition.TOP, duration=3000, parent=self,
+        )
 
     # ==================== 自动保存配置 ====================
 
