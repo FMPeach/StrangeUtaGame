@@ -1082,9 +1082,7 @@ class EditorInterface(QWidget):
         project_service = ProjectService()
         project = project_service.create_project()
         if self._store:
-            self._store._project = project
-            self._store._save_path = None
-            self._store.notify("project")
+            self._store.load_project(project)
         else:
             self.set_project(project)
 
@@ -2170,10 +2168,7 @@ class EditorInterface(QWidget):
             if setting_iface is not None:
                 settings = setting_iface.get_settings()
                 default_volume = int(settings.get("audio.default_volume", 80))
-                self._timing_service.set_volume(default_volume)
-                self.transport.slider_volume.blockSignals(True)
                 self.transport.slider_volume.setValue(default_volume)
-                self.transport.slider_volume.blockSignals(False)
                 speed_min = settings.get("audio.speed_slider_min", 0.5)
                 speed_max = settings.get("audio.speed_slider_max", 1.0)
                 self.transport.set_speed_range(
