@@ -857,7 +857,7 @@ class EditorInterface(QWidget):
 
         sentence = project.sentences[line_idx]
         original_len = len(sentence.characters)
-        pos = max(0, min(insert_at, original_len))
+        pos = max(0, min(insert_at + 1, original_len))
 
         def _mutate_inline():
             s = project.sentences[line_idx]
