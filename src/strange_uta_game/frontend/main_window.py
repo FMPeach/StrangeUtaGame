@@ -242,6 +242,9 @@ class MainWindow(MSFluentWindow):
         """切换标签页"""
         # 重置目标页面的 y 坐标，防止动画被打断时 widget 残留偏移，导致下次动画越来越快
         interface.move(interface.x(), 0)
+        # 切换到打轴界面时暂停位置拉取，避免 60fps 刷新与切换动画竞争导致控件抖动
+        if hasattr(self, "editorInterface") and interface is self.editorInterface:
+            self.editorInterface.pause_poll_for_page_animation()
         # 切换到设置界面时从磁盘重新加载配置
         if hasattr(self, "settingInterface") and interface is self.settingInterface:
             self.settingInterface.reload_from_disk()

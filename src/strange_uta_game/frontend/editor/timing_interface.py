@@ -4126,6 +4126,25 @@ class EditorInterface(QWidget):
     def on_timing_error(self, error_type: str, message: str) -> None:
         self._timing_error_signal.emit(error_type, message)
 
+    def pause_poll_for_page_animation(self, duration_ms: int = 350) -> None:
+        """页面切换动画期间暂停位置拉取定时器。
+
+        停止 timer 后，transport/timeline/preview 不会收到新的 setValue/update 调用，
+        qfluentwidgets Slider 的内部动画也因此没有新目标追逐，会迅速收敛并停止重绘。
+        页面动画结束后（duration_ms 毫秒）自动恢复，不影响打轴精度。
+        """
+        if not self._position_poll_timer.isActive():
+            return
+        self._position_poll_timer.stop()
+        QTimer.singleShot(
+            duration_ms,
+            lambda: (
+                self._position_poll_timer.start()
+                if self._timing_service and self._timing_service.is_playing()
+                else None
+            ),
+        )
+
     def _poll_audio_position(self) -> None:
         """UI 线程 QTimer 主动拉取音频位置（替代旧的回调线程+信号推送）。
 
@@ -4138,11 +4157,14 @@ class EditorInterface(QWidget):
         position_ms = self._timing_service.get_position_ms()
         duration_ms = self._timing_service.get_duration_ms()
 
-        self.transport.set_duration(duration_ms)
-        self.timeline.set_duration(duration_ms)
-        self.transport.set_position(position_ms)
-        self.timeline.set_position(position_ms)
-        self.preview.set_current_time_ms(position_ms)
+        # 页面切换动画期间（self.y() != 0）跳过 UI 重绘，避免与动画争抢导致控件抖动。
+        # 位置读取和播放结束检测不受影响，不影响打轴精度。
+        if self.y() == 0:
+            self.transport.set_duration(duration_ms)
+            self.timeline.set_duration(duration_ms)
+            self.transport.set_position(position_ms)
+            self.timeline.set_position(position_ms)
+            self.preview.set_current_time_ms(position_ms)
 
         # 检测播放结束（位置到达末尾或引擎已停止）
         if not engine.is_playing():
