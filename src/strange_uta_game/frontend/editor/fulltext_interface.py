@@ -67,7 +67,7 @@ _STRIP_SINGER_RE = re.compile(r"【[^】]*】")
 _STRIP_RUBY_DOUBLE_BAR_RE = re.compile(r"\{([^}]*?)\|\|[^}]*\}")  # {原文||读音} → 原文
 _STRIP_RUBY_SINGLE_BAR_RE = re.compile(r"\{([^|}]*)\|[^}]*\}")    # {原文|读音} → 原文
 _STRIP_RUBY_PLAIN_RE = re.compile(r"\{([^}]*)\}")                  # {原文} → 原文
-_STRIP_TIMESTAMP_RE = re.compile(r"\[>?[^\]]*\]")                  # [>...] / [...] 时间戳
+_STRIP_TIMESTAMP_RE = re.compile(r"\[>?(?:T|\d+:\d{2}\.\d{2})\]")  # 仅剥合法 token：[T]/[>T]/[mm:ss.xx]
 
 
 def _strip_line_tags(line: str) -> str:
