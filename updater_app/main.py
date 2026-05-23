@@ -1172,18 +1172,28 @@ def run(args: Args) -> int:
         log.info("未发现 manifest，使用全量更新流程")
 
     # ───── 2b. 全量更新 fallback ─────
+    proxies = {"http": args.proxy_url, "https": args.proxy_url} if args.proxy_url else None
+
+    # 步骤1：下载前先取预期 SHA256（小文件，挨个源尝试）
+    if not args.sha256:
+        for _src_id, _url in args.urls:
+            sha = try_fetch_sha256(_url, proxies, log)
+            if sha:
+                args.sha256 = sha
+                log.info("[%s] 预先获取 SHA256: %s", _src_id, sha)
+                break
+        if not args.sha256:
+            log.info("无法预先获取 SHA256，将在下载后尝试")
+
+    # 步骤2：下载（支持断点续传；切换源时 try_download_from_sources 自动删除残留）
     download_path = work_dir / "download" / args.asset_name
-    # 首次尝试时保留部分文件以支持断点续传；切换源时由 try_download_from_sources 自动删除
     ok, success_url = try_download_from_sources(args, download_path, log)
     if not ok:
         log.error("所有源均下载失败")
         return _exit_with_pause(3)
 
-    # 校验：命令行未传 --sha256 → 主动取 .sha256
+    # 步骤3：校验文件完整性（步骤1未取到时从成功源补取）
     if not args.sha256:
-        proxies = (
-            {"http": args.proxy_url, "https": args.proxy_url} if args.proxy_url else None
-        )
         args.sha256 = try_fetch_sha256(success_url, proxies, log)
     if not verify_sha256(download_path, args.sha256, log):
         log.error("校验失败")
