@@ -499,3 +499,36 @@ def launch_updater(plan: LaunchPlan, progress_cb=None) -> LaunchResult:
     # * ``CREATE_NEW_PROCESS_GROUP (0x200)`` 让新进程独立于父进程的进程组，
     #   主程序退出时不会连带把 Updater 杀掉。
     flags = 0
+    if sys.platform == "win32":
+        flags = 0x00000010 | 0x00000200  # CREATE_NEW_CONSOLE | CREATE_NEW_PROCESS_GROUP
+
+    try:
+        proc = subprocess.Popen(  # noqa: S603 — 受信任的本地 EXE
+            args,
+            close_fds=True,
+            cwd=str(plan.app_dir),
+            creationflags=flags,
+            # 不接管 Updater 的 stdio —— 让它的新控制台自己管，否则即便有窗口也看不到内容。
+            stdin=None,
+            stdout=None,
+            stderr=None,
+        )
+    except OSError as e:
+        return LaunchResult(
+            launched=False,
+            updater_path=str(updater),
+            temp_copy_path=str(temp_copy),
+            reason=f"启动 Updater 失败: {e}",
+        )
+
+    return LaunchResult(
+        launched=True,
+        updater_path=str(updater),
+        temp_copy_path=str(temp_copy),
+        pid=proc.pid,
+    )
+
+
+def is_updater_available() -> bool:
+    """便利方法：用于 UI 决定"立即更新"按钮是否可用。"""
+    return find_updater_exe() is not None
