@@ -507,7 +507,7 @@ The packaged executable will appear in `dist/StrangeUtaGame/`.
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" />
+<img src="https://img.shields.io/badge/Python-3.13+-3776AB?style=flat-square&logo=python&logoColor=white" />
 <img src="https://img.shields.io/badge/PyQt6-6.11-41CD52?style=flat-square&logo=qt&logoColor=white" />
 <img src="https://img.shields.io/badge/Fluent_Widgets-Win11_UI-005FB8?style=flat-square&logo=microsoft&logoColor=white" />
 <img src="https://img.shields.io/badge/BASS-Audio_Engine-FF6B6B?style=flat-square" />
