@@ -121,7 +121,7 @@ class MainWindow(MSFluentWindow):
         # 避免白底白字的灾难性渲染
         self._apply_win10_fallback_bg()
 
-        self.setWindowTitle("StrangeUtaGame - 歌词打轴工具")
+        self.setWindowTitle("StrangeUtaGame - 歌词打轴工具 Bilibili@不会说话的呆轩cc")
         self.setMinimumSize(1200, 800)
         self.resize(1400, 900)
 
@@ -301,7 +301,7 @@ class MainWindow(MSFluentWindow):
             if project and project.metadata and project.metadata.title:
                 self.setWindowTitle(f"StrangeUtaGame - {project.metadata.title}")
             else:
-                self.setWindowTitle("StrangeUtaGame - 歌词打轴工具")
+                self.setWindowTitle("StrangeUtaGame - 歌词打轴工具 Bilibili@不会说话的呆轩cc")
         elif change_type == "settings":
             # 同步打轴偏移到 TimingService
             settings = self.settingInterface.get_settings()
@@ -464,6 +464,7 @@ class MainWindow(MSFluentWindow):
 
     def _on_startup_update_check(self, result_obj: object) -> None:
         """处理启动期 UpdateChecker 的回调。"""
+        """处理启动器 字典update 相关内容"""
         try:
             from strange_uta_game.__version__ import __version__
             from strange_uta_game.updater.settings import UpdaterSettings
@@ -583,7 +584,7 @@ class MainWindow(MSFluentWindow):
                 # 用强制退出而非 QApplication.quit()
                 QTimer.singleShot(1200, self.request_force_quit)
 
-            worker.done.connect(_on_launch_done, Qt.ConnectionType.QueuedConnection)
+            worker.done.connect(_on_launch_done)
             worker.start()
         except Exception:
             import logging
