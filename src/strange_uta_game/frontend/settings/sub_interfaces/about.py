@@ -68,6 +68,11 @@ class AboutSubInterface(SubSettingInterface):
         self._ffmpeg_card.hBoxLayout.addWidget(self._ffmpeg_path_label, 0, Qt.AlignmentFlag.AlignRight)
         self._ffmpeg_card.hBoxLayout.addWidget(btn_browse_ffmpeg, 0, Qt.AlignmentFlag.AlignRight)
         self._ffmpeg_card.hBoxLayout.addWidget(btn_clear_ffmpeg, 0, Qt.AlignmentFlag.AlignRight)
+        if sys.platform == "win32":
+            self._btn_install_ffmpeg = PrimaryPushButton("一键安装", self._ffmpeg_card)
+            self._btn_install_ffmpeg.setFont(QFont("Microsoft YaHei", 10))
+            self._btn_install_ffmpeg.clicked.connect(self._install_ffmpeg)
+            self._ffmpeg_card.hBoxLayout.addWidget(self._btn_install_ffmpeg, 0, Qt.AlignmentFlag.AlignRight)
         self._ffmpeg_card.hBoxLayout.addSpacing(16)
         self.tools_group.addSettingCard(self._ffmpeg_card)
         self.expandLayout.addWidget(self.about_group)
@@ -198,3 +203,32 @@ class AboutSubInterface(SubSettingInterface):
             InfoBar.success(title="FFmpeg 路径已清除", content="将使用系统环境变量中的 ffmpeg",
                 orient=Qt.Orientation.Horizontal, isClosable=True,
                 position=InfoBarPosition.TOP, duration=3000, parent=self)
+
+    def _install_ffmpeg(self):
+        import subprocess
+        cmd = (
+            "winget install Gyan.FFmpeg "
+            "--accept-package-agreements --accept-source-agreements; "
+            "Write-Host ''; "
+            "Write-Host '>>> 安装完成，可关闭此窗口。<<<' -ForegroundColor Green; "
+            "pause"
+        )
+        try:
+            subprocess.Popen(
+                ["powershell", "-NoExit", "-Command", cmd],
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+            )
+        except Exception as e:
+            InfoBar.error(
+                title="无法启动安装",
+                content=str(e),
+                orient=Qt.Orientation.Horizontal, isClosable=True,
+                position=InfoBarPosition.TOP, duration=6000, parent=self,
+            )
+            return
+        InfoBar.info(
+            title="已在新窗口启动 FFmpeg 安装",
+            content="安装完成后，重启软件即可通过环境变量自动使用，或点击「浏览」手动指定路径。",
+            orient=Qt.Orientation.Horizontal, isClosable=True,
+            position=InfoBarPosition.TOP, duration=8000, parent=self,
+        )
