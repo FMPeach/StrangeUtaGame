@@ -431,6 +431,9 @@ class EditorInterface(QWidget):
             "quick_export",
             "insert_space",
             "merge_line_up",
+            "tag_now_editor",
+            "tag_now_extra_editor",
+            "clear_all_checkpoints",
         ]
         # 默认值兜底（当设置未写入新 schema 时使用）
         defaults = {
@@ -473,6 +476,9 @@ class EditorInterface(QWidget):
             "quick_export": "",
             "insert_space": "M",
             "merge_line_up": "Shift+Enter",
+            "tag_now_editor": "",
+            "tag_now_extra_editor": "",
+            "clear_all_checkpoints": "",
         }
 
         def _normalize_trigger(raw: str) -> str:
