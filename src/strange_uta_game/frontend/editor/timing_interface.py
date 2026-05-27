@@ -3064,6 +3064,35 @@ class EditorInterface(QWidget):
 
         self._execute_structural_edit("时间戳转句尾", _mutate)
 
+    def _tag_at_current_position_in_edit_mode(self):
+        """编辑模式下打轴：读取当前进度条位置并写入当前节奏点，不启动音频。"""
+        if not self._timing_service:
+            return
+        try:
+            self._timing_service.on_edit_mode_tag()
+        except Exception as e:
+            self._show_runtime_error(str(e))
+
+    def _clear_all_checkpoints(self):
+        """清除当前字符的全部节奏点：cc=0，is_sentence_end=False，清空时间戳。"""
+        if not self._project:
+            return
+        line_idx, char_idx = self._resolve_target_char()
+        if line_idx < 0 or line_idx >= len(self._project.sentences):
+            return
+        sentence = self._project.sentences[line_idx]
+        if char_idx < 0 or char_idx >= len(sentence.characters):
+            return
+
+        def _mutate():
+            char = sentence.characters[char_idx]
+            char.clear_timestamps()
+            char.set_check_count(0, force=True)
+            char.is_sentence_end = False
+            return line_idx, char_idx, 0, "checkpoints"
+
+        self._execute_structural_edit("清除所有节奏点", _mutate)
+
     def _change_checkpoint(self, delta: int):
         """增加或减少"当前选中字符"的节奏点数量。
 
@@ -3867,6 +3896,10 @@ class EditorInterface(QWidget):
             self._on_apply_singer()
         elif action == "timestamps_to_sentence_end":
             self._convert_timestamps_to_sentence_end()
+        elif action in ("tag_now_editor", "tag_now_extra_editor"):
+            self._tag_at_current_position_in_edit_mode()
+        elif action == "clear_all_checkpoints":
+            self._clear_all_checkpoints()
         elif action == "quick_export":
             self._on_quick_export()
         elif action == "insert_space":
