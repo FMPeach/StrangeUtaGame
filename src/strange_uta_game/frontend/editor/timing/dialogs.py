@@ -12,6 +12,7 @@ from __future__ import annotations
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QFont
 from PyQt6.QtWidgets import (
+
     QCheckBox,
     QComboBox,
     QDialog,
@@ -35,6 +36,8 @@ from qfluentwidgets import (
     PushButton,
     CaptionLabel,
 )
+
+from strange_uta_game.frontend.theme import theme
 
 from strange_uta_game.backend.domain import (
     Character,
@@ -1000,11 +1003,13 @@ class SetSingerByLineDialog(QDialog):
 
     apply_requested = pyqtSignal(dict)  # {line_idx: singer_id}
 
-    def __init__(self, sentences: list[Sentence], singers: list[Singer], parent=None):
+    def __init__(self, sentences: list[Sentence], singers: list[Singer], parent=None,
+                 focus_line_idx: int = -1):
         super().__init__(parent)
         self._sentences = sentences
         self._singers = singers
         self._modified = False
+        self._focus_line_idx = focus_line_idx
 
         # 构建 singer_id -> Singer 映射
         self._singer_map = {s.id: s for s in singers}
@@ -1057,6 +1062,16 @@ class SetSingerByLineDialog(QDialog):
             self.table.setItem(idx, 3, singer_item)
 
         layout.addWidget(self.table, stretch=1)
+
+        if 0 <= self._focus_line_idx < len(sentences):
+            focus_item = self.table.item(self._focus_line_idx, 2)
+            if focus_item:
+                focus_bg = theme.bg_selected
+                for col in range(self.table.columnCount()):
+                    item = self.table.item(self._focus_line_idx, col)
+                    if item:
+                        item.setBackground(focus_bg)
+                self.table.scrollToItem(focus_item, QTableWidget.ScrollHint.PositionAtCenter)
 
         # 全选/全不选按钮
         select_layout = QHBoxLayout()

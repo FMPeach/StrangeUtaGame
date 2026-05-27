@@ -1662,6 +1662,7 @@ class EditorInterface(QWidget):
             self._project.sentences,
             [s for s in self._project.singers if s.enabled],
             self,
+            focus_line_idx=self._current_line_idx,
         )
         dlg.apply_requested.connect(self._on_apply_singer_by_line)
         dlg.exec()
@@ -4512,9 +4513,9 @@ class EditorInterface(QWidget):
             if sum(c.total_timing_points for c in s.characters) > 0
         ]
         total = len(meaningful_lines)
-        timed = sum(1 for s in meaningful_lines if s.has_timetags)
-        pct = int(timed / total * 100) if total > 0 else 0
-        self.lbl_progress.setText(f"行: {total} | 已打轴: {timed}/{total} ({pct}%)")
+        completed = sum(1 for s in meaningful_lines if s.is_fully_timed())
+        pct = int(completed / total * 100) if total > 0 else 0
+        self.lbl_progress.setText(f"行: {total} | 已完成: {completed}/{total} ({pct}%)")
 
     def refresh_lyric_display(self):
         self.preview._update_display()
