@@ -194,16 +194,25 @@ class ASSDirectExporter(BaseExporter):
             )
             end_str = self._format_timestamp(line_end_ms + _POST_ROLL_MS, "ass")
 
-            # 卡拉OK文本
+            # 卡拉OK文本（传入 singer_map 以便插入演唱者切换标记）
             karaoke_text = self._generate_karaoke_text(
-                sentence, line_start_ms, line_end_ms
+                sentence, line_start_ms, line_end_ms, singer_map
             )
 
-            # Name 字段：非默认演唱者写 singer.name，默认（未命名）留空
-            singer = singer_map.get(sentence.singer_id)
+            # Name 字段：收集行内所有演唱者名（按出现顺序），用 _ 连接
             name_field = ""
-            if singer is not None and not singer.is_default:
-                name_field = self._escape_ass_field(singer.name)
+            seen_singer_ids = set()
+            singer_names = []
+            for ch in sentence.characters:
+                effective_id = ch.singer_id or sentence.singer_id
+                if effective_id in seen_singer_ids:
+                    continue
+                seen_singer_ids.add(effective_id)
+                singer = singer_map.get(effective_id)
+                if singer is not None:
+                    singer_names.append(singer.name)
+            if singer_names:
+                name_field = self._escape_ass_field("_".join(singer_names))
 
             event_line = (
                 f"Dialogue: 0,{start_str},{end_str},Default,{name_field},0,0,0,karaoke,{karaoke_text}"
@@ -230,7 +239,8 @@ class ASSDirectExporter(BaseExporter):
         return end + _FALLBACK_TAIL_MS
 
     def _generate_karaoke_text(
-        self, sentence: Sentence, line_start_ms: int, line_end_ms: int
+        self, sentence: Sentence, line_start_ms: int, line_end_ms: int,
+        singer_map: dict = None
     ) -> str:
         """生成带卡拉OK效果的 Dialogue 文本（Aegisub 真实注音语法）。
 
@@ -342,10 +352,23 @@ class ASSDirectExporter(BaseExporter):
             )
 
         # 5. 渲染每个段
+        prev_char_idx = -1
+        prev_effective_id = ""
         for seg_idx, (ci, pi, ts) in enumerate(flat_anchors):
             dur_ms = max(0, next_ts(seg_idx) - ts)
             k_cs = dur_ms // 10
             ch = chars[ci]
+
+            # 演唱者变化标记：在新字符的第一段前检测
+            if ci != prev_char_idx:
+                effective_id = chars[ci].singer_id or sentence.singer_id
+                if effective_id != prev_effective_id and singer_map:
+                    singer = singer_map.get(effective_id)
+                    if singer is not None:
+                        escaped_name = self._escape_ass_text(singer.name)
+                        parts.append(f"{{\\sing_{escaped_name}}}")
+                prev_char_idx = ci
+                prev_effective_id = effective_id
 
             if pi == 0:
                 # 该字第一段：写字符（+ 连词尾部字符 + 可选首 part ruby）
