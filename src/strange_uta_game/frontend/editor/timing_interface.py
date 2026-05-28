@@ -217,6 +217,7 @@ class EditorInterface(QWidget):
         # 3) 时间轴
         self.timeline = TimelineWidget(self)
         self.timeline.seek_requested.connect(self._on_seek)
+        self.timeline.waveform_visibility_changed.connect(self._on_waveform_visibility_changed)
         layout.addWidget(self.timeline)
 
         # 4) 歌词预览（占主要空间）
@@ -2520,6 +2521,11 @@ class EditorInterface(QWidget):
     def _on_volume_changed(self, vol: int):
         if self._timing_service:
             self._timing_service.set_volume(vol)
+
+    def _on_waveform_visibility_changed(self, visible: bool):
+        self.timeline.updateGeometry()
+        self.preview.updateGeometry()
+        self.updateGeometry()
 
     # ==================== 打轴 ====================
 

@@ -30,7 +30,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from qfluentwidgets import CaptionLabel
+from qfluentwidgets import CaptionLabel, SwitchButton
 
 from strange_uta_game.frontend.theme import theme
 
@@ -381,10 +381,12 @@ class TimelineWidget(QWidget):
     """时间轴 - 显示音频波形 + 时间网格 + 时间标签 + 播放位置"""
 
     seek_requested = pyqtSignal(int)
+    waveform_visibility_changed = pyqtSignal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._duration_ms = 0
+        self._waveform_visible = True
         self._init_ui()
 
     def _init_ui(self):
@@ -428,6 +430,14 @@ class TimelineWidget(QWidget):
         self.lbl_audio_name.setFixedWidth(400)
         self.lbl_audio_name.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         bottom_layout.addWidget(self.lbl_audio_name)
+
+        # 波形显示开关
+        self.switch_waveform = SwitchButton(self)
+        self.switch_waveform.setChecked(True)
+        self.switch_waveform.setMinimumWidth(50)
+        self.switch_waveform.setToolTip("波形显示")
+        self.switch_waveform.checkedChanged.connect(self._on_waveform_visibility_changed)
+        bottom_layout.addWidget(self.switch_waveform)
 
         layout.addLayout(bottom_layout)
 
@@ -487,3 +497,17 @@ class TimelineWidget(QWidget):
         self.waveform_display._suspend_auto_scroll()
         position = value / 1000.0
         self.waveform_display.set_scroll_position(position)
+
+    def _on_waveform_visibility_changed(self, checked: bool):
+        self._waveform_visible = checked
+        self.waveform_display.setVisible(checked)
+        self.waveform_visibility_changed.emit(checked)
+
+    def is_waveform_visible(self) -> bool:
+        return self._waveform_visible
+
+    def set_waveform_visible(self, visible: bool):
+        self._waveform_visible = visible
+        self.switch_waveform.setChecked(visible)
+        self.waveform_display.setVisible(visible)
+        self.waveform_visibility_changed.emit(visible)
