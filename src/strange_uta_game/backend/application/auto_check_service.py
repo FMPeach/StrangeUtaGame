@@ -283,6 +283,9 @@ class AutoCheckService:
                 elif next_ct not in (CharType.HIRAGANA, CharType.KATAKANA,
                                      CharType.SOKUON, CharType.LONG_VOWEL):
                     particle_indices.add(part_idx)
+                elif prev_ct == CharType.KANJI:
+                    # 汉字+は/へ+假名：「君はとても」等常见句式，仍判定为助词
+                    particle_indices.add(part_idx)
                 part_idx += 1
         return particle_indices
 

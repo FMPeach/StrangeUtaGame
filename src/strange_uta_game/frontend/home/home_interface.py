@@ -479,6 +479,7 @@ class HomeInterface(QWidget):
                         "ruby_dictionary.annotate_katakana_with_english", False
                     )
 
+                    auto_check = None
                     if chinese_mode:
                         auto_check = AutoCheckService(
                             auto_check_flags=auto_check_flags,
@@ -486,7 +487,7 @@ class HomeInterface(QWidget):
                             annotate_katakana_with_english=annotate_katakana_with_english,
                             chinese_mode=True,
                         )
-                        auto_check.apply_to_project(project, only_noruby=True)
+                        auto_check.apply_to_project(project, only_noruby=True, skip_romanize=True)
                     else:
                         from strange_uta_game.frontend.winrt_japanese_guide import (
                             ensure_winrt_japanese,
@@ -497,7 +498,7 @@ class HomeInterface(QWidget):
                                 user_dictionary=user_dict,
                                 annotate_katakana_with_english=annotate_katakana_with_english,
                             )
-                            auto_check.apply_to_project(project, only_noruby=True)
+                            auto_check.apply_to_project(project, only_noruby=True, skip_romanize=True)
 
                     # 自动删除指定类型的注音
                     delete_types = auto_check_flags.get("delete_ruby_types", [])
@@ -507,6 +508,10 @@ class HomeInterface(QWidget):
                         )
 
                         delete_rubies_by_type_names(project, delete_types)
+
+                    # 罗马音转换（在 delete 之后，只转换剩余的假名注音）
+                    if auto_check is not None:
+                        auto_check.romanize_project_rubies(project)
             except Exception:
                 pass  # 注音分析失败不阻止项目创建
 

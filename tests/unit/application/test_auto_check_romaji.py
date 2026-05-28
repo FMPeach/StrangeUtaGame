@@ -121,3 +121,12 @@ def test_wo_always_particle():
     sentence = Sentence.from_text("\u3092", "s1")
     service.apply_to_sentence(sentence)
     assert _ruby_parts(sentence) == [["o"]]
+
+
+def test_kanji_ha_hiragana_is_particle():
+    """\u6c49\u5b57+\u306f+\u5047\u540d\uff08\u5982\u300c\u541b\u306f\u3068\u3066\u3082\u300d\uff09\uff0c\u306f \u5e94\u8bc6\u522b\u4e3a\u52a9\u8bcd\u8bfb\u4f5c wa\u3002"""
+    service = AutoCheckService(DummyAnalyzer(), auto_check_flags=ROMAJI_FLAGS)
+    sentence = Sentence.from_text("\u541b\u306f\u3068\u3066\u3082", "s1")  # \u541b\u306f\u3068\u3066\u3082
+    service.apply_to_sentence(sentence)
+    parts = _ruby_parts(sentence)
+    assert parts[1] == ["wa"], f"Expected ['wa'] for \u306f after kanji, got {parts[1]}"
