@@ -89,7 +89,7 @@ class AboutSubInterface(SubSettingInterface):
         self.btn_reset = PushButton("重置为默认设置", btn_widget)
         self.btn_reset.setIcon(FIF.DELETE)
         self.btn_reset.setMinimumHeight(36)
-        btn_layout.addWidget(self.btn_save)
+        # btn_save 保留属性供外层 signal 连接，但不在 UI 中显示
         btn_layout.addWidget(self.btn_reset)
         btn_layout.addStretch()
         self.expandLayout.addWidget(btn_widget)
