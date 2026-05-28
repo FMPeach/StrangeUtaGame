@@ -14,7 +14,7 @@ from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from ..__version__ import __version__
 from . import http_client
-from .manifest import LatestRelease, fetch_latest_release, override_asset_urls
+from .manifest import LatestRelease, fetch_latest_release, fetch_releases_since, override_asset_urls
 from .proxy import resolve_proxy
 from .settings import UpdaterSettings
 from .sources import SourceId
@@ -38,12 +38,17 @@ class CheckResult:
     skipped_due_to_cooldown: bool = False
     # 检测过程的源尝试记录（成功源 error 为空）
     attempts: List[Tuple[SourceId, str, str]] = None  # type: ignore[assignment]
+    # 从当前版本到最新版本之间所有中间版本的 release（含最新版，从新到旧）
+    # 用于跨版本更新时在弹窗中展示全部版本的更新日志
+    all_releases: List[LatestRelease] = None  # type: ignore[assignment]
 
     def __post_init__(self) -> None:
         if self.download_candidates is None:
             self.download_candidates = []
         if self.attempts is None:
             self.attempts = []
+        if self.all_releases is None:
+            self.all_releases = []
 
 
 class _CheckRunnable(QObject):
@@ -110,6 +115,18 @@ class _CheckRunnable(QObject):
             # 同步改写 release.assets 中匹配名字的 URL
             release = override_asset_urls(release, primary_source_id, asset_name)  # type: ignore[arg-type]
 
+        # 5) 有更新时获取全部中间版本的 changelog（跨版本更新日志聚合）
+        all_releases: List[LatestRelease] = []
+        if has_update:
+            try:
+                all_releases, _ = fetch_releases_since(
+                    __version__, self._settings.source_order, proxies=proxies
+                )
+            except Exception:
+                log.debug("获取全量 releases 列表失败（仅展示最新版 changelog）", exc_info=True)
+            if not all_releases:
+                all_releases = [release]
+
         return CheckResult(
             ok=True,
             has_update=has_update,
@@ -119,6 +136,7 @@ class _CheckRunnable(QObject):
             primary_asset_name=asset_name,
             download_candidates=candidates,
             attempts=attempts,
+            all_releases=all_releases,
         )
 
     @staticmethod

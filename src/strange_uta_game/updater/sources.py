@@ -99,3 +99,29 @@ def build_api_urls(order: List[str]) -> List[Tuple[SourceId, str]]:
                 (sid, f"https://ghproxy.net/https://api.github.com/{api_path}")
             )
     return out
+
+
+def build_api_list_urls(order: List[str], per_page: int = 30) -> List[Tuple[SourceId, str]]:
+    """构造"获取 releases 列表"的 API URL 列表（用于跨版本更新日志聚合）。
+
+    GitHub 官方 API: ``https://api.github.com/repos/<owner>/<repo>/releases?per_page=N``
+    返回最多 ``per_page`` 条 release，按发布时间从新到旧排列。
+    """
+    api_path = f"repos/{REPO_OWNER}/{REPO_NAME}/releases?per_page={per_page}"
+    out: List[Tuple[SourceId, str]] = []
+    for sid in normalize_order(order):
+        if sid == "github":
+            out.append((sid, f"https://api.github.com/{api_path}"))
+        elif sid == "ghproxy":
+            out.append(
+                (sid, f"https://mirror.ghproxy.com/https://api.github.com/{api_path}")
+            )
+        elif sid == "gh-proxy":
+            out.append(
+                (sid, f"https://gh-proxy.com/https://api.github.com/{api_path}")
+            )
+        elif sid == "ghproxy-net":
+            out.append(
+                (sid, f"https://ghproxy.net/https://api.github.com/{api_path}")
+            )
+    return out

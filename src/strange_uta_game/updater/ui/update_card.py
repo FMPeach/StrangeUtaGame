@@ -306,6 +306,7 @@ def _show_update_dialog(parent: "SettingsInterface", result: CheckResult) -> Non
         release,
         local_version=__version__,
         primary_source_label=source_label,
+        all_releases=getattr(result, "all_releases", None) or [],
         parent=parent,
     )
     accepted = dlg.exec()

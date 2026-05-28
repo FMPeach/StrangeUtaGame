@@ -510,6 +510,7 @@ class MainWindow(MSFluentWindow):
                 release,
                 local_version=__version__,
                 primary_source_label=source_label,
+                all_releases=getattr(result, "all_releases", None) or [],
                 parent=self,
             )
             accepted = dlg.exec()

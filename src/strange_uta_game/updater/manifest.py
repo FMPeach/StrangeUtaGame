@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 from . import http_client
-from .sources import SourceId, build_api_urls, build_download_url
-from .version import strip_tag_prefix
+from .sources import SourceId, build_api_urls, build_api_list_urls, build_download_url
+from .version import strip_tag_prefix, is_newer_version
 
 
 @dataclass(frozen=True)
@@ -159,6 +159,50 @@ def fetch_latest_release(
         attempts.append((source_id, url, ""))
         return release, attempts
     return None, attempts
+
+
+def fetch_releases_since(
+    current_version: str,
+    source_order: List[str],
+    proxies: Optional[Dict[str, str]] = None,
+    include_prerelease: bool = False,
+) -> Tuple[List["LatestRelease"], List[Tuple[SourceId, str, str]]]:
+    """获取所有比 ``current_version`` 更新的 release（不含当前版本本身）。
+
+    按源顺序尝试，第一个成功的源返回结果。结果按发布时间从新到旧排列。
+    全部源失败时返回空列表。
+
+    用途：跨版本更新时（如 1.0.0→1.0.3）聚合 1.0.1、1.0.2、1.0.3 的全部
+    更新日志，让用户在弹窗中看到所有版本的变更内容。
+    """
+    attempts: List[Tuple[SourceId, str, str]] = []
+    candidates = build_api_list_urls(source_order)
+    for source_id, url in candidates:
+        result = http_client.get_json(url, proxies=proxies)
+        if not result.ok or not isinstance(result.body, list):
+            attempts.append((source_id, url, result.error or "未知错误"))
+            continue
+        try:
+            releases: List[LatestRelease] = []
+            for item in result.body:
+                if not isinstance(item, dict):
+                    continue
+                try:
+                    rel = _parse_release_json(item)
+                except Exception:
+                    continue
+                if not rel.tag:
+                    continue
+                if rel.prerelease and not include_prerelease:
+                    continue
+                if is_newer_version(rel.version, current_version):
+                    releases.append(rel)
+            attempts.append((source_id, url, ""))
+            return releases, attempts
+        except Exception as e:
+            attempts.append((source_id, url, f"解析失败: {e}"))
+            continue
+    return [], attempts
 
 
 def override_asset_urls(

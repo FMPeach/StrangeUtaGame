@@ -194,17 +194,28 @@ def setup_logger(log_path: Path) -> logging.Logger:
 
 
 def _cleanup_old_files(app_dir: Path, log: logging.Logger) -> None:
-    """清理上次自更新遗留的 ``*.old`` 文件。
+    """清理上次成功更新后遗留的 ``*.old`` 备份文件/目录。
 
     Windows 允许 rename 运行中的 exe，但不允许 delete/overwrite。
-    自更新流程把旧 Updater.exe rename 为 .old，这里在启动时清理。
+    自更新流程把旧 Updater.exe rename 为 .old，更新完成后也会留下主程序的
+    .old 备份（更新失败时保留以便手动恢复）。这里在下次启动时做统一清理。
+
+    安全策略：只有当对应的"无 .old 后缀"版本已存在时才删除备份，
+    避免在上次更新成功但备份未清理干净的极端情况下把唯一副本删掉。
     """
     for p in app_dir.glob("*.old"):
+        orig = p.with_suffix("")   # e.g. "StrangeUtaGame.exe.old" → "StrangeUtaGame.exe"
+        if not orig.exists():
+            log.info("保留备份（对应原始文件不存在，可能上次回滚未完成）: %s", p.name)
+            continue
         try:
-            p.unlink()
-            log.info("已清理旧文件: %s", p.name)
+            if p.is_dir():
+                shutil.rmtree(str(p), ignore_errors=True)
+            else:
+                p.unlink()
+            log.info("已清理旧备份: %s", p.name)
         except OSError as e:
-            log.warning("清理旧文件 %s 失败（可忽略）: %s", p.name, e)
+            log.warning("清理旧备份 %s 失败（可忽略）: %s", p.name, e)
 
 
 def wait_for_pid_exit(pid: int, log: logging.Logger, timeout: float = WAIT_PID_TIMEOUT) -> bool:
@@ -605,7 +616,7 @@ def apply_update(
         return False, f"更新包中找不到 {internal_name}/"
 
     # 备份 _internal —— 用重试包裹，应对 Windows 异步释放 DLL 句柄的常见延迟
-    backup_internal = app_dir / f"{internal_name}.bak"
+    backup_internal = app_dir / f"{internal_name}.old"
     cur_internal = app_dir / internal_name
     if backup_internal.exists():
         log.info("清理旧备份: %s", backup_internal)
@@ -623,9 +634,9 @@ def apply_update(
                 f"备份 {internal_name} 失败: {e}（主程序可能仍未完全释放文件句柄）"
             )
 
-    # 备份 EXE
+    # 备份 EXE（保存为 .old，更新成功后删除，失败时可用于恢复）
     cur_exe = app_dir / app_exe
-    backup_exe = app_dir / f"{app_exe}.bak"
+    backup_exe = app_dir / f"{app_exe}.old"
     if backup_exe.exists():
         try:
             backup_exe.unlink()
@@ -682,22 +693,34 @@ def apply_update(
         )
     except (OSError, shutil.Error) as e:
         log.error("写入新文件失败，尝试回滚: %s", e)
-        # 回滚
+        # 回滚 _internal
+        rollback_ok = True
         try:
             if cur_internal.exists():
                 shutil.rmtree(str(cur_internal), ignore_errors=True)
             if backup_internal.exists():
                 os.rename(str(backup_internal), str(cur_internal))
-        except OSError:
-            pass
+                log.info("已恢复 %s 备份", internal_name)
+        except OSError as re:
+            log.error("回滚 %s 失败: %s（备份保留在 %s）", internal_name, re, backup_internal)
+            rollback_ok = False
+        # 回滚 EXE
         try:
             if cur_exe.exists():
                 cur_exe.unlink()
             if backup_exe.exists():
                 os.rename(str(backup_exe), str(cur_exe))
-        except OSError:
-            pass
-        return False, f"写入失败: {e}"
+                log.info("已恢复 %s 备份", app_exe)
+        except OSError as re:
+            log.error("回滚 %s 失败: %s（备份保留在 %s）", app_exe, re, backup_exe)
+            rollback_ok = False
+        if not rollback_ok:
+            return False, (
+                f"写入失败: {e}\n"
+                f"回滚也遇到问题，旧版本备份文件：{backup_exe} / {backup_internal}\n"
+                f"请手动将 .old 文件恢复为原文件名。"
+            )
+        return False, f"写入失败: {e}（旧版本已恢复）"
 
     # 删除备份（用户数据保留）
     try:
