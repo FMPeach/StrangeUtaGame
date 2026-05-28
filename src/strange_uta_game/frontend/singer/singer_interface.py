@@ -1247,7 +1247,11 @@ class SingerManagerInterface(QWidget):
         try:
             singer_name = data["name"] if data["name"] else None
             singer = self._singer_service.add_singer(
-                name=singer_name, color=data["color"], group=data.get("group", "")
+                name=singer_name,
+                color=data["color"],
+                color_mode=data.get("color_mode", "solid"),
+                split_colors=data.get("split_colors", []),
+                group=data.get("group", ""),
             )
             if data["is_default"]:
                 self._singer_service.set_default_singer(singer.id)
