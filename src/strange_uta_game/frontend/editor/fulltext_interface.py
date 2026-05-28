@@ -1134,12 +1134,21 @@ class FullTextEditDialog(QDialog):
             | Qt.WindowType.WindowMaximizeButtonHint
             | Qt.WindowType.WindowMinimizeButtonHint
         )
-        # 初始尺寸与主窗口一致
+        # 初始尺寸与主窗口一致，但不超过屏幕可用区域（避免被任务栏遮挡）
         main_win = parent.window() if parent is not None else None
         if main_win is not None:
             self.resize(main_win.size())
         else:
             self.resize(1100, 720)
+
+        screen = self.screen()
+        if screen is not None:
+            avail = screen.availableGeometry()
+            self.resize(self.size().boundedTo(avail.size()))
+            self.move(
+                avail.x() + (avail.width() - self.width()) // 2,
+                avail.y() + (avail.height() - self.height()) // 2,
+            )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
