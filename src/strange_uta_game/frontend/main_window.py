@@ -282,6 +282,9 @@ class MainWindow(MSFluentWindow):
         self._store.load_project(project, save_path=file_path if file_path else None)
         self.switchTo(self.editorInterface)
 
+        if file_path:
+            self._apply_project_extras(file_path)
+
         InfoBar.success(
             title="项目打开成功",
             content=f"共 {len(project.sentences)} 行歌词",
@@ -291,6 +294,54 @@ class MainWindow(MSFluentWindow):
             duration=3000,
             parent=self,
         )
+
+    def _apply_project_extras(self, file_path: str) -> None:
+        """读取并应用 .sug 的附加字段（nicokara_tags、media_path）。"""
+        from pathlib import Path
+
+        from strange_uta_game.backend.infrastructure.audio.video_converter import (
+            is_video_file,
+        )
+        from strange_uta_game.backend.infrastructure.persistence.sug_io import (
+            SugProjectParser,
+        )
+        from strange_uta_game.frontend.settings.app_settings import AppSettings
+
+        extras = SugProjectParser.load_extras(file_path)
+        if not extras:
+            return
+
+        nicokara_tags = extras.get("nicokara_tags")
+        if nicokara_tags:
+            try:
+                settings = AppSettings()
+                settings.set("nicokara_tags", nicokara_tags)
+                settings.save()
+            except Exception:
+                pass
+
+        media_path = extras.get("media_path", "")
+        if not media_path:
+            return
+
+        if not Path(media_path).exists():
+            InfoBar.warning(
+                title="媒体文件未找到",
+                content=f"上次关联的媒体文件不存在：{Path(media_path).name}",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self,
+            )
+            return
+
+        self._store.restore_media_path(media_path)
+
+        if is_video_file(media_path):
+            self.editorInterface._file_loader._load_video_as_audio(media_path)
+        else:
+            self.editorInterface.load_audio(media_path)
 
     def _update_title(self):
         """刷新窗口标题栏：拼接存档文件名与保存状态。"""
