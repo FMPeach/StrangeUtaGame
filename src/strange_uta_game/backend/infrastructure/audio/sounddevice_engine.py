@@ -206,9 +206,6 @@ class SoundDeviceEngine(IAudioEngine):
 
             self._state = PlaybackState.STOPPED
 
-            # 预渲染常用速度（后台进行，不阻塞加载）
-            self._prewarm_common_speeds()
-
             # 立即建流并保持存活（静音输出）：
             # 避免每次 play() 重新握手 Windows 音频端点，消除 0~200ms 启动抖动。
             # 流一旦建立，play/pause/stop 仅改 _state 标志位，不再销毁重建。
@@ -219,26 +216,38 @@ class SoundDeviceEngine(IAudioEngine):
         except Exception as e:
             raise AudioLoadError(f"加载音频失败: {e}")
 
-    def _prewarm_common_speeds(self) -> None:
+    def prewarm_speeds(
+        self,
+        speed_min: float = 0.2,
+        speed_max: float = 2.0,
+    ) -> None:
+        """以指定速度范围触发后台预渲染（公共接口，供 UI 层调用）。"""
+        self._prewarm_common_speeds(speed_min=speed_min, speed_max=speed_max)
+
+    def _prewarm_common_speeds(
+        self,
+        speed_min: float = 0.2,
+        speed_max: float = 2.0,
+    ) -> None:
         """预渲染常用速度到磁盘缓存（后台进行，不阻塞加载）"""
         if self._original_data is None:
             return
 
         # 预渲染速度列表（按优先级排序，优先级越小越优先）
         common_speeds = [
-            (0.75, 0),  # 最高优先级
-            (0.5, 1),   # 第二优先级
-            (0.9, 2),   # 第三优先级
+            (0.75, 0),
+            (0.5, 1),
+            (0.9, 2),
             (0.8, 3),
             (0.7, 4),
             (0.6, 5),
             (0.4, 6),
             (0.3, 7),
-            (0.2, 8),   
+            (0.2, 8),
         ]
-        print(f"[SoundDeviceEngine] Prewarming common speeds: {[s for s, _ in common_speeds]}")
         for speed, priority in common_speeds:
-            self._cache.ensure(speed, priority=priority)
+            if speed_min - 1e-9 <= speed <= speed_max + 1e-9:
+                self._cache.ensure(speed, priority=priority)
 
     def release(self) -> None:
         self.stop()

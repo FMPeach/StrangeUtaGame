@@ -238,11 +238,6 @@ class BassTsmEngine(IAudioEngine):
             self._last_reported_ms = 0
             self._cache_output_latency()
 
-            # Pre-render common speeds in the background (non-blocking).
-            # load() 使用默认全范围预热；上层（UI）加载完成后应调用
-            # prewarm_speeds(speed_min, speed_max) 以精确滑块范围覆盖。
-            self._prewarm_common_speeds()
-
             if progress_cb:
                 progress_cb("就绪", 1.0)
 
