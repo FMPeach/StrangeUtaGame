@@ -7,13 +7,12 @@
 from __future__ import annotations
 
 import math
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 from PyQt6.QtCore import QPoint, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import (
     QBrush,
-    QColor,
     QMouseEvent,
     QWheelEvent,
     QPainter,
@@ -50,7 +49,9 @@ class WaveformDisplay(QWidget):
         super().__init__(parent)
         self._duration_ms = 0
         self._current_ms = 0
-        self._time_tags: List[int] = []
+        # (timestamp_ms, label_or_None)，label 仅在该字符第一个 checkpoint 时非空
+        self._time_tags: List[Tuple[int, Optional[str]]] = []
+        self._warning_time_tags: List[Tuple[int, Optional[str]]] = []
 
         # 音频数据
         self._samples: Optional[np.ndarray] = None
@@ -127,8 +128,23 @@ class WaveformDisplay(QWidget):
                 self.scroll_position_changed.emit(self._scroll_position)
         self.update()
 
-    def set_time_tags(self, tags_ms: List[int]):
-        self._time_tags = sorted(tags_ms)
+    def set_time_tags(self, tags: List[Tuple[int, str, int]]):
+        # tags: (timestamp_ms, char_text, char_id)，按项目文件顺序
+        # 同一 char_id 的第一个 checkpoint 携带标签，后续不重复显示
+        seen_char_ids: set = set()
+        normal: List[Tuple[int, Optional[str]]] = []
+        warning: List[Tuple[int, Optional[str]]] = []
+        running_max = -1
+        for ts, char, char_id in tags:
+            label: Optional[str] = char if char_id not in seen_char_ids else None
+            seen_char_ids.add(char_id)
+            if ts < running_max:
+                warning.append((ts, label))
+            else:
+                normal.append((ts, label))
+                running_max = ts
+        self._time_tags = sorted(normal, key=lambda x: x[0])
+        self._warning_time_tags = sorted(warning, key=lambda x: x[0])
         self.update()
 
     def set_audio_data(self, samples: np.ndarray, sample_rate: int, channels: int):
@@ -277,12 +293,36 @@ class WaveformDisplay(QWidget):
         if visible_duration <= 0:
             return
 
-        painter.setPen(QPen(theme.accent_warning, 2))
-        for tag in self._time_tags:
-            if visible_start_ms <= tag <= visible_end_ms:
-                ratio = (tag - visible_start_ms) / visible_duration
+        font = painter.font()
+        font.setPointSize(8)
+        painter.setFont(font)
+        fm = painter.fontMetrics()
+        label_y = fm.ascent() + 1  # 所有标签统一贴顶显示，竖线在其下方展开
+
+        # 正常时间标签
+        normal_color = theme.accent_warning
+        for ts, label in self._time_tags:
+            if visible_start_ms <= ts <= visible_end_ms:
+                ratio = (ts - visible_start_ms) / visible_duration
                 x = int(ratio * w)
+                painter.setPen(QPen(normal_color, 2))
                 painter.drawLine(x, int(h * 0.2), x, int(h * 0.8))
+                if label:
+                    painter.setPen(normal_color)
+                    painter.drawText(x + 2, label_y, label)
+
+        # 非单调时间标签：更高更粗、警告色
+        if self._warning_time_tags:
+            warn_color = theme.timetag_nonmonotonic
+            for ts, label in self._warning_time_tags:
+                if visible_start_ms <= ts <= visible_end_ms:
+                    ratio = (ts - visible_start_ms) / visible_duration
+                    x = int(ratio * w)
+                    painter.setPen(QPen(warn_color, 3))
+                    painter.drawLine(x, int(h * 0.1), x, int(h * 0.9))
+                    if label:
+                        painter.setPen(warn_color)
+                        painter.drawText(x + 2, label_y, label)
 
     def _draw_playhead(self, painter: QPainter, w: int, h: int,
                        visible_start_ms: float, visible_duration_ms: float):
@@ -448,8 +488,8 @@ class TimelineWidget(QWidget):
     def set_position(self, ms: int):
         self.waveform_display.set_position(ms)
 
-    def set_time_tags(self, tags_ms: List[int]):
-        self.waveform_display.set_time_tags(tags_ms)
+    def set_time_tags(self, tags: List[Tuple[int, str, int]]):
+        self.waveform_display.set_time_tags(tags)
 
     def set_audio_data(self, samples: np.ndarray, sample_rate: int, channels: int):
         self.waveform_display.set_audio_data(samples, sample_rate, channels)

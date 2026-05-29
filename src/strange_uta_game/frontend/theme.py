@@ -120,6 +120,11 @@ class ThemeColors:
         """警告色（时间标签、高亮）"""
         return QColor("#FF6B6B")
 
+    @property
+    def timetag_nonmonotonic(self) -> QColor:
+        """非单调时间戳警告色（时序回退提示）"""
+        return QColor("#CC44FF" if self._is_dark else "#9922CC")
+
     # ── 卡拉OK专用色 ──
 
     @property

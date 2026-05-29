@@ -229,20 +229,18 @@ class Character:
 
         Args:
             timestamp_ms: 时间戳（毫秒）
-            checkpoint_idx: 指定插入位置（-1 = 追加到末尾并排序）
+            checkpoint_idx: 指定写入的 checkpoint 索引（-1 = 追加到末尾）
         """
         if timestamp_ms < 0:
             raise ValidationError(f"时间戳不能为负数: {timestamp_ms}")
         if checkpoint_idx >= self.check_count:
             raise ValidationError("普通节奏点索引超出范围")
         if checkpoint_idx >= 0:
-            # 指定位置插入
             while len(self.timestamps) <= checkpoint_idx:
                 self.timestamps.append(0)
             self.timestamps[checkpoint_idx] = timestamp_ms
         else:
             self.timestamps.append(timestamp_ms)
-            self.timestamps.sort()
         self._update_offset_timestamps()
         self.push_to_ruby()
 

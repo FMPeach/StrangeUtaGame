@@ -4648,7 +4648,7 @@ class EditorInterface(QWidget):
         if not self._project:
             return
         # 使用渲染时间戳（带偏移），与波形显示对齐
-        self.timeline.set_time_tags(self._project.collect_all_global_timestamp_ms())
+        self.timeline.set_time_tags(self._project.collect_all_global_timestamp_ms_with_chars())
 
     def _update_status(self):
         if not self._project:

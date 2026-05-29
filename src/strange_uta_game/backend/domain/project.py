@@ -4,7 +4,7 @@ Project 作为聚合根，管理所有句子和演唱者的一致性。
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from uuid import uuid4
 from datetime import datetime
 
@@ -436,6 +436,19 @@ class Project:
             for ch in sentence.characters:
                 tags_ms.extend(ch.all_global_timestamps)
         return tags_ms
+
+    def collect_all_global_timestamp_ms_with_chars(self) -> List[Tuple[int, str, int]]:
+        """收集所有字符 checkpoint 的全局时间戳（毫秒）及对应字符，按项目文件顺序。
+
+        返回 (timestamp_ms, char_text, char_id)，其中 char_id = id(ch) 用于跨 checkpoint
+        去重显示：同一 Character 对象的多个 checkpoint 只标注第一个。
+        """
+        result: List[Tuple[int, str, int]] = []
+        for sentence in self.sentences:
+            for ch in sentence.characters:
+                for ts in ch.all_global_timestamps:
+                    result.append((ts, ch.char, id(ch)))
+        return result
 
     def find_prev_line_with_checkpoints(self, current_idx: int) -> int:
         """从 current_idx 之前向上查找第一个存在 checkpoint 的行索引。
