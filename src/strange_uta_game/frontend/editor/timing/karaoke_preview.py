@@ -130,6 +130,36 @@ def _anchor_segment(anchors: list[int], current_time: int) -> tuple[int, float, 
     return (n - 1, 1.0, n)
 
 
+def _piecewise_wipe_ratio(
+    segments: list[tuple[int, int, float, float]], current_time: int
+) -> float:
+    """按分段时间轴 + 累计墨水占比返回当前 wipe 比例 ∈ [0,1]。
+
+    每个 segment = ``(t_start, t_end, w_start, w_end)``，``w`` 为该段结束时
+    累计推进的墨水占比（[0,1]，单调不减）。
+
+    - 空 part（无墨水）：``w_start == w_end`` —— 消耗时间但不推进 wipe。
+    - 段间空隙（``current_time`` 落在上一段 end 与下一段 start 之间）：
+      保持上一段 ``w_end``，不推进。
+    - 未开始 → 0.0；已结束 → 1.0。
+    """
+    if not segments:
+        return 1.0
+    if current_time < segments[0][0]:
+        return 0.0
+    if current_time >= segments[-1][1]:
+        return 1.0
+    last_w = 0.0
+    for t0, t1, w0, w1 in segments:
+        if current_time < t0:
+            return last_w
+        if current_time < t1:
+            f = (current_time - t0) / (t1 - t0) if t1 > t0 else 1.0
+            return w0 + (w1 - w0) * f
+        last_w = w1
+    return 1.0
+
+
 def _ink_bounds(fm: QFontMetrics, text: str) -> tuple[int, int]:
     """返回 ``text`` 在给定字体度量下的墨水边界：``(ink_left, ink_width)``。
 
@@ -1419,6 +1449,51 @@ class KaraokePreview(QWidget):
             if merged_text:
                 group_ruby_ink[leader_ci] = _ink_bounds(fm_ruby, merged_text)
 
+        # ---------- 连词组 ruby 的分段 wipe 时间轴 ----------
+        # 将组内每个成员的 ruby 分段（part 锚点或整段 wipe 窗口）按顺序拼接，
+        # 累计墨水 advance 占比 → segments = [(t0, t1, w0, w1), ...]。
+        # 渲染层用 _piecewise_wipe_ratio 求比例，使连词组 ruby 与原字符逻辑一致：
+        # 按时间比例分段、空 part 不推进、段间空隙保持，墨水边缘走字（非匀速）。
+        group_ruby_wipe: dict[int, list[tuple[int, int, float, float]]] = {}
+        for leader_ci, group in linked_leader_groups.items():
+            raw_segs: list[tuple[int, int, float]] = []  # (t0, t1, advance_w)
+            for gci in group:
+                ruby = characters[gci].ruby
+                if not ruby or not ruby.text:
+                    continue
+                anchors = char_part_anchors.get(gci)
+                if anchors and len(anchors) >= 2:
+                    n = len(anchors) - 1
+                    parts = ruby.parts if ruby.parts else []
+                    if len(parts) == n:
+                        seg_ws = [
+                            float(fm_ruby.horizontalAdvance(p.text)) for p in parts
+                        ]
+                    else:
+                        # part 数与段数不匹配：整串 advance 等分到 N 段
+                        _tot = float(fm_ruby.horizontalAdvance(ruby.text))
+                        seg_ws = [_tot / n] * n
+                    for k in range(n):
+                        raw_segs.append((anchors[k], anchors[k + 1], seg_ws[k]))
+                else:
+                    wt = char_wipe_times.get(gci)
+                    if wt:
+                        raw_segs.append(
+                            (wt[0], wt[1], float(fm_ruby.horizontalAdvance(ruby.text)))
+                        )
+            if not raw_segs:
+                continue
+            total_w = sum(w for _, _, w in raw_segs)
+            if total_w <= 0:
+                continue
+            segs: list[tuple[int, int, float, float]] = []
+            cum = 0.0
+            for t0, t1, w in raw_segs:
+                w0 = cum / total_w
+                cum += w
+                segs.append((t0, t1, w0, cum / total_w))
+            group_ruby_wipe[leader_ci] = segs
+
         entry = {
             "v": line_version,
             "gv": self._global_version,
@@ -1434,6 +1509,7 @@ class KaraokePreview(QWidget):
             "char_part_anchors": char_part_anchors,
             "char_ruby_ink": char_ruby_ink,
             "group_ruby_ink": group_ruby_ink,
+            "group_ruby_wipe": group_ruby_wipe,
         }
         self._sentence_cache[idx] = entry
         return entry
@@ -1676,6 +1752,7 @@ class KaraokePreview(QWidget):
             _char_part_anchors = _rd["char_part_anchors"]
             _char_ruby_ink = _rd["char_ruby_ink"]
             _group_ruby_ink = _rd["group_ruby_ink"]
+            _group_ruby_wipe = _rd["group_ruby_wipe"]
 
             # 根据对齐方式计算起始 x 坐标
             text_area_left = self._line_number_margin + 5  # 行号区域右侧留 5px 间距
@@ -1779,46 +1856,72 @@ class KaraokePreview(QWidget):
                         painter.setFont(font_ruby)
                         painter.setPen(base_color)
                         painter.drawText(int(ruby_x), ruby_y, _merged)
-                        # Wipe — 连词组 ruby 整段线性：从组首字符 wipe 开始到组尾字符 wipe 结束。
-                        # 连词组不影响 wipe 规则，ruby 随主文字时间轴平滑过渡即可。
-                        _fw = char_wipe_times.get(_grp[0])
-                        _lw = char_wipe_times.get(_grp[-1])
-                        _rs = _fw[0] if _fw else None
-                        _re = _lw[1] if _lw else None
+                        # Wipe — 连词组 ruby 与原字符逻辑一致：按各成员/各 part 的
+                        # 时间轴分段，空 part 不推进、段间空隙保持，墨水边缘走字（非匀速）。
+                        # 缺分段数据时回退为整段线性（组首 wipe 始 → 组尾 wipe 终）。
                         _rh_colors = _char_singer_colors.get(_grp[0], [highlight_color])
                         # Ruby 分色边界：基于该 ruby 串的实际墨水范围
                         _rh_br = fm_ruby.tightBoundingRect(_merged)
                         _rh_ink_top = ruby_y + _rh_br.top()
                         _rh_ink_bottom = ruby_y + _rh_br.bottom() + 1
-                        if _rs is not None and _re is not None:
-                            if current_time >= _re:
+                        _segs = _group_ruby_wipe.get(char_pos)
+                        if _segs:
+                            _rr = _piecewise_wipe_ratio(_segs, current_time)
+                            if _rr >= 1.0:
                                 _draw_split_text(
                                     painter, int(ruby_x), ruby_y, _merged,
                                     _rh_colors, _rh_ink_top, _rh_ink_bottom,
                                 )
-                            elif current_time >= _rs:
-                                _rd = _re - _rs
-                                _rr = (
-                                    min(1.0, (current_time - _rs) / _rd)
-                                    if _rd > 0
-                                    else 1.0
-                                )
-                                if _rr > 0 and _r_ink_w > 0:
-                                    painter.save()
-                                    _rww = int(_r_ink_w * _rr)
-                                    painter.setClipRect(
-                                        QRect(
-                                            int(_r_ink_x),
-                                            ruby_y - fm_ruby.ascent() - 2,
-                                            _rww,
-                                            fm_ruby.height() + 4,
-                                        )
+                            elif _rr > 0 and _r_ink_w > 0:
+                                painter.save()
+                                _rww = int(_r_ink_w * _rr)
+                                painter.setClipRect(
+                                    QRect(
+                                        int(_r_ink_x),
+                                        ruby_y - fm_ruby.ascent() - 2,
+                                        _rww,
+                                        fm_ruby.height() + 4,
                                     )
+                                )
+                                _draw_split_text(
+                                    painter, int(ruby_x), ruby_y, _merged,
+                                    _rh_colors, _rh_ink_top, _rh_ink_bottom,
+                                )
+                                painter.restore()
+                        else:
+                            _fw = char_wipe_times.get(_grp[0])
+                            _lw = char_wipe_times.get(_grp[-1])
+                            _rs = _fw[0] if _fw else None
+                            _re = _lw[1] if _lw else None
+                            if _rs is not None and _re is not None:
+                                if current_time >= _re:
                                     _draw_split_text(
                                         painter, int(ruby_x), ruby_y, _merged,
                                         _rh_colors, _rh_ink_top, _rh_ink_bottom,
                                     )
-                                    painter.restore()
+                                elif current_time >= _rs:
+                                    _rd = _re - _rs
+                                    _rr = (
+                                        min(1.0, (current_time - _rs) / _rd)
+                                        if _rd > 0
+                                        else 1.0
+                                    )
+                                    if _rr > 0 and _r_ink_w > 0:
+                                        painter.save()
+                                        _rww = int(_r_ink_w * _rr)
+                                        painter.setClipRect(
+                                            QRect(
+                                                int(_r_ink_x),
+                                                ruby_y - fm_ruby.ascent() - 2,
+                                                _rww,
+                                                fm_ruby.height() + 4,
+                                            )
+                                        )
+                                        _draw_split_text(
+                                            painter, int(ruby_x), ruby_y, _merged,
+                                            _rh_colors, _rh_ink_top, _rh_ink_bottom,
+                                        )
+                                        painter.restore()
                         # 连词框：Ruby 拼接串实际总宽 vs 字符组墨水宽度取更宽者。
                         # 若 ruby 实际总宽 < 字符组墨水宽度 → 用字符墨水边界（方法2），
                         # 否则 ruby 串已经超出字符墨水范围 → 用 ruby 墨水边界（方法1）。
