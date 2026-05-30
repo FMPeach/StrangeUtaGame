@@ -3,7 +3,83 @@
 import pytest
 from strange_uta_game.backend.application import AutoCheckService
 from strange_uta_game.backend.domain import Sentence
-from strange_uta_game.backend.infrastructure.parsers.ruby_analyzer import DummyAnalyzer
+from strange_uta_game.backend.infrastructure.parsers.ruby_analyzer import (
+    DummyAnalyzer,
+    RubyAnalyzer,
+    RubyResult,
+)
+
+
+class _FixedReadingAnalyzer(RubyAnalyzer):
+    """按固定映射给单字注音的测试分析器（其余字符自注音）。"""
+
+    def __init__(self, mapping):
+        self._mapping = mapping
+
+    def analyze(self, text):
+        return [
+            RubyResult(
+                text=ch,
+                reading=self._mapping.get(ch, ch),
+                start_idx=i,
+                end_idx=i + 1,
+            )
+            for i, ch in enumerate(text)
+        ]
+
+    def get_reading(self, text):
+        return "".join(self._mapping.get(ch, ch) for ch in text)
+
+
+class TestMergeNRubyParts:
+    """check_n 关闭时，汉字注音里非起始的 ん/ン 并入前一拍。"""
+
+    _FLAGS_BASE = {"kanji": True, "hiragana": True, "katakana": True}
+
+    def _run(self, text, mapping, check_n):
+        flags = dict(self._FLAGS_BASE, check_n=check_n)
+        svc = AutoCheckService(
+            _FixedReadingAnalyzer(mapping), auto_check_flags=flags
+        )
+        s = Sentence.from_text(text, "s1")
+        svc.apply_to_sentence(s)
+        return [
+            (c.char, c.check_count, [p.text for p in c.ruby.parts] if c.ruby else None)
+            for c in s.characters
+        ]
+
+    def test_n_merged_when_check_n_off(self):
+        # 険[けん]：check_n 关闭 → ん 并入 け，1 拍 [けん]
+        out = self._run("険", {"険": "けん"}, check_n=False)
+        assert out[0] == ("険", 1, ["けん"])
+
+    def test_n_kept_when_check_n_on(self):
+        # check_n 开启 → ん 单独成拍，2 拍 [け|ん]
+        out = self._run("険", {"険": "けん"}, check_n=True)
+        assert out[0] == ("険", 2, ["け", "ん"])
+
+    def test_multiple_kanji_each_merged(self):
+        # 人間[にん][げん]：各自合并为 1 拍
+        out = self._run("人間", {"人": "にん", "間": "げん"}, check_n=False)
+        assert out[0] == ("人", 1, ["にん"])
+        assert out[1] == ("間", 1, ["げん"])
+
+    def test_non_n_reading_unaffected(self):
+        # 康[こう]：长音 う 不是 ん，保持 2 拍
+        out = self._run("康", {"康": "こう"}, check_n=False)
+        assert out[0] == ("康", 2, ["こ", "う"])
+
+    def test_update_checkpoints_keeps_merge(self):
+        # 已合并的 険[けん] 经 update_checkpoints_from_rubies 刷新后仍是 1 拍
+        flags = dict(self._FLAGS_BASE, check_n=False)
+        svc = AutoCheckService(
+            _FixedReadingAnalyzer({"険": "けん"}), auto_check_flags=flags
+        )
+        s = Sentence.from_text("険", "s1")
+        svc.apply_to_sentence(s)
+        svc.update_checkpoints_from_rubies(s)
+        assert s.characters[0].check_count == 1
+        assert [p.text for p in s.characters[0].ruby.parts] == ["けん"]
 
 
 def _get_sudachi_analyzer():

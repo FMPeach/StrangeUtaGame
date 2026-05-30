@@ -71,6 +71,27 @@ _TYPE_FLAG_MAP: Dict[CharType, str] = {
 _SMALL_KANA_SET = frozenset("ぁぃぅぇぉゃゅょゎァィゥェォャュョヮゕゖ")
 
 
+def _merge_trailing_n_ruby_parts(parts: List[str]) -> List[str]:
+    """将非起始位置的「ん/ン」分段并入前一拍。
+
+    用于 check_n 关闭（んン 不单独打节奏点）时收敛字符注音的 ruby 分段：
+
+        ["け", "ん"]       → ["けん"]      # 険[けん]：2 拍 → 1 拍
+        ["あ", "ん", "け"] → ["あん", "け"]
+        ["ん", "け"]       → ["ん", "け"]   # 起始 ん 无前拍可并，原样保留
+
+    仅对恰好等于「ん」「ン」的整段做合并；其它分段（含 きょ 这类带小假名的拍）
+    原样保留。
+    """
+    merged: List[str] = []
+    for p in parts:
+        if p in ("ん", "ン") and merged:
+            merged[-1] += p
+        else:
+            merged.append(p)
+    return merged
+
+
 def _has_latin(s: str) -> bool:
     """是否含有 ASCII 英文字母（用于词边界判定）。"""
     return any(c.isascii() and c.isalpha() for c in s)
@@ -1395,6 +1416,9 @@ class AutoCheckService:
                     check_counts[_idx] = 1 if (_idx - _start) in _syllable_starts else 0
 
         # 构建结果
+        # check_n 关闭（「んン 不打节奏点」规则生效）时，把字符注音里非起始的
+        # ん/ン 分段并入前一拍，节奏点数同步收敛。例：険[け|ん] 2拍 → [けん] 1拍。
+        _merge_n = bool(self._flags) and not self._flags.get("check_n", False)
         results = []
         for i, (char, count) in enumerate(zip(chars, check_counts)):
             block_id = char_to_block.get(i, -1)
@@ -1402,20 +1426,23 @@ class AutoCheckService:
             # 无注音块时 fallback 为 "self"（由后续 per-char 自注音补上）
             if block_id < 0:
                 source = "self"
+            ruby_list = (
+                _group_reading_for_character(char_to_ruby_raw[i], count)
+                if i in char_to_ruby_raw
+                else None
+            )
+            if _merge_n and ruby_list and len(ruby_list) > 1:
+                merged = _merge_trailing_n_ruby_parts(ruby_list)
+                if len(merged) != len(ruby_list):
+                    ruby_list = merged
+                    count = len(merged)
             results.append(
                 AutoCheckResult(
                     line_idx=0,  # 将在 analyze_project 中设置
                     char_idx=i,
                     char=char,
                     check_count=count,
-                    ruby=(
-                        _group_reading_for_character(
-                            char_to_ruby_raw[i],
-                            check_counts[i] if i < len(check_counts) else 1,
-                        )
-                        if i in char_to_ruby_raw
-                        else None
-                    ),
+                    ruby=ruby_list,
                     origin_block_id=block_id,
                     origin_source=source,
                 )
@@ -1923,9 +1950,16 @@ class AutoCheckService:
                 # 块内后字 ruby 为空，上面已处理为 cc=0。
                 check_counts[i] = len(ruby_groups)
             else:
-                check_counts[i] = sum(
-                    len(split_into_moras(group)) for group in ruby_groups
-                )
+                # check_n 关闭时：把注音里非起始的 ん/ン 并入前一拍后再数拍，
+                # 与 analyze_sentence 的合并规则保持一致，避免刷新节奏点时
+                # 把已合并的 険[けん] 又按 mora 展开回 2 拍。
+                if bool(self._flags) and not self._flags.get("check_n", False):
+                    moras = split_into_moras("".join(ruby_groups))
+                    check_counts[i] = len(_merge_trailing_n_ruby_parts(moras))
+                else:
+                    check_counts[i] = sum(
+                        len(split_into_moras(group)) for group in ruby_groups
+                    )
 
         # 单一平假名/片假名封顶：最多 1 cp（同 analyze_sentence）
         chars_for_cap = [c.char for c in sentence.characters]
