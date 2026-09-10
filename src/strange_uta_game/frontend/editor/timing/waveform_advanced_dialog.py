@@ -164,7 +164,7 @@ class WaveformAdvancedDialog(QDialog):
         self.waveform_height_slider = Slider(
             Qt.Orientation.Horizontal, self._waveform_settings
         )
-        self.waveform_height_slider.setRange(120, 400)
+        self.waveform_height_slider.setRange(60, 400)
         self.waveform_height_caption = CaptionLabel("", self._waveform_settings)
         self.waveform_height_caption.setMinimumWidth(56)
         waveform_height_row = QWidget(self._waveform_settings)
@@ -967,7 +967,8 @@ class WaveformAdvancedDialog(QDialog):
 
     def set_height_cap(self, cap_px: int) -> None:
         """当前窗口可容纳的实际显示高度（仅用于提示，不覆盖用户期望值）。"""
-        cap_px = int(max(80, cap_px))
+        # 下限对齐波形 lane 的最低期望高度（60px），更矮的提示没有意义
+        cap_px = int(max(60, cap_px))
         if cap_px == self._actual_height_cap:
             return
         self._actual_height_cap = cap_px

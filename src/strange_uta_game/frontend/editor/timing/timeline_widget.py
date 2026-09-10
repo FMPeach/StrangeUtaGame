@@ -51,8 +51,11 @@ from strange_uta_game.frontend.workers import SpectrogramWorker
 TagHandle = Tuple[int, int, int, bool]
 
 # 波形/声谱高级设置与底部拖拽手柄共用同一组高度边界。
+# 波形 lane 的下限单独放宽到 60px（纯描线绘制的波形 lane 更矮也可读）；
+# 声谱 lane 保住 120px——热图 + 频率刻度再矮就糊了。
 _MIN_DISPLAY_HEIGHT = 120
 _MAX_DISPLAY_HEIGHT = 400
+_WAVEFORM_MIN_DISPLAY_HEIGHT = 60
 
 # 声谱模式左侧频率轴 gutter 宽度（px）：容纳强度色卡和频率刻度；
 # tag/热图/播放头从轴区右侧开始，两者物理分离互不覆盖。
@@ -907,7 +910,6 @@ class WaveformDisplay(QWidget):
 
     # ── 显示模式 / 高级设置（齿轮对话框消费） ──
 
-    _WAVEFORM_MIN_HEIGHT = 80
     _SPECTRUM_FFT_CHOICES = (
         64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768,
     )
@@ -1119,7 +1121,7 @@ class WaveformDisplay(QWidget):
         if waveform_display_height is not None:
             height = int(
                 max(
-                    _MIN_DISPLAY_HEIGHT,
+                    _WAVEFORM_MIN_DISPLAY_HEIGHT,
                     min(_MAX_DISPLAY_HEIGHT, waveform_display_height),
                 )
             )
@@ -3025,15 +3027,17 @@ class TimelineWidget(QWidget):
             return
         mode = start.get("display_mode", "waveform")
         if mode == "dual":
+            # 双谱总高下限 = 波形下限(60) + 声谱下限(120)；两 lane 分配时
+            # 波形可压到 60，声谱仍保 120。
             total = max(
-                _MIN_DISPLAY_HEIGHT * 2,
+                _WAVEFORM_MIN_DISPLAY_HEIGHT + _MIN_DISPLAY_HEIGHT,
                 min(_MAX_DISPLAY_HEIGHT * 2, int(requested)),
             )
             start_wave = int(start["waveform_display_height"])
             start_spec = int(start["spectrum_display_height"])
             start_total = max(1, start_wave + start_spec)
             wave = int(round(total * start_wave / start_total))
-            wave_low = max(_MIN_DISPLAY_HEIGHT, total - _MAX_DISPLAY_HEIGHT)
+            wave_low = max(_WAVEFORM_MIN_DISPLAY_HEIGHT, total - _MAX_DISPLAY_HEIGHT)
             wave_high = min(_MAX_DISPLAY_HEIGHT, total - _MIN_DISPLAY_HEIGHT)
             wave = max(wave_low, min(wave_high, wave))
             self.set_spectrum_params(

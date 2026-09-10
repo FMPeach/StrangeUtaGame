@@ -55,6 +55,26 @@ class TestDisplayMode:
         display.set_display_mode("waveform")
         assert display.sizeHint().height() == 180
 
+    def test_waveform_height_min_relaxed_to_60(self, qapp):
+        """波形 lane 高度下限放宽到 60px（上限 400 不变）；声谱仍保 120。"""
+        display = WaveformDisplay()
+        display.set_spectrum_params(waveform_display_height=60)
+        assert display._waveform_display_height == 60
+        assert display.sizeHint().height() == 60
+        # 越界钳制：低于 60 → 60；高于 400 → 400
+        display.set_spectrum_params(waveform_display_height=30)
+        assert display._waveform_display_height == 60
+        display.set_spectrum_params(waveform_display_height=999)
+        assert display._waveform_display_height == 400
+        # 声谱下限不放宽
+        display.set_spectrum_params(spectrum_display_height=30)
+        assert display._spectrum_display_height == 120
+        # 旧 display_height 兼容路径投影到两模式时各自走自己的下限
+        legacy = WaveformDisplay()
+        legacy.set_spectrum_params(display_height=80)
+        assert legacy._waveform_display_height == 80
+        assert legacy._spectrum_display_height == 120
+
     def test_invalid_mode_is_ignored(self, qapp):
         display = WaveformDisplay()
         display.set_display_mode("nonsense")
@@ -1016,6 +1036,17 @@ class TestAdvancedDialog:
         dialog.set_height_cap(500)
         assert dialog.spectrum_height_caption.text() == "200 px"
 
+    def test_height_slider_ranges_follow_lane_bounds(self, qapp):
+        """波形高度滑条 60~400（下限放宽）；声谱高度滑条保持 120~400。"""
+        dialog = self._make_dialog({})
+        assert dialog.waveform_height_slider.minimum() == 60
+        assert dialog.waveform_height_slider.maximum() == 400
+        assert dialog.spectrum_height_slider.minimum() == 120
+        assert dialog.spectrum_height_slider.maximum() == 400
+        dialog.waveform_height_slider.setValue(60)
+        collected = dialog._collect()
+        assert collected["waveform_display_height"] == 60
+
     def test_height_labels_distinguished_in_dual_mode(self, qapp):
         """双谱页两个高度滑条同屏——标签区分为「波形高度/声谱高度」；
         单模式下沿用自己的「显示高度」。"""
@@ -1698,7 +1729,7 @@ class TestTimelineHeightDrag:
 
         timeline._begin_height_drag()
         timeline._finish_height_drag(-999)
-        assert timeline.display_settings()["waveform_display_height"] == 120
+        assert timeline.display_settings()["waveform_display_height"] == 60
 
     def test_dual_mode_preserves_ratio_and_both_lane_bounds(self, qapp):
         timeline = TimelineWidget()
@@ -1714,10 +1745,11 @@ class TestTimelineHeightDrag:
         assert settings["waveform_display_height"] == 180
         assert settings["spectrum_display_height"] == 360
 
+        # 双谱总高下限 = 波形 60 + 声谱 120；按起始比例 1:2 分配
         timeline._begin_height_drag()
         timeline._finish_height_drag(-999)
         settings = timeline.display_settings()
-        assert settings["waveform_display_height"] == 120
+        assert settings["waveform_display_height"] == 60
         assert settings["spectrum_display_height"] == 120
 
     def test_handle_only_visible_with_waveform_window(self, qapp):

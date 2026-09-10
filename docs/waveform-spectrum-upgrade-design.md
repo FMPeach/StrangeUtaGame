@@ -96,7 +96,8 @@ thread.finished → deleteLater`）；UI 槽经 `TaskRelay`（owner 子对象，
 
 ### 2.3 高度与布局协商
 
-「显示高度」是**期望高度**（120~400px，波形/声谱公共属性，持久化保存）：
+「显示高度」是**期望高度**（波形 60~400px、声谱 120~400px，持久化保存；
+波形 lane 纯描线绘制，下限单独放宽到 60px）：
 经 `sizeHint()`（Preferred）表达而非硬 `minimumHeight`——显示区硬下限恒为
 80px，空间不足时布局压缩显示区，**顶层窗口绝不被撑出请求尺寸**（曾实测
 请求 713px 得到 855px）。`TimelineWidget.sizeHint()` 跟随「显示区 hint +
@@ -126,7 +127,7 @@ Ctrl+滚轮锚点全部按 `_plot_width()` 换算——频率刻度与视口左�
   网格后移（延迟）、负值前移，用于把拍线相位对齐到歌曲实际节拍。半拍
   细分与小节号随相位联动；b=0 恒为第 1 小节第 1 拍，负数拍仍画线但
   不标注小节号。持久化键 `timing.waveform_grid_offset_ms`。
-- **显示高度**（波形/声谱公共属性，120~400px，位于「网格与节拍」Panel）：
+- **显示高度**（波形 60~400px、声谱 120~400px，位于「网格与节拍」Panel）：
   对两种模式同时生效。
 - 输入框提交：editingFinished（失焦/回车——按钮 autoDefault 已关闭，Enter
   不再被「自动检测」吞掉）即时提交 + 输入停顿 400ms 防抖兜底。
@@ -217,7 +218,7 @@ Ctrl+滚轮锚点全部按 `_plot_width()` 换算——频率刻度与视口左�
 ### 6.1 布局与高度
 
 - 显示区 `minimumHeight` = `waveform_display_height + spectrum_display_height`
-  （两 lane 各按期望高度领取空间，240~800px）。
+  （两 lane 各按期望高度领取空间，180~800px = 60+120 ~ 400+400）。
 - 空间不足被布局压缩时按两期望高度的**比例**分摊（`_dual_lane_heights`），
   相对占比与用户设置一致。
 - 频率轴 gutter 与声谱模式同宽（50px），只沿下半声谱 lane 绘制；
