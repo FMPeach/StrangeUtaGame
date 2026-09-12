@@ -5426,6 +5426,80 @@ class EditorInterface(QWidget):
         # 节拍音样本同理（同一 BASS 会话重建）
         self._reload_metronome_after_audio()
         self._audio_loading = False
+        # 加载完成后自动识别 BPM（后台线程，结果写回 BPM 网格/节拍器）
+        self._auto_detect_bpm()
+
+    # ── 加载完成后自动 BPM 检测（task_runner 自回收；旧音源迟到结果丢弃） ──
+
+    def _auto_detect_bpm(self) -> None:
+        """音频加载完成后后台自动检测 BPM。
+
+        复用引擎加载线程预混的单声道样本（get_mono_samples）；检测走
+        BpmDetectWorker，不阻塞 UI。换歌/重载时取消旧任务，is_current
+        按身份过滤迟到结果。
+        """
+        if self._timing_service is None:
+            return
+        mono = self._timing_service.get_mono_samples()
+        info = self._timing_service.get_audio_info()
+        if (
+            mono is None
+            or not hasattr(mono, "__len__")
+            or len(mono) == 0
+            or info is None
+            or info.sample_rate <= 0
+        ):
+            return
+
+        old = getattr(self, "_bpm_detect_worker", None)
+        if old is not None:
+            old.request_cancel()
+        from strange_uta_game.frontend.workers import BpmDetectWorker
+        from strange_uta_game.frontend.editor.timing import task_runner
+
+        worker = BpmDetectWorker(mono, int(info.sample_rate))
+        self._bpm_detect_worker = worker
+        task_runner.start_task(
+            self,
+            worker,
+            on_finished=self._on_auto_bpm_result,
+            on_error=lambda _msg: None,  # 静默失败：自动检测非关键路径
+            is_current=lambda w: w is getattr(self, "_bpm_detect_worker", None),
+        )
+
+    def _on_auto_bpm_result(self, result: dict) -> None:
+        """自动检测完成：置信度足够则写回 BPM 网格/节拍器并持久化。"""
+        self._bpm_detect_worker = None
+        if not isinstance(result, dict):
+            return
+        bpm = result.get("bpm")
+        confidence = float(result.get("confidence", 0.0))
+        if bpm is None or confidence < 0.05 or not 10.0 <= float(bpm) <= 600.0:
+            return
+        bpm = float(bpm)
+
+        setting_iface = self._get_setting_interface()
+        if setting_iface is not None:
+            s = setting_iface.get_settings()
+            if float(s.get("timing.waveform_grid_bpm", 120.0)) != bpm:
+                s.set("timing.waveform_grid_bpm", bpm)
+                s.save()
+        if hasattr(self, "timeline"):
+            self.timeline.set_grid_bpm(bpm)
+        # 节拍器 BPM 复用同一设置键，重读配置使其立即生效
+        self._configure_metronome_from_settings()
+        level = self.tr("高") if confidence > 0.66 else (
+            self.tr("中") if confidence > 0.33 else self.tr("低")
+        )
+        InfoBar.success(
+            title=self.tr("BPM 自动识别"),
+            content=f'{bpm:g} BPM · {self.tr("置信度")}{level}（{confidence:.0%}）',
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=3000,
+            parent=self,
+        )
 
     def _on_audio_load_error(self, error_msg: str) -> None:
         if getattr(self, "_audio_state_tooltip", None):
