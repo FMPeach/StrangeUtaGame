@@ -525,6 +525,8 @@ class EditorInterface(QWidget):
         self.toolbar.romanize_all_clicked.connect(self._on_romanize_all_rubies)
         self.toolbar.open_fulltext_clicked.connect(self._on_open_fulltext)
         self.toolbar.delete_rubies_by_type_clicked.connect(self._on_delete_rubies_by_type)
+        self.toolbar.delete_rubies_line_clicked.connect(self._on_delete_rubies_line)
+        self.toolbar.delete_rubies_selected_clicked.connect(self._on_delete_rubies_selected)
         self.toolbar.set_singer_by_line_clicked.connect(self._on_set_singer_by_line)
         self.toolbar.apply_singer_clicked.connect(self._on_apply_singer)
         self.toolbar.singer_manager_clicked.connect(self._on_singer_manager_clicked)
@@ -3151,6 +3153,132 @@ class EditorInterface(QWidget):
         thread.finished.connect(thread.deleteLater)
 
         thread.start()
+
+    def _on_delete_rubies_line(self):
+        """工具栏「删除选中行注音」— 删除当前选中行内全部注音。"""
+        if not self._project:
+            return
+        line_idx = self._current_line_idx
+        if line_idx < 0 or line_idx >= len(self._project.sentences):
+            InfoBar.warning(
+                title=self.tr("未选中行"),
+                content=self.tr("请先在歌词中选择要删除注音的行"),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2500,
+                parent=self,
+            )
+            return
+        sentence = self._project.sentences[line_idx]
+        self._delete_rubies_in_ranges(
+            [(line_idx, 0, len(sentence.characters) - 1)]
+            if sentence.characters
+            else [],
+            self.tr("删除选中行注音（第 {line} 句）").format(line=line_idx + 1),
+        )
+
+    def _on_delete_rubies_selected(self):
+        """工具栏「删除所选字符注音」— 删除选中字符范围的注音（支持跨行）。"""
+        if not self._project:
+            return
+        ranges = self._collect_selected_char_ranges()
+        if not ranges:
+            InfoBar.warning(
+                title=self.tr("未选中字符"),
+                content=self.tr("请先选择要删除注音的字符"),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2500,
+                parent=self,
+            )
+            return
+        self._delete_rubies_in_ranges(
+            ranges,
+            self.tr("删除所选字符注音（{label}）").format(
+                label=self._format_selected_scope_label(ranges)
+            ),
+        )
+
+    def _delete_rubies_in_ranges(
+        self, ranges: list[tuple[int, int, int]], desc: str
+    ) -> None:
+        """按 (line_idx, start_char, end_char) 闭区间列表删除字符注音。
+
+        同步执行（无需后台线程），一次快照、一条撤销命令；
+        删除仅清掉 Ruby 标注，字符自身节奏点/时间戳保持不变。
+        """
+        if not self._project:
+            return
+        # 与异步注音分析互斥，避免并发改写句子结构
+        if getattr(self, "_ruby_analyzing", False) or getattr(
+            self, "_ruby_subset_analyzing", False
+        ):
+            InfoBar.warning(
+                title=self.tr("注音分析进行中"),
+                content=self.tr("请等待当前注音分析完成后再试"),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2500,
+                parent=self,
+            )
+            return
+
+        before_sentences = deepcopy(self._project.sentences)
+        undo_pos = (self._current_line_idx, self.preview._current_char_idx)
+        focus_line_idx = self._current_line_idx
+        focus_char_idx = self.preview._current_char_idx
+
+        removed = 0
+        for line_idx, start_char, end_char in ranges:
+            if line_idx < 0 or line_idx >= len(self._project.sentences):
+                continue
+            sentence = self._project.sentences[line_idx]
+            end_char = min(end_char, len(sentence.characters) - 1)
+            for char_idx in range(max(0, start_char), end_char + 1):
+                if sentence.remove_ruby_from_char(char_idx) is not None:
+                    removed += 1
+
+        if removed == 0:
+            InfoBar.info(
+                title=self.tr("无变化"),
+                content=self.tr("所选范围内没有需要删除的注音"),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2500,
+                parent=self,
+            )
+            return
+
+        after_sentences = deepcopy(self._project.sentences)
+        command_manager = (
+            self._timing_service.command_manager if self._timing_service else None
+        )
+        if command_manager is not None:
+            cmd = SentenceSnapshotCommand(self._project, before_sentences, after_sentences, desc)
+            cmd.undo_position = undo_pos
+            cmd.redo_position = (focus_line_idx, focus_char_idx)
+            command_manager.execute(cmd)
+
+        self._sync_after_structure_change(
+            change_type="rubies",
+            focus_line_idx=focus_line_idx,
+            focus_char_idx=focus_char_idx,
+            checkpoint_idx=None,
+            move_cp=False,
+        )
+        InfoBar.success(
+            title=self.tr("删除完成"),
+            content=self.tr("已删除 {n} 个注音").format(n=removed),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=2500,
+            parent=self,
+        )
 
     def _on_set_singer_by_line(self):
         """工具栏「按行设置演唱者」入口。
