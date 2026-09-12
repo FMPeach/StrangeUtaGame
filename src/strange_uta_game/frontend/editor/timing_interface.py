@@ -969,6 +969,9 @@ class EditorInterface(QWidget):
                 "beats_per_bar": int(
                     settings.get("timing.waveform_beats_per_bar", 4)
                 ),
+                "auto_bpm_on_load": bool(
+                    settings.get("timing.waveform_auto_bpm", False)
+                ),
                 "grid_line_width": int(
                     settings.get("timing.waveform_grid_line_width", 2)
                 ),
@@ -5436,8 +5439,14 @@ class EditorInterface(QWidget):
 
         复用引擎加载线程预混的单声道样本（get_mono_samples）；检测走
         BpmDetectWorker，不阻塞 UI。换歌/重载时取消旧任务，is_current
-        按身份过滤迟到结果。
+        按身份过滤迟到结果。仅当齿轮弹窗「加载后自动检测」开关
+        （timing.waveform_auto_bpm，默认关）开启时执行。
         """
+        setting_iface = self._get_setting_interface()
+        if setting_iface is not None and not bool(
+            setting_iface.get_settings().get("timing.waveform_auto_bpm", False)
+        ):
+            return
         if self._timing_service is None:
             return
         mono = self._timing_service.get_mono_samples()
@@ -5849,6 +5858,10 @@ class EditorInterface(QWidget):
         s.set(
             "timing.waveform_beats_per_bar",
             int(settings.get("beats_per_bar", 4)),
+        )
+        s.set(
+            "timing.waveform_auto_bpm",
+            bool(settings.get("auto_bpm_on_load", False)),
         )
         s.set(
             "timing.waveform_grid_line_width",

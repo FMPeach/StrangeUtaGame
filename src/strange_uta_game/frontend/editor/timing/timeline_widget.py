@@ -197,6 +197,9 @@ class WaveformDisplay(QWidget):
         # 由 EditorInterface 的 PlaybackMetronome 消费（经设置链透传/持久化）
         self._metronome_enabled = False
         self._metronome_volume = 100
+        # 加载后自动检测 BPM 开关（纯状态）：开启时音频加载完成自动跑一次
+        # 检测并回填 BPM；实际调度在 EditorInterface（经设置链透传/持久化）
+        self._auto_bpm_enabled = False
         # 实际使用的重叠率（预算降级后可能与用户选择不同；None=未计算）
         self._actual_overlap: Optional[float] = None
 
@@ -997,6 +1000,10 @@ class WaveformDisplay(QWidget):
         """节拍器音量（0~100%，纯状态；实际音量在播放器上设置）。"""
         self._metronome_volume = int(max(0, min(100, int(volume_pct))))
 
+    def set_auto_bpm_enabled(self, enabled: bool) -> None:
+        """加载后自动检测 BPM 开关（纯状态；实际检测在 EditorInterface）。"""
+        self._auto_bpm_enabled = bool(enabled)
+
     def set_grid_mode(self, mode: str) -> None:
         if mode not in ("time", "bpm") or mode == self._grid_mode:
             return
@@ -1177,6 +1184,8 @@ class WaveformDisplay(QWidget):
             # 节拍器（EditorInterface 的调度器消费；此处仅为设置链快照）
             "metronome_enabled": self._metronome_enabled,
             "metronome_volume": self._metronome_volume,
+            # 加载后自动检测 BPM（纯开关快照，实际检测在 EditorInterface）
+            "auto_bpm_on_load": self._auto_bpm_enabled,
         }
 
     def spectrum_audio_source(self) -> Optional[tuple]:
@@ -3118,6 +3127,10 @@ class TimelineWidget(QWidget):
         metronome_volume = settings.get("metronome_volume")
         if metronome_volume is not None:
             wd.set_metronome_volume(int(metronome_volume))
+        # 加载后自动检测 BPM 开关（纯状态）：缺席时保持现值（兼容旧调用方）
+        auto_bpm = settings.get("auto_bpm_on_load")
+        if auto_bpm is not None:
+            wd.set_auto_bpm_enabled(bool(auto_bpm))
         wd.set_spectrum_params(
             fft_size=settings.get("spectrum_fft_size"),
             overlap=settings.get("spectrum_overlap"),

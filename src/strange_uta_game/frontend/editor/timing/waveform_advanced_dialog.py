@@ -225,6 +225,14 @@ class WaveformAdvancedDialog(QDialog):
         bpm_row_layout.addWidget(self.bpm_spin)
         bpm_row_layout.addWidget(self.btn_detect_bpm)
         bpm_row_layout.addWidget(self.btn_align_first)
+        # 加载后自动检测 BPM（默认关）：开启后每次音频加载完成自动跑一次
+        # 检测并回填 BPM；实际调度在 EditorInterface，此处仅是开关快照
+        self._lbl_auto_bpm = BodyLabel(self.tr("加载后自动检测"), bpm_row)
+        self.auto_bpm_switch = SwitchButton(bpm_row)
+        self.auto_bpm_switch.setOnText(self.tr("开"))
+        self.auto_bpm_switch.setOffText(self.tr("关"))
+        bpm_row_layout.addWidget(self._lbl_auto_bpm)
+        bpm_row_layout.addWidget(self.auto_bpm_switch)
         bpm_row_layout.addStretch(1)
 
         # 网格数值行（线宽 + 偏移并排，折叠纵向高度）：
@@ -518,6 +526,7 @@ class WaveformAdvancedDialog(QDialog):
             _TIME_SIGNATURE_CHOICES.index(beats_per_bar)
         )
         self.bpm_spin.setValue(float(init.get("grid_bpm", 120.0)))
+        self.auto_bpm_switch.setChecked(bool(init.get("auto_bpm_on_load", False)))
         fft = init.get("spectrum_fft_size", 8192)
         index = (
             _FFT_CHOICES.index(fft)
@@ -614,6 +623,8 @@ class WaveformAdvancedDialog(QDialog):
         self.met_volume_slider.sliderReleased.connect(self._emit_applied)
         self.btn_detect_bpm.clicked.connect(self._on_detect_bpm)
         self.btn_align_first.clicked.connect(self._on_align_first_sound)
+        # 加载后自动检测开关：改动即时持久化（经 applied → timing.* 键）
+        self.auto_bpm_switch.checkedChanged.connect(lambda _v: self._emit_applied())
 
     def sync_display_heights(self, settings: dict) -> None:
         """底边拖拽提交后同步两个高度滑条，不触发 applied 回环。"""
@@ -934,6 +945,7 @@ class WaveformAdvancedDialog(QDialog):
             "tag_ruby_enabled": bool(self.tag_ruby_switch.isChecked()),
             "metronome_enabled": bool(self.metronome_switch.isChecked()),
             "metronome_volume": int(self.met_volume_slider.value()),
+            "auto_bpm_on_load": bool(self.auto_bpm_switch.isChecked()),
         }
 
     def _emit_applied(self, *_args) -> None:
