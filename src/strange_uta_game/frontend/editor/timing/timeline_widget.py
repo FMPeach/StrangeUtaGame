@@ -89,6 +89,11 @@ class WaveformDisplay(QWidget):
     tag_clicked = pyqtSignal(int, int, int, bool)
     # 拖拽提交：(handles: List[TagHandle], delta_ms: int)
     tags_drag_committed = pyqtSignal(object, int)
+    # 双谱交界拖拽（改两 lane 比例，不动总高）：TimelineWidget 走与底边
+    # 手柄相同的「拖动中重排、松手才持久化」链路
+    lane_resize_started = pyqtSignal()
+    lane_resize_moved = pyqtSignal(int)
+    lane_resize_finished = pyqtSignal(int)
 
     # ── 把手几何与命中常量 ──
     _HANDLE_HALF_W = 5          # 未选中把手命中/绘制半宽（px）
@@ -96,6 +101,9 @@ class WaveformDisplay(QWidget):
     _HANDLE_HEIGHT = 9          # 把手块高度（px）
     _MIN_HANDLE_SPACING = 8     # 相邻把手最小间距，低于此值密度门控不绘制把手/不可命中
     _HANDLE_HIT_Y_BAND = 12     # 命中仅在把手中心 ±该像素范围内有效
+    # 双谱交界命中半宽（px）：刻意窄于把手命中带——把手在各 lane 中心
+    # ±12px，交界 ±3px 不会侵占 tag 的可交互区
+    _LANE_HIT_TOLERANCE = 3
 
     def _handle_center_y(self, h: int) -> float:
         """tag 把手竖直中心：恒在显示区中央（波形与任意高度的声谱一致），
@@ -242,6 +250,11 @@ class WaveformDisplay(QWidget):
         self._drag_anchor_handle: Optional[TagHandle] = None
         self._drag_anchor_ts: int = 0
         self._drag_delta_ms: int = 0
+
+        # 双谱交界拖拽运行态（悬停高亮 + 按下拖拽）
+        self._lane_boundary_hovered: bool = False
+        self._lane_dragging: bool = False
+        self._lane_press_global_y: Optional[int] = None
 
         # 自动滚动挂起（用户手动操作后 6s 内不跟随播放头）
         self._auto_scroll_suspended: bool = False
@@ -1226,6 +1239,18 @@ class WaveformDisplay(QWidget):
         wave_h = max(1, min(wave_h, h - 1))
         return wave_h, h - wave_h
 
+    def _dual_boundary_y(self) -> Optional[int]:
+        """双谱模式上下 lane 交界线的 y（widget 坐标）；非双谱返回 None。"""
+        if self._display_mode != "dual":
+            return None
+        wave_h, _ = self._dual_lane_heights(self.height())
+        return int(wave_h)  # _dual_lane_heights 仅标注 -> tuple，收窄为 int
+
+    def _lane_hit_at(self, y: float) -> bool:
+        """y 是否落在双谱交界的窄命中带内（±_LANE_HIT_TOLERANCE）。"""
+        boundary = self._dual_boundary_y()
+        return boundary is not None and abs(y - boundary) <= self._LANE_HIT_TOLERANCE
+
     def sizeHint(self):
         from PyQt6.QtCore import QSize
 
@@ -1614,6 +1639,13 @@ class WaveformDisplay(QWidget):
         try:
             self._draw_playhead(painter, w - axis, h, visible_start_ms, visible_duration_ms)
             self._draw_drag_badge(painter, w - axis, h, visible_start_ms, visible_duration_ms)
+            # 双谱交界悬停/拖拽高亮：覆盖线画在静态层之上，悬停切换只重绘
+            # 不失效静态层缓存
+            if self._lane_boundary_hovered or self._lane_dragging:
+                boundary = self._dual_boundary_y()
+                if boundary is not None:
+                    painter.setPen(QPen(theme.accent_primary, 2))
+                    painter.drawLine(0, boundary, w - axis, boundary)
         finally:
             painter.restore()
 
@@ -2339,6 +2371,14 @@ class WaveformDisplay(QWidget):
             return
         x = a0.position().x()
         y = a0.position().y()
+        # 最高优先：双谱交界窄命中带（几何手势，先于 tag 把手与 pan）
+        if self._lane_hit_at(y):
+            self._lane_dragging = True
+            self._lane_press_global_y = int(round(a0.globalPosition().y()))
+            self.setCursor(Qt.CursorShape.SizeVerCursor)
+            self.lane_resize_started.emit()
+            a0.accept()
+            return
         # 优先命中顶部把手（编辑模式）：命中则进入把手交互，不启动 pan
         if self._tag_edit_enabled:
             hit = self._hit_test_handle(x, y)
@@ -2358,16 +2398,34 @@ class WaveformDisplay(QWidget):
         self.setCursor(Qt.CursorShape.OpenHandCursor)
 
     def mouseMoveEvent(self, a0: Optional[QMouseEvent]):
-        if a0 is None or self._duration_ms <= 0:
+        if a0 is None:
+            return
+        # 交界拖拽中：只发增量，不走把手/pan 分支（拖拽中时长可能被清空，
+        # 放在 _duration_ms 守卫之前保证必能收到 release 前的 move）
+        if self._lane_dragging:
+            if self._lane_press_global_y is None:
+                self._lane_dragging = False
+            elif a0.buttons() & Qt.MouseButton.LeftButton:
+                delta = int(round(a0.globalPosition().y())) - self._lane_press_global_y
+                self.lane_resize_moved.emit(delta)
+                a0.accept()
+                return
+        if self._duration_ms <= 0:
             return
         x = a0.position().x()
         y = a0.position().y()
         if not (a0.buttons() & Qt.MouseButton.LeftButton):
-            # 悬停光标反馈：把手上显示可点光标
-            if self._tag_edit_enabled and self._hit_test_handle(x, y) is not None:
+            # 悬停光标反馈：交界窄命中带 > 把手可点光标 > 默认
+            lane_hovered = self._lane_hit_at(y)
+            if lane_hovered:
+                self.setCursor(Qt.CursorShape.SizeVerCursor)
+            elif self._tag_edit_enabled and self._hit_test_handle(x, y) is not None:
                 self.setCursor(Qt.CursorShape.PointingHandCursor)
             else:
                 self.unsetCursor()
+            if lane_hovered != self._lane_boundary_hovered:
+                self._lane_boundary_hovered = lane_hovered
+                self.update()
             return
         # 把手按下中：拖拽分支
         if self._press_handle is not None:
@@ -2404,7 +2462,22 @@ class WaveformDisplay(QWidget):
                 self.update()
 
     def mouseReleaseEvent(self, a0: Optional[QMouseEvent]):
-        if a0 is None or self._duration_ms <= 0:
+        if a0 is None:
+            return
+        # 交界拖拽收尾（放在时长守卫前：拖拽中清空音频也能正常复位）
+        if (
+            self._lane_dragging
+            and self._lane_press_global_y is not None
+            and a0.button() == Qt.MouseButton.LeftButton
+        ):
+            delta = int(round(a0.globalPosition().y())) - self._lane_press_global_y
+            self._lane_dragging = False
+            self._lane_press_global_y = None
+            self.unsetCursor()
+            self.lane_resize_finished.emit(delta)
+            a0.accept()
+            return
+        if self._duration_ms <= 0:
             return
         if a0.button() != Qt.MouseButton.LeftButton:
             return
@@ -2446,6 +2519,13 @@ class WaveformDisplay(QWidget):
         self._pan_start_x = None
         self._is_panning = False
         self.unsetCursor()
+
+    def leaveEvent(self, event) -> None:
+        # 鼠标离开后清掉交界悬停高亮（光标由 Qt 按控件进出自动恢复）
+        if self._lane_boundary_hovered:
+            self._lane_boundary_hovered = False
+            self.update()
+        super().leaveEvent(event)
 
     def wheelEvent(self, a0: Optional[QWheelEvent]):
         if a0 is None:
@@ -2607,6 +2687,8 @@ class TimelineWidget(QWidget):
         self._app_visible = True
         self._resize_start_height = 0
         self._resize_start_settings: Optional[dict] = None
+        # 双谱交界拖拽快照（settings + 起始边界/实际高度，见 _begin_lane_resize）
+        self._lane_resize_start: Optional[dict] = None
         self._init_ui()
 
     def changeEvent(self, event):
@@ -2643,6 +2725,10 @@ class TimelineWidget(QWidget):
         self.waveform_display.scroll_position_changed.connect(self._on_scroll_changed)
         self.waveform_display.tag_clicked.connect(self.tag_clicked.emit)
         self.waveform_display.tags_drag_committed.connect(self.tags_drag_committed.emit)
+        # 双谱交界拖拽：改两 lane 比例（总高不变），复用底边手柄的持久化链
+        self.waveform_display.lane_resize_started.connect(self._begin_lane_resize)
+        self.waveform_display.lane_resize_moved.connect(self._move_lane_resize)
+        self.waveform_display.lane_resize_finished.connect(self._finish_lane_resize)
         layout.addWidget(self.waveform_display, stretch=1)
         # 显示区高度变化（含模式/期望/窗口变化）→ 实时推送实际显示高度
         self.waveform_display.installEventFilter(self)
@@ -3020,6 +3106,10 @@ class TimelineWidget(QWidget):
             return
         self._set_dragged_display_height(self._resize_start_height + int(delta))
         self._resize_start_settings = None
+        self._commit_display_settings_change(before)
+
+    def _commit_display_settings_change(self, before: dict) -> None:
+        """拖拽类调整的收尾：有实际变化才持久化并同步齿轮弹窗。"""
         after = self.display_settings()
         if after == before:
             return
@@ -3028,6 +3118,50 @@ class TimelineWidget(QWidget):
         dialog = getattr(self, "_advanced_dialog", None)
         if dialog is not None and hasattr(dialog, "sync_display_heights"):
             dialog.sync_display_heights(after)
+
+    # ---- 双谱交界拖拽（只改两 lane 比例，总高不变 → 布局不跳动） ----
+
+    def _begin_lane_resize(self) -> None:
+        display = self.waveform_display
+        if display._display_mode != "dual":
+            return
+        h = display.height()
+        wave_h, _ = display._dual_lane_heights(h)
+        self._lane_resize_start = {
+            "settings": dict(display.display_settings()),
+            "boundary": wave_h,
+            "height": h,
+        }
+
+    def _move_lane_resize(self, delta: int) -> None:
+        state = self._lane_resize_start
+        if state is None:
+            return
+        h = int(state["height"])
+        start = state["settings"]
+        total = int(start["waveform_display_height"]) + int(
+            start["spectrum_display_height"]
+        )
+        if h <= 0 or total <= 0:
+            return
+        # 反解期望高度：实际交界 ∝ 期望比例，压缩布局下交界仍精确跟手；
+        # 期望总值不变 → minimumHeight 不变，拖拽中不触发布局协商
+        wave = int(round(total * (int(state["boundary"]) + int(delta)) / h))
+        wave = max(_WAVEFORM_MIN_DISPLAY_HEIGHT, min(_MAX_DISPLAY_HEIGHT, wave))
+        wave = max(wave, total - _MAX_DISPLAY_HEIGHT)   # 声谱 ≤ 400
+        wave = min(wave, total - _MIN_DISPLAY_HEIGHT)   # 声谱 ≥ 120
+        self.waveform_display.set_spectrum_params(
+            waveform_display_height=wave,
+            spectrum_display_height=total - wave,
+        )
+
+    def _finish_lane_resize(self, delta: int) -> None:
+        state = self._lane_resize_start
+        if state is None:
+            return
+        self._move_lane_resize(delta)
+        self._lane_resize_start = None
+        self._commit_display_settings_change(state["settings"])
 
     def _set_dragged_display_height(self, requested: int) -> None:
         """应用拖拽目标高度；双谱按原比例分配并同时满足两栏边界。"""

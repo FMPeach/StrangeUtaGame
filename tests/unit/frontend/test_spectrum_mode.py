@@ -387,6 +387,112 @@ class TestDualSpectrumMode:
         assert len(received) == 1
 
 
+class TestDualLaneBoundaryResize:
+    """双谱交界拖拽：窄命中带、只改比例不动总高、压缩布局反解跟手、两端钳制。"""
+
+    @staticmethod
+    def _dual_timeline(qapp, wave, spec, actual_h):
+        timeline = TimelineWidget()
+        # 先在波形模式（min=120）下 resize 到目标高度，再切双谱——控件未
+        # show 时提高 minimumHeight 不改既有几何，借此模拟两种形态：
+        # actual_h = 期望总和（正常）/ < 期望总和（窗口压缩）
+        timeline.waveform_display.resize(500, actual_h)
+        timeline._apply_display_settings({
+            "display_mode": "dual",
+            "waveform_display_height": wave,
+            "spectrum_display_height": spec,
+        })
+        return timeline
+
+    def test_boundary_helper_and_narrow_hit_band(self, qapp):
+        display = WaveformDisplay()
+        display.set_display_mode("dual")
+        display.resize(500, 400)
+        assert display._dual_boundary_y() == 200  # 期望 120:120 → 各半
+        # 命中带仅交界 ±3px：远窄于把手 ±12px 带，不侵占 tag 交互区
+        assert display._lane_hit_at(197)
+        assert display._lane_hit_at(200)
+        assert display._lane_hit_at(203)
+        assert not display._lane_hit_at(196)
+        assert not display._lane_hit_at(204)
+        # 非双谱：无交界可命中
+        display.set_display_mode("waveform")
+        assert display._dual_boundary_y() is None
+        assert not display._lane_hit_at(200)
+
+    def test_drag_changes_ratio_not_total(self, qapp):
+        timeline = self._dual_timeline(qapp, 120, 280, 400)
+        received = []
+        timeline.display_settings_changed.connect(lambda d: received.append(dict(d)))
+
+        timeline._begin_lane_resize()
+        timeline._move_lane_resize(80)
+
+        s = timeline.display_settings()
+        assert s["waveform_display_height"] == 200
+        assert s["spectrum_display_height"] == 200
+        # 期望总和不变 → minimumHeight 恒定，拖拽中不触发布局协商
+        assert timeline.waveform_display.minimumHeight() == 400
+        assert received == []  # 拖动中不持久化
+
+        timeline._finish_lane_resize(80)
+        assert len(received) == 1
+        assert received[0]["waveform_display_height"] == 200
+        assert received[0]["spectrum_display_height"] == 200
+        assert timeline._lane_resize_start is None
+        # 交界实际位置跟手（200/400）
+        assert timeline.waveform_display._dual_boundary_y() == 200
+
+    def test_drag_clamps_to_lane_minimums(self, qapp):
+        timeline = self._dual_timeline(qapp, 200, 200, 400)
+        timeline._begin_lane_resize()
+        # 极端上拖：波形压到下限 60，声谱吃满剩余
+        timeline._move_lane_resize(-1000)
+        s = timeline.display_settings()
+        assert s["waveform_display_height"] == 60
+        assert s["spectrum_display_height"] == 340
+        # 极端下拖：声谱保住下限 120（波形 ≤ 400 同时满足）
+        timeline._move_lane_resize(1000)
+        s = timeline.display_settings()
+        assert s["waveform_display_height"] == 280
+        assert s["spectrum_display_height"] == 120
+        timeline._finish_lane_resize(1000)
+
+    def test_compressed_layout_back_solves_expected(self, qapp):
+        """布局压缩（实际 250 < 期望 500）时按比例反解，交界仍精确跟手。
+
+        真实几何无法低于 minimumHeight（setMinimumHeight 立即顶起隐藏控件），
+        故压缩态直接构造拖拽快照验证反解数学。
+        """
+        timeline = self._dual_timeline(qapp, 200, 300, 500)
+        timeline._begin_lane_resize()
+        # 模拟窗口压缩后的快照：实际高 250，交界 = round(250×200/500) = 100
+        timeline._lane_resize_start["height"] = 250
+        timeline._lane_resize_start["boundary"] = 100
+
+        timeline._move_lane_resize(50)  # 交界 → 150
+
+        s = timeline.display_settings()
+        assert s["waveform_display_height"] == 300
+        assert s["spectrum_display_height"] == 200
+        # 期望总和与 minimumHeight 不变（无布局跳动）；压缩态下实际交界
+        # （_dual_lane_heights(250) 首项）精确跟手到 150
+        assert timeline.waveform_display.minimumHeight() == 500
+        assert timeline.waveform_display._dual_lane_heights(250) == (150, 100)
+
+    def test_finish_syncs_open_dialog_sliders(self, qapp):
+        timeline = self._dual_timeline(qapp, 120, 280, 400)
+        timeline._on_waveform_settings_clicked()
+        dialog = timeline._advanced_dialog
+        try:
+            timeline._begin_lane_resize()
+            timeline._finish_lane_resize(80)
+            assert dialog.waveform_height_slider.value() == 200
+            assert dialog.spectrum_height_slider.value() == 200
+        finally:
+            dialog.deleteLater()
+
+
 class TestPreviewSingleLineCompression:
     """双谱专属的预览压缩：可见行数下限可放宽到 1，其余模式保持 3。"""
 
