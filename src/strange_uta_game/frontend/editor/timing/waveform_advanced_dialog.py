@@ -117,7 +117,7 @@ class WaveformAdvancedDialog(QDialog):
         self.setWindowModality(Qt.WindowModality.NonModal)
         # Windows 下去掉标题栏的 "?" 帮助按钮
         self.setWindowFlag(Qt.WindowType.WindowContextHelpButtonHint, False)
-        fit_to_screen(self, 520, 660)
+        fit_to_screen(self, 560, 720)
         self.setMinimumSize(440, 300)
 
         # ── 内容区（ScrollArea 包裹，小屏可滚动） ──

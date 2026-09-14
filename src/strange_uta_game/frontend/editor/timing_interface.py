@@ -5477,7 +5477,8 @@ class EditorInterface(QWidget):
         )
 
     def _on_auto_bpm_result(self, result: dict) -> None:
-        """自动检测完成：置信度足够则写回 BPM 网格/节拍器并持久化。"""
+        """自动检测完成：置信度足够则写回 BPM 网格/节拍器并持久化，
+        同时把 BPM 网格偏移一键对齐到首音（b=0 落在歌声起点）。"""
         self._bpm_detect_worker = None
         if not isinstance(result, dict):
             return
@@ -5497,12 +5498,48 @@ class EditorInterface(QWidget):
             self.timeline.set_grid_bpm(bpm)
         # 节拍器 BPM 复用同一设置键，重读配置使其立即生效
         self._configure_metronome_from_settings()
+
+        # 自动对齐首音：偏移 = 开头静音结束、首个有声信号的位置（整曲
+        # 毫秒级 numpy 计算，无需后台线程）。写回偏移设置并刷新网格。
+        offset_msg = ""
+        mono = (
+            self._timing_service.get_mono_samples()
+            if self._timing_service
+            else None
+        )
+        info = (
+            self._timing_service.get_audio_info() if self._timing_service else None
+        )
+        if (
+            mono is not None
+            and hasattr(mono, "__len__")
+            and len(mono) > 0
+            and info is not None
+            and info.sample_rate > 0
+        ):
+            from strange_uta_game.backend.infrastructure.audio.spectrum import (
+                first_sound_ms,
+            )
+
+            ms = first_sound_ms(mono, int(info.sample_rate))
+            if ms is not None:
+                offset_ms = int(round(max(-600000, min(600000, ms))))
+                if setting_iface is not None:
+                    s = setting_iface.get_settings()
+                    if int(s.get("timing.waveform_grid_offset_ms", 0)) != offset_ms:
+                        s.set("timing.waveform_grid_offset_ms", offset_ms)
+                        s.save()
+                if hasattr(self, "timeline"):
+                    self.timeline.set_grid_offset(offset_ms)
+                self._configure_metronome_from_settings()
+                offset_msg = f' · {self.tr("偏移已对齐首音")}{offset_ms}ms'
+
         level = self.tr("高") if confidence > 0.66 else (
             self.tr("中") if confidence > 0.33 else self.tr("低")
         )
         InfoBar.success(
             title=self.tr("BPM 自动识别"),
-            content=f'{bpm:g} BPM · {self.tr("置信度")}{level}（{confidence:.0%}）',
+            content=f'{bpm:g} BPM · {self.tr("置信度")}{level}（{confidence:.0%}）{offset_msg}',
             orient=Qt.Orientation.Horizontal,
             isClosable=True,
             position=InfoBarPosition.TOP,
