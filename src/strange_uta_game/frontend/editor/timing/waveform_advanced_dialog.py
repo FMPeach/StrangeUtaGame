@@ -117,7 +117,7 @@ class WaveformAdvancedDialog(QDialog):
         self.setWindowModality(Qt.WindowModality.NonModal)
         # Windows 下去掉标题栏的 "?" 帮助按钮
         self.setWindowFlag(Qt.WindowType.WindowContextHelpButtonHint, False)
-        fit_to_screen(self, 560, 720)
+        fit_to_screen(self, 520, 660)
         self.setMinimumSize(440, 300)
 
         # ── 内容区（ScrollArea 包裹，小屏可滚动） ──
@@ -225,15 +225,21 @@ class WaveformAdvancedDialog(QDialog):
         bpm_row_layout.addWidget(self.bpm_spin)
         bpm_row_layout.addWidget(self.btn_detect_bpm)
         bpm_row_layout.addWidget(self.btn_align_first)
-        # 加载后自动检测 BPM（默认关）：开启后每次音频加载完成自动跑一次
-        # 检测并回填 BPM；实际调度在 EditorInterface，此处仅是开关快照
-        self._lbl_auto_bpm = BodyLabel(self.tr("加载后自动检测"), bpm_row)
-        self.auto_bpm_switch = SwitchButton(bpm_row)
+        bpm_row_layout.addStretch(1)
+
+        # 加载后自动检测 BPM（默认关）：独立一行、右对齐——开启后每次音频
+        # 加载完成自动跑一次检测+对齐首音并回填；实际调度在 EditorInterface，
+        # 此处仅是开关快照
+        auto_bpm_row = QWidget(self._grid_settings)
+        auto_bpm_row_layout = QHBoxLayout(auto_bpm_row)
+        auto_bpm_row_layout.setContentsMargins(0, 0, 0, 0)
+        self._lbl_auto_bpm = BodyLabel(self.tr("加载后自动检测"), auto_bpm_row)
+        self.auto_bpm_switch = SwitchButton(auto_bpm_row)
         self.auto_bpm_switch.setOnText(self.tr("开"))
         self.auto_bpm_switch.setOffText(self.tr("关"))
-        bpm_row_layout.addWidget(self._lbl_auto_bpm)
-        bpm_row_layout.addWidget(self.auto_bpm_switch)
-        bpm_row_layout.addStretch(1)
+        auto_bpm_row_layout.addStretch(1)
+        auto_bpm_row_layout.addWidget(self._lbl_auto_bpm)
+        auto_bpm_row_layout.addWidget(self.auto_bpm_switch)
 
         # 网格数值行（线宽 + 偏移并排，折叠纵向高度）：
         # - 线宽：时间/BPM 网格共用；Fluent 风格 LineEdit（非 SpinBox，与
@@ -306,6 +312,7 @@ class WaveformAdvancedDialog(QDialog):
         for row in (
             grid_row,
             bpm_row,
+            auto_bpm_row,
             num_row,
             ts_met_row,
             met_volume_row,
