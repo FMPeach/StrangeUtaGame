@@ -497,8 +497,9 @@ class AiTimingService:
             "tail_snap": True,
             # 尾音静音判据版本：进缓存键，判据升级/调参时 bump 使旧缓存
             # 自动失效重算（v2: 比例 0.2→0.1；v3: 比例 0.1→0.15、短窗
-            # 自适应 min_frames、吸附回退 20ms 不与下一 token 起点重合）
-            "tail_silence": 3,
+            # 自适应 min_frames、吸附回退 20ms 不与下一 token 起点重合；
+            # v4: 对数能量 Otsu 自适应谷底阈值，双峰性不足退回 0.15×P75）
+            "tail_silence": 4,
             # 拉丁词组词内比例切分（手工拆分英文音节的对齐修正）：进缓存键
             "latin_word_split": 1,
         }

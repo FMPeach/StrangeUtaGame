@@ -12,7 +12,7 @@ torchaudio MMS_FA bundle 的公开路径，不引入其 CLI 或私有 API。
 import gc
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from strange_uta_game.backend.application.ai_timing.alignment import (
     AlignmentRequest,
@@ -25,16 +25,19 @@ CancelFn = Callable[[], bool]
 
 DEFAULT_WAV2VEC2_MODEL = "NextFire/mms-300m-ForcedAligner-karaoke-ja-Latn"
 
-# 尾音静音判据（2026-08 用户决策口径）：相对分离人声整轨能量上四分位
-# （≈典型有声帧电平，见 _frames_to_spans）的比例阈值——帧功率低于
-# ratio × 基线视为静音，且需连续 min_frames 帧才认定「进入静音」
-# （吸收换气与持续音的瞬时低谷）。用整轨统计量作基准可以自适应不同
-# 素材的响度，不依赖绝对电平。
-# 0.2 首版实测偏高（弱尾音被误判为静音截断），2026-08-15 调至 0.1；
-# 2026-09-07 放宽到 0.15：0.1×P75 在分离残留/混响拖尾普遍偏高的素材
-# 上几乎判不出静音，停顿点频繁整段吸附到下一字起点。
+# 尾音静音判据（2026-08 用户决策口径）：帧功率低于阈值为静音，且需
+# 连续 min_frames 帧才认定「进入静音」（吸收换气与持续音的瞬时低谷）。
+# v4（2026-09-14 用户决策）：阈值改为整轨帧功率对数直方图的 Otsu
+# 谷底（类间方差最大切分点），逐轨自适应——分离残留电平因素材/分离
+# 模型在 0.04~0.1×有声之间浮动，固定比例无法同时适配（0.1 判不出
+# 静音、0.2 误切弱尾音）。Otsu 对单峰分布也会给出切分点，须以双峰
+# 性护栏判其可信：两簇对数均值距 ≥6dB、每簇帧占比 ≥5%；不满足退回
+# 固定比例兜底（0.15×P75，即 v3 判据，P75≈典型有声帧电平）。
 TAIL_SILENCE_POWER_RATIO = 0.15
 TAIL_SILENCE_MIN_FRAMES = 4
+TAIL_SILENCE_OTSU_MIN_SEPARATION_DB = 6.0
+TAIL_SILENCE_OTSU_MIN_SHARE = 0.05
+TAIL_SILENCE_OTSU_BINS = 256
 # 吸附回退（2026-09-07 用户决策）：静音判据失效时不再完全吸附到下一
 # token 起点，而是回退该毫秒数——停顿点与下一字符首时间戳完全重合
 # 会导致两个 Tag 重叠、不可点选；回退后仍不早于自身起点 + 同值
@@ -92,14 +95,72 @@ def _adaptive_min_frames(window_frames: int) -> int:
     return max(1, min(TAIL_SILENCE_MIN_FRAMES, (window_frames + 1) // 2))
 
 
+def _otsu_power_threshold(
+    energies: Any,
+    *,
+    bins: int = TAIL_SILENCE_OTSU_BINS,
+    min_separation_db: float = TAIL_SILENCE_OTSU_MIN_SEPARATION_DB,
+    min_class_share: float = TAIL_SILENCE_OTSU_MIN_SHARE,
+) -> Optional[float]:
+    """整轨帧功率对数直方图的 Otsu 谷底阈值；双峰性不足返回 None。
+
+    分离人声轨的帧功率分布双峰（残留底噪簇 + 发声簇），Otsu 在对数域
+    取类间方差最大的切分点作谷底——残留电平因素材浮动时谷底自动跟移，
+    这是固定比例（0.15×P75）做不到的。Otsu 对单峰分布同样会返回一个
+    切分点（约在中位附近，无意义），故以护栏判可信：两簇对数均值距
+    <min_separation_db（两簇未分开）或任一簇帧占比 <min_class_share
+    （切分落在分布极端）时返回 None，由调用方退回固定比例兜底。
+    纯函数便于单测。
+    """
+    try:
+        import numpy as np
+    except ImportError:
+        return None
+    arr = np.asarray(energies, dtype=np.float64)
+    arr = arr[np.isfinite(arr)]
+    if arr.size < 16:
+        return None
+    # 数字静音/零功率统一地板到 1e-12：只把这类帧压到最左 bin，不改变
+    # 帧间相对大小，避免 log(0)
+    log_e = np.log(np.maximum(arr, 1e-12))
+    lo = float(log_e.min())
+    hi = float(log_e.max())
+    if not hi > lo:
+        return None
+    hist, edges = np.histogram(log_e, bins=bins)
+    hist = hist.astype(np.float64)
+    total = float(hist.sum())
+    if total <= 0:
+        return None
+    centers = (edges[:-1] + edges[1:]) / 2.0
+    cum_h = np.cumsum(hist)
+    cum_hx = np.cumsum(hist * centers)
+    # 候选阈值取各 bin 上边缘（去掉最后一个，保证两类非空）；
+    # 类0 = 低于阈值的帧（静音/残留簇），类1 = 高于（发声簇）
+    omega0 = cum_h[:-1] / total
+    omega1 = 1.0 - omega0
+    valid = (omega0 >= min_class_share) & (omega1 >= min_class_share)
+    if not valid.any():
+        return None
+    with np.errstate(invalid="ignore", divide="ignore"):
+        mu0 = cum_hx[:-1] / np.maximum(cum_h[:-1], 1e-12)
+        mu1 = (cum_hx[-1] - cum_hx[:-1]) / np.maximum(total - cum_h[:-1], 1e-12)
+    sigma_b = omega0 * omega1 * (mu0 - mu1) ** 2
+    best = int(np.nanargmax(np.where(valid, sigma_b, np.nan)))
+    separation_db = float(mu1[best] - mu0[best]) * 10.0 / float(np.log(10.0))
+    if separation_db < min_separation_db:
+        return None
+    return float(np.exp(edges[best + 1]))
+
+
 def _silence_boundary(
-    energies: Any, mean_power: float, from_frame: int, to_frame: int
+    energies: Any, threshold: float, from_frame: int, to_frame: int
 ) -> int:
     """从 from_frame 向后找第一段持续静音的起始帧；未找到返回 to_frame。
 
-    持续帧数要求按窗口长度自适应（_adaptive_min_frames）。
+    静音 = 帧功率低于 threshold（Otsu 谷底或兜底固定比例，由调用方
+    决定），持续帧数要求按窗口长度自适应（_adaptive_min_frames）。
     """
-    threshold = TAIL_SILENCE_POWER_RATIO * mean_power
     start = max(0, from_frame)
     min_frames = _adaptive_min_frames(to_frame - start)
     run = 0
@@ -466,10 +527,11 @@ class _TorchProviderBase(ForcedAlignmentProvider):
         """帧区间 → 毫秒 EmissionSpan；空组用相邻 token 插值补齐。
 
         尾音修正（tail_snap）：先吸附到下一 token 起点（弥补 CTC 对
-        长音/尾音的截断，FA-Kara 思路），再按整轨能量的比例判据
-        裁到静音边界——否则行尾尾音会一路延伸跨过整段间奏静音；
-        末个 token 也借此把被 CTC 截断的真实尾音延伸到静音边界。
-        窗口内找不到持续静音时不再完全吸附，而是回退 20ms
+        长音/尾音的截断，FA-Kara 思路），再按整轨对数能量直方图的
+        Otsu 谷底判据裁到静音边界——否则行尾尾音会一路延伸跨过整段
+        间奏静音；末个 token 也借此把被 CTC 截断的真实尾音延伸到静音
+        边界。双峰性不足时退回固定比例兜底（0.15×P75）；窗口内找不
+        到持续静音时不再完全吸附，而是回退 20ms
         （_snap_end_with_backoff），避免停顿点与下一字符首时间戳重合。
         """
         ratio = (num_samples / num_frames) / sample_rate * 1000.0  # ms / frame
@@ -507,18 +569,24 @@ class _TorchProviderBase(ForcedAlignmentProvider):
                 if waveform is not None
                 else None
             )
+            threshold = 0.0
+            criterion = "无波形（仅吸附回退）"
             if energies is not None:
                 import numpy as np
 
-                # 静音判据基线取能量上四分位（≈典型有声帧电平），而非
-                # 全轨均值：人声轨大部分帧是句间静音/分离残留，全轨均值
-                # 被拉到极低，0.1×均值的阈值形同虚设——残留 0.04~0.1×
-                # 有声电平的帧永远高于阈值，静音永远“找不到”，停顿点/
-                # 停顿符前的字几乎总是一路延续到下一字起点
-                mean_power = float(np.percentile(energies, 75))
-            else:
-                mean_power = 0.0
+                otsu = _otsu_power_threshold(energies)
+                if otsu is not None:
+                    threshold = otsu
+                    criterion = f"Otsu 谷底阈值 {otsu:.4g}"
+                else:
+                    # 兜底判据基线取能量上四分位（≈典型有声帧电平），
+                    # 而非全轨均值：人声轨大部分帧是句间静音/分离残留，
+                    # 全轨均值被拉到极低，固定比例×均值的阈值形同虚设
+                    mean_power = float(np.percentile(energies, 75))
+                    threshold = TAIL_SILENCE_POWER_RATIO * mean_power
+                    criterion = f"兜底固定比例 {threshold:.4g}（0.15×P75）"
             audio_end_ms = int(round(num_frames * ratio))
+            hits = attempted = 0
             for i, cur in enumerate(spans):
                 cand = (
                     spans[i + 1].start_ms if i + 1 < len(spans) else audio_end_ms
@@ -526,10 +594,11 @@ class _TorchProviderBase(ForcedAlignmentProvider):
                 if cur.end_ms >= cand:
                     continue
                 if energies is not None:
+                    attempted += 1
                     raw_end_f = min(num_frames - 1, int(cur.end_ms / ratio))
                     cand_f = min(num_frames, int(cand / ratio))
                     boundary_f = _silence_boundary(
-                        energies, mean_power, raw_end_f, cand_f
+                        energies, threshold, raw_end_f, cand_f
                     )
                     if boundary_f >= cand_f:
                         # 窗口内找不到持续静音：吸附但回退 20ms，
@@ -538,6 +607,7 @@ class _TorchProviderBase(ForcedAlignmentProvider):
                             cur.start_ms, cur.end_ms, cand
                         )
                     else:
+                        hits += 1
                         new_end = int(round(boundary_f * ratio))
                         # 不短于 CTC 原始终点，不超过下一 token 起点/音频末尾
                         new_end = max(cur.end_ms, min(new_end, cand))
@@ -553,6 +623,20 @@ class _TorchProviderBase(ForcedAlignmentProvider):
                     end_ms=new_end,
                     score=cur.score,
                 )
+            if energies is not None:
+                # 命中率日志（2026-09-14 用户决策）：判据调参不再靠体感，
+                # 每次对齐输出静音判据窗口内实际裁到边界的 token 数
+                try:
+                    from strange_uta_game.backend.application.ai_timing.ailog import (
+                        ailog,
+                    )
+
+                    ailog(
+                        "worker",
+                        f"尾音静音判据：{criterion}，命中 {hits}/{attempted} 个 token",
+                    )
+                except Exception:
+                    pass
         return spans
 
     def _forward_with_layer_progress(

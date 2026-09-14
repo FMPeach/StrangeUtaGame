@@ -532,16 +532,17 @@ class TestTailSilenceCriterion:
 
         旧基线用全轨均值：均值被大量静音/残留帧拉低，0.1×均值阈值
         低于残留电平——静音永远找不到，尾音几乎总是一路延续到下一
-        字起点（停顿点/停顿符前的字尤甚）。上四分位基线下残留可判。
+        字起点（停顿点/停顿符前的字尤甚）。v3 固定比例 0.15×P75 下
+        边界在第 15 帧；v4 Otsu 谷底自适应到 0.181（落在 0.24 与
+        0.18 之间的谷间），第 14 帧（0.18）起连续低于阈值 → 边界
+        第 14 帧（=280ms），仍远早于下一 token 起点（600ms）。
         """
         # 帧 0-11 有声(1.0)；12-19 分离残留缓慢衰减
         # (0.30,0.24,0.18,0.14,0.11,0.09,0.07,0.05)；20-39 残底(0.04)
         residual = [0.30, 0.24, 0.18, 0.14, 0.11, 0.09, 0.07, 0.05]
         energies = [1.0] * 12 + residual + [0.04] * 20
-        # 上四分位 ≈ 1.0 → 阈值 0.15：残留自第 15 帧（0.14）起连续低于
-        # 阈值，≥4 帧后边界落在第 15 帧（=300ms）
         spans = self._spans([(0, 10), (30, 32)], energies)
-        assert spans[0].end_ms == 15 * 20
+        assert spans[0].end_ms == 14 * 20
 
     def test_silence_boundary_min_frames(self):
         """持续静音需连续 ≥TAIL_SILENCE_MIN_FRAMES 帧，瞬时低谷不截断。
@@ -554,10 +555,69 @@ class TestTailSilenceCriterion:
         )
 
         energies = [1.0] * 20 + [0.0] * 3 + [1.0] * 7 + [0.0] * 10
-        # mean = 27/40 → 阈值 0.15×0.675 = 0.101；3 帧低谷不算静音
-        b = _silence_boundary(energies, sum(energies) / len(energies), 5, 40)
+        # 阈值 0.15×mean(=0.675) = 0.101；3 帧低谷不算静音
+        b = _silence_boundary(energies, 0.15 * sum(energies) / len(energies), 5, 40)
         assert b == 30  # 第一段 ≥4 帧静音的起点
         assert TAIL_SILENCE_MIN_FRAMES == 4
+
+    def test_otsu_threshold_finds_valley_between_modes(self):
+        """Otsu 谷底：双峰分布（发声簇+残留簇）阈值落在两簇之间的谷间。"""
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            _otsu_power_threshold,
+        )
+
+        voiced = [0.6, 0.8, 0.9, 1.0, 1.1, 1.2, 1.0, 0.9, 0.8, 0.7,
+                  1.0, 1.1, 0.9, 0.8, 1.0, 1.2, 0.7, 0.9, 1.0, 0.8]
+        residue = [0.02, 0.03, 0.04, 0.05, 0.06, 0.03, 0.04, 0.05,
+                   0.02, 0.06, 0.04, 0.03, 0.05, 0.02, 0.04, 0.06] * 2
+        t = _otsu_power_threshold(voiced + residue)
+        assert t is not None
+        # 谷间语义：残留簇全部低于阈值、发声簇全部高于
+        assert max(residue) < t < min(voiced)
+
+    def test_otsu_threshold_digital_zero_silence(self):
+        """数字静音（精确 0 功率）与有声双峰：地板化后谷底仍可判。"""
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            _otsu_power_threshold,
+        )
+
+        t = _otsu_power_threshold([1.0] * 15 + [0.0] * 25)
+        assert t is not None
+        assert 0.0 < t < 1.0
+
+    def test_otsu_threshold_unimodal_returns_none(self):
+        """单峰分布（两簇对数均值距 <6dB）：切分无意义 → None 退兜底。"""
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            _otsu_power_threshold,
+        )
+
+        narrow = [0.9, 1.0, 1.1, 1.05, 0.95, 1.0, 1.02, 0.98,
+                  1.0, 1.03, 0.97, 1.01, 0.99, 1.0, 1.04, 0.96] * 2
+        assert _otsu_power_threshold(narrow) is None
+
+    def test_otsu_threshold_extreme_share_returns_none(self):
+        """切分落在分布极端（一类占比 <5%）：谷底不可信 → None 退兜底。"""
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            _otsu_power_threshold,
+        )
+
+        # 99% 数字静音、1% 有声：谷很深，但发声簇凑不满 5% 帧占比
+        assert _otsu_power_threshold([0.0] * 198 + [1.0] * 2) is None
+
+    def test_criterion_hit_rate_logged(self, monkeypatch):
+        """命中率日志：判据模式 + 命中/窗口数写 ailog（调参不靠体感）。"""
+        from strange_uta_game.backend.application.ai_timing import ailog as ailog_mod
+
+        captured = []
+        monkeypatch.setattr(
+            ailog_mod, "ailog", lambda src, msg: captured.append((src, msg))
+        )
+        # 两个 token 都有窗口且都裁到静音边界 → 命中 2/2
+        self._spans([(0, 10), (30, 32)], [1.0] * 15 + [0.0] * 25)
+        assert any(
+            src == "worker" and "Otsu" in msg and "命中 2/2" in msg
+            for src, msg in captured
+        )
 
     def test_adaptive_min_frames_values(self):
         """短窗自适应：要求 = min(4, ceil(窗口/2))，下限 1。"""
