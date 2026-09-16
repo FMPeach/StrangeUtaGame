@@ -381,6 +381,10 @@ class FakeProvider(ForcedAlignmentProvider):
 class _TorchProviderBase(ForcedAlignmentProvider):
     """torch 系 provider 共用逻辑：音频加载、CTC 对齐、帧→毫秒换算。"""
 
+    # Transformer 的峰值显存取决于单次 forward 的音频长度。
+    FORWARD_CHUNK_SECONDS = 30
+    FORWARD_CONTEXT_SECONDS = 3
+
     def __init__(self) -> None:
         self._model: Any = None
         self._device: Any = None
@@ -681,6 +685,42 @@ class _TorchProviderBase(ForcedAlignmentProvider):
             for handle in handles:
                 handle.remove()
 
+    def _forward_audio_chunks(
+        self,
+        waveform: Any,
+        sample_rate: int,
+        forward: Callable[[Any], Any],
+        progress: ProgressFn,
+        cancel: CancelFn,
+    ) -> Any:
+        """限制单次推理长度，在 CPU 拼接 emission 后仍做全曲对齐。"""
+        torch = self._import_torch()
+        total = waveform.size(1)
+        chunk = self.FORWARD_CHUNK_SECONDS * sample_rate
+        if total <= chunk:
+            return self._forward_with_layer_progress(
+                lambda: forward(waveform), progress
+            )
+        context = int(self.FORWARD_CONTEXT_SECONDS * sample_rate)
+        pieces = []
+        count = (total + chunk - 1) // chunk
+        for i, start in enumerate(range(0, total, chunk)):
+            _cancelled_check(cancel)
+            end = min(start + chunk, total)
+            left = max(0, start - context)
+            right = min(total, end + context)
+            part = forward(waveform[:, left:right]).detach().cpu()
+            frames = part.size(1)
+            first = round((start - left) * frames / (right - left))
+            last = round((end - left) * frames / (right - left))
+            pieces.append(part[:, first:last])
+            del part
+            progress(
+                65 + int(19 * (i + 1) / count),
+                f"模型分段推理中（{i + 1}/{count}）",
+            )
+        return torch.cat(pieces, dim=1)
+
     def unload(self) -> None:
         self._model = None
         gc.collect()
@@ -764,18 +804,19 @@ class Wav2Vec2LatnProvider(_TorchProviderBase):
         ]
         progress(65, "模型推理中")
         _cancelled_check(cancel)
-        inputs = self._processor(
-            audio=waveform.numpy(),
-            sampling_rate=sample_rate,
-            return_tensors="pt",
-        )
-
-        def _run_forward():
+        def _run_forward(part):
+            inputs = self._processor(
+                audio=part.numpy(),
+                sampling_rate=sample_rate,
+                return_tensors="pt",
+            )
             outputs = self._model(**inputs.to(self._device))
             return torch.nn.functional.log_softmax(outputs.logits, dim=-1)
 
         with torch.inference_mode():
-            emission = self._forward_with_layer_progress(_run_forward, progress)
+            emission = self._forward_audio_chunks(
+                waveform, sample_rate, _run_forward, progress, cancel
+            )
 
         progress(85, "计算对齐区间")
         blank = self._model.config.pad_token_id
@@ -864,12 +905,14 @@ class MmsFaProvider(_TorchProviderBase):
         progress(65, "模型推理中")
         _cancelled_check(cancel)
 
-        def _run_forward():
-            out, _ = self._model(waveform.to(self._device))
+        def _run_forward(part):
+            out, _ = self._model(part.to(self._device))
             return out
 
         with torch.inference_mode():
-            emission = self._forward_with_layer_progress(_run_forward, progress)
+            emission = self._forward_audio_chunks(
+                waveform, sample_rate, _run_forward, progress, cancel
+            )
 
         progress(85, "计算对齐区间")
         non_empty = [g for g in groups if g]

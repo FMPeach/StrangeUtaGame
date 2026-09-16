@@ -415,6 +415,112 @@ class TestLayerProgressForward:
         assert events == []  # 只保留外层阶段消息，不报层进度
 
 
+class TestChunkedForward:
+    def test_default_chunk_is_30_seconds(self):
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            Wav2Vec2LatnProvider,
+            MmsFaProvider,
+        )
+
+        assert Wav2Vec2LatnProvider.FORWARD_CHUNK_SECONDS == 30
+        assert MmsFaProvider.FORWARD_CHUNK_SECONDS == 30
+        assert Wav2Vec2LatnProvider.FORWARD_CONTEXT_SECONDS == 3
+        assert MmsFaProvider.FORWARD_CONTEXT_SECONDS == 3
+
+    def test_long_audio_bounds_forward_and_preserves_order(self, monkeypatch):
+        import numpy as np
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            Wav2Vec2LatnProvider,
+        )
+
+        class Tensor:
+            def __init__(self, data):
+                self.data = np.asarray(data)
+
+            def size(self, axis):
+                return self.data.shape[axis]
+
+            def __getitem__(self, key):
+                return Tensor(self.data[key])
+
+            def detach(self):
+                return self
+
+            def cpu(self):
+                return self
+
+        provider = Wav2Vec2LatnProvider()
+        provider.FORWARD_CHUNK_SECONDS = 2
+        provider.FORWARD_CONTEXT_SECONDS = 0.2
+        monkeypatch.setattr(
+            provider, "_import_torch",
+            lambda: type("Torch", (), {"cat": staticmethod(
+                lambda parts, dim: Tensor(np.concatenate(
+                    [p.data for p in parts], axis=dim
+                ))
+            )})(),
+        )
+        seen = []
+        progress = []
+        waveform = Tensor(np.arange(53).reshape(1, 53))
+
+        def forward(part):
+            seen.append(part.size(1))
+            # 一个样本一个 emission 帧，便于验证去重与偏移。
+            return Tensor(part.data.copy())
+
+        result = provider._forward_audio_chunks(
+            waveform, 10, forward,
+            lambda pct, msg: progress.append(pct), lambda: False,
+        )
+        assert len(seen) == 3
+        assert max(seen) <= 24  # 20 样本主体 + 两侧各 2 样本
+        np.testing.assert_array_equal(result.data, waveform.data)
+        assert progress == sorted(progress)
+        assert progress[-1] == 84
+
+    def test_cancel_before_next_chunk(self, monkeypatch):
+        import numpy as np
+        import pytest
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            AlignmentCancelledError,
+            Wav2Vec2LatnProvider,
+        )
+
+        class Tensor:
+            def __init__(self, data):
+                self.data = data
+
+            def size(self, axis):
+                return self.data.shape[axis]
+
+            def __getitem__(self, key):
+                return Tensor(self.data[key])
+
+            def detach(self):
+                return self
+
+            def cpu(self):
+                return self
+
+        provider = Wav2Vec2LatnProvider()
+        provider.FORWARD_CHUNK_SECONDS = 2
+        provider.FORWARD_CONTEXT_SECONDS = 0
+        monkeypatch.setattr(provider, "_import_torch", lambda: object())
+        calls = []
+
+        def forward(part):
+            calls.append(1)
+            return part
+
+        with pytest.raises(AlignmentCancelledError):
+            provider._forward_audio_chunks(
+                Tensor(np.zeros((1, 50))), 10, forward,
+                lambda *_: None, lambda: bool(calls),
+            )
+        assert len(calls) == 1
+
+
 class TestTailSilenceCriterion:
     """尾音静音判据：相对整轨平均功率的比例（fake 波形，不依赖 torch）。
 
