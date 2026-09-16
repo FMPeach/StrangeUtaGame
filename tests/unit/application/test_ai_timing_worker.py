@@ -632,6 +632,68 @@ class TestTailSilenceCriterion:
         # 吸附到下一 token 起点前 20ms（29 帧 = 580ms）
         assert spans[0].end_ms == 30 * 20 - 20
 
+    def test_model_tail_priority_only_trims_line_end_in_silence(self):
+        """MMS 行尾只裁掉模型已覆盖的持续静音，不延长词内或行尾。"""
+        from strange_uta_game.backend.application.ai_timing.alignment import (
+            AlignmentRequest, AlignmentToken,
+        )
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            Wav2Vec2LatnProvider,
+        )
+
+        tokens = [
+            AlignmentToken(i, f"t{i}", f"t{i}", (line, i, 0), line_idx=line)
+            for i, line in enumerate((0, 0, 1))
+        ]
+        energies = [1.0] * 10 + [0.0] * 10 + [1.0] * 10
+        provider = Wav2Vec2LatnProvider()
+        kwargs = dict(
+            groups=[(0, 5), (6, 15), (22, 25)],
+            num_frames=30, num_samples=30 * self.SPF, sample_rate=self.SR,
+            tail_snap=True, waveform=self._wave(energies),
+        )
+        corrected = provider._frames_to_spans(
+            AlignmentRequest(tokens=tokens, options={"tail_correct": 3}), **kwargs
+        )
+        assert [s.end_ms for s in corrected] == [100, 200, 500]
+        raw = provider._frames_to_spans(
+            AlignmentRequest(tokens=tokens, options={"tail_correct": 0}), **kwargs
+        )
+        assert [s.end_ms for s in raw] == [100, 300, 500]
+
+    def test_model_tail_not_extended_or_cut_without_trailing_silence(self):
+        from strange_uta_game.backend.application.ai_timing.alignment import (
+            AlignmentRequest, AlignmentToken,
+        )
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            Wav2Vec2LatnProvider,
+        )
+
+        token = AlignmentToken(0, "t", "t", (0, 0, 0))
+        request = AlignmentRequest(tokens=[token], options={"tail_correct": 3})
+        provider = Wav2Vec2LatnProvider()
+        for energies, raw_end in (
+            ([1.0] * 15 + [0.0] * 15, 10),  # 模型已在静音前结束
+            ([1.0] * 10 + [0.0] * 2 + [1.0] * 18, 15),  # 短低谷后仍发声
+        ):
+            spans = provider._frames_to_spans(
+                request, [(0, raw_end)], num_frames=30,
+                num_samples=30 * self.SPF, sample_rate=self.SR,
+                tail_snap=True, waveform=self._wave(energies),
+            )
+            assert spans[0].end_ms == raw_end * 20
+
+    def test_tail_candidate_searches_backward_from_model_end(self):
+        from strange_uta_game.backend.application.ai_timing.worker.providers import (
+            _trailing_silence_boundary,
+        )
+
+        energies = [1.0] * 8 + [0.0] * 6 + [1.0] * 3 + [0.0] * 5
+        # 从 end=22 往前只找到紧邻的 5 帧静音，不越过 14-16 的再发声。
+        assert _trailing_silence_boundary(energies, 0.1, 0, 22) == 17
+        # 终点仍在发声区时不跳过发声去找更早的静音。
+        assert _trailing_silence_boundary(energies, 0.1, 0, 17) == 17
+
     def test_separation_residual_still_clamps(self):
         """真实电平回归：有声占少数、间奏是分离残留（0.04~0.1×有声）
         且缓慢衰减时也要裁得住。

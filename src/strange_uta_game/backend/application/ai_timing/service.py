@@ -492,14 +492,18 @@ class AiTimingService:
         progress("prepare", 15, "构建对齐请求")
         # audio_speed（音频倍速预处理）尚未实现：不进选项与缓存键，
         # 避免用户以为设置生效（实现于 worker 后再接入）
-        # 尾音修正常开（2026-08 用户决策：不再提供开关）
+        # FA-Kara 默认仅对 MMS_FA 做尾音后处理；HF 微调模型保留原始端点。
+        # tail_silence 是缓存算法版本，与 FA-Kara 的 tail_correct 无关。
+        tail_correct = 3 if self._settings.provider == "mms_fa" else 0
         options = {
-            "tail_snap": True,
+            "tail_snap": bool(tail_correct),
+            "tail_correct": tail_correct,
             # 尾音静音判据版本：进缓存键，判据升级/调参时 bump 使旧缓存
             # 自动失效重算（v2: 比例 0.2→0.1；v3: 比例 0.1→0.15、短窗
             # 自适应 min_frames、吸附回退 20ms 不与下一 token 起点重合；
-            # v4: 对数能量 Otsu 自适应谷底阈值，双峰性不足退回 0.15×P75）
-            "tail_silence": 4,
+            # v4: 对数能量 Otsu 自适应谷底阈值，双峰性不足退回 0.15×P75；
+            # v5: 按模型选择行尾策略，保留模型原始尾音，最多只裁短）
+            "tail_silence": 5,
             # 拉丁词组词内比例切分（手工拆分英文音节的对齐修正）：进缓存键
             "latin_word_split": 1,
         }

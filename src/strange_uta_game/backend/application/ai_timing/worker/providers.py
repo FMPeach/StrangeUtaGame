@@ -174,6 +174,25 @@ def _silence_boundary(
     return to_frame
 
 
+def _trailing_silence_boundary(
+    energies: Any, threshold: float, start_frame: int, end_frame: int
+) -> int:
+    """仅裁掉模型终点前连续的静音；不从模型终点向后延长。
+
+    从模型 end_frame 向前搜索紧邻终点的持续静音，取其起点；
+    不跨过重新发声的帧寻找更早的低谷，避免误截词内停顿。
+    返回值不晚于 end_frame。
+    """
+    end = min(len(energies), max(0, end_frame))
+    start = max(0, min(start_frame, end))
+    run_start = end
+    while run_start > start and float(energies[run_start - 1]) < threshold:
+        run_start -= 1
+    if end - run_start >= TAIL_SILENCE_MIN_FRAMES:
+        return run_start
+    return end
+
+
 def _snap_end_with_backoff(start_ms: int, ctc_end_ms: int, cand_ms: int) -> int:
     """静音判据失效时的吸附终点：cand - 20ms，且不产生逆序。
 
@@ -530,7 +549,8 @@ class _TorchProviderBase(ForcedAlignmentProvider):
     ) -> List[EmissionSpan]:
         """帧区间 → 毫秒 EmissionSpan；空组用相邻 token 插值补齐。
 
-        尾音修正（tail_snap）：先吸附到下一 token 起点（弥补 CTC 对
+        显式 tail_correct=3 使用模型优先的行尾静音裁短；=0 原样返回。
+        旧调用方未传 tail_correct 时沿用 tail_snap：吸附下一 token 起点（弥补 CTC 对
         长音/尾音的截断，FA-Kara 思路），再按整轨对数能量直方图的
         Otsu 谷底判据裁到静音边界——否则行尾尾音会一路延伸跨过整段
         间奏静音；末个 token 也借此把被 CTC 截断的真实尾音延伸到静音
@@ -567,6 +587,53 @@ class _TorchProviderBase(ForcedAlignmentProvider):
                     end_ms=int(round(g[1] * ratio)),
                 )
             )
+        # 新策略对应 FA-Kara tail_correct=3 的行尾范围，但结果按用户要求
+        # 与模型原始端点取 min：微调模型默认 0 完全保留原始端点；MMS_FA
+        # 只在原始端点已落入持续静音时裁短，不再延长任何 token。
+        correction = (request.options or {}).get("tail_correct")
+        if correction is not None:
+            if correction != 3 or not tail_snap or waveform is None:
+                return spans
+            energies = self._frame_energies(waveform, num_frames)
+            if energies is None:
+                return spans
+            import numpy as np
+
+            threshold = _otsu_power_threshold(energies)
+            if threshold is None:
+                threshold = TAIL_SILENCE_POWER_RATIO * float(
+                    np.percentile(energies, 75)
+                )
+            trimmed = 0
+            for i, cur in enumerate(spans):
+                if i + 1 < len(spans) and (
+                    request.tokens[i].line_idx == request.tokens[i + 1].line_idx
+                ):
+                    continue
+                end_frame = min(num_frames, int(np.ceil(cur.end_ms / ratio)))
+                start_frame = max(
+                    int(cur.start_ms / ratio), end_frame - int(800 / ratio)
+                )
+                boundary = _trailing_silence_boundary(
+                    energies, threshold, start_frame, end_frame
+                )
+                candidate = int(round(boundary * ratio))
+                new_end = max(cur.start_ms, min(cur.end_ms, candidate))
+                if new_end < cur.end_ms:
+                    spans[i] = EmissionSpan(
+                        token_index=cur.token_index,
+                        start_ms=cur.start_ms,
+                        end_ms=new_end,
+                        score=cur.score,
+                    )
+                    trimmed += 1
+            try:
+                from strange_uta_game.backend.application.ai_timing.ailog import ailog
+
+                ailog("worker", f"模型尾音优先：行尾静音裁短 {trimmed} 个 token")
+            except Exception:
+                pass
+            return spans
         if tail_snap:
             energies = (
                 self._frame_energies(waveform, num_frames)

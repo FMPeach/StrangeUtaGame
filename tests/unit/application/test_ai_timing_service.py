@@ -175,6 +175,22 @@ class TestSnapshot:
         assert snap.separation_follows_host is False  # 未注入宿主
         assert snap.cache_root is not None
 
+    @pytest.mark.parametrize(
+        ("provider", "tail_correct"), [("wav2vec2", 0), ("mms_fa", 3)]
+    )
+    def test_model_specific_tail_correction_options(
+        self, tmp_path, provider, tail_correct
+    ):
+        worker = _FakeWorker()
+        service, audio = _make_service(
+            tmp_path, worker=worker, settings=AiTimingSettings(provider=provider)
+        )
+        service.execute(_project(), str(audio))
+        options = worker.calls[0][0].options
+        assert options["tail_correct"] == tail_correct
+        assert options["tail_snap"] is bool(tail_correct)
+        assert options["tail_silence"] == 5
+
     def test_snapshot_no_audio(self, tmp_path):
         service, _ = _make_service(tmp_path)
         snap = service.snapshot(_project(), None, probe_runtime=False)
