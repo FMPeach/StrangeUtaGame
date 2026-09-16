@@ -424,7 +424,7 @@ class HfHubTransport(ModelDownloadTransport):
         except Exception as exc:
             raise ModelRegistryError(f"下载 {filename} 失败：{exc}") from exc
 
-        if total and done_bytes < total:
+        if total and done_bytes != total:
             raise ModelRegistryError(
                 f"下载 {filename} 不完整（{done_bytes}/{total} 字节），已保留断点"
             )
@@ -544,19 +544,28 @@ class ModelDownloadService:
                 progress(base, f"下载 {filename}（{i + 1}/{len(files)}）")
             dest = model_dir / filename
             dest.parent.mkdir(parents=True, exist_ok=True)
-            self._transport.download_file(
-                model_id,
-                revision,
-                filename,
-                dest,
-                expected_size=size,
-                progress=lambda p, m, _b=base, _s=span: progress(
-                    min(95, _b + int(p * _s / 100)), m
-                ),
-                cancel=cancel,
-            )
+            # The manifest is committed last. Reuse completed files after an
+            # interrupted installation, but only with a known matching size.
+            if size > 0 and dest.is_file() and dest.stat().st_size == size:
+                progress(base + span, f"复用已下载文件 {filename}")
+            else:
+                self._transport.download_file(
+                    model_id,
+                    revision,
+                    filename,
+                    dest,
+                    expected_size=size,
+                    progress=lambda p, m, _b=base, _s=span: progress(
+                        min(95, _b + int(p * _s / 100)), m
+                    ),
+                    cancel=cancel,
+                )
             if not dest.is_file():
                 raise ModelRegistryError(f"下载后文件不存在：{filename}")
+            if size > 0 and dest.stat().st_size != size:
+                raise ModelRegistryError(
+                    f"下载 {filename} 大小不符（{dest.stat().st_size}/{size} 字节）"
+                )
             entries.append(
                 ModelFileEntry(
                     filename=filename,

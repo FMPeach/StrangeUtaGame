@@ -5,6 +5,7 @@ install_from_release 快路径的 CPU→CUDA 升级契约、统一日志 ailog�
 """
 
 import io
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -36,6 +37,26 @@ def _fake_pip_runner(recorder=None):
         return 0
 
     return _run
+
+
+def test_probe_retries_cold_import_timeout(monkeypatch, tmp_path):
+    python = tmp_path / "python.exe"
+    python.write_bytes(b"fake")
+    calls = []
+
+    def run(*args, **kwargs):
+        calls.append(kwargs["timeout"])
+        if len(calls) == 1:
+            raise subprocess.TimeoutExpired(args[0], kwargs["timeout"])
+        return subprocess.CompletedProcess(
+            args[0], 0, '{"torch":"2.11.0","transformers":"5.15.0","cuda":false}\n', ""
+        )
+
+    monkeypatch.setattr(rt.subprocess, "run", run)
+    monkeypatch.setattr(rt, "detect_nvidia_gpu", lambda: "")
+    status = rt.AiRuntimeManager().probe(str(python))
+    assert status.available
+    assert calls == [30.0, 90.0]
 
 
 class _Usage:

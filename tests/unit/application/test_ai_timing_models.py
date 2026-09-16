@@ -218,6 +218,29 @@ class TestModelDownloadService:
         assert registry.resolve_model_path("NextFire/demo") is None
         assert not (registry.model_dir("NextFire/demo") / MANIFEST_NAME).exists()
 
+    def test_retry_reuses_completed_files_and_registers_manifest(self, tmp_path):
+        registry = ModelRegistry(tmp_path)
+        transport = _FakeTransport(files=_hf_files(), fail_on={"model.safetensors"})
+        service = ModelDownloadService(registry, transport)
+        with pytest.raises(ModelRegistryError, match="模拟网络中断"):
+            service.download("NextFire/demo", "wav2vec2")
+        assert transport.downloaded == ["config.json"]
+
+        transport.fail_on.clear()
+        service.download("NextFire/demo", "wav2vec2")
+        assert transport.downloaded.count("config.json") == 1
+        assert registry.validate("NextFire/demo", deep=True).state == "ok"
+
+    def test_retry_replaces_wrong_size_file(self, tmp_path):
+        registry = ModelRegistry(tmp_path)
+        target = registry.model_dir("NextFire/demo")
+        target.mkdir(parents=True)
+        (target / "config.json").write_bytes(b"truncated")
+        transport = _FakeTransport(files=_hf_files())
+        ModelDownloadService(registry, transport).download("NextFire/demo", "wav2vec2")
+        assert "config.json" in transport.downloaded
+        assert registry.validate("NextFire/demo", deep=True).state == "ok"
+
     def test_cancel_before_manifest(self, tmp_path):
         registry = ModelRegistry(tmp_path)
         transport = _FakeTransport(files=_hf_files())

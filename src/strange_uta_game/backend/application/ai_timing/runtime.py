@@ -828,9 +828,14 @@ class AiRuntimeManager:
                 **hidden_subprocess_kwargs(),
             )
         except subprocess.TimeoutExpired:
+            # Cold imports on a busy machine (especially torch/CUDA) can take
+            # longer than the normal UI probe budget. Retry once before
+            # declaring an otherwise installed environment unavailable.
+            if timeout_s < 90:
+                return self.probe(exe, timeout_s=90.0)
             _log_probe_outcome(exe, f"探测超时（>{timeout_s:.0f}s）")
             return RuntimeStatus(
-                available=False, python_path=exe, message="探测超时"
+                available=False, python_path=exe, message="探测超时，请重试"
             )
         except OSError as exc:
             _log_probe_outcome(exe, f"无法启动 Python：{exc}")
@@ -846,7 +851,8 @@ class AiRuntimeManager:
             )
             _log_probe_outcome(
                 exe,
-                f"探测失败（返回码 {completed.returncode}）：{message}",
+                f"探测失败（返回码 {completed.returncode}）：{message}"
+                f"；stderr={(completed.stderr or '').strip()[-1000:]}",
             )
             return RuntimeStatus(
                 available=False,
@@ -856,7 +862,11 @@ class AiRuntimeManager:
         try:
             info = json.loads(completed.stdout.strip().splitlines()[-1])
         except (json.JSONDecodeError, IndexError, ValueError):
-            _log_probe_outcome(exe, "探测输出无法解析（非 JSON）")
+            _log_probe_outcome(
+                exe, f"探测输出无法解析（非 JSON）："
+                f"stdout={completed.stdout.strip()[-500:]} "
+                f"stderr={(completed.stderr or '').strip()[-500:]}"
+            )
             return RuntimeStatus(
                 available=False, python_path=exe, message="探测输出无法解析"
             )
