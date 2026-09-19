@@ -29,6 +29,11 @@ class AiTimingHost(Protocol):
 
         返回 ``{"available": bool, "model": str, "message": str}``；
         message 为中文（不可用时给出可操作原因）。
+
+        可选字段 ``"busy": True``：环境已配置且健康，但此刻有分离任务
+        排队/执行中（available=False）。SUG 据此**不回落**内置分离而是
+        提示用户稍后重试——静默换一套 runtime/模型（CPU 上数分钟）会被
+        用户当成卡死。未实现该字段的旧宿主行为不变（照旧回落）。
         """
         ...
 

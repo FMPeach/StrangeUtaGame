@@ -185,8 +185,12 @@ class AiTimingService:
             worker_factory: 每次执行按 python 路径创建 worker 客户端
                 （默认 AlignmentWorkerClient；测试可注入进程内假实现）。
             separation_executor: 人声缺失时执行分离
-                ``(source_path, progress, cancel) -> vocal_path``；
-                standalone 未配置时给出中文阻断（阶段 G 由宿主注入）。
+                ``(source_path, progress, cancel) -> vocal_path``，或返回
+                ``(vocal_path, identity)`` 上报实际执行者的分离身份——
+                embedded 宿主忙/未配置时要在执行瞬间才决定走宿主还是
+                内置分离，缓存登记必须跟随实际身份（回落时不得用宿主
+                模型名登记内置产物）。standalone 未配置时给出中文阻断
+                （阶段 G 由宿主注入）。
             separation_identity: 当前生效的分离身份
                 ``{"model": str, "stem": str, "params": dict}``
                 （缓存键组成，embedded 跟随工作台设置）。
@@ -465,9 +469,20 @@ class AiTimingService:
                 # 不再出现「分离冲到 100、对齐又从 15 重新开始」的回跳
                 progress("separation", 12 + int(percent * 0.02), message)
 
-            vocal_path = self._separation_executor(
+            sep_result = self._separation_executor(
                 vocal_source, _sep_progress, cancel
             )
+            if isinstance(sep_result, tuple):
+                # 执行器上报了实际身份：embedded 宿主在执行瞬间才决定
+                # 走宿主还是内置分离，登记键必须与产物同源
+                vocal_path, actual_identity = sep_result
+                reg_model = str(actual_identity.get("model", ""))
+                reg_stem = str(actual_identity.get("stem", ""))
+                reg_params = actual_identity.get("params") or {}
+            else:
+                # 旧式注入（测试/宿主）只返回 Path：沿用执行前解析的身份
+                vocal_path = sep_result
+                reg_model, reg_stem, reg_params = separation_model, stem, params
             _check_cancel()
             log(f"人声分离完成：{vocal_path}")
             candidate = VocalCandidate(
@@ -475,9 +490,9 @@ class AiTimingService:
                 path=self._vocal_service.register_separated_vocal(
                     vocal_source,
                     media_sha256=media_sha,
-                    separation_model=separation_model,
-                    stem=stem,
-                    params=params,
+                    separation_model=reg_model,
+                    stem=reg_stem,
+                    params=reg_params,
                     vocal_path=Path(vocal_path),
                     display_name=vocal_source.stem,
                 ),

@@ -298,6 +298,43 @@ class TestExecute:
         assert cmd2 is not None
         assert "source" not in calls
 
+    def test_separation_executor_tuple_identity_used_for_cache(
+        self, tmp_path
+    ):
+        """执行器返回 (path, identity)：embedded 宿主回落内置分离时，
+        缓存登记必须跟随实际执行者身份，不得用执行前解析的宿主模型名。"""
+        fresh = tmp_path / "fresh_vocal.wav"
+        fresh.write_bytes(b"fresh")
+
+        def executor(source, progress, cancel):
+            return fresh, {
+                "model": "builtin.onnx",
+                "stem": "人声",
+                "params": {"x": 1},
+            }
+
+        service, audio = _make_service(
+            tmp_path,
+            separation_executor=executor,
+            separation_identity=lambda: {
+                "model": "host-model",
+                "stem": "人声",
+                "params": {},
+            },
+        )
+        (tmp_path / "song_人声.wav").unlink()
+        registered = {}
+        orig = service._vocal_service.register_separated_vocal
+
+        def _reg(*args, **kwargs):
+            registered["model"] = kwargs.get("separation_model")
+            return orig(*args, **kwargs)
+
+        service._vocal_service.register_separated_vocal = _reg
+        cmd = service.execute(_project(), str(audio))
+        assert cmd is not None
+        assert registered["model"] == "builtin.onnx"
+
     def test_separation_progress_band_and_monotonic(self, tmp_path):
         """分离内部 0-100 必须压进 12-14 区间，整体进度全程单调：
         2026-08 用户反馈任务期间进度冲到 100 又回落（分离 100 →

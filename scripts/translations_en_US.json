@@ -1845,5 +1845,16 @@
   "输入镜像端点，如 https://hf-mirror.com": "Enter mirror endpoint, e.g. https://hf-mirror.com",
   "从头播放": "Play from beginning",
   "停止并从头播放": "Stop and play from beginning",
-  "全选或全不选本组演唱者": "Select or deselect all singers in this group"
+  "全选或全不选本组演唱者": "Select or deselect all singers in this group",
+  "正在检查分离模型…": "Checking separation model…",
+  "正在下载分离模型文件 {name}…": "Downloading separation model file {name}…",
+  "下载分离模型文件 {name}：{cur}/{tot}": "Downloading separation model file {name}: {cur}/{tot}",
+  "FFmpeg 无响应（执行 ffmpeg -version 超时或失败）。请检查工作台设置中的 FFmpeg 配置（程序可能已损坏或被安全软件拦截）后重试": "FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configuration in workbench settings (the program may be corrupted or blocked by security software), then retry",
+  "FFmpeg 无响应（执行 ffmpeg -version 超时或失败）。请检查「设置 → 关于/语言」中配置的 FFmpeg（程序可能已损坏或被安全软件拦截）后重试": "FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configured in \"Settings → About/Language\" (the program may be corrupted or blocked by security software), then retry",
+  "人声分离长时间无响应（超过 {minutes} 分钟无任何输出），已自动终止。常见原因：显卡驱动异常（CUDA 初始化卡住）、网络下载无响应或 FFmpeg 异常；请检查工作台中的分离环境与显卡驱动后重试": "Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Check the workbench separation environment and GPU driver, then retry",
+  "人声分离长时间无响应（超过 {minutes} 分钟无任何输出），已自动终止。常见原因：显卡驱动异常（CUDA 初始化卡住）、网络下载无响应或 FFmpeg 异常；请更新显卡驱动、检查网络（可在「设置 → 网络与代理」配置代理）后重试": "Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Update the GPU driver and check the network (a proxy can be configured in \"Settings → Network & Proxy\"), then retry",
+  "工作台分离任务正在进行中{detail}，请等待其完成（或在工作台中取消）后重试 AI 打轴": "A workbench separation task is currently running{detail}. Wait for it to finish (or cancel it in the workbench), then retry AI timing",
+  "工作台分离环境暂不可用，已改用 AI 运行环境内置分离（与工作台第 2 步环境不同，CPU 下可能需数分钟）": "The workbench separation environment is unavailable; switched to the AI runtime's built-in separation (different from the workbench step-2 environment; may take several minutes on CPU)",
+  "（内置分离）{msg}": "(built-in separation) {msg}",
+  "已补齐分离模型文件 {name}": "Filled in missing separation model file {name}"
 }

@@ -319,6 +319,25 @@ class TestAiTimingDialog:
         assert dialog.row_vocal._state == "warn"
         assert not dialog.btn_run.isEnabled()
 
+    def test_vocal_auto_separate_green_when_separation_ready(self, qapp, tmp_path):
+        """无人声但分离可用 → ok（绿）而非 busy（蓝）：蓝点是「检查中」
+        的语义，曾被用户读成「卡在检查/未完成」。"""
+        snap = _ready_snapshot()
+        snap.vocal = VocalCandidate(state="separation")
+        snap.separation_available = True
+        dialog, _ = _make_dialog(qapp, tmp_path, snap, [])
+        dialog._on_snapshot_ready(snap)
+        assert dialog.row_vocal._state == "ok"
+        assert "将自动分离人声" in dialog.row_vocal._state_label.text()
+
+        snap2 = _ready_snapshot()
+        snap2.vocal = VocalCandidate(state="separation")
+        snap2.separation_available = False
+        dialog2, _ = _make_dialog(qapp, tmp_path, snap2, [])
+        dialog2._on_snapshot_ready(snap2)
+        assert dialog2.row_vocal._state == "warn"
+        assert "需要分离人声" in dialog2.row_vocal._state_label.text()
+
     def test_snapshot_ready_clears_stale_eta(self, qapp, tmp_path):
         """检查完成回到就绪时，清掉上一轮任务残留的已耗时行。"""
         snap = _ready_snapshot()

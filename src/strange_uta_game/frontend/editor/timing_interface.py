@@ -2585,7 +2585,9 @@ class EditorInterface(QWidget):
             separator = StandaloneVocalSeparator(
                 runtime_python_getter, model_root, proxy=proxy
             )
-            executor = separator.separate
+            # 统一返回 (path, identity)：缓存登记跟随实际执行者
+            # （与 embedded 宿主回落路径的口径一致）
+            executor = separator.separate_with_identity
             identity_fn = separator.identity
             prober = separator.available
         service = AiTimingService(

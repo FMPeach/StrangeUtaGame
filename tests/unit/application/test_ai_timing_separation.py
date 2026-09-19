@@ -84,6 +84,8 @@ def _separator(
     ffmpeg.parent.mkdir(parents=True, exist_ok=True)
     ffmpeg.write_bytes(b"")
     monkeypatch.setattr(sep_mod, "resolve_ffmpeg_exe", lambda: str(ffmpeg))
+    # ffmpeg 预检被 mock：假的空壳 ffmpeg.exe 无法真正执行 -version
+    monkeypatch.setattr(sep_mod, "ffmpeg_responsive", lambda exe, **k: True)
     proc = _FakeProc(lines, returncode=returncode)
     captured = {}
 
@@ -289,6 +291,7 @@ class TestStandaloneSeparator:
         ffmpeg.parent.mkdir(parents=True, exist_ok=True)
         ffmpeg.write_bytes(b"")
         monkeypatch.setattr(sep_mod, "resolve_ffmpeg_exe", lambda: str(ffmpeg))
+        monkeypatch.setattr(sep_mod, "ffmpeg_responsive", lambda exe, **k: True)
         stdout = _ManualStdout()  # 永不输出，直到测试结束
         proc = _FakeProc([], returncode=1)
         proc.stdout = stdout
@@ -319,6 +322,7 @@ class TestStandaloneSeparator:
         ffmpeg.parent.mkdir(parents=True, exist_ok=True)
         ffmpeg.write_bytes(b"")
         monkeypatch.setattr(sep_mod, "resolve_ffmpeg_exe", lambda: str(ffmpeg))
+        monkeypatch.setattr(sep_mod, "ffmpeg_responsive", lambda exe, **k: True)
         stdout = _ManualStdout()
         proc = _FakeProc([], returncode=1)
         proc.stdout = stdout
@@ -419,6 +423,84 @@ class TestStandaloneSeparator:
                 tmp_path / "song.flac", lambda *a: None, lambda: True
             )
         assert spawned == []
+
+    def test_separate_skips_redundant_available_probe(
+        self, tmp_path, monkeypatch
+    ):
+        """执行期不再重复 available() 导入探测：那是又一次完整的
+        torch/onnxruntime 冷导入（慢机器 30s+ 静默，且超时会误报
+        「分离环境未安装」）。组件真缺失由子进程失败带 traceback。"""
+        lines = ["done:" + str(tmp_path / "song_人声.wav")]
+        sep, _, _, _ = _separator(tmp_path, monkeypatch, lines)
+        calls = []
+        monkeypatch.setattr(
+            sep, "available", lambda: calls.append(1) or True
+        )
+        sep.separate(tmp_path / "song.flac", lambda *a: None, lambda: False)
+        assert calls == []
+
+    def test_missing_python_blocks_with_install_hint(self, tmp_path, monkeypatch):
+        """解释器不存在时仍给出安装指引（快检即可，无需导入探测）。"""
+        spawned = []
+        monkeypatch.setattr(
+            sep_mod.subprocess, "Popen", lambda *a, **k: spawned.append(a)
+        )
+        sep = StandaloneVocalSeparator(
+            str(tmp_path / "nope" / "python.exe"), tmp_path / "models"
+        )
+        with pytest.raises(RuntimeError, match="分离环境未安装"):
+            sep.separate(
+                tmp_path / "song.flac", lambda *a: None, lambda: False
+            )
+        assert spawned == []
+
+    def test_unresponsive_ffmpeg_fails_fast_without_spawn(
+        self, tmp_path, monkeypatch
+    ):
+        """audio-separator 构造里的 ffmpeg 探测无超时：坏 ffmpeg 会让
+        子进程永久挂起。宿主侧预检必须提前拦截且不启动子进程。"""
+        python = tmp_path / "python.exe"
+        python.write_bytes(b"")
+        ffmpeg = tmp_path / "tools" / "ffmpeg.exe"
+        ffmpeg.parent.mkdir(parents=True, exist_ok=True)
+        ffmpeg.write_bytes(b"")
+        monkeypatch.setattr(sep_mod, "resolve_ffmpeg_exe", lambda: str(ffmpeg))
+        monkeypatch.setattr(sep_mod, "ffmpeg_responsive", lambda exe, **k: False)
+        spawned = []
+        monkeypatch.setattr(
+            sep_mod.subprocess,
+            "Popen",
+            lambda *a, **k: spawned.append(a) or _FakeProc([]),
+        )
+        sep = StandaloneVocalSeparator(str(python), tmp_path / "models")
+        with pytest.raises(RuntimeError, match="FFmpeg 无响应"):
+            sep.separate(tmp_path / "song.flac", lambda *a: None, lambda: False)
+        assert spawned == []
+
+    def test_stall_watchdog_kills_silent_child(self, tmp_path, monkeypatch):
+        """子进程长时间零输出（CUDA/驱动死锁、坏 ffmpeg 卡住构造探测）
+        由看门狗终止并给出指向性报错，而不是永远挂在「分离中」。"""
+        monkeypatch.setattr(sep_mod, "_STALL_KILL_S", 0.5)
+        monkeypatch.setattr(StandaloneVocalSeparator, "available", lambda self: True)
+        python = tmp_path / "python.exe"
+        python.write_bytes(b"")
+        ffmpeg = tmp_path / "tools" / "ffmpeg.exe"
+        ffmpeg.parent.mkdir(parents=True, exist_ok=True)
+        ffmpeg.write_bytes(b"")
+        monkeypatch.setattr(sep_mod, "resolve_ffmpeg_exe", lambda: str(ffmpeg))
+        monkeypatch.setattr(sep_mod, "ffmpeg_responsive", lambda exe, **k: True)
+        stdout = _ManualStdout()  # 永不输出
+        proc = _FakeProc([], returncode=1)
+        proc.stdout = stdout
+        monkeypatch.setattr(sep_mod.subprocess, "Popen", lambda *a, **k: proc)
+        sep = StandaloneVocalSeparator(str(python), tmp_path / "models")
+        monkeypatch.setattr(sep, "_download_missing_model_files", lambda **k: [])
+        t0 = time.monotonic()
+        with pytest.raises(RuntimeError, match="无响应"):
+            sep.separate(tmp_path / "song.flac", lambda *a: None, lambda: False)
+        assert time.monotonic() - t0 < 5  # 看门狗周期级，而非等到天荒地老
+        assert proc.killed
+        stdout.close()  # 释放读取线程
 
 
 class TestSeparationModelPreflight:
@@ -526,19 +608,26 @@ class TestSeparationModelPreflight:
 class TestHostFirstSeparation:
     """embedded 分离编排：宿主优先，宿主未配置时回落 AI Runtime 内置分离。"""
 
-    def _fake_host(self, available):
+    def _fake_host(self, available, *, busy=False, message="", fail=None):
         class _H:
             def __init__(self):
                 self.calls = []
 
             def separation_status(self):
-                return {"available": available, "model": "m", "message": ""}
+                return {
+                    "available": available,
+                    "busy": busy,
+                    "model": "m",
+                    "message": message,
+                }
 
             def effective_identity(self):
                 return {"model": "host-model", "stem": "人声", "params": {}}
 
             def separate_vocal(self, source, progress, cancel):
                 self.calls.append(("host", str(source)))
+                if fail:
+                    raise RuntimeError(fail)
                 return Path("C:/host_vocal.wav")
 
         return _H()
@@ -573,7 +662,11 @@ class TestHostFirstSeparation:
         assert prober() is True
         assert identity() == {"model": "host-model", "stem": "人声", "params": {}}
         out = executor(Path("s.flac"), lambda *a: None, lambda: False)
-        assert out == Path("C:/host_vocal.wav")
+        # 执行器返回 (path, identity)：缓存登记跟随实际执行者
+        assert out == (
+            Path("C:/host_vocal.wav"),
+            {"model": "host-model", "stem": "人声", "params": {}},
+        )
         assert host.calls and not sa.calls
 
     def test_host_unavailable_falls_back_to_builtin(self):
@@ -586,10 +679,74 @@ class TestHostFirstSeparation:
         out = executor(
             Path("s.flac"), lambda s, p, m: msgs.append(m), lambda: False
         )
-        assert out == Path("C:/builtin_vocal.wav")
-        assert any("内置分离" in m for m in msgs)
+        assert out == (
+            Path("C:/builtin_vocal.wav"),
+            {"model": "builtin.onnx", "stem": "人声", "params": {}},
+        )
+        # 一次性说明 + 后续消息持续带「内置分离」前缀（不静默换环境）
+        assert any("暂不可用" in m for m in msgs)
+        assert any(m.startswith("（内置分离）") for m in msgs)
         assert identity()["model"] == "builtin.onnx"
         assert prober() is True  # 内置分离可用兜底
+
+    def test_host_busy_raises_instead_of_fallback(self):
+        """宿主忙（环境是好的、只是有任务在跑）不得静默换一套 CPU
+        runtime 跑 7-8 分钟——明确报错让用户稍后重试（2026-09 反馈：
+        第 2 步秒级、第 4 步 7-8 分钟即此链路）。"""
+        host = self._fake_host(False, busy=True, message="正在分离 a.wav")
+        sa = self._fake_standalone()
+        executor, _, _, _ = sep_mod.host_first_separation(host, sa)
+        with pytest.raises(RuntimeError, match="工作台分离任务正在进行中"):
+            executor(Path("s.flac"), lambda *a: None, lambda: False)
+        assert not sa.calls  # 未回落
+        assert not host.calls  # 也没调宿主分离
+
+    def test_host_busy_without_message_still_actionable(self):
+        host = self._fake_host(False, busy=True)
+        sa = self._fake_standalone()
+        executor, _, _, _ = sep_mod.host_first_separation(host, sa)
+        with pytest.raises(RuntimeError, match="重试 AI 打轴"):
+            executor(Path("s.flac"), lambda *a: None, lambda: False)
+        assert not sa.calls
+
+    def test_host_path_logs_start_and_finish(self, monkeypatch):
+        """宿主分支补日志：宿主服务僵死时日志不能再只有一片空白。"""
+        import strange_uta_game.backend.application.ai_timing.ailog as ailog_mod
+
+        lines = []
+        monkeypatch.setattr(
+            ailog_mod, "ailog", lambda src, msg: lines.append(msg)
+        )
+        host = self._fake_host(True)
+        executor, *_ = sep_mod.host_first_separation(host, self._fake_standalone())
+        executor(Path("s.flac"), lambda *a: None, lambda: False)
+        assert any("宿主人声分离开始" in m for m in lines)
+        assert any("宿主人声分离完成" in m for m in lines)
+
+    def test_host_path_logs_failure(self, monkeypatch):
+        import strange_uta_game.backend.application.ai_timing.ailog as ailog_mod
+
+        lines = []
+        monkeypatch.setattr(
+            ailog_mod, "ailog", lambda src, msg: lines.append(msg)
+        )
+        host = self._fake_host(True, fail="engine exploded")
+        executor, *_ = sep_mod.host_first_separation(host, self._fake_standalone())
+        with pytest.raises(RuntimeError, match="engine exploded"):
+            executor(Path("s.flac"), lambda *a: None, lambda: False)
+        assert any("宿主人声分离失败" in m for m in lines)
+
+    def test_fallback_path_logged(self, monkeypatch):
+        import strange_uta_game.backend.application.ai_timing.ailog as ailog_mod
+
+        lines = []
+        monkeypatch.setattr(
+            ailog_mod, "ailog", lambda src, msg: lines.append(msg)
+        )
+        host = self._fake_host(False)
+        executor, *_ = sep_mod.host_first_separation(host, self._fake_standalone())
+        executor(Path("s.flac"), lambda *a: None, lambda: False)
+        assert any("回落 AI Runtime 内置分离" in m for m in lines)
 
     def test_neither_available_reports_false(self):
         host, sa = self._fake_host(False), self._fake_standalone()
@@ -614,7 +771,8 @@ class TestHostFirstSeparation:
         )
         assert follows is False and prober() is True
         out = executor(Path("s.flac"), lambda *a: None, lambda: False)
-        assert out == Path("C:/builtin_vocal.wav")
+        assert out[0] == Path("C:/builtin_vocal.wav")
+        assert out[1]["model"] == "builtin.onnx"
 
 
 class TestSeparationModelPredownload:
@@ -667,6 +825,40 @@ class TestSeparationModelPredownload:
         dl = sep_mod._download_missing_model_files(models, proxy="")
         assert dl == []
         assert calls == []
+
+    def test_byte_progress_reported_during_download(self, tmp_path, monkeypatch):
+        """大模型（~63MB）预下载期间必须有字节级进度：整文件下完才报
+        一次的话，慢网络下进度条会冻结数分钟（用户侧即「卡住」）。"""
+        import requests
+
+        body = b"x" * 4096
+
+        class _Resp:
+            headers = {"content-length": str(len(body))}
+
+            def raise_for_status(self):
+                pass
+
+            def iter_content(self, chunk_size=1024):
+                for i in range(0, len(body), 1024):
+                    yield body[i : i + 1024]
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+        monkeypatch.setattr(requests, "get", lambda *a, **k: _Resp())
+        msgs = []
+        dl = sep_mod._download_missing_model_files(
+            tmp_path / "models",
+            progress=lambda s, p, m: msgs.append(m),
+        )
+        assert len(dl) == 4
+        assert any("正在下载分离模型文件" in m for m in msgs)  # 文件级起始
+        byte_msgs = [m for m in msgs if "：" in m and "/" in m]
+        assert any("4.0KB/4.0KB" in m for m in byte_msgs)  # 字节级进行中
 
     def test_raw_url_gets_gh_proxy_mirror_candidates(self):
         from strange_uta_game.backend.application.ai_timing.runtime import (

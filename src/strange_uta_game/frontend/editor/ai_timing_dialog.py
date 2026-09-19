@@ -934,13 +934,13 @@ class AiTimingDialog(QDialog):
                 self.vocal_combo.setCurrentIndex(0)
             self.vocal_combo.show()
         else:
-            # 分离组件就绪时这不再是阻断：执行阶段会自动分离
-            self.row_vocal.set_state(
-                "warn" if not snapshot.separation_available else "busy",
-                self.tr("将自动分离人声")
-                if snapshot.separation_available
-                else self.tr("需要分离人声"),
-            )
+            # 分离组件就绪时这不再是阻断：执行阶段会自动分离。状态灯用
+            # ok（绿）而非 busy（蓝）：蓝点是「检查中」的语义，曾被用户
+            # 读成「卡在检查/未完成」；这里要表达的是「无需任何处理」。
+            if snapshot.separation_available:
+                self.row_vocal.set_state("ok", self.tr("将自动分离人声"))
+            else:
+                self.row_vocal.set_state("warn", self.tr("需要分离人声"))
 
         # 分离环境（§3.2/§6.2）：embedded 跟随工作台设置；
         # standalone = 共享 Runtime（含 audio-separator）是否已装
