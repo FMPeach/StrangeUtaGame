@@ -638,8 +638,9 @@ class NicokaraParser:
     FLEXIBLE_TS_PATTERN = re.compile(r"\[(\d{1,2}):(\d{2})[:.](\d{2,3})\]")
     # 演唱者标签: 【svN】或【演唱者名】
     SINGER_TAG_PATTERN = re.compile(r"【([^】]+)】")
-    # @Ruby 条目
-    RUBY_PATTERN = re.compile(r"^@Ruby(\d+)=(.+)$")
+    # @Ruby 条目。编号可省略：Kirakara/KRL 风格统一写 `@Ruby=`，条目靠
+    # 后面的位置时间戳消歧（numbered 的 SHINTA 规格仍兼容）。
+    RUBY_PATTERN = re.compile(r"^@Ruby(\d*)=(.+)$")
     # @Emoji 条目（演唱者定义）
     EMOJI_PATTERN = re.compile(r"^@Emoji=(.+)$")
     # 元数据标签
@@ -654,8 +655,8 @@ class NicokaraParser:
         # 检查 【svN】 模式
         if re.search(r"【sv\d+】", content):
             return True
-        # 检查 @Ruby 或 @Emoji 元数据
-        if re.search(r"^@(Ruby\d+|Emoji)=", content, re.MULTILINE):
+        # 检查 @Ruby 或 @Emoji 元数据（编号可省略）
+        if re.search(r"^@(Ruby\d*|Emoji)=", content, re.MULTILINE):
             return True
         # 检查 [MM:SS:CC] 冒号分隔的时间戳（Nicokara 特有）
         if re.search(r"\[\d{1,2}:\d{2}:\d{2}\]", content):
@@ -714,7 +715,10 @@ class NicokaraParser:
             # 解析 @Ruby 元数据
             ruby_match = self.RUBY_PATTERN.match(stripped) if stripped else None
             if ruby_match:
-                ruby_indices.append(int(ruby_match.group(1)))
+                index_str = ruby_match.group(1)
+                # 仅编号条目参与连号校验；无编号的 Kirakara 条目跳过校验。
+                if index_str:
+                    ruby_indices.append(int(index_str))
                 entry = self._parse_ruby_entry(ruby_match.group(2))
                 if entry:
                     ruby_entries.append(entry)
