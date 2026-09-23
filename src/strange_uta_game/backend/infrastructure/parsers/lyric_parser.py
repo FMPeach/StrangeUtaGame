@@ -673,6 +673,15 @@ class NicokaraParser:
         # 去除 UTF-8 BOM（Python str.strip() 不会移除 \ufeff）
         content = content.lstrip("\ufeff")
 
+        # Kirakara/KRL 常在文件头部带一个 JSON 风格的 `config { ... }` 块
+        # （字体、配色等渲染配置）。它不属于歌词，必须剥离，否则会被当成
+        # 正文行解析为一堆字体/配置“歌词”。仅剥离文件最前面的该块。
+        from strange_uta_game.backend.infrastructure.parsers.kasugamuki_format import (
+            strip_krl_config,
+        )
+
+        content = strip_krl_config(content)
+
         # SHINTA 2025 规格诊断（宽松+warning）：
         #   - 严格 ts 形如 [MM:SS:CC]（M/S/C 均 2 位）
         #   - 解析仍走 NICOKARA_TS_PATTERN（接受 \d{1,2}:\d{2}:\d{2}）

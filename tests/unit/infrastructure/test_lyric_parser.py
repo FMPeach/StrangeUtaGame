@@ -780,6 +780,30 @@ class TestNicokaraBodyModel:
         assert last.sentence_end_ts == 600
 
 
+class TestKirakaraConfigBlock:
+    """Kirakara/KRL 头部 config 块不得混入歌词。"""
+
+    _CONTENT = (
+        "config {\n"
+        '    "fontSize": 64,\n'
+        '    "fontFamily": "Noto Sans JP",\n'
+        "}\n"
+        "\n"
+        "@Ruby=忘,わ[00:00:20]す,[00:14:74],[00:15:38]\n"
+        "\n"
+        "[00:14:74]忘[00:15:38]れ\n"
+    )
+
+    def test_config_block_stripped_from_body(self):
+        """头部 config 渲染配置块不是歌词，不得解析成正文行。"""
+        from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
+            NicokaraParser,
+        )
+
+        result = NicokaraParser().parse(self._CONTENT)
+        assert [line.text for line in result.lines] == ["忘れ"]
+
+
 class TestNicokaraParserSpecCompliance:
     """SHINTA 2025 规格诊断 warning 测试（差异表 A / H）。"""
 
