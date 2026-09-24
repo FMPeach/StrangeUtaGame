@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from typing import Optional
 
 from PyQt6.QtCore import Qt
 from qfluentwidgets import FluentIcon as FIF
@@ -18,8 +19,11 @@ from .base import SubSettingInterface
 
 
 class TimingSubInterface(SubSettingInterface):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, *, embedded: Optional[bool] = None):
         super().__init__(parent)
+        # None preserves compatibility for direct callers that historically
+        # identified embedded mode through AppSettings._provider.
+        self._embedded = embedded
         self._settings_ref = None
         self._calibration_dialog = None
         self._high_dpi_setting_available = False
@@ -270,8 +274,13 @@ class TimingSubInterface(SubSettingInterface):
 
     def load_settings(self, s):
         self._settings_ref = s
+        embedded = (
+            getattr(s, "_provider", None) is not None
+            if self._embedded is None
+            else self._embedded
+        )
         self._high_dpi_setting_available = (
-            sys.platform == "win32" and getattr(s, "_provider", None) is None
+            sys.platform == "win32" and not embedded
         )
         self.card_high_dpi_scaling.setVisible(self._high_dpi_setting_available)
         self.card_high_dpi_scaling.setChecked(

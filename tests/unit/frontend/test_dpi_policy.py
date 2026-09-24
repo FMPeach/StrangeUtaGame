@@ -113,9 +113,31 @@ def test_timing_switch_is_enabled_and_saved_immediately_on_windows(qapp, monkeyp
 
     assert settings.values[HIGH_DPI_SCALING_KEY] is False
     assert settings.save_count == 1
+    page.deleteLater()
+    qapp.processEvents()
 
 
 def test_timing_switch_is_hidden_when_sug_is_embedded(qapp, monkeypatch):
+    monkeypatch.setattr(sys, "platform", "win32")
+    settings = _SettingsStub(high_dpi_scaling=True)
+    page = TimingSubInterface(embedded=True)
+    page.connect_signals()
+
+    page.load_settings(settings)
+
+    assert page.card_high_dpi_scaling.isHidden()
+
+    # Hidden host-owned settings must neither persist immediately nor leak
+    # through the normal collect pass.
+    page.card_high_dpi_scaling.setChecked(False)
+    page.collect_settings(settings)
+    assert settings.values[HIGH_DPI_SCALING_KEY] is True
+    assert settings.save_count == 0
+    page.deleteLater()
+    qapp.processEvents()
+
+
+def test_timing_switch_keeps_provider_based_embedded_compatibility(qapp, monkeypatch):
     monkeypatch.setattr(sys, "platform", "win32")
     settings = _SettingsStub(high_dpi_scaling=True, provider=object())
     page = TimingSubInterface()
@@ -123,6 +145,8 @@ def test_timing_switch_is_hidden_when_sug_is_embedded(qapp, monkeypatch):
     page.load_settings(settings)
 
     assert page.card_high_dpi_scaling.isHidden()
+    page.deleteLater()
+    qapp.processEvents()
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows DPI API only")
