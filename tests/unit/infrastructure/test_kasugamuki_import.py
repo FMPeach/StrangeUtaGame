@@ -186,6 +186,35 @@ def test_project_import_service_accepts_krl_extension(monkeypatch):
     assert sentences[0].characters[0].timestamps == [11700, 11810]
 
 
+def test_krl_config_and_unnumbered_ruby_via_parse_lyric_content():
+    """带 config 块 + 无编号 @Ruby= 的 .krl：config 不得成为歌词，@Ruby 不得丢。
+
+    这类文件此前被 detect_lyric_format 判为 Nicokara，而 Nicokara 解析器
+    既把 config JSON 当正文，又只认 `@RubyN=` 编号条目 → 配置成了歌词、
+    注音整段丢失。
+    """
+    content = (
+        'config {\n    "fontSize": 64,\n    "fontFamily": "Noto Sans JP"\n}\n'
+        "\n"
+        "@Ruby=忘,わ[00:00:20]す,[00:14:74],[00:15:38]\n"
+        "\n"
+        "[00:14:74]忘[00:15:38]れ\n"
+    )
+
+    sentences, is_nicokara, new_singers, metadata = parse_lyric_content(
+        content, SINGER_ID
+    )
+
+    assert is_nicokara
+    assert new_singers == []
+    assert [s.text for s in sentences] == ["忘れ"]
+    forget = sentences[0].characters[0]
+    assert forget.ruby is not None
+    assert forget.check_count == 2
+    assert forget.timestamps == [14740, 14940]
+    assert forget.is_fully_timed
+
+
 def test_linked_group_primary_subtitle_and_ruby_round_trip():
     source = (
         "前{明日|[00:01:00]あ[00:01:20]し[00:01:40]た>"
