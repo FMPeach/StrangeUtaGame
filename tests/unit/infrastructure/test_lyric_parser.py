@@ -780,6 +780,68 @@ class TestNicokaraBodyModel:
         assert last.sentence_end_ts == 600
 
 
+class TestKirakaraConfigBlock:
+    """Kirakara/KRL 头部 config 块不得混入歌词。"""
+
+    _CONTENT = (
+        "config {\n"
+        '    "fontSize": 64,\n'
+        '    "fontFamily": "Noto Sans JP",\n'
+        "}\n"
+        "\n"
+        "@Ruby=忘,わ[00:00:20]す,[00:14:74],[00:15:38]\n"
+        "\n"
+        "[00:14:74]忘[00:15:38]れ\n"
+    )
+
+    def test_config_block_stripped_from_body(self):
+        """头部 config 渲染配置块不是歌词，不得解析成正文行。"""
+        from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
+            NicokaraParser,
+        )
+
+        result = NicokaraParser().parse(self._CONTENT)
+        assert [line.text for line in result.lines] == ["忘れ"]
+
+
+class TestKirakaraUnnumberedRuby:
+    """Kirakara/KRL 的无编号 `@Ruby=` 条目（条目靠位置时间戳消歧）。"""
+
+    _CONTENT = (
+        "config {\n"
+        '    "fontSize": 64,\n'
+        "}\n"
+        "\n"
+        "@Ruby=忘,わ[00:00:20]す,[00:14:74],[00:15:38]\n"
+        "\n"
+        "[00:14:74]忘[00:15:38]れ\n"
+    )
+
+    def test_is_nicokara_format_accepts_unnumbered_ruby(self):
+        from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
+            NicokaraParser,
+        )
+
+        assert NicokaraParser.is_nicokara_format(self._CONTENT)
+
+    def test_unnumbered_ruby_applied_with_mora_timing(self):
+        """无编号 @Ruby= 必须解析，并还原读音内嵌的相对时间戳为第二拍。"""
+        from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
+            NicokaraParser,
+            nicokara_result_to_sentences,
+        )
+
+        result = NicokaraParser().parse(self._CONTENT)
+        assert len(result.ruby_entries) == 1
+        sentences = nicokara_result_to_sentences(result, {}, "singer_1")
+        ch = sentences[0].characters[0]
+        assert ch.char == "忘"
+        assert ch.check_count == 2
+        assert ch.timestamps == [14740, 14940]
+        assert [p.text for p in ch.ruby.parts] == ["わ", "す"]
+        assert ch.is_fully_timed
+
+
 class TestNicokaraParserSpecCompliance:
     """SHINTA 2025 规格诊断 warning 测试（差异表 A / H）。"""
 

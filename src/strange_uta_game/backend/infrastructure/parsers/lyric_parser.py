@@ -638,8 +638,9 @@ class NicokaraParser:
     FLEXIBLE_TS_PATTERN = re.compile(r"\[(\d{1,2}):(\d{2})[:.](\d{2,3})\]")
     # 演唱者标签: 【svN】或【演唱者名】
     SINGER_TAG_PATTERN = re.compile(r"【([^】]+)】")
-    # @Ruby 条目
-    RUBY_PATTERN = re.compile(r"^@Ruby(\d+)=(.+)$")
+    # @Ruby 条目。编号可省略：Kirakara/KRL 风格统一写 `@Ruby=`，条目靠
+    # 后面的位置时间戳消歧（numbered 的 SHINTA 规格仍兼容）。
+    RUBY_PATTERN = re.compile(r"^@Ruby(\d*)=(.+)$")
     # @Emoji 条目（演唱者定义）
     EMOJI_PATTERN = re.compile(r"^@Emoji=(.+)$")
     # 元数据标签
@@ -654,8 +655,8 @@ class NicokaraParser:
         # 检查 【svN】 模式
         if re.search(r"【sv\d+】", content):
             return True
-        # 检查 @Ruby 或 @Emoji 元数据
-        if re.search(r"^@(Ruby\d+|Emoji)=", content, re.MULTILINE):
+        # 检查 @Ruby 或 @Emoji 元数据（编号可省略）
+        if re.search(r"^@(Ruby\d*|Emoji)=", content, re.MULTILINE):
             return True
         # 检查 [MM:SS:CC] 冒号分隔的时间戳（Nicokara 特有）
         if re.search(r"\[\d{1,2}:\d{2}:\d{2}\]", content):
@@ -672,6 +673,15 @@ class NicokaraParser:
         """
         # 去除 UTF-8 BOM（Python str.strip() 不会移除 \ufeff）
         content = content.lstrip("\ufeff")
+
+        # Kirakara/KRL 常在文件头部带一个 JSON 风格的 `config { ... }` 块
+        # （字体、配色等渲染配置）。它不属于歌词，必须剥离，否则会被当成
+        # 正文行解析为一堆字体/配置“歌词”。仅剥离文件最前面的该块。
+        from strange_uta_game.backend.infrastructure.parsers.kasugamuki_format import (
+            strip_krl_config,
+        )
+
+        content = strip_krl_config(content)
 
         # SHINTA 2025 规格诊断（宽松+warning）：
         #   - 严格 ts 形如 [MM:SS:CC]（M/S/C 均 2 位）
@@ -705,7 +715,10 @@ class NicokaraParser:
             # 解析 @Ruby 元数据
             ruby_match = self.RUBY_PATTERN.match(stripped) if stripped else None
             if ruby_match:
-                ruby_indices.append(int(ruby_match.group(1)))
+                index_str = ruby_match.group(1)
+                # 仅编号条目参与连号校验；无编号的 Kirakara 条目跳过校验。
+                if index_str:
+                    ruby_indices.append(int(index_str))
                 entry = self._parse_ruby_entry(ruby_match.group(2))
                 if entry:
                     ruby_entries.append(entry)

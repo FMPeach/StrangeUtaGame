@@ -33,6 +33,7 @@ from strange_uta_game.backend.infrastructure.parsers.kasugamuki_format import (
     is_kasugamuki_content,
     krl_role_names,
     sentences_from_kasugamuki,
+    strip_krl_config,
 )
 from strange_uta_game.backend.infrastructure.parsers.text_splitter import (
     CharType,
@@ -388,6 +389,8 @@ def detect_lyric_format(content: str) -> str:
     # SUG/JSON 格式检测（最高优先级，避免误解析）
     if _is_json_content(content):
         return "sug"
+    # Kirakara/KRL 文件头部的 `config { ... }` 渲染配置块不是歌词，先剥离再检测。
+    content = strip_krl_config(content)
     if UtatenRubyParser.is_utaten_format(content):
         return "utaten"
     # KRL must precede generic inline detection: both formats use {text|ruby},
