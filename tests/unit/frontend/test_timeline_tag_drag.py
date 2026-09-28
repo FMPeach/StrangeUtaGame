@@ -21,9 +21,14 @@ def _fake_wd():
         _selected_handles=set(), _last_tags_input=None,
         _running_max_ts=-1, _seen_char_keys=set(), _is_dragging_tags=False,
         _max_file_order_key=None, update=lambda: None,
+        _line_edge_handles=set(), _line_bounds={},
     )
     f._append_time_tag = lambda entry: WaveformDisplay._append_time_tag(f, entry)
     f.set_time_tags = lambda tags: WaveformDisplay.set_time_tags(f, tags)
+    f._recompute_line_edge_handles = lambda: WaveformDisplay._recompute_line_edge_handles(f)
+    f._update_line_edges_on_append = (
+        lambda li, ts, h: WaveformDisplay._update_line_edges_on_append(f, li, ts, h)
+    )
     f._visible_slice = lambda lst, vs, ve: WaveformDisplay._visible_slice(f, lst, vs, ve)
     f.try_append_tag = lambda *a: WaveformDisplay.try_append_tag(f, *a)
     f.try_add_tag = lambda *a: WaveformDisplay.try_add_tag(f, *a)
@@ -36,6 +41,7 @@ def _summary(wd):
         [(t.ts, t.handle, t.label) for t in wd._time_tags],
         [(t.ts, t.handle, t.label) for t in wd._warning_time_tags],
         set(wd._handle_index),
+        set(wd._line_edge_handles),
     )
 
 

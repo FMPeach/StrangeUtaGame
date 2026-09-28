@@ -101,6 +101,14 @@ class WaveformDisplay(QWidget):
     _HANDLE_HEIGHT = 9          # 把手块高度（px）
     _MIN_HANDLE_SPACING = 8     # 相邻把手最小间距，低于此值密度门控不绘制把手/不可命中
     _HANDLE_HIT_Y_BAND = 12     # 命中仅在把手中心 ±该像素范围内有效
+    # 行首/行尾（每行 ts 最小/最大的时间标签，可能是普通点也可能是句尾停顿点）
+    # 的强调只作用于竖线：加粗 + 加长 + 背景色描边衬边；把手不变
+    _EDGE_LINE_WIDTH_BONUS = 1  # 行首/行尾竖线相对普通竖线的额外加粗（px）
+    _EDGE_LINE_SPAN_EXT = 0.14  # 行首/行尾竖线向上下各延长的 lane 高度比例
+    _EDGE_LINE_SPAN_CAP = 0.96  # 延长后的下界上限（避开声谱 lane 底部内容）
+    # 行首/行尾标签文字的右移量（px）：竖线加粗后含 halo 半宽约 3.5px 且上端
+    # 延进标签轨道，文字底板（左缘在 a-2）右移让开，保证竖线完整可见
+    _EDGE_LABEL_DX = 6
     # 双谱交界命中半宽（px）：刻意窄于把手命中带——把手在各 lane 中心
     # ±12px，交界 ±3px 不会侵占 tag 的可交互区
     _LANE_HIT_TOLERANCE = 3
@@ -143,6 +151,11 @@ class WaveformDisplay(QWidget):
         # Raw entries keyed by stable handle. This lets an interior checkpoint be
         # inserted without collecting every timestamp from the project again.
         self._entries_by_handle: dict[TagHandle, tuple] = {}
+        # 每行首/尾时间标签（该行 ts 最小/最大者，跨 normal/warning 合并判定）
+        # 的句柄集合，用于行界强调绘制；_line_bounds 为其增量维护所需的
+        # line_idx -> (min_ts, min_handle, max_ts, max_handle)。
+        self._line_edge_handles: set = set()
+        self._line_bounds: dict = {}
 
         # 音频数据
         self._samples: Optional[np.ndarray] = None
@@ -404,6 +417,7 @@ class WaveformDisplay(QWidget):
                 running_max = ts
         self._time_tags = sorted(normal, key=lambda x: x.ts)
         self._warning_time_tags = sorted(warning, key=lambda x: x.ts)
+        self._recompute_line_edge_handles()
         # 重建句柄索引（命中/选中/拖拽以句柄为身份）；丢弃已不存在的选中项
         self._handle_index = {
             t.handle: t for t in (self._time_tags + self._warning_time_tags)
@@ -437,8 +451,51 @@ class WaveformDisplay(QWidget):
         self._handle_index[handle] = item
         self._entries_by_handle[handle] = entry
         self._max_file_order_key = (line_idx, char_idx, cp_idx)
+        self._update_line_edges_on_append(line_idx, ts, handle)
         WaveformDisplay._invalidate_static_layer(self)
         self.update()
+
+    def _recompute_line_edge_handles(self) -> None:
+        """重算每行首/尾时间标签句柄集合（该行 ts 最小/最大者）。
+
+        行首可能是普通 checkpoint，行尾在打了停顿点时是 is_sentence_end 标签——
+        两类都可能成为行界，统一按 ts 判定。normal/warning 两列表各自按 ts
+        升序，合并排序后顺序扫描即可得每行极值；同 ts 并列时取扫描靠后者
+        （同 x 渲染，视觉无差）。
+        """
+        bounds: dict = {}
+        for t in sorted(self._time_tags + self._warning_time_tags, key=lambda x: x.ts):
+            b = bounds.get(t.handle[0])
+            if b is None:
+                bounds[t.handle[0]] = [t.ts, t.handle, t.ts, t.handle]
+            elif t.ts >= b[2]:
+                b[2], b[3] = t.ts, t.handle
+        self._line_bounds = {k: tuple(v) for k, v in bounds.items()}
+        self._line_edge_handles = {
+            h for v in self._line_bounds.values() for h in (v[1], v[3])
+        }
+
+    def _update_line_edges_on_append(self, line_idx: int, ts: int,
+                                     handle: TagHandle) -> None:
+        """增量追加后的行界维护：新标签成为该行新的最小/最大 ts 时顶替旧句柄。
+
+        句柄内嵌 line_idx，行间互不冲突，直接改写该行在集合中的两个句柄即可
+        （单标签行的首尾为同一句柄，集合中仅一份）。
+        """
+        prev = self._line_bounds.get(line_idx)
+        if prev is None:
+            self._line_bounds[line_idx] = (ts, handle, ts, handle)
+            self._line_edge_handles.add(handle)
+            return
+        min_ts, min_h, max_ts, max_h = prev
+        if ts < min_ts or ts >= max_ts:
+            if ts < min_ts:
+                min_ts, min_h = ts, handle
+            else:
+                max_ts, max_h = ts, handle
+            self._line_bounds[line_idx] = (min_ts, min_h, max_ts, max_h)
+            self._line_edge_handles.difference_update((prev[1], prev[3]))
+            self._line_edge_handles.update((min_h, max_h))
 
     def try_append_tag(self, ts: int, char: str, line_idx: int, char_idx: int,
                        cp_idx: int, is_end: bool, ruby: Optional[str]) -> bool:
@@ -2212,7 +2269,15 @@ class WaveformDisplay(QWidget):
                 if not (visible_start_ms <= ts <= visible_end_ms):
                     return
                 x = self._ts_to_x(ts, visible_start_ms, visible_duration, w)
-                if _is_spec:
+                # 行首/行尾强调（只动竖线，把手不变）：加粗一档、向两端显著
+                # 延长，并垫一圈背景色 halo——波形 lane 上相当于给竖线加描边；
+                # 密集缩放下把手会被密度门控隐藏，竖线保证行边界仍可辨认
+                is_edge = tag.handle in self._line_edge_handles
+                if is_edge:
+                    width_px += self._EDGE_LINE_WIDTH_BONUS
+                    y_top = max(0.0, y_top - self._EDGE_LINE_SPAN_EXT)
+                    y_bot = min(self._EDGE_LINE_SPAN_CAP, y_bot + self._EDGE_LINE_SPAN_EXT)
+                if _is_spec or is_edge:
                     painter.setPen(QPen(theme.waveform_bg, width_px + 3))
                     painter.drawLine(x, int(_top + _lane_h * y_top),
                                      x, int(_top + _lane_h * y_bot))
@@ -2243,7 +2308,10 @@ class WaveformDisplay(QWidget):
                         text += self._format_ruby_label(tag.ruby)
                     if not text:
                         continue
-                    a = x + label_dx
+                    # 行首/行尾的标签右移让开加宽的竖线（见 _EDGE_LABEL_DX）
+                    dx = (self._EDGE_LABEL_DX
+                          if tag.handle in self._line_edge_handles else label_dx)
+                    a = x + dx
                     b = a + fm.horizontalAdvance(text)
                     labels.append((a, b, tag, color, text))
 
