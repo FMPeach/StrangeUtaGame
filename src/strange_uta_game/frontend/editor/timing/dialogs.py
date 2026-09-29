@@ -2606,10 +2606,12 @@ def execute_auto_interlude_guide(
     if not project.sentences:
         return {"inserted": 0, "skipped": 0, "message": "项目中没有歌词行"}
 
+    # 纯文本导入等路径下字符级 singer_id 可能为空，行级 singer_id 由
+    # Sentence 不变式保证非空，作为回退（与导出器 effective_id 逻辑一致）。
     singer_id = ""
     for s in project.sentences:
         if s.characters:
-            singer_id = s.characters[0].singer_id
+            singer_id = s.characters[0].singer_id or s.singer_id
             break
 
     gaps: list[tuple[int, int, int, int, int]] = []
@@ -2693,7 +2695,7 @@ def execute_auto_interlude_guide(
             continue
 
         ref_char = sentence.characters[ci]
-        ref_singer_id = ref_char.singer_id or singer_id
+        ref_singer_id = ref_char.singer_id or sentence.singer_id or singer_id
 
         is_last_in_sentence = ci == len(sentence.characters) - 1
         guide_chars = _build_guide_chars_for_interlude(

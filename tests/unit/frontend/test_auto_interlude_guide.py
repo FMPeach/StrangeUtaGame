@@ -7,12 +7,15 @@ from strange_uta_game.frontend.editor.timing.dialogs import (
 from strange_uta_game.frontend.editor.timing_interface import EditorInterface
 
 
-def _timed_project(*, stored_duration_ms: int = 0) -> Project:
+def _timed_project(*, stored_duration_ms: int = 0, char_singer_id: str | None = None) -> Project:
     project = Project(audio_duration_ms=stored_duration_ms)
     singer_id = project.get_default_singer().id
+    # char_singer_id="" 模拟纯文本导入：字符级 singer 为空，仅行级有效
+    if char_singer_id is None:
+        char_singer_id = singer_id
     last_char = Character(
         char="歌",
-        singer_id=singer_id,
+        singer_id=char_singer_id,
         timestamps=[90_000],
         is_sentence_end=True,
         is_line_end=True,
@@ -68,6 +71,20 @@ def test_outro_falls_back_to_saved_duration_without_loaded_media():
 
     assert result["inserted"] == 1
     assert project.sentences[1].text == "后奏20"
+
+
+def test_interlude_guide_falls_back_to_line_singer_when_char_singer_empty():
+    """纯文本导入等路径字符级 singer_id 为空时，回退行级 singer 而非报错。"""
+    project = _timed_project(stored_duration_ms=120_000, char_singer_id="")
+    line_singer_id = project.sentences[0].singer_id
+
+    result = _generate(project)
+
+    assert result["inserted"] == 1
+    guide_sentence = project.sentences[1]
+    assert guide_sentence.text == "后奏20"
+    assert guide_sentence.singer_id == line_singer_id
+    assert all(ch.singer_id == line_singer_id for ch in guide_sentence.characters)
 
 
 class _FakeStore:
