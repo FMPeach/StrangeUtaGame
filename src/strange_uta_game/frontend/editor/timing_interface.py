@@ -51,6 +51,7 @@ from strange_uta_game.backend.application import (
     TimingService,
 )
 from strange_uta_game.backend.application.auto_check_service import (
+    delete_checkpoints_by_type_names,
     delete_rubies_by_type_names,
 )
 from strange_uta_game.backend.application.export_service import (
@@ -527,6 +528,7 @@ class EditorInterface(QWidget):
         self.toolbar.delete_rubies_by_type_clicked.connect(self._on_delete_rubies_by_type)
         self.toolbar.delete_rubies_line_clicked.connect(self._on_delete_rubies_line)
         self.toolbar.delete_rubies_selected_clicked.connect(self._on_delete_rubies_selected)
+        self.toolbar.delete_checkpoints_by_type_clicked.connect(self._on_delete_checkpoints_by_type)
         self.toolbar.set_singer_by_line_clicked.connect(self._on_set_singer_by_line)
         self.toolbar.apply_singer_clicked.connect(self._on_apply_singer)
         self.toolbar.singer_manager_clicked.connect(self._on_singer_manager_clicked)
@@ -3158,6 +3160,106 @@ class EditorInterface(QWidget):
         thread.finished.connect(thread.deleteLater)
 
         thread.start()
+
+    def _on_delete_checkpoints_by_type(self):
+        """工具栏「按类型删除节奏点」入口（同步）。
+
+        复用 fulltext_interface 的 DeleteCheckpointByTypeDialog +
+        delete_checkpoints_by_type_names。删除是纯内存操作（不含注音分析），
+        直接同步执行，经 SentenceSnapshotCommand 纳入撤销/重做栈，并按
+        "checkpoints" 通道刷新（与「清除所有节奏点」一致）。
+
+        勾选 hiragana → 连带 っ；勾选 katakana → 连带 ッ/ー（后端语义）。
+        """
+        if not self._project:
+            return
+        # 与异步注音分析互斥，避免并发改写句子结构
+        if getattr(self, "_ruby_analyzing", False) or getattr(
+            self, "_ruby_subset_analyzing", False
+        ):
+            InfoBar.warning(
+                title=self.tr("注音分析进行中"),
+                content=self.tr("请等待当前注音分析完成后再试"),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2500,
+                parent=self,
+            )
+            return
+
+        from strange_uta_game.frontend.settings.settings_interface import AppSettings
+
+        from .fulltext_interface import DeleteCheckpointByTypeDialog
+
+        app_settings = AppSettings()
+        saved_types = app_settings.get("auto_check.delete_checkpoint_types", [])
+
+        dlg = DeleteCheckpointByTypeDialog(self, initial_types=saved_types)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        selected = dlg.selected_types()
+        type_names = dlg.selected_type_names()
+
+        # 保存用户选择到配置（无论是否有变化）
+        app_settings.set("auto_check.delete_checkpoint_types", type_names)
+        app_settings.save()
+
+        if not selected:
+            return
+
+        before_sentences = deepcopy(self._project.sentences)
+        undo_pos = (self._current_line_idx, self.preview._current_char_idx)
+        focus_line_idx = self._current_line_idx
+        focus_char_idx = self.preview._current_char_idx
+
+        removed = delete_checkpoints_by_type_names(self._project, type_names)
+        if removed == 0:
+            InfoBar.info(
+                title=self.tr("无变化"),
+                content=self.tr("所选类型范围内没有需要删除的节奏点"),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=2500,
+                parent=self,
+            )
+            return
+
+        after_sentences = deepcopy(self._project.sentences)
+        command_manager = (
+            self._timing_service.command_manager if self._timing_service else None
+        )
+        if command_manager is not None:
+            command = SentenceSnapshotCommand(
+                self._project, before_sentences, after_sentences, "按类型删除节奏点"
+            )
+            command.undo_position = undo_pos
+            command.redo_position = (focus_line_idx, focus_char_idx)
+            command_manager.execute(command)
+
+        self._sync_after_structure_change(
+            change_type="checkpoints",
+            focus_line_idx=focus_line_idx,
+            focus_char_idx=focus_char_idx,
+            checkpoint_idx=None,
+            move_cp=True,
+        )
+
+        labels = ", ".join(
+            label for ct, label in DeleteCheckpointByTypeDialog._TYPE_LABELS if ct in selected
+        )
+        InfoBar.success(
+            title=self.tr("删除完成"),
+            content=self.tr("已删除 {n} 个字符的节奏点（类型: {labels}）").format(
+                n=removed, labels=labels),
+            orient=Qt.Orientation.Horizontal,
+            isClosable=True,
+            position=InfoBarPosition.TOP,
+            duration=4000,
+            parent=self,
+        )
 
     def _on_delete_rubies_line(self):
         """工具栏「删除选中行注音」— 删除当前选中行内全部注音。"""

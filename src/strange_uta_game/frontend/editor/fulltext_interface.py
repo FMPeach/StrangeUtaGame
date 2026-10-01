@@ -445,6 +445,111 @@ class DeleteRubyByTypeDialog(QDialog):
         """返回用户选中的类型名称列表（config 格式）。"""
         return [self._TYPE_NAME_MAP[ct] for ct, cb in self._checkboxes if cb.isChecked()]
 
+
+class DeleteCheckpointByTypeDialog(QDialog):
+    """按字符类型选择要删除节奏点的对话框。
+
+    与 DeleteRubyByTypeDialog 的差异：节奏点删除与注音内容无关，因此没有
+    片假名注音子类型，片假名为单一类型。类型勾选的连带语义（平假名→っ、
+    片假名→ッ/ー）由后端 delete_checkpoints_by_type_names 决定。
+    """
+
+    _TYPE_LABELS: list[tuple] = [
+        (CharType.HIRAGANA, "ひらがな（平假名）"),
+        (CharType.KATAKANA, "カタカナ（片假名）"),
+        (CharType.KANJI, "漢字（汉字）"),
+        (CharType.ALPHABET, "アルファベット（英文字母）"),
+        (CharType.NUMBER, "数字"),
+        (CharType.SYMBOL, "記号（符号）"),
+        (CharType.LONG_VOWEL, "長音符号（ー、～等）"),
+        (CharType.SOKUON, "促音（っ/ッ）"),
+        (CharType.OTHER, "その他（♪等特殊符号）"),
+        (CharType.SPACE, "空格"),
+    ]
+
+    _TYPE_NAME_MAP: dict = {
+        CharType.HIRAGANA: "hiragana",
+        CharType.KATAKANA: "katakana",
+        CharType.KANJI: "kanji",
+        CharType.ALPHABET: "alphabet",
+        CharType.NUMBER: "number",
+        CharType.SYMBOL: "symbol",
+        CharType.LONG_VOWEL: "long_vowel",
+        CharType.SOKUON: "sokuon",
+        CharType.OTHER: "other",
+        CharType.SPACE: "space",
+    }
+
+    _NAME_TYPE_MAP = {v: k for k, v in _TYPE_NAME_MAP.items()}
+
+    def __init__(self, parent=None, initial_types: list[str] | None = None):
+        """
+        Args:
+            parent: 父组件
+            initial_types: 初始选中的类型名称列表（config 格式），如 ["hiragana", "kanji"]
+        """
+        super().__init__(parent)
+        self.setWindowTitle(self.tr("按类型删除节奏点"))
+        fit_to_screen(self, 320, 400)
+        self.setFont(ui_font(10))
+
+        layout = QVBoxLayout(self)
+        layout.setSpacing(8)
+
+        lbl = QLabel(self.tr("选择要删除节奏点的字符类型："))
+        lbl.setStyleSheet("font-weight: bold;")
+        layout.addWidget(lbl)
+
+        if initial_types is not None:
+            default_set = {self._NAME_TYPE_MAP[n] for n in initial_types if n in self._NAME_TYPE_MAP}
+            # 兼容预发布版本的独立全角空格键。
+            if "full_space" in initial_types:
+                default_set.add(CharType.SPACE)
+        else:
+            default_set = {CharType.HIRAGANA}
+
+        # 显式枚举每个 label 走 self.tr，让 .ts 抽取器把源串归入本类上下文
+        # （class 级常量里的字符串无法在抽取期定位到 self）。
+        _tr = self.tr
+        _tr("ひらがな（平假名）")
+        _tr("カタカナ（片假名）")
+        _tr("漢字（汉字）")
+        _tr("アルファベット（英文字母）")
+        _tr("数字")
+        _tr("記号（符号）")
+        _tr("長音符号（ー、～等）")
+        _tr("促音（っ/ッ）")
+        _tr("その他（♪等特殊符号）")
+        _tr("空格")
+
+        self._checkboxes: list[tuple] = []
+        for char_type, label in self._TYPE_LABELS:
+            cb = CheckBox(self.tr(label), self)
+            cb.setChecked(char_type in default_set)
+            layout.addWidget(cb)
+            self._checkboxes.append((char_type, cb))
+
+        layout.addStretch()
+
+        btn_layout = QHBoxLayout()
+        btn_ok = PrimaryPushButton(self.tr("删除选中类型"), self)
+        btn_ok.setDefault(True)
+        btn_ok.clicked.connect(self.accept)
+        btn_cancel = PushButton(self.tr("取消"), self)
+        btn_cancel.clicked.connect(self.reject)
+        btn_layout.addStretch()
+        btn_layout.addWidget(btn_ok)
+        btn_layout.addWidget(btn_cancel)
+        layout.addLayout(btn_layout)
+
+    def selected_types(self) -> list:
+        """返回用户选中的类型键列表（CharType）。"""
+        return [ct for ct, cb in self._checkboxes if cb.isChecked()]
+
+    def selected_type_names(self) -> list[str]:
+        """返回用户选中的类型名称列表（config 格式）。"""
+        return [self._TYPE_NAME_MAP[ct] for ct, cb in self._checkboxes if cb.isChecked()]
+
 from strange_uta_game.frontend.editor.find_dialog import FindDialog
 
 class RubyInterface(QWidget):

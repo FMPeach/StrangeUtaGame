@@ -501,6 +501,133 @@ class TestBlankLineLineStartEndGuard:
         assert sentence.characters[0].linked_to_next
 
 
+class TestDeleteCheckpointsByTypeNames:
+    """按类型删除节奏点（delete_checkpoints_by_type_names）。
+
+    from_text 默认每字 check_count=1、末字 is_sentence_end=True，构造数据时注意。
+    """
+
+    def _make_project(self, text, singer_id="s1"):
+        from strange_uta_game.backend.domain import Project
+
+        sentence = Sentence.from_text(text, singer_id)
+        return Project(sentences=[sentence])
+
+    def _delete(self, project, type_names):
+        from strange_uta_game.backend.application.auto_check_service import (
+            delete_checkpoints_by_type_names,
+        )
+
+        return delete_checkpoints_by_type_names(project, type_names)
+
+    def test_hiragana_includes_sokuon(self):
+        project = self._make_project("あっア")
+
+        removed = self._delete(project, ["hiragana"])
+
+        assert removed == 2
+        a, small_tsu, kata_a = project.sentences[0].characters
+        assert a.check_count == 0 and not a.timestamps
+        assert small_tsu.check_count == 0 and not small_tsu.timestamps
+        assert kata_a.check_count == 1  # 片假名未选中，保留
+
+    def test_katakana_family_includes_tsu_and_long_vowel(self):
+        project = self._make_project("シーッ")
+
+        removed = self._delete(project, ["katakana"])
+
+        assert removed == 3
+        assert all(ch.check_count == 0 for ch in project.sentences[0].characters)
+        assert all(not ch.is_sentence_end for ch in project.sentences[0].characters)
+
+    def test_sokuon_only_deletes_both_scripts(self):
+        project = self._make_project("あっシッ")
+
+        removed = self._delete(project, ["sokuon"])
+
+        assert removed == 2
+        chars = project.sentences[0].characters
+        assert chars[0].check_count == 1  # あ 保留
+        assert chars[2].check_count == 1  # シ 保留
+        assert chars[1].check_count == 0 and chars[3].check_count == 0
+
+    def test_long_vowel_only(self):
+        project = self._make_project("カーさ")
+
+        removed = self._delete(project, ["long_vowel"])
+
+        assert removed == 1
+        chars = project.sentences[0].characters
+        assert chars[1].check_count == 0
+        assert chars[0].check_count == 1 and chars[2].check_count == 1
+
+    def test_kanji_linked_word_deleted_as_whole(self):
+        project = self._make_project("赤い")
+        chars = project.sentences[0].characters
+        chars[0].linked_to_next = True  # 赤+い 构成连词块
+
+        removed = self._delete(project, ["kanji"])
+
+        assert removed == 2
+        assert all(ch.check_count == 0 for ch in chars)
+
+    def test_kanji_linked_word_kept_when_other_type_selected(self):
+        project = self._make_project("赤い")
+        chars = project.sentences[0].characters
+        chars[0].linked_to_next = True
+
+        removed = self._delete(project, ["hiragana"])
+
+        assert removed == 0
+        assert all(ch.check_count == 1 for ch in chars)
+
+    def test_clears_timestamps_sentence_end_and_keeps_ruby(self):
+        from strange_uta_game.backend.domain.models import Ruby, RubyPart
+
+        project = self._make_project("あ")
+        ch = project.sentences[0].characters[0]
+        ch.timestamps = [1200]
+        ch.is_sentence_end = True
+        ch.sentence_end_ts = 3400
+        ch.set_ruby(Ruby(parts=[RubyPart(text="あ")]))
+
+        removed = self._delete(project, ["hiragana"])
+
+        assert removed == 1
+        assert ch.check_count == 0
+        assert ch.timestamps == []
+        assert ch.sentence_end_ts is None
+        assert ch.is_sentence_end is False
+        assert ch.ruby is not None  # 只删节奏点，注音保留
+
+    def test_chars_without_checkpoints_not_counted(self):
+        project = self._make_project("あか")
+        for ch in project.sentences[0].characters:
+            ch.set_check_count(0, force=True)
+            ch.is_sentence_end = False
+            ch.sentence_end_ts = None
+
+        removed = self._delete(project, ["hiragana"])
+
+        assert removed == 0
+
+    def test_space_type_covers_half_and_full_width(self):
+        project = self._make_project("あ \u3000")
+
+        removed = self._delete(project, ["space"])
+
+        assert removed == 2
+        chars = project.sentences[0].characters
+        assert chars[0].check_count == 1  # あ 不受影响
+        assert chars[1].check_count == 0 and chars[2].check_count == 0
+
+    def test_unknown_type_names_return_zero(self):
+        project = self._make_project("あっ")
+
+        assert self._delete(project, ["no_such_type"]) == 0
+        assert project.sentences[0].characters[0].check_count == 1
+
+
 class TestFallbackSplitPeelKana:
     """连词回退：头尾假名剥离策略（_fallback_split_peel_kana）"""
 

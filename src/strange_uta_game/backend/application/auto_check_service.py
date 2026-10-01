@@ -2990,3 +2990,64 @@ def delete_rubies_by_type_names(
             progress_callback("删除注音", si + 1, total)
 
     return removed
+
+
+def delete_checkpoints_by_type_names(project: "Project", type_names: List[str]) -> int:
+    """按字符类型名称列表删除节奏点（含时间戳与停顿点标记）。
+
+    类型匹配语义与 delete_rubies_by_type_names 保持一致：
+    - 勾选 hiragana → 平假名 + 促音 っ
+    - 勾选 katakana → 片假名 + 促音 ッ + 长音 ー（未被显式选择时随片假名家族处理）
+    - 显式勾选 sokuon / long_vowel → っ/ッ 或 ー 单独匹配
+    - 与汉字处于同一连词链中的字符整体视为汉字：选择汉字时删除，选择其他类型时保留
+    与注音删除不同：本操作不改动 linked_to_next 与注音本身，只清节奏点
+    （clear_timestamps + set_check_count(0, force=True) + is_sentence_end=False，
+    与「清除所有节奏点」的单字语义一致）。
+
+    Args:
+        project: 项目
+        type_names: 类型名称列表（config 格式），如 ["hiragana", "katakana"]
+
+    Returns:
+        删除节奏点的字符数量
+    """
+    ct_selected = [_RUBY_TYPE_NAME_MAP[n] for n in type_names if n in _RUBY_TYPE_NAME_MAP]
+    if not ct_selected:
+        return 0
+
+    selected = set(ct_selected)
+    if "space" in type_names or "full_space" in type_names:
+        # 配置层只展示一个“空格”选项；兼容预发布版本的 full_space 键。
+        selected.update((CharType.SPACE, CharType.FULL_SPACE))
+
+    removed = 0
+    for sentence in project.sentences:
+        kanji_linked = get_kanji_linked_indices(sentence.characters)
+        for idx, ch in enumerate(sentence.characters):
+            # 无节奏点也无停顿点标记的字符直接跳过（不计入 removed）
+            if ch.check_count <= 0 and ch.sentence_end_ts is None and not ch.is_sentence_end:
+                continue
+            if idx in kanji_linked:
+                # 含汉字的连词块整体按汉字类型匹配（与注音删除一致）
+                if CharType.KANJI not in selected:
+                    continue
+            else:
+                ct = get_char_type(ch.char)
+                if ct not in selected:
+                    # 家族连带：平假名→っ、片假名→ッ/ー；
+                    # 显式选择 sokuon/long_vowel 时已在上方 ct in selected 命中。
+                    if ct == CharType.SOKUON:
+                        family = CharType.KATAKANA if ch.char == "ッ" else CharType.HIRAGANA
+                        if family not in selected:
+                            continue
+                    elif ct == CharType.LONG_VOWEL:
+                        if CharType.KATAKANA not in selected:
+                            continue
+                    else:
+                        continue
+            ch.clear_timestamps()
+            ch.set_check_count(0, force=True)
+            ch.is_sentence_end = False
+            removed += 1
+
+    return removed

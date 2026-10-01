@@ -50,6 +50,7 @@ class EditorToolBar(QFrame):
     delete_rubies_by_type_clicked = pyqtSignal()
     delete_rubies_line_clicked = pyqtSignal()       # 删除选中行注音
     delete_rubies_selected_clicked = pyqtSignal()   # 删除所选字符注音（支持跨行）
+    delete_checkpoints_by_type_clicked = pyqtSignal()  # 按类型删除节奏点
     set_singer_by_line_clicked = pyqtSignal()
     apply_singer_clicked = pyqtSignal()
     singer_manager_clicked = pyqtSignal()
@@ -130,6 +131,7 @@ class EditorToolBar(QFrame):
         ruby_menu.addAction(Action(FIF.DELETE, tr("按类型删除注音"), self, triggered=self.delete_rubies_by_type_clicked.emit))
         ruby_menu.addAction(Action(FIF.DELETE, tr("删除选中行注音"), self, triggered=self.delete_rubies_line_clicked.emit))
         ruby_menu.addAction(Action(FIF.DELETE, tr("删除所选字符注音"), self, triggered=self.delete_rubies_selected_clicked.emit))
+        ruby_menu.addAction(Action(FIF.DELETE, tr("按类型删除节奏点"), self, triggered=self.delete_checkpoints_by_type_clicked.emit))
         ruby_menu.addSeparator()
         ruby_menu.addAction(Action(FIF.FONT, tr("中文拼音注音"), self, triggered=self.analyze_pinyin_clicked.emit))
         self.btn_ruby.setMenu(ruby_menu)

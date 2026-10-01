@@ -205,6 +205,7 @@ class AppSettings:
             "chinese_pinyin_annotation": False,
             "romanize_ruby": False,
             "delete_ruby_types": [],
+            "delete_checkpoint_types": [],
         },
         "ui": {
             "theme": "auto",
