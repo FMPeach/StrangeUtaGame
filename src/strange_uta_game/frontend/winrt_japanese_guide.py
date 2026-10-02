@@ -20,9 +20,8 @@ from PyQt6.QtWidgets import QApplication, QWidget
 from qfluentwidgets import PushButton
 
 
-def _tr(s: str) -> str:
-    """模块级 tr 别名（自由函数，无 self.tr）。"""
-    return QCoreApplication.translate("WinRTJapaneseGuide", s)
+# 翻译统一走显式 QCoreApplication.translate 直呼（pylupdate6 只认直呼
+# 形态，模块级别名转发会把条目误标 vanished）。
 
 from strange_uta_game.backend.infrastructure.parsers.ruby_analyzer import (
     WINRT_JA_CAPABILITY,
@@ -56,14 +55,14 @@ def _show_guidance(parent: Optional[QWidget], extra: str = "") -> None:
     """展示手动安装引导，附「复制命令」按钮（点击不关闭对话框）。"""
     box = make_message_box(
         parent,
-        _tr("手动安装日语注音组件"),
+        QCoreApplication.translate("WinRTJapaneseGuide", "手动安装日语注音组件"),
         (extra + "\n\n" if extra else "") + winrt_install_guidance(),
     )
     box.setContentCopyable(True)
-    box.yesButton.setText(_tr("我知道了"))
+    box.yesButton.setText(QCoreApplication.translate("WinRTJapaneseGuide", "我知道了"))
     box.hideCancelButton()
     # 额外加一个「复制命令」按钮：点击仅复制到剪贴板，不关闭对话框
-    copy_btn = PushButton(_tr("复制命令"), box.buttonGroup)
+    copy_btn = PushButton(QCoreApplication.translate("WinRTJapaneseGuide", "复制命令"), box.buttonGroup)
     copy_btn.setAttribute(Qt.WidgetAttribute.WA_LayoutUsesWidgetRect)
     copy_btn.clicked.connect(
         lambda: QApplication.clipboard().setText(_INSTALL_CMD)
@@ -76,8 +75,8 @@ def _run_install_blocking(parent: Optional[QWidget]) -> bool:
     """后台线程跑安装 + 模态忙碌提示，返回是否安装成功。"""
     busy = message_busy(
         parent,
-        _tr("正在安装"),
-        _tr("正在从 Windows Update 下载并安装日语注音组件，请稍候…\n"
+        QCoreApplication.translate("WinRTJapaneseGuide", "正在安装"),
+        QCoreApplication.translate("WinRTJapaneseGuide", "正在从 Windows Update 下载并安装日语注音组件，请稍候…\n"
             "（请在弹出的 UAC 窗口点击「是」以授权安装）"),
     )
 
@@ -119,8 +118,8 @@ def ensure_winrt_japanese(parent: Optional[QWidget] = None) -> bool:
     if reason == "no_winrt_package":
         message_error(
             parent,
-            _tr("缺少注音组件"),
-            _tr("未找到 winrt 运行库（winrt-Windows.Globalization）。\n"
+            QCoreApplication.translate("WinRTJapaneseGuide", "缺少注音组件"),
+            QCoreApplication.translate("WinRTJapaneseGuide", "未找到 winrt 运行库（winrt-Windows.Globalization）。\n"
                 "这通常是安装包不完整导致，请重新安装本应用或联系开发者。"),
         )
         return False
@@ -128,13 +127,13 @@ def ensure_winrt_japanese(parent: Optional[QWidget] = None) -> bool:
     # engine_unavailable / error：缺日语 IME 功能，引导安装（三选项）
     choice = message_choice(
         parent,
-        _tr("需要安装日语注音组件"),
-        _tr(
+        QCoreApplication.translate("WinRTJapaneseGuide", "需要安装日语注音组件"),
+        QCoreApplication.translate("WinRTJapaneseGuide", 
             "日语注音需要 Windows 的日语功能（含日语 IME），当前系统未安装。\n"
             "约几十 MB，从 Windows Update 联网下载，不会更改系统显示语言。\n\n"
             "是否现在安装？"
         ),
-        [_tr("现在安装"), _tr("手动安装"), _tr("暂不")],
+        [QCoreApplication.translate("WinRTJapaneseGuide", "现在安装"), QCoreApplication.translate("WinRTJapaneseGuide", "手动安装"), QCoreApplication.translate("WinRTJapaneseGuide", "暂不")],
         default=0,
     )
     if choice == 1:  # 手动安装
@@ -146,23 +145,23 @@ def ensure_winrt_japanese(parent: Optional[QWidget] = None) -> bool:
     # 现在安装：先说明将弹出 UAC，征得同意
     if not message_question(
         parent,
-        _tr("授权安装"),
-        _tr("接下来会弹出 Windows 的「用户账户控制 (UAC)」窗口，\n"
+        QCoreApplication.translate("WinRTJapaneseGuide", "授权安装"),
+        QCoreApplication.translate("WinRTJapaneseGuide", "接下来会弹出 Windows 的「用户账户控制 (UAC)」窗口，\n"
             "请点击「是」以授权安装日语组件。\n\n是否继续？"),
-        yes_text=_tr("是"),
-        no_text=_tr("否"),
+        yes_text=QCoreApplication.translate("WinRTJapaneseGuide", "是"),
+        no_text=QCoreApplication.translate("WinRTJapaneseGuide", "否"),
     ):
         return False
 
     ok = _run_install_blocking(parent)
     if ok:
-        message_info(parent, _tr("安装完成"),
-                     _tr("日语注音组件已安装，可以开始注音了。"))
+        message_info(parent, QCoreApplication.translate("WinRTJapaneseGuide", "安装完成"),
+                     QCoreApplication.translate("WinRTJapaneseGuide", "日语注音组件已安装，可以开始注音了。"))
         return True
 
     # UAC 被拒或安装失败 → 转手动引导
     _show_guidance(
         parent,
-        extra=_tr("自动安装未完成（可能未授权 UAC 或下载失败）。可按下面的方式手动安装："),
+        extra=QCoreApplication.translate("WinRTJapaneseGuide", "自动安装未完成（可能未授权 UAC 或下载失败）。可按下面的方式手动安装："),
     )
     return False

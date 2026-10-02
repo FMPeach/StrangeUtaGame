@@ -13,9 +13,8 @@ from typing import List, Optional, Tuple
 from PyQt6.QtCore import QCoreApplication
 
 
-def _tr(s: str) -> str:
-    """模块级 tr 别名（lyric_loader 是纯函数模块、无 QObject self）。"""
-    return QCoreApplication.translate("LyricLoader", s)
+# 翻译统一走显式 QCoreApplication.translate（pylupdate6 只认直呼形态，
+# 模块级别名转发会把条目误标 vanished）。
 
 from strange_uta_game.backend.domain import Character, Ruby, RubyPart, Sentence, Singer
 from strange_uta_game.backend.infrastructure.parsers.lyric_parser import (
@@ -228,7 +227,7 @@ def _align_utaten_sentences_with_auto_check(
     total = len(sentences)
     for idx, sentence in enumerate(sentences):
         if progress_cb and total > 0:
-            progress_cb(_tr("正在对齐注音 {idx}/{total} 行").format(idx=idx + 1, total=total))
+            progress_cb(QCoreApplication.translate("LyricLoader", "正在对齐注音 {idx}/{total} 行").format(idx=idx + 1, total=total))
         ranges = _utaten_block_ranges(sentence)
         if not ranges:
             continue
@@ -474,7 +473,7 @@ def parse_lyric_content(
 
     if fmt == "utaten":
         if progress_cb:
-            progress_cb(_tr("正在解析 UtaTen 格式..."))
+            progress_cb(QCoreApplication.translate("LyricLoader", "正在解析 UtaTen 格式..."))
         parser = UtatenRubyParser()
         parsed_lines = parser.parse(content)
         sentences = parse_to_sentences(parsed_lines, default_singer_id, utaten_format=False)
@@ -490,7 +489,7 @@ def parse_lyric_content(
 
     if fmt == "krl":
         if progress_cb:
-            progress_cb(_tr("正在解析 Kirakara 格式..."))
+            progress_cb(QCoreApplication.translate("LyricLoader", "正在解析 Kirakara 格式..."))
         # 【角色名】 标签 → Singer.id：优先匹配已有同名 singer，否则新建
         # （合唱标签如 miku+rin 作为一个整体名处理）
         singer_colors = [
@@ -558,7 +557,7 @@ def parse_lyric_content(
     # Nicokara 格式
     if fmt == "nicokara":
         if progress_cb:
-            progress_cb(_tr("正在解析 Nicokara 格式..."))
+            progress_cb(QCoreApplication.translate("LyricLoader", "正在解析 Nicokara 格式..."))
         is_nicokara = True
         parser = NicokaraParser()
         result = parser.parse(content)
@@ -624,7 +623,7 @@ def parse_lyric_content(
     # ASS 格式
     if fmt == "ass":
         if progress_cb:
-            progress_cb(_tr("正在解析 ASS 格式..."))
+            progress_cb(QCoreApplication.translate("LyricLoader", "正在解析 ASS 格式..."))
         from strange_uta_game.backend.infrastructure.parsers.ass_parser import (
             ASSParser,
         )
@@ -673,7 +672,7 @@ def parse_lyric_content(
     # SRT 格式
     if fmt == "srt":
         if progress_cb:
-            progress_cb(_tr("正在解析 SRT 格式..."))
+            progress_cb(QCoreApplication.translate("LyricLoader", "正在解析 SRT 格式..."))
         from strange_uta_game.backend.infrastructure.parsers.srt_parser import (
             SRTParser,
         )
@@ -686,7 +685,7 @@ def parse_lyric_content(
     # LRC 格式
     if fmt == "lrc":
         if progress_cb:
-            progress_cb(_tr("正在解析 LRC 格式..."))
+            progress_cb(QCoreApplication.translate("LyricLoader", "正在解析 LRC 格式..."))
         lrc_parser = LRCParser()
         parsed_lines = lrc_parser.parse(content)
         sentences = parse_to_sentences(parsed_lines, default_singer_id)

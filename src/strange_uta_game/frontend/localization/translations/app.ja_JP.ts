@@ -1084,10 +1084,8 @@
         <translation type="vanished">ワークベンチの分離環境が一時利用できないため、AI ランタイム内蔵の分離に切り替えました（ワークベンチの手順 2 の環境とは異なり、CPU では数分かかる場合があります）</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/ai_timing_dialog.py" line="713" />
-        <location filename="src/strange_uta_game/frontend/editor/ai_timing_dialog.py" line="721" />
         <source>已取消</source>
-        <translation>キャンセル済み</translation>
+        <translation type="vanished">キャンセル済み</translation>
     </message>
     <message>
         <source>已取消人声分离</source>
@@ -1372,149 +1370,149 @@
 </context><context>
     <name>AutoGenerateInterludeGuideDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2772" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2773" />
         <source>自动生成间奏指引</source>
         <translation>間奏ガイドを自動生成</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2818" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2780" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2819" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2781" />
         <source>「{position}约{time}秒」</source>
         <translation>「{position}約{time}秒」</translation>
-    </message>
-    <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2901" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2896" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2782" />
-        <source>前奏</source>
-        <translation>前奏</translation>
     </message>
     <message>
         <location filename="..\..\editor\timing\dialogs.py" line="2902" />
         <location filename="..\..\editor\timing\dialogs.py" line="2897" />
         <location filename="..\..\editor\timing\dialogs.py" line="2783" />
-        <source>间奏</source>
-        <translation>間奏</translation>
+        <source>前奏</source>
+        <translation>前奏</translation>
     </message>
     <message>
         <location filename="..\..\editor\timing\dialogs.py" line="2903" />
         <location filename="..\..\editor\timing\dialogs.py" line="2898" />
         <location filename="..\..\editor\timing\dialogs.py" line="2784" />
+        <source>间奏</source>
+        <translation>間奏</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\timing\dialogs.py" line="2904" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2899" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2785" />
         <source>后奏</source>
         <translation>後奏</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2795" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2796" />
         <source>自动扫描整首歌中所有 is_sentence_end=True 的字符，根据前后时间戳间隔自动生成间奏指引文本并插入到对应位置。</source>
         <translation>曲中の is_sentence_end=True の全文字をスキャンし、前後のタイムスタンプ間隔に基づいて間奏ガイドテキストを自動生成して挿入します。</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2804" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2805" />
         <source>基本设置</source>
         <translation>基本設定</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2811" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2812" />
         <source>间隔时间小于此值的间隙将被跳过，支持小数</source>
         <translation>この値より短い間隔はスキップされます。小数対応</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2812" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2813" />
         <source>最小生成间奏指引时间 (s):</source>
         <translation>最小間奏ガイド生成時間（秒）:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2815" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2816" />
         <source>间奏指引格式:</source>
         <translation>間奏ガイド形式:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2819" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2820" />
         <source>{position}=位置映射文本, {time}=计算间隔时间（秒）</source>
         <translation>{position}=位置テキスト, {time}=計算間隔（秒）</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2823" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2824" />
         <source>允许单行内插入</source>
         <translation>行内挿入を許可</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2825" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2826" />
         <source>允许在行中间的 is_sentence_end 字符处也进行插入</source>
         <translation>行の途中にある is_sentence_end 文字でも挿入を許可</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2826" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2827" />
         <source>新建一行</source>
         <translation>新規行</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2828" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2829" />
         <source>将生成的间奏指引文本放在独立的新行中</source>
         <translation>生成された間奏ガイドテキストを独立した新規行に配置</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2840" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2841" />
         <source>时间戳偏移</source>
         <translation>タイムスタンプオフセット</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2848" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2849" />
         <source>生成文本第一个字符的时间戳偏移</source>
         <translation>生成テキストの先頭文字のタイムスタンプオフセット</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2852" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2853" />
         <source>前余量:</source>
         <translation>前余裕:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2858" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2859" />
         <source>生成文本最后一个字符的停顿点时间戳回退</source>
         <translation>生成テキスト末尾文字の停止点タイムスタンプの巻き戻し</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2862" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2863" />
         <source>后余量:</source>
         <translation>後余裕:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2869" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2870" />
         <source>应用</source>
         <translation>適用</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2873" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2874" />
         <source>取消</source>
         <translation>キャンセル</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2880" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2881" />
         <source>Position相关设置</source>
         <translation>位置関連設定</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2885" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2886" />
         <source>启用</source>
         <translation>有効</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2888" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2889" />
         <source>类别</source>
         <translation>カテゴリ</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2891" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2892" />
         <source>映射文本</source>
         <translation>マッピングテキスト</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2939" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2940" />
         <source>参数提示</source>
         <translation>パラメータヒント</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2940" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2941" />
         <source>前余量 + 后余量 ({sum}ms) 小于最小生成间奏指引时间 ({min}ms)，
 某些间隙可能无法容纳生成的文本。</source>
         <translation>前余裕 + 後余裕({sum}ms)が最小生成時間({min}ms)より小さいため、一部の間隔に生成テキストが収まらない可能性があります。</translation>
@@ -2446,6 +2444,61 @@
         <translation>リズム点を削除する文字タイプを選択：</translation>
     </message>
     <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="519" />
+        <source>ひらがな（平假名）</source>
+        <translation>ひらがな（平仮名）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="520" />
+        <source>カタカナ（片假名）</source>
+        <translation>カタカナ（片仮名）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="521" />
+        <source>漢字（汉字）</source>
+        <translation>漢字</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="522" />
+        <source>アルファベット（英文字母）</source>
+        <translation>アルファベット（英字）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="523" />
+        <source>ハングル（韩文谚文）</source>
+        <translation>ハングル（韓国語）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="524" />
+        <source>数字</source>
+        <translation>数字</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="525" />
+        <source>記号（符号）</source>
+        <translation>記号</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="526" />
+        <source>長音符号（ー、～等）</source>
+        <translation>長音符号（ー、～等）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="527" />
+        <source>促音（っ/ッ）</source>
+        <translation>促音（っ/ッ）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="528" />
+        <source>その他（♪等特殊符号）</source>
+        <translation>その他（♪等特殊符号）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="529" />
+        <source>空格</source>
+        <translation>空白</translation>
+    </message>
+    <message>
         <location filename="..\..\editor\fulltext_interface.py" line="541" />
         <source>删除选中类型</source>
         <translation>選択タイプを削除</translation>
@@ -2454,86 +2507,6 @@
         <location filename="..\..\editor\fulltext_interface.py" line="544" />
         <source>取消</source>
         <translation>キャンセル</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="420" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="528" />
-        <source>その他（♪等特殊符号）</source>
-        <translation>その他（♪等特殊符号）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="410" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="519" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="30" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="82" />
-        <source>ひらがな（平假名）</source>
-        <translation>ひらがな（平仮名）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="414" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="522" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="31" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="85" />
-        <source>アルファベット（英文字母）</source>
-        <translation>アルファベット（英字）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="520" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="30" />
-        <source>カタカナ（片假名）</source>
-        <translation>カタカナ（片仮名）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="415" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="523" />
-        <source>ハングル（韩文谚文）</source>
-        <translation>ハングル（韓国語）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="419" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="527" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1887" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="87" />
-        <source>促音（っ/ッ）</source>
-        <translation>促音（っ/ッ）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="416" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="524" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1893" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="32" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="86" />
-        <source>数字</source>
-        <translation>数字</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="413" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="521" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="31" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="85" />
-        <source>漢字（汉字）</source>
-        <translation>漢字</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="421" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="529" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="33" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="88" />
-        <source>空格</source>
-        <translation>空白</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="417" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="525" />
-        <source>記号（符号）</source>
-        <translation>記号</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="418" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="526" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="87" />
-        <source>長音符号（ー、～等）</source>
-        <translation>長音符号（ー、～等）</translation>
     </message>
 </context><context>
     <name>DeleteRubyByTypeDialog</name>
@@ -2548,6 +2521,66 @@
         <translation>ルビを削除する文字タイプを選択：</translation>
     </message>
     <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="410" />
+        <source>ひらがな（平假名）</source>
+        <translation>ひらがな（平仮名）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="411" />
+        <source>カタカナ（片假名・注音为平假名）</source>
+        <translation>カタカナ（片仮名・ルビが平仮名）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="412" />
+        <source>カタカナ（片假名・注音含有英文）</source>
+        <translation>カタカナ（片仮名・ルビに英字含む）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="413" />
+        <source>漢字（汉字）</source>
+        <translation>漢字</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="414" />
+        <source>アルファベット（英文字母）</source>
+        <translation>アルファベット（英字）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="415" />
+        <source>ハングル（韩文谚文）</source>
+        <translation>ハングル（韓国語）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="416" />
+        <source>数字</source>
+        <translation>数字</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="417" />
+        <source>記号（符号）</source>
+        <translation>記号</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="418" />
+        <source>長音符号（ー、～等）</source>
+        <translation>長音符号（ー、～等）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="419" />
+        <source>促音（っ/ッ）</source>
+        <translation>促音（っ/ッ）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="420" />
+        <source>その他（♪等特殊符号）</source>
+        <translation>その他（♪等特殊符号）</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="421" />
+        <source>空格</source>
+        <translation>空白</translation>
+    </message>
+    <message>
         <location filename="..\..\editor\fulltext_interface.py" line="433" />
         <source>删除选中类型</source>
         <translation>選択タイプを削除</translation>
@@ -2556,92 +2589,6 @@
         <location filename="..\..\editor\fulltext_interface.py" line="436" />
         <source>取消</source>
         <translation>キャンセル</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="420" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="528" />
-        <source>その他（♪等特殊符号）</source>
-        <translation>その他（♪等特殊符号）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="410" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="519" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="30" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="82" />
-        <source>ひらがな（平假名）</source>
-        <translation>ひらがな（平仮名）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="414" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="522" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="31" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="85" />
-        <source>アルファベット（英文字母）</source>
-        <translation>アルファベット（英字）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="411" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="83" />
-        <source>カタカナ（片假名・注音为平假名）</source>
-        <translation>カタカナ（片仮名・ルビが平仮名）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="412" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="84" />
-        <source>カタカナ（片假名・注音含有英文）</source>
-        <translation>カタカナ（片仮名・ルビに英字含む）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="415" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="523" />
-        <source>ハングル（韩文谚文）</source>
-        <translation>ハングル（韓国語）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="419" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="527" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1887" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="87" />
-        <source>促音（っ/ッ）</source>
-        <translation>促音（っ/ッ）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="416" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="524" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1893" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="32" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="86" />
-        <source>数字</source>
-        <translation>数字</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="413" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="521" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="31" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="85" />
-        <source>漢字（汉字）</source>
-        <translation>漢字</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="421" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="529" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="33" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="88" />
-        <source>空格</source>
-        <translation>空白</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="417" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="525" />
-        <source>記号（符号）</source>
-        <translation>記号</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="418" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="526" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/auto_check.py" line="87" />
-        <source>長音符号（ー、～等）</source>
-        <translation>長音符号（ー、～等）</translation>
     </message>
 </context><context>
     <name>DictCandidateDialog</name>
@@ -6272,39 +6219,39 @@ Checkpoint数：文字ごと 1 項目（例：2,2,1）。総和が本行リズ�
 </context><context>
     <name>LyricLoader</name>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/lyric_loader.py" line="231" />
+        <location filename="..\..\editor\timing\lyric_loader.py" line="230" />
         <source>正在对齐注音 {idx}/{total} 行</source>
         <translation>ルビを整列中 {idx}/{total} 行</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/lyric_loader.py" line="627" />
-        <source>正在解析 ASS 格式...</source>
-        <translation>ASS 形式を解析中...</translation>
+        <location filename="..\..\editor\timing\lyric_loader.py" line="476" />
+        <source>正在解析 UtaTen 格式...</source>
+        <translation>UtaTen 形式を解析中...</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/lyric_loader.py" line="493" />
+        <location filename="..\..\editor\timing\lyric_loader.py" line="492" />
         <source>正在解析 Kirakara 格式...</source>
         <translation>Kirakara形式を解析しています...</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/lyric_loader.py" line="689" />
-        <source>正在解析 LRC 格式...</source>
-        <translation>LRC 形式を解析中...</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/lyric_loader.py" line="561" />
+        <location filename="..\..\editor\timing\lyric_loader.py" line="560" />
         <source>正在解析 Nicokara 格式...</source>
         <translation>Nicokara 形式を解析中...</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/lyric_loader.py" line="676" />
+        <location filename="..\..\editor\timing\lyric_loader.py" line="626" />
+        <source>正在解析 ASS 格式...</source>
+        <translation>ASS 形式を解析中...</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\timing\lyric_loader.py" line="675" />
         <source>正在解析 SRT 格式...</source>
         <translation>SRT 形式を解析中...</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/lyric_loader.py" line="477" />
-        <source>正在解析 UtaTen 格式...</source>
-        <translation>UtaTen 形式を解析中...</translation>
+        <location filename="..\..\editor\timing\lyric_loader.py" line="688" />
+        <source>正在解析 LRC 格式...</source>
+        <translation>LRC 形式を解析中...</translation>
     </message>
 </context><context>
     <name>LyricParseWorker</name>
@@ -7809,12 +7756,23 @@ OFF にすると .cache 占有が小さく、切替も即時ですが、音割�
 </context><context>
     <name>SeparateSymbolTimestampDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2276" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2243" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2173" />
+        <source>详情 ▸</source>
+        <translation>詳細 ▸</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\timing\dialogs.py" line="2241" />
+        <source>收起 ▾</source>
+        <translation>閉じる ▾</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\timing\dialogs.py" line="2277" />
         <source>分离符号时间戳</source>
         <translation>記号タイムスタンプ分離</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2312" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2313" />
         <source>针对选中的符号分组，自动处理时间戳：
 • 后补偿：符号无普通时间戳（cc=0）但有停顿标记时，将停顿时间提升为普通时间戳，并将停顿点时间戳后移「后补偿」值。
 • 前补偿：符号已有时间戳（cc=1）且紧跟的第一个非符号字符无时间戳（cc=0）时，将符号时间戳传递给该字符，并将符号时间戳前移「前补偿」值。
@@ -7827,191 +7785,180 @@ OFF にすると .cache 占有が小さく、切替も即時ですが、音割�
 各グループの「詳細」をクリックすると、含める記号を個別に選択できます。</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2324" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2325" />
         <source>适用符号分组</source>
         <translation>適用記号グループ</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2348" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2349" />
         <source>圆括号</source>
         <translation>丸括弧</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2349" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2350" />
         <source>方括号</source>
         <translation>角括弧</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2350" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2351" />
         <source>感叹号</source>
         <translation>感嘆符</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2351" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2352" />
         <source>尖括号</source>
         <translation>山括弧</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2352" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2353" />
         <source>日文引号</source>
         <translation>鉤括弧</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2353" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2354" />
         <source>日文双引号</source>
         <translation>二重鉤括弧</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2354" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2355" />
         <source>弯引号</source>
         <translation>曲引用符</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2355" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2356" />
         <source>直引号</source>
         <translation>直引用符</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2356" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2357" />
         <source>问号</source>
         <translation>疑問符</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2357" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2358" />
         <source>省略号</source>
         <translation>省略記号</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2358" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2359" />
         <source>句号</source>
         <translation>句点</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2359" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2360" />
         <source>逗号</source>
         <translation>読点</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2360" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2361" />
         <source>顿号</source>
         <translation>読点（、）</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2361" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2362" />
         <source>分号</source>
         <translation>セミコロン</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2362" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2363" />
         <source>冒号</source>
         <translation>コロン</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2363" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2364" />
         <source>波浪号</source>
         <translation>波線</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2364" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2365" />
         <source>破折号</source>
         <translation>ダッシュ</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2365" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2366" />
         <source>中点</source>
         <translation>中黒</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2366" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2367" />
         <source>音符</source>
         <translation>音符</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2367" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2368" />
         <source>爱心</source>
         <translation>ハート</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2368" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2369" />
         <source>星形</source>
         <translation>星</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2386" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2387" />
         <source>全选</source>
         <translation>全選択</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2388" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2389" />
         <source>全不选</source>
         <translation>全選択解除</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2394" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2395" />
         <source>ⓘ 悬停查看详情</source>
         <translation>ⓘ ホバーで詳細表示</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2406" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2395" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2407" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2396" />
         <source>前补偿：不考虑后方字符是否已有时间戳，前移符号时间戳并强制复制给后一字符
 后补偿：连续停顿点符号视为整体，符号组时间戳集中赋予前一字符，组内均匀分配</source>
         <translation>前補正：後方文字のタイムスタンプ有無を問わず、記号タイムスタンプを前方移動し後続文字へ強制コピー
 後補正：連続する停止点記号をグループ化し、全タイムスタンプを前文字へ集約、グループ内均等分配</translation>
     </message>
     <message>
+        <location filename="..\..\editor\timing\dialogs.py" line="2405" />
         <location filename="..\..\editor\timing\dialogs.py" line="2404" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2403" />
         <source>强制复制</source>
         <translation>強制コピー</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2414" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2415" />
         <source>补偿时间戳</source>
         <translation>補正タイムスタンプ</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2422" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2423" />
         <source>符号已有时间戳（cc=1）时，将其时间戳前移的量；
 同时将原始符号时间戳赋给紧跟的无时间戳非符号字符</source>
         <translation>記号にタイムスタンプがある（cc=1）場合、それを前方へずらす量。
 同時に元の記号タイムスタンプを直後のタイムスタンプなし非記号文字へ付与</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2426" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2427" />
         <source>前补偿（前移符号时间戳）:</source>
         <translation>前補正（記号タイムスタンプを前へ）:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2432" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2433" />
         <source>符号无普通时间戳（cc=0）但有停顿时，将停顿点时间戳后移的量</source>
         <translation>記号に通常タイムスタンプがない（cc=0）が停止点がある場合、停止点タイムスタンプを後ろへずらす量</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2435" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2436" />
         <source>后补偿（后移停顿点时间戳）:</source>
         <translation>後補正（停止点タイムスタンプを後ろへ）:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2442" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2443" />
         <source>应用</source>
         <translation>適用</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2446" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2447" />
         <source>取消</source>
         <translation>キャンセル</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="2240" />
-        <source>收起 ▾</source>
-        <translation>閉じる ▾</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="2172" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="2242" />
-        <source>详情 ▸</source>
-        <translation>詳細 ▸</translation>
     </message>
 </context><context>
     <name>SetSingerByLineDialog</name>
@@ -8379,921 +8326,921 @@ KS側の設定が優先されます。</translation>
 </context><context>
     <name>ShortcutSubInterface</name>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
-        <source>播放/暂停</source>
-        <translation>再生/一時停止</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
-        <source>停止</source>
-        <translation>停止</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
-        <source>从头播放</source>
-        <translation>最初から再生</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
-        <source>减速</source>
-        <translation>減速</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
-        <source>加速</source>
-        <translation>加速</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
-        <source>恢复默认速度</source>
-        <translation>デフォルト速度に戻す</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
-        <source>音量增大</source>
-        <translation>音量を上げる</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
-        <source>音量减小</source>
-        <translation>音量を下げる</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
-        <source>恢复默认音量</source>
-        <translation>デフォルト音量に戻す</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
-        <source>上一行</source>
-        <translation>前の行</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
-        <source>下一行</source>
-        <translation>次の行</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
-        <source>上一字符</source>
-        <translation>前の文字</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
-        <source>下一字符</source>
-        <translation>次の文字</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
-        <source>切换字内节奏点（反向）</source>
-        <translation>文字内リズム点を切替（逆方向）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
-        <source>时间戳+步长</source>
-        <translation>タイムスタンプ+ステップ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
-        <source>时间戳-步长</source>
-        <translation>タイムスタンプ-ステップ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
-        <source>切换字内节奏点</source>
-        <translation>文字内リズム点を切替</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
-        <source>注音编辑</source>
-        <translation>ルビ編集</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
-        <source>连词</source>
-        <translation>連結</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
-        <source>打轴键</source>
-        <translation>タグキー</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
-        <source>打轴键 Extra</source>
-        <translation>タグキー Extra</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
-        <source>打轴并删除下一节奏点</source>
-        <translation>タグ付けし次のリズム点を削除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
-        <source>打轴键（编辑模式）</source>
-        <translation>タグキー（編集モード）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
-        <source>打轴键 Extra（编辑模式）</source>
-        <translation>タグキー Extra（編集モード）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
-        <source>后退</source>
-        <translation>戻る</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
-        <source>前进</source>
-        <translation>進む</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
-        <source>删除当前时间戳并回滚</source>
-        <translation>現在のタイムスタンプを削除して戻す</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
-        <source>切换波形/声谱/双谱</source>
-        <translation>波形 / スペクトログラム / デュアル切替</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
-        <source>增加节奏点</source>
-        <translation>リズム点を追加</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
-        <source>删除节奏点</source>
-        <translation>リズム点を削除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
-        <source>切换停顿点</source>
-        <translation>停止点の切替</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
-        <source>批量变更</source>
-        <translation>一括変更</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
-        <source>修改所选字符</source>
-        <translation>選択文字を変更</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
-        <source>插入导唱符</source>
-        <translation>ガイド符を挿入</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
-        <source>自动插入导唱符</source>
-        <translation>ガイドボーカル記号を自動挿入</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
-        <source>切换导唱待办</source>
-        <translation>ガイド符 TODO を切替</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
-        <source>修改选中行</source>
-        <translation>選択行を変更</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
-        <source>注音分析</source>
-        <translation>ルビ解析</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
-        <source>按行注音分析</source>
-        <translation>行単位ルビ解析</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
-        <source>注音分析所选字符</source>
-        <translation>選択文字のルビ解析</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="255" />
-        <source>全文本编辑</source>
-        <translation>全文編集</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="255" />
-        <source>按类型删除注音</source>
-        <translation>タイプ別にルビを削除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="256" />
-        <source>按行设置演唱者</source>
-        <translation>行単位で歌手を設定</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="256" />
-        <source>应用演唱者</source>
-        <translation>歌手を適用</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="257" />
-        <source>时间戳转停顿点</source>
-        <translation>タイムスタンプを停止点へ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="257" />
-        <source>清除所有节奏点</source>
-        <translation>全リズム点をクリア</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="258" />
-        <source>快捷导出</source>
-        <translation>クイック書き出し</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="258" />
-        <source>插入空格</source>
-        <translation>空白を挿入</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="260" />
-        <source>注音分析（仅注音）</source>
-        <translation>ルビ解析（ルビのみ）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="260" />
-        <source>按行注音分析（仅注音）</source>
-        <translation>行ごとにルビ解析（ルビのみ）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
-        <source>注音分析所选字符（仅注音）</source>
-        <translation>選択文字のルビ解析（ルビのみ）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
-        <source>全部转为罗马字</source>
-        <translation>全部ローマ字に変換</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
-        <source>中文拼音注音</source>
-        <translation>中国語ピンイン注音</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
-        <source>演唱者管理</source>
-        <translation>歌手管理</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
-        <source>补全时间戳</source>
-        <translation>タイムスタンプ補完</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
-        <source>分离符号时间戳</source>
-        <translation>記号タイムスタンプ分離</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
-        <source>调整原始时间戳</source>
-        <translation>元タイムスタンプを調整</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
-        <source>按行调整原始时间戳</source>
-        <translation>行単位で元タイムスタンプを調整</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
-        <source>调整所选字符原始时间戳</source>
-        <translation>選択文字の元タイムスタンプを調整</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
-        <source>删除所有时间戳</source>
-        <translation>すべてのタイムスタンプを削除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
-        <source>删除所有时间戳（保留行首）</source>
-        <translation>すべてのタイムスタンプを削除（行頭を保持）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
-        <source>删除所选范围时间戳</source>
-        <translation>選択範囲のタイムスタンプを削除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
-        <source>自动生成间奏指引</source>
-        <translation>間奏ガイドを自動生成</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
-        <source>新建项目</source>
-        <translation>新規プロジェクト</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
-        <source>加载项目</source>
-        <translation>プロジェクトを読み込み</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
-        <source>项目另存为</source>
-        <translation>プロジェクトを名前を付けて保存</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
-        <source>加载音频</source>
-        <translation>音声を読み込み</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
-        <source>加载歌词</source>
-        <translation>歌詞を読み込み</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
-        <source>多项目拼接</source>
-        <translation>複数プロジェクト結合</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
-        <source>撤销</source>
-        <translation>元に戻す</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
-        <source>重做</source>
-        <translation>やり直す</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
-        <source>保存</source>
-        <translation>保存</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
-        <source>复制字符</source>
-        <translation>文字をコピー</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
-        <source>粘贴</source>
-        <translation>貼り付け</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
-        <source>插入换行</source>
-        <translation>改行を挿入</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
-        <source>合并上一行</source>
-        <translation>前の行と結合</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
-        <source>删除字符</source>
-        <translation>文字を削除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="272" />
-        <source>切换播放和暂停</source>
-        <translation>再生と一時停止を切替</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="272" />
-        <source>停止播放</source>
-        <translation>再生を停止</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="272" />
-        <source>停止并从头播放</source>
-        <translation>停止して最初から再生</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="273" />
-        <source>降低播放速度</source>
-        <translation>再生速度を下げる</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="273" />
-        <source>提高播放速度</source>
-        <translation>再生速度を上げる</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="274" />
-        <source>将播放速度恢复为设置中的默认速度；双击速度条也可恢复</source>
-        <translation>再生速度を設定のデフォルト値に戻します。速度スライダーのダブルクリックでも戻せます</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="275" />
-        <source>增大播放音量</source>
-        <translation>再生音量を上げる</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="275" />
-        <source>减小播放音量</source>
-        <translation>再生音量を下げる</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="276" />
-        <source>将播放音量恢复为设置中的默认音量；双击音量条也可恢复</source>
-        <translation>再生音量を設定のデフォルト値に戻します。音量スライダーのダブルクリックでも戻せます</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="277" />
-        <source>移动到上一歌词行</source>
-        <translation>前の歌詞行へ移動</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="277" />
-        <source>移动到下一歌词行</source>
-        <translation>次の歌詞行へ移動</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="278" />
-        <source>在波形图、声谱图与双谱模式之间循环切换</source>
-        <translation>波形・スペクトログラム・デュアル表示を順に切り替えます</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="279" />
-        <source>在当前行内移动到上一个字符；若已在首字符则跳到上一行末字符</source>
-        <translation>現在行内で前の文字へ移動。先頭ならば前行末尾へジャンプ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="280" />
-        <source>在当前行内移动到下一个字符；若已在末字符则跳到下一行首字符</source>
-        <translation>現在行内で次の文字へ移動。末尾ならば次行先頭へジャンプ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="281" />
-        <source>在当前字符的多个节奏点之间反向循环切换（Alt+←）</source>
-        <translation>現在文字の複数リズム点を逆方向に循環切替（Alt+←）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="282" />
-        <source>增加选中节奏点时间戳</source>
-        <translation>選択リズム点のタイムスタンプを追加</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="282" />
-        <source>减少选中节奏点时间戳</source>
-        <translation>選択リズム点のタイムスタンプを減らす</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="283" />
-        <source>在当前字符的多个节奏点之间循环切换（Alt+→）</source>
-        <translation>現在文字の複数リズム点を循環切替（Alt+→）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="284" />
-        <source>编辑当前字符注音</source>
-        <translation>現在文字のルビを編集</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="285" />
-        <source>连词/取消连词；划选多个字符时：全未连词则整段连为一个词，否则整段取消连词</source>
-        <translation>連結/解除。複数文字選択時：全未連結なら全体を 1 語に連結、それ以外なら全体を解除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="286" />
-        <source>打轴操作的按键【仅打轴模式】</source>
-        <translation>タグ操作のキー【タグモード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="287" />
-        <source>打轴操作的备用按键【仅打轴模式】</source>
-        <translation>タグ操作の代替キー【タグモード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="288" />
-        <source>记录当前节奏点时间戳，同时删除下一个节奏点本身（减少 check_count），光标跳至原第三个节奏点【仅打轴模式】</source>
-        <translation>現在のリズム点タイムスタンプを記録、同時に次のリズム点を削除（check_count 減）、カーソルは元の 3 番目へ移動【タグモード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="289" />
-        <source>编辑模式下打轴：记录当前进度条时间戳至当前节奏点【仅编辑模式】</source>
-        <translation>編集モードでタグ付け：現在の進捗バータイムスタンプを現在のリズム点へ記録【編集モード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="290" />
-        <source>编辑模式下打轴（备用键）：记录当前进度条时间戳至当前节奏点【仅编辑模式】</source>
-        <translation>編集モードでタグ付け（代替キー）：現在の進捗バータイムスタンプを現在のリズム点へ記録【編集モード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="291" />
-        <source>后退跳转【仅打轴模式】</source>
-        <translation>後方ジャンプ【タグモード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="291" />
-        <source>前进跳转【仅打轴模式】</source>
-        <translation>前方ジャンプ【タグモード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="292" />
-        <source>删除跳转【仅打轴模式】</source>
-        <translation>削除ジャンプ【タグモード限定】</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="293" />
-        <source>增加当前字符的节奏点数量</source>
-        <translation>現在の文字のリズム点数を追加</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="294" />
-        <source>增加当前字符的节奏点数量（默认 [）</source>
-        <translation>現在の文字のリズム点数を追加（既定 [）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="295" />
-        <source>增加当前字符的节奏点数量（默认 Space）</source>
-        <translation>現在の文字のリズム点数を追加（既定 Space）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="296" />
-        <source>减少当前字符的节奏点数量</source>
-        <translation>現在の文字のリズム点数を減らす</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="297" />
-        <source>减少当前字符的节奏点数量（默认 ]</source>
-        <translation>現在の文字のリズム点数を減らす（既定 ]）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="298" />
-        <source>减少当前字符的节奏点数量（默认 Backspace）</source>
-        <translation>現在の文字のリズム点数を減らす（既定 Backspace）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="299" />
-        <source>切换当前字符的停顿点标记</source>
-        <translation>現在文字の停止点マークを切替</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="300" />
-        <source>切换当前字符的停顿点标记（默认 句号）</source>
-        <translation>現在文字の停止点マークを切替（既定 句点）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="301" />
-        <source>打开批量变更对话框</source>
-        <translation>一括変更ダイアログを開く</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="301" />
-        <source>打开修改所选字符对话框</source>
-        <translation>選択文字を変更ダイアログを開く</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="302" />
-        <source>打开插入导唱符对话框</source>
-        <translation>ガイド符挿入ダイアログを開く</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="302" />
-        <source>根据时间戳自动插入导唱符</source>
-        <translation>タイムスタンプに基づいてガイドボーカル記号を自動挿入します</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="303" />
-        <source>切换当前字符的导唱待办标记（在字符左上角显示半透明 ✚，提示稍后需要插入导唱符）</source>
-        <translation>現在文字のガイド符 TODO マークを切替（文字左上に半透明 ✚ を表示し、後でガイド符挿入が必要なことを示す）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="304" />
-        <source>打开修改选中行对话框</source>
-        <translation>選択行を変更ダイアログを開く</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="305" />
-        <source>自动分析全部注音</source>
-        <translation>全ルビを自動解析</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="305" />
-        <source>仅分析当前行的注音</source>
-        <translation>現在行のルビのみ解析</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="306" />
-        <source>仅分析当前行选中字符的注音</source>
-        <translation>現在行の選択文字のルビのみ解析</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="307" />
-        <source>打开全文本编辑界面</source>
-        <translation>全文編集画面を開く</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="307" />
-        <source>按类型删除注音对话框</source>
-        <translation>タイプ別ルビ削除ダイアログ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="308" />
-        <source>按行批量设置演唱者</source>
-        <translation>行単位で歌手を一括設定</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="308" />
-        <source>为选中字符设置演唱者</source>
-        <translation>選択文字に歌手を設定</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="309" />
-        <source>取消所有节奏点、清除时间戳并标记为停顿点</source>
-        <translation>全リズム点を解除、タイムスタンプ消去、停止点としてマーク</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="310" />
-        <source>删除当前字符全部节奏点并取消停顿点标记（cc=0，is_sentence_end=False）</source>
-        <translation>現在文字の全リズム点を削除し停止点マークも解除（cc=0、is_sentence_end=False）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="311" />
-        <source>使用默认导出格式快速导出到文件</source>
-        <translation>デフォルト形式でファイルへクイック書き出し</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="312" />
-        <source>在当前字符后插入空格</source>
-        <translation>現在文字の後に空白を挿入</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="314" />
-        <source>分析全部注音，但不更新节奏点</source>
-        <translation>すべてのルビを解析するが、リズム点は更新しない</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="315" />
-        <source>仅分析当前行注音，但不更新节奏点</source>
-        <translation>現在の行のルビのみ解析し、リズム点は更新しない</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="316" />
-        <source>仅分析选中字符注音，但不更新节奏点</source>
-        <translation>選択文字のルビのみ解析し、リズム点は更新しない</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="317" />
-        <source>将现有注音整体转为罗马字（不更新节奏点、不删除注音）</source>
-        <translation>既存のルビをまとめてローマ字に変換（リズム点は更新せず、ルビも削除しない）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="318" />
-        <source>打开演唱者管理窗口</source>
-        <translation>歌手管理ウィンドウを開く</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="319" />
-        <source>为缺失时间戳的字符补全时间戳</source>
-        <translation>タイムスタンプが欠けている文字を補完する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="320" />
-        <source>将符号与相邻字符的时间戳分离</source>
-        <translation>記号と隣接文字のタイムスタンプを分離する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="321" />
-        <source>整体调整全部原始时间戳</source>
-        <translation>すべての元タイムスタンプを一括調整する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="322" />
-        <source>调整当前行的原始时间戳</source>
-        <translation>現在の行の元タイムスタンプを調整する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="323" />
-        <source>调整所选字符的原始时间戳</source>
-        <translation>選択文字の元タイムスタンプを調整する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="324" />
-        <source>删除项目中全部时间戳</source>
-        <translation>プロジェクト内のすべてのタイムスタンプを削除する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
-        <source>删除全部时间戳，但保留每行行首时间戳</source>
-        <translation>すべてのタイムスタンプを削除するが、各行の行頭は保持する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
-        <source>删除所选范围内的时间戳</source>
-        <translation>選択範囲内のタイムスタンプを削除する</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
-        <source>根据时间戳自动生成间奏指引</source>
-        <translation>タイムスタンプに基づいて間奏ガイドを自動生成します</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
-        <source>新建空白项目</source>
-        <translation>空のプロジェクトを新規作成</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
-        <source>打开已有项目文件</source>
-        <translation>既存のプロジェクトファイルを開く</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
-        <source>将当前项目另存为新文件</source>
-        <translation>現在のプロジェクトを新しいファイルとして保存</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
-        <source>加载音频文件</source>
-        <translation>音声ファイルを読み込む</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
-        <source>加载歌词文本文件</source>
-        <translation>歌詞テキストファイルを読み込む</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
-        <source>拼接多个 SUG 项目</source>
-        <translation>複数の SUG プロジェクトを結合します</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="330" />
-        <source>为中文歌词自动添加拼音注音</source>
-        <translation>中国語歌詞にピンイン注音を自動追加します</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="331" />
-        <source>撤销操作</source>
-        <translation>元に戻す操作</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="331" />
-        <source>重做操作</source>
-        <translation>やり直す操作</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="331" />
-        <source>保存项目</source>
-        <translation>プロジェクトを保存</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="332" />
-        <source>复制选中字符的完整信息</source>
-        <translation>選択文字の完全情報をコピー</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="333" />
-        <source>无歌词时粘贴整批歌词文本；已有歌词时在光标处插入（复制的字符或纯文本）</source>
-        <translation>歌詞がなければ歌詞テキストを一括貼り付け。歌詞があればカーソル位置に挿入（コピー文字またはテキスト）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="334" />
-        <source>在光标处插入换行</source>
-        <translation>カーソル位置に改行を挿入</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="334" />
-        <source>将当前行合并到上一行末尾</source>
-        <translation>現在行を前行末尾に結合</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="335" />
-        <source>删除选中内容或当前字符</source>
-        <translation>選択内容または現在文字を削除</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
-        <source>打轴模式（音乐播放时）</source>
-        <translation>タグモード（再生中）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
-        <source>编辑模式（音乐暂停时）</source>
-        <translation>編集モード（一時停止中）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
-        <source>播放控制</source>
-        <translation>再生コントロール</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
-        <source>导航与跳转</source>
-        <translation>ナビゲーションとシーク</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
-        <source>时间轴显示</source>
-        <translation>タイムライン表示</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
-        <source>打轴与时间戳微调</source>
-        <translation>タイミングとタイムスタンプ微調整</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="340" />
-        <source>节奏点与停顿点</source>
-        <translation>チェックポイントと停止点</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="340" />
-        <source>字符与行编辑</source>
-        <translation>文字と行の編集</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="340" />
-        <source>自动注音</source>
-        <translation>自動ルビ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="341" />
-        <source>演唱者</source>
-        <translation>歌手</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="341" />
-        <source>时间戳工具</source>
-        <translation>タイムスタンプツール</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="341" />
-        <source>文件与导出</source>
-        <translation>ファイルとエクスポート</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="342" />
-        <source>固定功能（不可修改）</source>
-        <translation>固定機能（変更不可）</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="430" />
-        <source>注音编辑窗口</source>
-        <translation>ルビ編集ウィンドウ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="431" />
-        <source>选择使用迷你浮窗或完整编辑窗口</source>
-        <translation>ミニポップアップまたは完全な編集ウィンドウを選択します</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="432" />
-        <source>迷你浮窗</source>
-        <translation>ミニポップアップ</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="432" />
-        <source>经典大窗口</source>
-        <translation>従来の大型ウィンドウ</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="536" />
-        <source>[{mode}]「{action}」已占用{trigger}按键 {key}</source>
-        <translation>[{mode}]「{action}」が{trigger}キー {key} を占有しています</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="196" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="198" />
-        <source>[打轴]</source>
-        <translation>[タグ]</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="197" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="199" />
-        <source>[编辑]</source>
-        <translation>[編集]</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="195" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="191" />
         <source>[通用]</source>
         <translation>[共通]</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="535" />
-        <source>快捷键冲突</source>
-        <translation>ショートカット競合</translation>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="194" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="192" />
+        <source>[打轴]</source>
+        <translation>[タグ]</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="533" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="195" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="193" />
+        <source>[编辑]</source>
+        <translation>[編集]</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="529" />
+        <source>长按</source>
+        <translation>長押し</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="529" />
         <source>短按</source>
         <translation>短押し</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/shortcut.py" line="533" />
-        <source>长按</source>
-        <translation>長押し</translation>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="531" />
+        <source>快捷键冲突</source>
+        <translation>ショートカット競合</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="532" />
+        <source>[{mode}]「{action}」已占用{trigger}按键 {key}</source>
+        <translation>[{mode}]「{action}」が{trigger}キー {key} を占有しています</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="237" />
+        <source>播放/暂停</source>
+        <translation>再生/一時停止</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="237" />
+        <source>停止</source>
+        <translation>停止</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="237" />
+        <source>从头播放</source>
+        <translation>最初から再生</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="237" />
+        <source>减速</source>
+        <translation>減速</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="237" />
+        <source>加速</source>
+        <translation>加速</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="237" />
+        <source>恢复默认速度</source>
+        <translation>デフォルト速度に戻す</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <source>音量增大</source>
+        <translation>音量を上げる</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <source>音量减小</source>
+        <translation>音量を下げる</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <source>恢复默认音量</source>
+        <translation>デフォルト音量に戻す</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <source>上一行</source>
+        <translation>前の行</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <source>下一行</source>
+        <translation>次の行</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
+        <source>上一字符</source>
+        <translation>前の文字</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
+        <source>下一字符</source>
+        <translation>次の文字</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
+        <source>切换字内节奏点（反向）</source>
+        <translation>文字内リズム点を切替（逆方向）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
+        <source>时间戳+步长</source>
+        <translation>タイムスタンプ+ステップ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
+        <source>时间戳-步长</source>
+        <translation>タイムスタンプ-ステップ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
+        <source>切换字内节奏点</source>
+        <translation>文字内リズム点を切替</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
+        <source>注音编辑</source>
+        <translation>ルビ編集</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
+        <source>连词</source>
+        <translation>連結</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
+        <source>打轴键</source>
+        <translation>タグキー</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
+        <source>打轴键 Extra</source>
+        <translation>タグキー Extra</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
+        <source>打轴并删除下一节奏点</source>
+        <translation>タグ付けし次のリズム点を削除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
+        <source>打轴键（编辑模式）</source>
+        <translation>タグキー（編集モード）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
+        <source>打轴键 Extra（编辑模式）</source>
+        <translation>タグキー Extra（編集モード）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
+        <source>后退</source>
+        <translation>戻る</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
+        <source>前进</source>
+        <translation>進む</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
+        <source>删除当前时间戳并回滚</source>
+        <translation>現在のタイムスタンプを削除して戻す</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
+        <source>切换波形/声谱/双谱</source>
+        <translation>波形 / スペクトログラム / デュアル切替</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
+        <source>增加节奏点</source>
+        <translation>リズム点を追加</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
+        <source>删除节奏点</source>
+        <translation>リズム点を削除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
+        <source>切换停顿点</source>
+        <translation>停止点の切替</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
+        <source>批量变更</source>
+        <translation>一括変更</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
+        <source>修改所选字符</source>
+        <translation>選択文字を変更</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
+        <source>插入导唱符</source>
+        <translation>ガイド符を挿入</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
+        <source>自动插入导唱符</source>
+        <translation>ガイドボーカル記号を自動挿入</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
+        <source>切换导唱待办</source>
+        <translation>ガイド符 TODO を切替</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
+        <source>修改选中行</source>
+        <translation>選択行を変更</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
+        <source>注音分析</source>
+        <translation>ルビ解析</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
+        <source>按行注音分析</source>
+        <translation>行単位ルビ解析</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
+        <source>注音分析所选字符</source>
+        <translation>選択文字のルビ解析</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
+        <source>全文本编辑</source>
+        <translation>全文編集</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
+        <source>按类型删除注音</source>
+        <translation>タイプ別にルビを削除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
+        <source>按行设置演唱者</source>
+        <translation>行単位で歌手を設定</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
+        <source>应用演唱者</source>
+        <translation>歌手を適用</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
+        <source>时间戳转停顿点</source>
+        <translation>タイムスタンプを停止点へ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
+        <source>清除所有节奏点</source>
+        <translation>全リズム点をクリア</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
+        <source>快捷导出</source>
+        <translation>クイック書き出し</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
+        <source>插入空格</source>
+        <translation>空白を挿入</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="256" />
+        <source>注音分析（仅注音）</source>
+        <translation>ルビ解析（ルビのみ）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="256" />
+        <source>按行注音分析（仅注音）</source>
+        <translation>行ごとにルビ解析（ルビのみ）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="257" />
+        <source>注音分析所选字符（仅注音）</source>
+        <translation>選択文字のルビ解析（ルビのみ）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="257" />
+        <source>全部转为罗马字</source>
+        <translation>全部ローマ字に変換</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="258" />
+        <source>中文拼音注音</source>
+        <translation>中国語ピンイン注音</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="259" />
+        <source>演唱者管理</source>
+        <translation>歌手管理</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="260" />
+        <source>补全时间戳</source>
+        <translation>タイムスタンプ補完</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="260" />
+        <source>分离符号时间戳</source>
+        <translation>記号タイムスタンプ分離</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
+        <source>调整原始时间戳</source>
+        <translation>元タイムスタンプを調整</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
+        <source>按行调整原始时间戳</source>
+        <translation>行単位で元タイムスタンプを調整</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
+        <source>调整所选字符原始时间戳</source>
+        <translation>選択文字の元タイムスタンプを調整</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
+        <source>删除所有时间戳</source>
+        <translation>すべてのタイムスタンプを削除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
+        <source>删除所有时间戳（保留行首）</source>
+        <translation>すべてのタイムスタンプを削除（行頭を保持）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
+        <source>删除所选范围时间戳</source>
+        <translation>選択範囲のタイムスタンプを削除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
+        <source>自动生成间奏指引</source>
+        <translation>間奏ガイドを自動生成</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
+        <source>新建项目</source>
+        <translation>新規プロジェクト</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
+        <source>加载项目</source>
+        <translation>プロジェクトを読み込み</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
+        <source>项目另存为</source>
+        <translation>プロジェクトを名前を付けて保存</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
+        <source>加载音频</source>
+        <translation>音声を読み込み</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
+        <source>加载歌词</source>
+        <translation>歌詞を読み込み</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
+        <source>多项目拼接</source>
+        <translation>複数プロジェクト結合</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <source>撤销</source>
+        <translation>元に戻す</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <source>重做</source>
+        <translation>やり直す</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <source>保存</source>
+        <translation>保存</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <source>复制字符</source>
+        <translation>文字をコピー</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <source>粘贴</source>
+        <translation>貼り付け</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <source>插入换行</source>
+        <translation>改行を挿入</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <source>合并上一行</source>
+        <translation>前の行と結合</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <source>删除字符</source>
+        <translation>文字を削除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
+        <source>切换播放和暂停</source>
+        <translation>再生と一時停止を切替</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
+        <source>停止播放</source>
+        <translation>再生を停止</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
+        <source>停止并从头播放</source>
+        <translation>停止して最初から再生</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
+        <source>降低播放速度</source>
+        <translation>再生速度を下げる</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
+        <source>提高播放速度</source>
+        <translation>再生速度を上げる</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
+        <source>将播放速度恢复为设置中的默认速度；双击速度条也可恢复</source>
+        <translation>再生速度を設定のデフォルト値に戻します。速度スライダーのダブルクリックでも戻せます</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="271" />
+        <source>增大播放音量</source>
+        <translation>再生音量を上げる</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="271" />
+        <source>减小播放音量</source>
+        <translation>再生音量を下げる</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="272" />
+        <source>将播放音量恢复为设置中的默认音量；双击音量条也可恢复</source>
+        <translation>再生音量を設定のデフォルト値に戻します。音量スライダーのダブルクリックでも戻せます</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="273" />
+        <source>移动到上一歌词行</source>
+        <translation>前の歌詞行へ移動</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="273" />
+        <source>移动到下一歌词行</source>
+        <translation>次の歌詞行へ移動</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="274" />
+        <source>在波形图、声谱图与双谱模式之间循环切换</source>
+        <translation>波形・スペクトログラム・デュアル表示を順に切り替えます</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="275" />
+        <source>在当前行内移动到上一个字符；若已在首字符则跳到上一行末字符</source>
+        <translation>現在行内で前の文字へ移動。先頭ならば前行末尾へジャンプ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="276" />
+        <source>在当前行内移动到下一个字符；若已在末字符则跳到下一行首字符</source>
+        <translation>現在行内で次の文字へ移動。末尾ならば次行先頭へジャンプ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="277" />
+        <source>在当前字符的多个节奏点之间反向循环切换（Alt+←）</source>
+        <translation>現在文字の複数リズム点を逆方向に循環切替（Alt+←）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="278" />
+        <source>增加选中节奏点时间戳</source>
+        <translation>選択リズム点のタイムスタンプを追加</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="278" />
+        <source>减少选中节奏点时间戳</source>
+        <translation>選択リズム点のタイムスタンプを減らす</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="279" />
+        <source>在当前字符的多个节奏点之间循环切换（Alt+→）</source>
+        <translation>現在文字の複数リズム点を循環切替（Alt+→）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="280" />
+        <source>编辑当前字符注音</source>
+        <translation>現在文字のルビを編集</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="281" />
+        <source>连词/取消连词；划选多个字符时：全未连词则整段连为一个词，否则整段取消连词</source>
+        <translation>連結/解除。複数文字選択時：全未連結なら全体を 1 語に連結、それ以外なら全体を解除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="282" />
+        <source>打轴操作的按键【仅打轴模式】</source>
+        <translation>タグ操作のキー【タグモード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="283" />
+        <source>打轴操作的备用按键【仅打轴模式】</source>
+        <translation>タグ操作の代替キー【タグモード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="284" />
+        <source>记录当前节奏点时间戳，同时删除下一个节奏点本身（减少 check_count），光标跳至原第三个节奏点【仅打轴模式】</source>
+        <translation>現在のリズム点タイムスタンプを記録、同時に次のリズム点を削除（check_count 減）、カーソルは元の 3 番目へ移動【タグモード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="285" />
+        <source>编辑模式下打轴：记录当前进度条时间戳至当前节奏点【仅编辑模式】</source>
+        <translation>編集モードでタグ付け：現在の進捗バータイムスタンプを現在のリズム点へ記録【編集モード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="286" />
+        <source>编辑模式下打轴（备用键）：记录当前进度条时间戳至当前节奏点【仅编辑模式】</source>
+        <translation>編集モードでタグ付け（代替キー）：現在の進捗バータイムスタンプを現在のリズム点へ記録【編集モード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="287" />
+        <source>后退跳转【仅打轴模式】</source>
+        <translation>後方ジャンプ【タグモード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="287" />
+        <source>前进跳转【仅打轴模式】</source>
+        <translation>前方ジャンプ【タグモード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="288" />
+        <source>删除跳转【仅打轴模式】</source>
+        <translation>削除ジャンプ【タグモード限定】</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="289" />
+        <source>增加当前字符的节奏点数量</source>
+        <translation>現在の文字のリズム点数を追加</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="290" />
+        <source>增加当前字符的节奏点数量（默认 [）</source>
+        <translation>現在の文字のリズム点数を追加（既定 [）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="291" />
+        <source>增加当前字符的节奏点数量（默认 Space）</source>
+        <translation>現在の文字のリズム点数を追加（既定 Space）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="292" />
+        <source>减少当前字符的节奏点数量</source>
+        <translation>現在の文字のリズム点数を減らす</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="293" />
+        <source>减少当前字符的节奏点数量（默认 ]</source>
+        <translation>現在の文字のリズム点数を減らす（既定 ]）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="294" />
+        <source>减少当前字符的节奏点数量（默认 Backspace）</source>
+        <translation>現在の文字のリズム点数を減らす（既定 Backspace）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="295" />
+        <source>切换当前字符的停顿点标记</source>
+        <translation>現在文字の停止点マークを切替</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="296" />
+        <source>切换当前字符的停顿点标记（默认 句号）</source>
+        <translation>現在文字の停止点マークを切替（既定 句点）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="297" />
+        <source>打开批量变更对话框</source>
+        <translation>一括変更ダイアログを開く</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="297" />
+        <source>打开修改所选字符对话框</source>
+        <translation>選択文字を変更ダイアログを開く</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="298" />
+        <source>打开插入导唱符对话框</source>
+        <translation>ガイド符挿入ダイアログを開く</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="298" />
+        <source>根据时间戳自动插入导唱符</source>
+        <translation>タイムスタンプに基づいてガイドボーカル記号を自動挿入します</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="299" />
+        <source>切换当前字符的导唱待办标记（在字符左上角显示半透明 ✚，提示稍后需要插入导唱符）</source>
+        <translation>現在文字のガイド符 TODO マークを切替（文字左上に半透明 ✚ を表示し、後でガイド符挿入が必要なことを示す）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="300" />
+        <source>打开修改选中行对话框</source>
+        <translation>選択行を変更ダイアログを開く</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="301" />
+        <source>自动分析全部注音</source>
+        <translation>全ルビを自動解析</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="301" />
+        <source>仅分析当前行的注音</source>
+        <translation>現在行のルビのみ解析</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="302" />
+        <source>仅分析当前行选中字符的注音</source>
+        <translation>現在行の選択文字のルビのみ解析</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="303" />
+        <source>打开全文本编辑界面</source>
+        <translation>全文編集画面を開く</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="303" />
+        <source>按类型删除注音对话框</source>
+        <translation>タイプ別ルビ削除ダイアログ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="304" />
+        <source>按行批量设置演唱者</source>
+        <translation>行単位で歌手を一括設定</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="304" />
+        <source>为选中字符设置演唱者</source>
+        <translation>選択文字に歌手を設定</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="305" />
+        <source>取消所有节奏点、清除时间戳并标记为停顿点</source>
+        <translation>全リズム点を解除、タイムスタンプ消去、停止点としてマーク</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="306" />
+        <source>删除当前字符全部节奏点并取消停顿点标记（cc=0，is_sentence_end=False）</source>
+        <translation>現在文字の全リズム点を削除し停止点マークも解除（cc=0、is_sentence_end=False）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="307" />
+        <source>使用默认导出格式快速导出到文件</source>
+        <translation>デフォルト形式でファイルへクイック書き出し</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="308" />
+        <source>在当前字符后插入空格</source>
+        <translation>現在文字の後に空白を挿入</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="310" />
+        <source>分析全部注音，但不更新节奏点</source>
+        <translation>すべてのルビを解析するが、リズム点は更新しない</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="311" />
+        <source>仅分析当前行注音，但不更新节奏点</source>
+        <translation>現在の行のルビのみ解析し、リズム点は更新しない</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="312" />
+        <source>仅分析选中字符注音，但不更新节奏点</source>
+        <translation>選択文字のルビのみ解析し、リズム点は更新しない</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="313" />
+        <source>将现有注音整体转为罗马字（不更新节奏点、不删除注音）</source>
+        <translation>既存のルビをまとめてローマ字に変換（リズム点は更新せず、ルビも削除しない）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="314" />
+        <source>打开演唱者管理窗口</source>
+        <translation>歌手管理ウィンドウを開く</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="315" />
+        <source>为缺失时间戳的字符补全时间戳</source>
+        <translation>タイムスタンプが欠けている文字を補完する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="316" />
+        <source>将符号与相邻字符的时间戳分离</source>
+        <translation>記号と隣接文字のタイムスタンプを分離する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="317" />
+        <source>整体调整全部原始时间戳</source>
+        <translation>すべての元タイムスタンプを一括調整する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="318" />
+        <source>调整当前行的原始时间戳</source>
+        <translation>現在の行の元タイムスタンプを調整する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="319" />
+        <source>调整所选字符的原始时间戳</source>
+        <translation>選択文字の元タイムスタンプを調整する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="320" />
+        <source>删除项目中全部时间戳</source>
+        <translation>プロジェクト内のすべてのタイムスタンプを削除する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="321" />
+        <source>删除全部时间戳，但保留每行行首时间戳</source>
+        <translation>すべてのタイムスタンプを削除するが、各行の行頭は保持する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="322" />
+        <source>删除所选范围内的时间戳</source>
+        <translation>選択範囲内のタイムスタンプを削除する</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="323" />
+        <source>根据时间戳自动生成间奏指引</source>
+        <translation>タイムスタンプに基づいて間奏ガイドを自動生成します</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="324" />
+        <source>新建空白项目</source>
+        <translation>空のプロジェクトを新規作成</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="324" />
+        <source>打开已有项目文件</source>
+        <translation>既存のプロジェクトファイルを開く</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="324" />
+        <source>将当前项目另存为新文件</source>
+        <translation>現在のプロジェクトを新しいファイルとして保存</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
+        <source>加载音频文件</source>
+        <translation>音声ファイルを読み込む</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
+        <source>加载歌词文本文件</source>
+        <translation>歌詞テキストファイルを読み込む</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
+        <source>拼接多个 SUG 项目</source>
+        <translation>複数の SUG プロジェクトを結合します</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
+        <source>为中文歌词自动添加拼音注音</source>
+        <translation>中国語歌詞にピンイン注音を自動追加します</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
+        <source>撤销操作</source>
+        <translation>元に戻す操作</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
+        <source>重做操作</source>
+        <translation>やり直す操作</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
+        <source>保存项目</source>
+        <translation>プロジェクトを保存</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
+        <source>复制选中字符的完整信息</source>
+        <translation>選択文字の完全情報をコピー</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
+        <source>无歌词时粘贴整批歌词文本；已有歌词时在光标处插入（复制的字符或纯文本）</source>
+        <translation>歌詞がなければ歌詞テキストを一括貼り付け。歌詞があればカーソル位置に挿入（コピー文字またはテキスト）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="330" />
+        <source>在光标处插入换行</source>
+        <translation>カーソル位置に改行を挿入</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="330" />
+        <source>将当前行合并到上一行末尾</source>
+        <translation>現在行を前行末尾に結合</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="331" />
+        <source>删除选中内容或当前字符</source>
+        <translation>選択内容または現在文字を削除</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="333" />
+        <source>打轴模式（音乐播放时）</source>
+        <translation>タグモード（再生中）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="333" />
+        <source>编辑模式（音乐暂停时）</source>
+        <translation>編集モード（一時停止中）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="335" />
+        <source>播放控制</source>
+        <translation>再生コントロール</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="335" />
+        <source>导航与跳转</source>
+        <translation>ナビゲーションとシーク</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="335" />
+        <source>时间轴显示</source>
+        <translation>タイムライン表示</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="335" />
+        <source>打轴与时间戳微调</source>
+        <translation>タイミングとタイムスタンプ微調整</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="336" />
+        <source>节奏点与停顿点</source>
+        <translation>チェックポイントと停止点</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="336" />
+        <source>字符与行编辑</source>
+        <translation>文字と行の編集</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="336" />
+        <source>自动注音</source>
+        <translation>自動ルビ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
+        <source>演唱者</source>
+        <translation>歌手</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
+        <source>时间戳工具</source>
+        <translation>タイムスタンプツール</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
+        <source>文件与导出</source>
+        <translation>ファイルとエクスポート</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="338" />
+        <source>固定功能（不可修改）</source>
+        <translation>固定機能（変更不可）</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="426" />
+        <source>注音编辑窗口</source>
+        <translation>ルビ編集ウィンドウ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="427" />
+        <source>选择使用迷你浮窗或完整编辑窗口</source>
+        <translation>ミニポップアップまたは完全な編集ウィンドウを選択します</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="428" />
+        <source>迷你浮窗</source>
+        <translation>ミニポップアップ</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="428" />
+        <source>经典大窗口</source>
+        <translation>従来の大型ウィンドウ</translation>
     </message>
 </context><context>
     <name>SingerColorPreviewPanel</name>
@@ -10603,9 +10550,8 @@ KS側の設定が優先されます。</translation>
         <translation type="vanished">更新を準備中</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/ai_timing_dialog.py" line="1598" />
         <source>正在取消…</source>
-        <translation>キャンセル中…</translation>
+        <translation type="vanished">キャンセル中…</translation>
     </message>
     <message>
         <source>正在获取最新更新器，请稍候…</source>
@@ -10674,51 +10620,8 @@ KS側の設定が優先されます。</translation>
         <translation type="vanished">新バージョン検出</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/ai_timing_dialog.py" line="520" />
-        <location filename="src/strange_uta_game/frontend/editor/ai_timing_dialog.py" line="1098" />
-        <location filename="src/strange_uta_game/frontend/editor/ai_timing_dialog.py" line="1203" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="436" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="544" />
-        <location filename="src/strange_uta_game/frontend/editor/fulltext_interface.py" line="1159" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1168" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1785" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1952" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="2446" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="2873" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/dict_candidate_dialog.py" line="203" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/sug_concat_dialog.py" line="568" />
-        <location filename="src/strange_uta_game/frontend/editor/timing_interface.py" line="2152" />
-        <location filename="src/strange_uta_game/frontend/editor/timing_interface.py" line="4080" />
-        <location filename="src/strange_uta_game/frontend/editor/timing_interface.py" line="4653" />
-        <location filename="src/strange_uta_game/frontend/editor/timing_interface.py" line="4712" />
-        <location filename="src/strange_uta_game/frontend/editor/timing_interface.py" line="8044" />
-        <location filename="src/strange_uta_game/frontend/editor/timing_interface.py" line="9360" />
-        <location filename="src/strange_uta_game/frontend/export/axis_group_dialog.py" line="427" />
-        <location filename="src/strange_uta_game/frontend/export/emoji_tag_dialog.py" line="347" />
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="90" />
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="1154" />
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="1254" />
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="1320" />
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1777" />
-        <location filename="src/strange_uta_game/frontend/settings/cards.py" line="810" />
-        <location filename="src/strange_uta_game/frontend/settings/cards.py" line="894" />
-        <location filename="src/strange_uta_game/frontend/settings/checkpoint_marker_dialog.py" line="83" />
-        <location filename="src/strange_uta_game/frontend/settings/dictionary_dialog.py" line="133" />
-        <location filename="src/strange_uta_game/frontend/settings/font_picker_dialog.py" line="60" />
-        <location filename="src/strange_uta_game/frontend/settings/network_dictionary_dialog.py" line="169" />
-        <location filename="src/strange_uta_game/frontend/settings/network_dictionary_dialog.py" line="398" />
-        <location filename="src/strange_uta_game/frontend/settings/nicokara_dialog.py" line="143" />
-        <location filename="src/strange_uta_game/frontend/settings/preview_guide_dialog.py" line="106" />
-        <location filename="src/strange_uta_game/frontend/settings/settings_interface.py" line="589" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/dictionary.py" line="133" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="259" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="570" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="618" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="748" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="894" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="1699" />
         <source>取消</source>
-        <translation>キャンセル</translation>
+        <translation type="vanished">キャンセル</translation>
     </message>
     <message>
         <source>启动时检查更新</source>
@@ -10777,20 +10680,16 @@ KS側の設定が優先されます。</translation>
         <translation type="vanished">現在有効なプロキシ</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/settings/checkpoint_marker_dialog.py" line="76" />
-        <location filename="src/strange_uta_game/frontend/settings/preview_guide_dialog.py" line="99" />
         <source>恢复默认</source>
-        <translation>デフォルトへ戻す</translation>
+        <translation type="vanished">デフォルトへ戻す</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1342" />
         <source>您可以稍后在设置中重新检查更新</source>
-        <translation>後で設定から更新を再確認できます</translation>
+        <translation type="vanished">後で設定から更新を再確認できます</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="63" />
         <source>我知道了</source>
-        <translation>了解</translation>
+        <translation type="vanished">了解</translation>
     </message>
     <message>
         <source>手动代理地址</source>
@@ -10823,19 +10722,16 @@ KS側の設定が優先されます。</translation>
         <translation type="vanished">更新内容：</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1287" />
         <source>更新器未就绪</source>
-        <translation>アップデータが準備できていません</translation>
+        <translation type="vanished">アップデータが準備できていません</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1341" />
         <source>更新已取消</source>
-        <translation>更新がキャンセルされました</translation>
+        <translation type="vanished">更新がキャンセルされました</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1366" />
         <source>更新已启动</source>
-        <translation>更新を開始しました</translation>
+        <translation type="vanished">更新を開始しました</translation>
     </message>
     <message>
         <source>更新源优先级</source>
@@ -10858,22 +10754,16 @@ KS側の設定が優先されます。</translation>
         <translation type="vanished">プロキシ未検出</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="714" />
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="845" />
         <source>未知</source>
-        <translation>不明</translation>
+        <translation type="vanished">不明</translation>
     </message>
     <message>
         <source>未知日期</source>
         <translation type="vanished">日付不明</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing_interface.py" line="8134" />
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="1279" />
-        <location filename="src/strange_uta_game/frontend/export/export_interface.py" line="1355" />
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1355" />
         <source>未知错误</source>
-        <translation>不明なエラー</translation>
+        <translation type="vanished">不明なエラー</translation>
     </message>
     <message>
         <source>检查中...</source>
@@ -10896,36 +10786,20 @@ KS側の設定が優先されます。</translation>
         <translation type="vanished">テスト中...</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/dictionary.py" line="361" />
         <source>测试连通性</source>
-        <translation>接続テスト</translation>
+        <translation type="vanished">接続テスト</translation>
     </message>
     <message>
         <source>源尝试记录：</source>
         <translation type="vanished">ソース試行記録：</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/about.py" line="57" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/about.py" line="252" />
         <source>版本 v{ver}  |  由 RhythmicaLyrics 启发</source>
-        <translation>バージョン v{ver}  |  RhythmicaLyrics に着想</translation>
+        <translation type="vanished">バージョン v{ver}  |  RhythmicaLyrics に着想</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/dialogs.py" line="1163" />
-        <location filename="src/strange_uta_game/frontend/settings/cards.py" line="810" />
-        <location filename="src/strange_uta_game/frontend/settings/cards.py" line="894" />
-        <location filename="src/strange_uta_game/frontend/settings/checkpoint_marker_dialog.py" line="80" />
-        <location filename="src/strange_uta_game/frontend/settings/dictionary_dialog.py" line="131" />
-        <location filename="src/strange_uta_game/frontend/settings/network_dictionary_dialog.py" line="167" />
-        <location filename="src/strange_uta_game/frontend/settings/network_dictionary_dialog.py" line="396" />
-        <location filename="src/strange_uta_game/frontend/settings/nicokara_dialog.py" line="141" />
-        <location filename="src/strange_uta_game/frontend/settings/preview_guide_dialog.py" line="103" />
-        <location filename="src/strange_uta_game/frontend/settings/sub_interfaces/dictionary.py" line="131" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="259" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="570" />
-        <location filename="src/strange_uta_game/frontend/singer/singer_interface.py" line="618" />
         <source>确定</source>
-        <translation>OK</translation>
+        <translation type="vanished">OK</translation>
     </message>
     <message>
         <source>稍后再说</source>
@@ -10960,10 +10834,8 @@ KS側の設定が優先されます。</translation>
         <translation type="vanished">ネットワークとプロキシ（更新ソース）</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/timing/waveform_advanced_dialog.py" line="206" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/waveform_advanced_dialog.py" line="738" />
         <source>自动检测</source>
-        <translation>自動検出</translation>
+        <translation type="vanished">自動検出</translation>
     </message>
     <message>
         <source>自动检测代理</source>
@@ -11393,121 +11265,115 @@ KS側の設定が優先されます。</translation>
 </context><context>
     <name>WinRTJapaneseGuide</name>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/line_interface.py" line="1112" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/bulk_change_dialog.py" line="514" />
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1093" />
-        <location filename="src/strange_uta_game/frontend/settings/settings_interface.py" line="475" />
-        <location filename="src/strange_uta_game/frontend/settings/settings_interface.py" line="573" />
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="153" />
-        <source>否</source>
-        <translation>いいえ</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="66" />
-        <source>复制命令</source>
-        <translation>コマンドをコピー</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="159" />
-        <source>安装完成</source>
-        <translation>インストール完了</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="63" />
-        <source>我知道了</source>
-        <translation>了解</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="137" />
-        <source>手动安装</source>
-        <translation>手動インストール</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="59" />
+        <location filename="..\..\winrt_japanese_guide.py" line="58" />
         <source>手动安装日语注音组件</source>
         <translation>日本語ルビコンポーネントを手動インストール</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="149" />
-        <source>授权安装</source>
-        <translation>インストール承認</translation>
+        <location filename="..\..\winrt_japanese_guide.py" line="62" />
+        <source>我知道了</source>
+        <translation>了解</translation>
     </message>
     <message>
-        <source>接下来会弹出 Windows 的「用户账户控制 (UAC)」窗口，
-请点击「是」以授权安装日语组件。
-
-是否继续？</source>
-        <translation type="vanished">次に Windows の UAC ウィンドウが表示されます。
-「はい」を押して日本語コンポーネントのインストールを承認してください。
-
-続行しますか？</translation>
+        <location filename="..\..\winrt_japanese_guide.py" line="65" />
+        <source>复制命令</source>
+        <translation>コマンドをコピー</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="160" />
-        <source>日语注音组件已安装，可以开始注音了。</source>
-        <translation>日本語ルビコンポーネントをインストール済み。ルビを開始できます。</translation>
+        <location filename="..\..\winrt_japanese_guide.py" line="78" />
+        <source>正在安装</source>
+        <translation>インストール中</translation>
     </message>
     <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="79" />
+        <source>正在从 Windows Update 下载并安装日语注音组件，请稍候…
+（请在弹出的 UAC 窗口点击「是」以授权安装）</source>
+        <translation>Windows Update から日本語ルビコンポーネントをダウンロード・インストール中…
+（UAC ウィンドウで「はい」を押して承認してください）</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="121" />
+        <source>缺少注音组件</source>
+        <translation>ルビコンポーネント不足</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="122" />
+        <source>未找到 winrt 运行库（winrt-Windows.Globalization）。
+这通常是安装包不完整导致，请重新安装本应用或联系开发者。</source>
+        <translation>winrt ランタイム（winrt-Windows.Globalization）が見つかりません。
+インストールパッケージ不完全の可能性。本アプリを再インストールするか開発者へ連絡してください。</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="130" />
+        <source>需要安装日语注音组件</source>
+        <translation>日本語ルビコンポーネントのインストールが必要</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="131" />
         <source>日语注音需要 Windows 的日语功能（含日语 IME），当前系统未安装。
 约几十 MB，从 Windows Update 联网下载，不会更改系统显示语言。
 
 是否现在安装？</source>
-        <translation type="vanished">日本語ルビには Windows の日本語機能（IME 含む）が必要ですが、現在未インストールです。
+        <translation>日本語ルビには Windows の日本語機能（IME 含む）が必要ですが、現在未インストールです。
 約数十 MB を Windows Update からオンラインでダウンロード。システム表示言語は変更されません。
 
 今すぐインストールしますか？</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/editor/line_interface.py" line="1111" />
-        <location filename="src/strange_uta_game/frontend/editor/timing/bulk_change_dialog.py" line="513" />
-        <location filename="src/strange_uta_game/frontend/main_window.py" line="1092" />
-        <location filename="src/strange_uta_game/frontend/settings/settings_interface.py" line="474" />
-        <location filename="src/strange_uta_game/frontend/settings/settings_interface.py" line="572" />
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="152" />
-        <source>是</source>
-        <translation>はい</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="137" />
-        <source>暂不</source>
-        <translation>後で</translation>
-    </message>
-    <message>
-        <source>未找到 winrt 运行库（winrt-Windows.Globalization）。
-这通常是安装包不完整导致，请重新安装本应用或联系开发者。</source>
-        <translation type="vanished">winrt ランタイム（winrt-Windows.Globalization）が見つかりません。
-インストールパッケージ不完全の可能性。本アプリを再インストールするか開発者へ連絡してください。</translation>
-    </message>
-    <message>
-        <source>正在从 Windows Update 下载并安装日语注音组件，请稍候…
-（请在弹出的 UAC 窗口点击「是」以授权安装）</source>
-        <translation type="vanished">Windows Update から日本語ルビコンポーネントをダウンロード・インストール中…
-（UAC ウィンドウで「はい」を押して承認してください）</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="79" />
-        <source>正在安装</source>
-        <translation>インストール中</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="137" />
+        <location filename="..\..\winrt_japanese_guide.py" line="136" />
         <source>现在安装</source>
         <translation>今すぐインストール</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="122" />
-        <source>缺少注音组件</source>
-        <translation>ルビコンポーネント不足</translation>
+        <location filename="..\..\winrt_japanese_guide.py" line="136" />
+        <source>手动安装</source>
+        <translation>手動インストール</translation>
     </message>
     <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="166" />
+        <location filename="..\..\winrt_japanese_guide.py" line="136" />
+        <source>暂不</source>
+        <translation>後で</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="148" />
+        <source>授权安装</source>
+        <translation>インストール承認</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="149" />
+        <source>接下来会弹出 Windows 的「用户账户控制 (UAC)」窗口，
+请点击「是」以授权安装日语组件。
+
+是否继续？</source>
+        <translation>次に Windows の UAC ウィンドウが表示されます。
+「はい」を押して日本語コンポーネントのインストールを承認してください。
+
+続行しますか？</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="151" />
+        <source>是</source>
+        <translation>はい</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="152" />
+        <source>否</source>
+        <translation>いいえ</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="158" />
+        <source>安装完成</source>
+        <translation>インストール完了</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="159" />
+        <source>日语注音组件已安装，可以开始注音了。</source>
+        <translation>日本語ルビコンポーネントをインストール済み。ルビを開始できます。</translation>
+    </message>
+    <message>
+        <location filename="..\..\winrt_japanese_guide.py" line="165" />
         <source>自动安装未完成（可能未授权 UAC 或下载失败）。可按下面的方式手动安装：</source>
         <translation>自動インストール未完了（UAC 未承認またはダウンロード失敗の可能性）。下記の方法で手動インストール可：</translation>
-    </message>
-    <message>
-        <location filename="src/strange_uta_game/frontend/winrt_japanese_guide.py" line="131" />
-        <source>需要安装日语注音组件</source>
-        <translation>日本語ルビコンポーネントのインストールが必要</translation>
     </message>
 </context><context>
     <name>WorkspaceSwitcher</name>

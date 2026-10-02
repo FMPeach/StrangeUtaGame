@@ -14,11 +14,9 @@ from ..cards import ComboSettingCard, ShortcutSettingCard
 from .base import SubSettingInterface
 
 
-def _tr(s: str) -> str:
-    """模块级 tr 别名——_on_shortcut_changed 的单测用 SimpleNamespace 替身，
-    没法 self.tr；走 QCoreApplication.translate 不依赖 self。"""
-    return QCoreApplication.translate("ShortcutSubInterface", s)
-
+# 翻译统一走显式 QCoreApplication.translate 直呼（pylupdate6 只认直呼
+# 形态，别名转发会把条目误标 vanished；不依赖 self，单测的
+# SimpleNamespace 替身同样可用）。
 
 class ShortcutSubInterface(SubSettingInterface):
 
@@ -189,14 +187,12 @@ class ShortcutSubInterface(SubSettingInterface):
 
         scope 标签 ``[通用]/[打轴]/[编辑]`` 通过 QCoreApplication.translate 走
         翻译表——本方法是 ``@staticmethod``，无 ``self.tr``。"""
-        from PyQt6.QtCore import QCoreApplication
-        _tr = lambda s: QCoreApplication.translate("ShortcutSubInterface", s)
         _map = {
-            "both":         (colors["both"],   _tr("[通用]")),
-            "timing_only":  (colors["timing"], _tr("[打轴]")),
-            "edit_only":    (colors["edit"],   _tr("[编辑]")),
-            "split_timing": (colors["timing"], _tr("[打轴]")),
-            "split_edit":   (colors["edit"],   _tr("[编辑]")),
+            "both":         (colors["both"],   QCoreApplication.translate("ShortcutSubInterface", "[通用]")),
+            "timing_only":  (colors["timing"], QCoreApplication.translate("ShortcutSubInterface", "[打轴]")),
+            "edit_only":    (colors["edit"],   QCoreApplication.translate("ShortcutSubInterface", "[编辑]")),
+            "split_timing": (colors["timing"], QCoreApplication.translate("ShortcutSubInterface", "[打轴]")),
+            "split_edit":   (colors["edit"],   QCoreApplication.translate("ShortcutSubInterface", "[编辑]")),
         }
         if scope in _map:
             color, tag = _map[scope]
@@ -506,10 +502,10 @@ class ShortcutSubInterface(SubSettingInterface):
         # action title 走翻译表，冲突提示里也用翻译版本。用模块级 _tr 而非
         # self.tr：_on_shortcut_changed 单测用 SimpleNamespace 替身调用本函数，
         # SimpleNamespace 没有 .tr 方法。
-        action_titles = {a[0]: _tr(a[2]) for a in self._SHORTCUT_ACTIONS}
+        action_titles = {a[0]: QCoreApplication.translate("ShortcutSubInterface", a[2]) for a in self._SHORTCUT_ACTIONS}
 
         for mode_key, mode_label_raw in self._SHORTCUT_MODES:
-            mode_label = _tr(mode_label_raw)
+            mode_label = QCoreApplication.translate("ShortcutSubInterface", mode_label_raw)
             mode_actions = self._shortcut_cards[mode_key]
             if not any(card is changed_card for card in mode_actions.values()):
                 continue
@@ -530,10 +526,10 @@ class ShortcutSubInterface(SubSettingInterface):
                             for btn in [changed_card.btn_key1, changed_card.btn_key2]:
                                 if btn.get_key().strip().upper() == nk and btn.get_trigger_type() == nt:
                                     btn.restore_original_key()
-                            trigger_label = _tr("长按") if nt == "long" else _tr("短按")
+                            trigger_label = QCoreApplication.translate("ShortcutSubInterface", "长按") if nt == "long" else QCoreApplication.translate("ShortcutSubInterface", "短按")
                             InfoBar.warning(
-                                title=_tr("快捷键冲突"),
-                                content=_tr("[{mode}]「{action}」已占用{trigger}按键 {key}").format(
+                                title=QCoreApplication.translate("ShortcutSubInterface", "快捷键冲突"),
+                                content=QCoreApplication.translate("ShortcutSubInterface", "[{mode}]「{action}」已占用{trigger}按键 {key}").format(
                                     mode=mode_label,
                                     action=action_titles[action_key],
                                     trigger=trigger_label,

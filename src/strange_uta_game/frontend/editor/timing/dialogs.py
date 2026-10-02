@@ -2116,7 +2116,8 @@ _SEPARATE_SYM_DEFAULT: frozenset[str] = frozenset({
     "ja_quotes", "question", "ellipsis", "period", "comma",
 })
 
-_tr = lambda s: QCoreApplication.translate("SeparateSymbolTimestampDialog", s)
+# 本模块下方的辅助函数无 QObject self，翻译走显式 QCoreApplication.translate
+# （模块级 _tr 别名转发 pylupdate6 看不见，会把条目误标 vanished）。
 
 
 def _make_tri_checkbox(text: str, parent: QWidget) -> CheckBox:
@@ -2169,7 +2170,7 @@ class _GroupRow:
 
         row.addStretch()
 
-        self._detail_btn = QPushButton(_tr("详情 ▸"))
+        self._detail_btn = QPushButton(QCoreApplication.translate("SeparateSymbolTimestampDialog", "详情 ▸"))
         self._detail_btn.setFixedWidth(56)
         self._detail_btn.setFixedHeight(22)
         self._detail_btn.setFlat(True)
@@ -2237,9 +2238,9 @@ class _GroupRow:
 
     def _update_detail_text(self):
         if self._is_expanded:
-            self._detail_btn.setText(_tr("收起 ▾"))
+            self._detail_btn.setText(QCoreApplication.translate("SeparateSymbolTimestampDialog", "收起 ▾"))
         else:
-            self._detail_btn.setText(_tr("详情 ▸"))
+            self._detail_btn.setText(QCoreApplication.translate("SeparateSymbolTimestampDialog", "详情 ▸"))
 
     @property
     def container(self) -> QWidget:

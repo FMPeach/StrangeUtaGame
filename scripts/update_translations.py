@@ -59,6 +59,16 @@ def _collect_live_literals() -> dict:
     return live
 
 
+def _collect_alive_contexts() -> set:
+    """源码中仍存活的翻译上下文名：class 定义名 + translate("Ctx") 字面量。"""
+    ctxs: set = set()
+    for path in _frontend_py_files():
+        text = path.read_text(encoding="utf-8")
+        ctxs.update(re.findall(r"^class\s+(\w+)", text, re.M))
+        ctxs.update(re.findall(r"""translate\(\s*["']([^"']+)["']""", text))
+    return ctxs
+
+
 def _run(cmd: list) -> None:
     print("  $", " ".join(cmd))
     proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
@@ -73,13 +83,28 @@ def _find_tool(*names: str) -> str:
     sys.exit(f"未找到工具（尝试过: {', '.join(names)}），请先安装 PySide6/PyQt6 工具链")
 
 
-def restore_live_entries(ts_path: Path, live: dict) -> tuple[int, int]:
-    """把仍存在于源码的 vanished 条目恢复为 active 并回填 location。
+def restore_live_entries(ts_path: Path, live: dict, alive_ctx: set) -> tuple[int, int]:
+    """把「仍存在于源码」的 vanished 条目恢复为 active 并回填 location。
 
+    上下文级判据：source 字符串仍以 tr 族字面量存活，**且**条目所属
+    上下文在源码中存活（class 定义或 translate("Ctx") 引用）——避免把
+    死上下文（改过名/删掉的类）里的同名条目误救回来。
     返回 (恢复数, 剩余 vanished 数)。文本级手术修改，保持 pylupdate6 的
     序列化格式不被重排。
     """
     text = ts_path.read_text(encoding="utf-8")
+
+    # 上下文名按 <context><name> 分段预取
+    ctx_spans: list = []
+    for m in re.finditer(r"<context>\s*<name>(.*?)</name>(.*?)</context>", text, re.S):
+        ctx_spans.append((m.start(2), m.end(2), m.group(1)))
+
+    def _ctx_at(pos: int) -> str:
+        for start, end, name in ctx_spans:
+            if start <= pos < end:
+                return name
+        return ""
+
     restored = 0
     remaining = 0
 
@@ -87,10 +112,10 @@ def restore_live_entries(ts_path: Path, live: dict) -> tuple[int, int]:
         nonlocal restored, remaining
         block = m.group(0)
         if ' type="vanished"' not in block:
-            return block  # active 条目（或本来就没翻译的），不动也不计数
+            return block  # active 条目，不动也不计数
         src = re.search(r"<source>(.*?)</source>", block, re.S)
         lit = src.group(1) if src else None
-        if lit in live:
+        if lit in live and _ctx_at(m.start()) in alive_ctx:
             restored += 1
             block = block.replace(' type="vanished"', "", 1)
             if "<location" not in block:
@@ -115,14 +140,15 @@ def main() -> int:
     lrelease = _find_tool("pyside6-lrelease", "lrelease", "lrelease6")
 
     live = _collect_live_literals()
-    print(f"源码 tr 族字面量：{len(live)} 个")
+    alive_ctx = _collect_alive_contexts()
+    print(f"源码 tr 族字面量：{len(live)} 个；存活上下文：{len(alive_ctx)} 个")
 
     py_files = [str(p) for p in _frontend_py_files()]
     for name in TS_FILES:
         ts_path = TS_DIR / name
         print(f"\n== {name} ==")
         _run([lupdate, *py_files, "-ts", str(ts_path)])
-        restored, remaining = restore_live_entries(ts_path, live)
+        restored, remaining = restore_live_entries(ts_path, live, alive_ctx)
         print(f"  恢复误标 vanished：{restored}（真实 vanished 保留：{remaining}）")
         _run([lrelease, str(ts_path)])
     print("\n完成：.ts 已刷新（location 为自动生成），.qm 已重新编译。")

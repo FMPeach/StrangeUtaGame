@@ -404,21 +404,21 @@ class DeleteRubyByTypeDialog(QDialog):
         else:
             default_set = {CharType.HIRAGANA}
 
-        # 显式枚举每个 label 走 self.tr，让 .ts 抽取器把源串归入本类上下文
-        # （class 级常量里的字符串无法在抽取期定位到 self）。
-        _tr = self.tr
-        _tr("ひらがな（平假名）")
-        _tr("カタカナ（片假名・注音为平假名）")
-        _tr("カタカナ（片假名・注音含有英文）")
-        _tr("漢字（汉字）")
-        _tr("アルファベット（英文字母）")
-        _tr("ハングル（韩文谚文）")
-        _tr("数字")
-        _tr("記号（符号）")
-        _tr("長音符号（ー、～等）")
-        _tr("促音（っ/ッ）")
-        _tr("その他（♪等特殊符号）")
-        _tr("空格")
+        # 显式枚举每个 label 的 self.tr 直呼，让 .ts 抽取器把源串归入
+        # 本类上下文（class 级常量里的字符串无法在抽取期定位到 self，
+        # 也不能经别名转发——pylupdate6 只认 self.tr("字面量") 直呼）。
+        self.tr("ひらがな（平假名）")
+        self.tr("カタカナ（片假名・注音为平假名）")
+        self.tr("カタカナ（片假名・注音含有英文）")
+        self.tr("漢字（汉字）")
+        self.tr("アルファベット（英文字母）")
+        self.tr("ハングル（韩文谚文）")
+        self.tr("数字")
+        self.tr("記号（符号）")
+        self.tr("長音符号（ー、～等）")
+        self.tr("促音（っ/ッ）")
+        self.tr("その他（♪等特殊符号）")
+        self.tr("空格")
 
         self._checkboxes: list[tuple] = []
         for char_type, label in self._TYPE_LABELS:
@@ -513,20 +513,20 @@ class DeleteCheckpointByTypeDialog(QDialog):
         else:
             default_set = {CharType.HIRAGANA}
 
-        # 显式枚举每个 label 走 self.tr，让 .ts 抽取器把源串归入本类上下文
-        # （class 级常量里的字符串无法在抽取期定位到 self）。
-        _tr = self.tr
-        _tr("ひらがな（平假名）")
-        _tr("カタカナ（片假名）")
-        _tr("漢字（汉字）")
-        _tr("アルファベット（英文字母）")
-        _tr("ハングル（韩文谚文）")
-        _tr("数字")
-        _tr("記号（符号）")
-        _tr("長音符号（ー、～等）")
-        _tr("促音（っ/ッ）")
-        _tr("その他（♪等特殊符号）")
-        _tr("空格")
+        # 显式枚举每个 label 的 self.tr 直呼，让 .ts 抽取器把源串归入
+        # 本类上下文（class 级常量里的字符串无法在抽取期定位到 self，
+        # 也不能经别名转发——pylupdate6 只认 self.tr("字面量") 直呼）。
+        self.tr("ひらがな（平假名）")
+        self.tr("カタカナ（片假名）")
+        self.tr("漢字（汉字）")
+        self.tr("アルファベット（英文字母）")
+        self.tr("ハングル（韩文谚文）")
+        self.tr("数字")
+        self.tr("記号（符号）")
+        self.tr("長音符号（ー、～等）")
+        self.tr("促音（っ/ッ）")
+        self.tr("その他（♪等特殊符号）")
+        self.tr("空格")
 
         self._checkboxes: list[tuple] = []
         for char_type, label in self._TYPE_LABELS:
