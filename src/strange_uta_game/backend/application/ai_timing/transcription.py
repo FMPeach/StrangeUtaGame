@@ -7,6 +7,8 @@
 
 - 中文（FA-Kara 口径）：拼音 → 表音拼写（声母/韵母映射表 + 整体
   认读特例），如 zhong→jong、xiao→shyao、lü→ryu、zhi→jru；
+- 韩文（FA-Kara 式声学口径）：谚文音节算术分解为初/中/终声 jamo 后
+  查静态映射表，如 사랑해→sa/rang/he、강남→gang/nam、학교→hak/gyo；
 - 英文（SUG 自有技术优先）：e2k.txt 词典（CMU 加工的英単語→片假名，
   ``EnglishRubyLookup``）查片假名 → 按拍切分（拗音/长音附前拍）→
   走与日文路径同一个罗马字转换器（take→テイク→te/i/ku）。词典
@@ -96,6 +98,81 @@ def pinyin_to_phonetic(pinyin: str) -> str:
             "u" + phonetic_final[2:] if len(phonetic_final) > 2 else "u"
         )
     return phonetic_initial + phonetic_final
+
+
+# ── 韩文：谚文音节 → 罗马字表音（jamo 算术分解 + 静态映射）──
+
+# 音节块算术分解常数：U+AC00 + cho*588 + jung*28 + jong
+_HANGUL_SYL_BASE = 0xAC00
+_HANGUL_SYL_COUNT = 11172  # 19 * 21 * 28
+
+# 初声（choseong，19 个）→ 罗马字；紧音（ㄲㄸㅃㅉㅆ）按平音同位处理：
+# 单音节 token 内无从体现紧音的长闭塞段，声学上与平音分布一致
+_HANGUL_CHO = [
+    'g', 'g', 'n', 'd', 'd', 'r', 'm', 'b', 'b', 's', 's', '',
+    'j', 'j', 'ch', 'k', 't', 'p', 'h',
+]
+
+# 中声（jungseong，21 个）→ 罗马字。音节块槽位顺序注意：ㅢ=19、
+# ㅣ=20（预组音节的编码序与 Unicode jamo 块不同）。ㅓ→o、ㅡ→u 是
+# 声学选择：对齐模型在日文罗马字分布上微调，词表无 eo/eu 组合
+# （e+o 会被读成两个元音）；ㅐ/ㅔ 同归 e，ㅙ/ㅚ/ㅞ 同归 we（现代
+# 首尔音 [we]）
+_HANGUL_JUNG = [
+    'a', 'e', 'ya', 'ye', 'o', 'e', 'yo', 'ye', 'o', 'wa', 'we', 'we',
+    'yo', 'u', 'wo', 'we', 'wi', 'yu', 'u', 'ui', 'i',
+]
+
+# 终声（jongseong，28 个槽位，0=无）→ 罗马字。不除阻韵尾只保留首个
+# 可听辅音痕迹：ㅅ/ㅆ/ㅈ/ㅊ/ㅌ 收尾实际为 [t̚]→t，ㄹ 系（含复合）→r
+# （与英文 L→r 同因：模型分布无 l），ㅎ 收尾弱化丢弃
+_HANGUL_JONG = [
+    '', 'k', 'k', 'k', 'n', 'n', 'n', 't', 'r', 'k', 'm', 'r', 'r', 'r',
+    'p', 'r', 'm', 'p', 'p', 't', 't', 'ng', 't', 't', 'k', 't', 'p', '',
+]
+
+# 颚化：ㅅ/ㅆ 后接 i/y 类中声时读 [ɕ] → sh（시→shi、셔→shyo）
+# （在 _hangul_syllable_phonetic 内联判定）
+
+
+def _hangul_syllable_phonetic(ch: str) -> str:
+    """单个谚文音节块 → 罗马字表音拼写（非音节块原样返回）。"""
+    code = ord(ch)
+    offset = code - _HANGUL_SYL_BASE
+    if not (0 <= offset < _HANGUL_SYL_COUNT):
+        return ch
+    cho, rem = divmod(offset, 588)
+    jung, jong = divmod(rem, 28)
+    initial = _HANGUL_CHO[cho]
+    medial = _HANGUL_JUNG[jung]
+    if initial == 's' and (medial.startswith('i') or medial.startswith('y')):
+        initial = 'sh'
+    return initial + medial + _HANGUL_JONG[jong]
+
+
+def contains_hangul(text: str) -> bool:
+    """文本是否含谚文音节块（alignment 侧按内容路由汉字韩音读音用）。"""
+    return any(
+        _HANGUL_SYL_BASE <= ord(c) <= _HANGUL_SYL_BASE + _HANGUL_SYL_COUNT - 1
+        for c in text
+    )
+
+
+def hangul_to_phonetic(text: str) -> str:
+    """谚文读音 → 罗马字表音拼写（对齐 token 口径，与拼音路径同构）。
+
+    逐音节分解为初/中/终声 jamo 后查静态映射表（FA-Kara 式声学贴近
+    转写，非严格 RR）；非谚文字符（用户手标拉丁读音等）原样小写透传。
+    跨音节音变（连音/跨拍颚化）不做——与拼音的正字法转写口径一致。
+    """
+    if not text:
+        return text
+    if not contains_hangul(text):
+        return text.lower()
+    return "".join(
+        _hangul_syllable_phonetic(c) if contains_hangul(c) else c.lower()
+        for c in text
+    )
 
 
 # ── 英文：e2k 词典 → 片假名 → 按拍罗马字（SUG 自有数据）──
@@ -441,6 +518,8 @@ def english_number_reading(number_str: str) -> str:
 
 __all__ = [
     "pinyin_to_phonetic",
+    "hangul_to_phonetic",
+    "contains_hangul",
     "english_word_syllables",
     "english_word_phoneme_syllables",
     "number_to_english",

@@ -43,7 +43,10 @@ strange-uta-game = "strange_uta_game.main:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-strange_uta_game = ["resource/*", "bass/*.dll", "bass/x64/*.dll"]
+# config/ 内置词典与默认配置（dictionary.json / e2k.txt / cmudict-0.7b /
+# hanja_korean.json 等）：库形态安装（嵌入宿主 pip 安装）时必须随包分发，
+# 否则 e2k/拼音之外的转写路径在宿主内静默降级
+strange_uta_game = ["resource/*", "bass/*.dll", "bass/x64/*.dll", "config/*"]
 
 [tool.black]
 line-length = 88

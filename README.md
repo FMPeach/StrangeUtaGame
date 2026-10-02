@@ -149,8 +149,8 @@
   <td align="center">🤖</td>
   <td>
     <b>AI 打轴（Beta） / AI-assisted timing (Beta)</b><br/>
-    <sub>在 <b>打轴界面 → AI 打轴</b> 中，根据人声音频、歌词与已有注音自动生成整首歌曲的时间戳；支持日文及歌词中的中文、英文内容，可自动复用或分离人声，并提供日文推荐模型与多语言通用模型。默认日文推荐模型仅限非商业用途。结果仅供辅助参考，完成后请人工校准，尤其是和声与重叠人声段落。<br/>
-    Generate full-song timestamps from vocals, lyrics and existing readings under <b>Timing → AI Timing</b>. Japanese, Chinese and English content are supported, with reusable/automatic vocal separation and both Japanese-focused and multilingual models. The default Japanese-focused model is non-commercial only. Always review the result manually, especially harmony and overlapping-vocal sections.</sub>
+    <sub>在 <b>打轴界面 → AI 打轴</b> 中，根据人声音频、歌词与已有注音自动生成整首歌曲的时间戳；支持日文及歌词中的中文、英文、韩文内容，可自动复用或分离人声，并提供日文推荐模型与多语言通用模型。默认日文推荐模型仅限非商业用途。结果仅供辅助参考，完成后请人工校准，尤其是和声与重叠人声段落。<br/>
+    Generate full-song timestamps from vocals, lyrics and existing readings under <b>Timing → AI Timing</b>. Japanese, Chinese, English and Korean content are supported, with reusable/automatic vocal separation and both Japanese-focused and multilingual models. The default Japanese-focused model is non-commercial only. Always review the result manually, especially harmony and overlapping-vocal sections.</sub>
   </td>
 </tr>
 <tr>

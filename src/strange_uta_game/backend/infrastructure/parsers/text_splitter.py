@@ -1,6 +1,6 @@
 """文本拆分器 - 将歌词文本拆分为字符列表。
 
-支持日文（汉字、假名、长音、促音）和英文的拆分规则。
+支持日文（汉字、假名、长音、促音）、韩文（谚文音节）和英文的拆分规则。
 """
 
 import re
@@ -19,6 +19,7 @@ class CharType(Enum):
     LONG_VOWEL = auto()  # 长音「ー」
     SOKUON = auto()  # 促音「っ/ッ」
     ALPHABET = auto()  # 英文字母
+    HANGUL = auto()  # 韩文谚文音节（U+AC00–U+D7A3 预组音节块）
     NUMBER = auto()  # 数字
     SYMBOL = auto()  # 符号
     SPACE = auto()  # 半角空格（U+0020 等 ASCII 空白）
@@ -69,6 +70,13 @@ def get_char_type(char: str) -> CharType:
         or char == "\u3005"  # 々 IDEOGRAPHIC ITERATION MARK
     ):
         return CharType.KANJI
+
+    # 韩文谚文音节块（U+AC00–U+D7A3）。谚文是表音文字、每音节一个
+    # 节拍单元，必须在 isalpha() 兜底之前拦截——否则会被误归为英文字母
+    # （isalpha() 对谚文返回 True），节奏点语义与按类型删除都会错挂。
+    # 兼容 jamo（U+3130–U+318F 等）不在此列：歌词中几乎只出现预组音节。
+    if "\uac00" <= char <= "\ud7a3":
+        return CharType.HANGUL
 
     # 英文字母
     if char.isalpha():
@@ -284,7 +292,10 @@ class AutoSplitter(TextSplitter):
                 CharType.SOKUON,
             ):
                 ja_chars += 1
-            elif char_type == CharType.ALPHABET:
+            elif char_type in (CharType.ALPHABET, CharType.HANGUL):
+                # 谚文按 en 桶计数：纯韩文行保持 en 检测 → EnglishSplitter
+                # 的逐字 + 空格合并行为（否则退化为 other 的裸 list(text)，
+                # 连续空格不再合并）。
                 en_chars += 1
             elif not char.isspace():
                 other_chars += 1
@@ -379,8 +390,8 @@ def split_text(text: str, config: SplitConfig = None) -> Tuple[List[str], List[i
         elif char_type in (CharType.KANJI, CharType.HIRAGANA, CharType.KATAKANA):
             # 假名通常 1 个节奏点，汉字根据注音确定（这里默认 1）
             check_counts.append(1)
-        elif char_type == CharType.ALPHABET:
-            # 英文字母通常 1 个
+        elif char_type in (CharType.ALPHABET, CharType.HANGUL):
+            # 英文字母通常 1 个；谚文每音节固定 1 个（表音节拍单元）
             check_counts.append(1)
         elif char_type in (CharType.SPACE, CharType.FULL_SPACE):
             # 半角/全角空格 0 个

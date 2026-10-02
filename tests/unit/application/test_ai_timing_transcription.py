@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""对齐转写：拼音→表音、英文 CMU 音素→音节罗马字（FA-Kara 口径）、
-英文 e2k→片假名→按拍罗马字回退、数字→英文读法。"""
+"""对齐转写：拼音→表音、谚文→罗马字表音、英文 CMU 音素→音节罗马字
+（FA-Kara 口径）、英文 e2k→片假名→按拍罗马字回退、数字→英文读法。"""
 
 import pytest
 
@@ -44,6 +44,60 @@ class TestPinyinToPhonetic:
 
     def test_undecomposable_passthrough(self):
         assert transcription.pinyin_to_phonetic("zzz") == "zzz"
+
+
+class TestHangulToPhonetic:
+    def test_basic_syllables(self):
+        # 사→sa、랑→rang（终声 ㅇ→ng）、해→he
+        assert transcription.hangul_to_phonetic("사") == "sa"
+        assert transcription.hangul_to_phonetic("랑") == "rang"
+        assert transcription.hangul_to_phonetic("해") == "he"
+        assert transcription.hangul_to_phonetic("강남") == "gangnam"
+
+    def test_acoustic_vowel_choices(self):
+        # ㅓ→o、ㅡ→u、ㅐ/ㅔ→e：贴近日文罗马字分布（无 eo/eu 组合）
+        assert transcription.hangul_to_phonetic("학생") == "hakseng"
+        assert transcription.hangul_to_phonetic("지금") == "jigum"
+        assert transcription.hangul_to_phonetic("안녕") == "annyong"
+
+    def test_palatalization(self):
+        # ㅅ/ㅆ 后接 i/y 类中声 → sh
+        assert transcription.hangul_to_phonetic("시") == "shi"
+        assert transcription.hangul_to_phonetic("시간") == "shigan"
+        assert transcription.hangul_to_phonetic("셔") == "shyo"
+        # ㅅ 后接非 i/y 中声保持 s
+        assert transcription.hangul_to_phonetic("사") == "sa"
+
+    def test_unreleased_finals(self):
+        # 不除阻韵尾：ㅅ/ㅈ/ㅊ/ㅌ 收尾为 [t̚]→t；ㄹ 系→r；ㅎ 弱化丢弃
+        assert transcription.hangul_to_phonetic("꽃") == "got"
+        assert transcription.hangul_to_phonetic("같은") == "gatun"
+        assert transcription.hangul_to_phonetic("서울") == "sour"
+        assert transcription.hangul_to_phonetic("좋아") == "joa"
+
+    def test_composite_finals_take_first_audible(self):
+        # ㄳ→k、ㄵ→n、ㄺ→k、ㅄ→p、ㄻ→m
+        assert transcription.hangul_to_phonetic("앉다") == "anda"
+        assert transcription.hangul_to_phonetic("값") == "gap"
+        assert transcription.hangul_to_phonetic("닭") == "dak"
+
+    def test_tense_consonants_collapse_to_plain(self):
+        # ㄲ/ㄸ/ㅃ/ㅉ/ㅆ 初声按平音同位
+        assert transcription.hangul_to_phonetic("꼭") == "gok"
+        assert transcription.hangul_to_phonetic("짜") == "ja"
+        assert transcription.hangul_to_phonetic("쪽") == "jok"
+
+    def test_empty_and_passthrough(self):
+        # 非谚文原样小写透传（用户手标拉丁读音）；空串原样
+        assert transcription.hangul_to_phonetic("Sa") == "sa"
+        assert transcription.hangul_to_phonetic("ABC") == "abc"
+        assert transcription.hangul_to_phonetic("") == ""
+
+    def test_output_is_alignment_latin(self):
+        # 全部预组音节块输出纯 [a-z]（worker normalize_latn_text 域内）
+        for code in range(0xAC00, 0xD7A4):
+            out = transcription.hangul_to_phonetic(chr(code))
+            assert out and out.isascii() and out.isalpha(), (chr(code), out)
 
 
 class TestEnglishE2K:

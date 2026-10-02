@@ -53,10 +53,11 @@ from strange_uta_game.backend.infrastructure.parsers.romaji import (
 
 
 # 允许自动注音的字符类型白名单（第十批 #5）：
-# 英文字符/英文词语、汉字/日汉字、平假名、片假名、阿拉伯数字
+# 英文字符/英文词语、汉字/日汉字、平假名、片假名、韩文谚文、阿拉伯数字
 _RUBY_ALLOWED_TYPES = {
     CharType.ALPHABET,
     CharType.KANJI,
+    CharType.HANGUL,
     CharType.HIRAGANA,
     CharType.KATAKANA,
     CharType.SOKUON,
@@ -66,7 +67,9 @@ _RUBY_ALLOWED_TYPES = {
 
 # 字符类型 → 标志键映射（用于标志过滤器，提取为模块级常量避免循环内重复构造）
 # 注意：CharType.SPACE / CharType.FULL_SPACE 不在此表中，空格由 _apply_flags_filter 单独处理
-# （需要同时读取 space_after_* 三个子选项，逻辑与其他类型不同）
+# （需要同时读取 space_after_* 三个子选项，逻辑与其他类型不同）。
+# CharType.HANGUL 刻意不在此表中：韩文谚文每音节固定 1 个节奏点，
+# 不受任何开关门控（用户口径），无条目即不会被归零。
 _TYPE_FLAG_MAP: Dict[CharType, str] = {
     CharType.HIRAGANA: "hiragana",
     CharType.KATAKANA: "katakana",
@@ -1185,6 +1188,7 @@ class AutoCheckService:
                         CharType.KANJI,
                         CharType.SOKUON,
                         CharType.LONG_VOWEL,
+                        CharType.HANGUL,
                     ):
                         check_counts[i] = 1 if self._flags.get("space_after_japanese", True) else 0
                     elif prev_ct == CharType.ALPHABET:
@@ -2855,6 +2859,7 @@ _RUBY_TYPE_NAME_MAP: Dict[str, CharType] = {
     "katakana": CharType.KATAKANA,
     "kanji": CharType.KANJI,
     "alphabet": CharType.ALPHABET,
+    "hangul": CharType.HANGUL,
     "number": CharType.NUMBER,
     "symbol": CharType.SYMBOL,
     "long_vowel": CharType.LONG_VOWEL,

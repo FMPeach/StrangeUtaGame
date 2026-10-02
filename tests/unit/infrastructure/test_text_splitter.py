@@ -49,6 +49,19 @@ class TestGetCharType:
         assert get_char_type("A") == CharType.ALPHABET
         assert get_char_type("z") == CharType.ALPHABET
 
+    def test_hangul(self):
+        # 谚文音节块（U+AC00–U+D7A3）在 isalpha() 兜底之前拦截，
+        # 不得误归英文字母。
+        assert get_char_type("가") == CharType.HANGUL
+        assert get_char_type("한") == CharType.HANGUL
+        assert get_char_type("글") == CharType.HANGUL
+        assert get_char_type("힣") == CharType.HANGUL
+
+    def test_hangul_block_edges(self):
+        # 音节块前一/后一码位不属于谚文音节块（未指派 → OTHER）
+        assert get_char_type("\ua9ff") == CharType.OTHER
+        assert get_char_type("\ud7a4") == CharType.OTHER
+
     def test_number(self):
         assert get_char_type("1") == CharType.NUMBER
 
@@ -136,6 +149,15 @@ class TestAutoSplitter:
         result = splitter.split("Hello")
         assert result == ["H", "e", "l", "l", "o"]
 
+    def test_detect_hangul_counts_as_en_style(self):
+        # 纯谚文行走 en 桶 → EnglishSplitter（逐字 + 空格合并），
+        # 不退化为 other 的裸 list(text)（连续空格不再合并）。
+        splitter = AutoSplitter()
+        assert splitter.detect_language("사랑해 너를") == "en"
+        assert splitter.split("사랑해  너를") == [
+            "사", "랑", "해", " ", "너", "를",
+        ]
+
 
 class TestSplitText:
     """测试 split_text 函数"""
@@ -151,3 +173,9 @@ class TestSplitText:
 
         assert "".join(chars) == "magic magic!\u3000君に届くよぅに"
         assert len(counts) == len(chars)
+
+    def test_hangul_syllables_get_one_checkpoint_each(self):
+        # 谚文每音节固定 1 个节奏点（不受 alphabet 开关门控）
+        chars, counts = split_text("사랑해")
+        assert chars == ["사", "랑", "해"]
+        assert counts == [1, 1, 1]

@@ -6,6 +6,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 from strange_uta_game.backend.domain import Ruby, RubyPart, Sentence
@@ -932,6 +933,136 @@ class PinyinAnalyzer(RubyAnalyzer):
 def create_pinyin_analyzer() -> PinyinAnalyzer:
     """创建中文拼音注音分析器。"""
     return PinyinAnalyzer()
+
+
+# ──────────────────────────────────────────────
+# 韩文汉字（韩音）分析器
+# ──────────────────────────────────────────────
+
+
+_HANJA_TABLE_CACHE: Optional[dict] = None
+"""hanja_korean.json 惰性加载缓存；None=未加载，False 语义由空 dict 承担。"""
+
+
+def _resolve_hanja_table_path() -> Optional[Path]:
+    """解析 hanja_korean.json 路径（兼容 PyInstaller 打包与库形态嵌入）。"""
+    import sys
+
+    base = getattr(sys, "_MEIPASS", None)
+    if base:
+        p = Path(base) / "strange_uta_game" / "config" / "hanja_korean.json"
+        if p.exists():
+            return p
+    dev_path = (
+        Path(__file__).resolve().parent.parent.parent.parent
+        / "config"
+        / "hanja_korean.json"
+    )
+    if dev_path.exists():
+        return dev_path
+    return None
+
+
+def _load_hanja_table() -> dict:
+    """加载汉字→韩音谚文映射表（Unihan kHangul 派生，缺文件返回空表）。"""
+    global _HANJA_TABLE_CACHE
+    if _HANJA_TABLE_CACHE is None:
+        import json
+
+        path = _resolve_hanja_table_path()
+        try:
+            if path is None:
+                _HANJA_TABLE_CACHE = {}
+            else:
+                with open(path, "r", encoding="utf-8") as f:
+                    _HANJA_TABLE_CACHE = json.load(f)
+        except Exception:
+            _HANJA_TABLE_CACHE = {}
+    return _HANJA_TABLE_CACHE
+
+
+# 词首두음법칙：y/i 类中声索引（ㅑㅒㅕㅖㅛㅠㅣ）
+_INITIAL_Y_JUNG = frozenset({2, 3, 6, 7, 12, 17, 20})
+
+
+def _apply_initial_sound_law(syllable: str) -> str:
+    """对单个谚文音节应用词首두음법칙（非音节块原样返回）。
+
+    - ㄹ + y/i 类中声 → ㅇ（량→양、륙→육、리→이）
+    - ㄹ + 其他中声 → ㄴ（라→나、래→내）
+    - ㄴ + y/i 类中声 → ㅇ（녀→여、뉴→유）
+    """
+    code = ord(syllable)
+    offset = code - 0xAC00
+    if not (0 <= offset < 11172):
+        return syllable
+    cho, rem = divmod(offset, 588)
+    jung, jong = divmod(rem, 28)
+    if jung in _INITIAL_Y_JUNG:
+        if cho in (2, 5):  # ㄴ、ㄹ
+            cho = 11  # ㅇ
+    elif cho == 5:  # ㄹ
+        cho = 2  # ㄴ
+    return chr(0xAC00 + cho * 588 + jung * 28 + jong)
+
+
+class KoreanHanjaAnalyzer(RubyAnalyzer):
+    """韩文歌词的汉字缺口注音分析器（纯查表，无外部依赖）。
+
+    汉字 → ``hanja_korean.json`` 韩音谚文（Unihan kHangul 派生，0E 词典
+    词目形优先），词首位置应用두음법칙；谚文/拉丁/数字按自身透传（谚文
+    在 AI 打轴收集阶段即自读音，通常不会进入本分析器）。表未收录的
+    生僻汉字返回自身作读音——resolver 侧对 KANJI 自读音保持缺口，
+    执行前会给出明确的「缺少读音」提示，可手工标注纠正。
+    """
+
+    def analyze(self, text: str) -> List[RubyResult]:
+        table = _load_hanja_table()
+        results: List[RubyResult] = []
+        for i, ch in enumerate(text):
+            reading = ch
+            if self._is_hanja(ch):
+                hit = table.get(ch)
+                if hit:
+                    reading = (
+                        _apply_initial_sound_law(hit)
+                        if self._is_word_initial(text, i)
+                        else hit
+                    )
+            results.append(
+                RubyResult(text=ch, reading=reading, start_idx=i, end_idx=i + 1)
+            )
+        return results
+
+    def get_reading(self, text: str) -> str:
+        if not text:
+            return ""
+        return "".join(r.reading for r in self.analyze(text))
+
+    @staticmethod
+    def _is_hanja(char: str) -> bool:
+        code = ord(char)
+        return (
+            (0x4E00 <= code <= 0x9FFF)
+            or (0x3400 <= code <= 0x4DBF)
+            or (0xF900 <= code <= 0xFAFF)
+            or code == 0x3005
+        )
+
+    @staticmethod
+    def _is_word_initial(text: str, idx: int) -> bool:
+        """두음법칙按词首判定：行首，或前邻不是 CJK 系文字（汉字/谚文）。"""
+        if idx == 0:
+            return True
+        prev = text[idx - 1]
+        # 拉丁字母/数字/空格/标点后视为新词起点（韩文正字法以词为单位）
+        prev_in_cjk_word = prev.isalpha() and ord(prev) > 0x2E7F
+        return not prev_in_cjk_word
+
+
+def create_korean_analyzer() -> KoreanHanjaAnalyzer:
+    """创建韩文汉字（韩音）注音分析器（数据表缺失时返回空表行为）。"""
+    return KoreanHanjaAnalyzer()
 
 
 # ──────────────────────────────────────────────

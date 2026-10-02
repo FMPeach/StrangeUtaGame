@@ -351,6 +351,7 @@ class DeleteRubyByTypeDialog(QDialog):
         ("katakana_english_ruby", "カタカナ（片假名・注音含有英文）"),
         (CharType.KANJI, "漢字（汉字）"),
         (CharType.ALPHABET, "アルファベット（英文字母）"),
+        (CharType.HANGUL, "ハングル（韩文谚文）"),
         (CharType.NUMBER, "数字"),
         (CharType.SYMBOL, "記号（符号）"),
         (CharType.LONG_VOWEL, "長音符号（ー、～等）"),
@@ -365,6 +366,7 @@ class DeleteRubyByTypeDialog(QDialog):
         "katakana_english_ruby": "katakana_english_ruby",
         CharType.KANJI: "kanji",
         CharType.ALPHABET: "alphabet",
+        CharType.HANGUL: "hangul",
         CharType.NUMBER: "number",
         CharType.SYMBOL: "symbol",
         CharType.LONG_VOWEL: "long_vowel",
@@ -410,6 +412,7 @@ class DeleteRubyByTypeDialog(QDialog):
         _tr("カタカナ（片假名・注音含有英文）")
         _tr("漢字（汉字）")
         _tr("アルファベット（英文字母）")
+        _tr("ハングル（韩文谚文）")
         _tr("数字")
         _tr("記号（符号）")
         _tr("長音符号（ー、～等）")
@@ -459,6 +462,7 @@ class DeleteCheckpointByTypeDialog(QDialog):
         (CharType.KATAKANA, "カタカナ（片假名）"),
         (CharType.KANJI, "漢字（汉字）"),
         (CharType.ALPHABET, "アルファベット（英文字母）"),
+        (CharType.HANGUL, "ハングル（韩文谚文）"),
         (CharType.NUMBER, "数字"),
         (CharType.SYMBOL, "記号（符号）"),
         (CharType.LONG_VOWEL, "長音符号（ー、～等）"),
@@ -472,6 +476,7 @@ class DeleteCheckpointByTypeDialog(QDialog):
         CharType.KATAKANA: "katakana",
         CharType.KANJI: "kanji",
         CharType.ALPHABET: "alphabet",
+        CharType.HANGUL: "hangul",
         CharType.NUMBER: "number",
         CharType.SYMBOL: "symbol",
         CharType.LONG_VOWEL: "long_vowel",
@@ -515,6 +520,7 @@ class DeleteCheckpointByTypeDialog(QDialog):
         _tr("カタカナ（片假名）")
         _tr("漢字（汉字）")
         _tr("アルファベット（英文字母）")
+        _tr("ハングル（韩文谚文）")
         _tr("数字")
         _tr("記号（符号）")
         _tr("長音符号（ー、～等）")

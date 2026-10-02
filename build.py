@@ -270,6 +270,7 @@ args = [
     f"--add-data=src/strange_uta_game/config/singers.json{_src_sep}strange_uta_game/config",
     f"--add-data=src/strange_uta_game/config/e2k.txt{_src_sep}strange_uta_game/config",
     f"--add-data=src/strange_uta_game/config/cmudict-0.7b{_src_sep}strange_uta_game/config",
+    f"--add-data=src/strange_uta_game/config/hanja_korean.json{_src_sep}strange_uta_game/config",
     # 公共隐藏导入
     "--hidden-import=sounddevice",
     "--hidden-import=soundfile",

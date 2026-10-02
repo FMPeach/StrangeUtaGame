@@ -56,6 +56,9 @@ class ScriptKind(Enum):
     LATIN = "latin"
     """拉丁字母（英语等，MMS-Latn 对齐器的原生脚本）。"""
 
+    HANGUL = "hangul"
+    """韩文谚文音节（表音文字，字符自身即读音，AI 打轴前转罗马字表音）。"""
+
     NUMBER = "number"
     """阿拉伯数字（复用 SUG 数字→漢数字→日语读音能力）。"""
 
@@ -75,6 +78,7 @@ _TOKEN_SCRIPTS = frozenset(
         ScriptKind.KANA,
         ScriptKind.KANJI,
         ScriptKind.LATIN,
+        ScriptKind.HANGUL,
         ScriptKind.NUMBER,
     }
 )
@@ -91,6 +95,7 @@ _SCRIPT_BY_CHAR_TYPE: Dict[CharType, ScriptKind] = {
     CharType.LONG_VOWEL: ScriptKind.KANA,
     CharType.KANJI: ScriptKind.KANJI,
     CharType.ALPHABET: ScriptKind.LATIN,
+    CharType.HANGUL: ScriptKind.HANGUL,
     CharType.NUMBER: ScriptKind.NUMBER,
     CharType.SYMBOL: ScriptKind.PUNCTUATION,
     CharType.SPACE: ScriptKind.SPACE,

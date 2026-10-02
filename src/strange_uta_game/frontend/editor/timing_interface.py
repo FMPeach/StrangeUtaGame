@@ -4853,6 +4853,7 @@ class EditorInterface(QWidget):
             "sokuon": CharType.SOKUON,
             "long_vowel": CharType.LONG_VOWEL,
             "alphabet": CharType.ALPHABET,
+            "hangul": CharType.HANGUL,
             "number": CharType.NUMBER,
             "symbol": CharType.SYMBOL,
         }

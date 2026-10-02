@@ -140,6 +140,50 @@ class TestBuildAlignmentTokens:
         tokens = build_alignment_tokens(plan)
         assert [t.text for t in tokens] == ["ni", "hao"]
 
+    def test_hangul_readings_transcribed_to_romaji_phonetics(self):
+        """谚文自读音 → 逐音节罗马字表音 token（每字 1 token）。"""
+        s = _sentence(
+            [("사", 1, None, False), ("랑", 1, None, False), ("해", 1, None, False)]
+        )
+        project, plan = _resolved_project([s])
+        tokens = build_alignment_tokens(plan)
+        assert [t.text for t in tokens] == ["sa", "rang", "he"]
+        assert [t.location for t in tokens] == [
+            (0, 0, 0), (0, 1, 0), (0, 2, 0),
+        ]
+        assert [t.raw_reading for t in tokens] == ["사", "랑", "해"]
+
+    def test_hangul_latin_ruby_passes_through(self):
+        """用户手标拉丁读音：原样小写透传，不走谚文分解。"""
+        s = _sentence([("사", 1, ["sa"], False)])
+        project, plan = _resolved_project([s])
+        tokens = build_alignment_tokens(plan)
+        assert [t.text for t in tokens] == ["sa"]
+
+    def test_hanja_korean_reading_transcribed(self):
+        """汉字的谚文读音（韩文模式生成/手标）→ 罗马字表音（漢한→han）。"""
+        s = _sentence([("漢", 1, ["한"], False), ("字", 1, ["자"], False)])
+        project, plan = _resolved_project([s])
+        tokens = build_alignment_tokens(plan)
+        assert [t.text for t in tokens] == ["han", "ja"]
+        assert [t.raw_reading for t in tokens] == ["한", "자"]
+
+    def test_hanja_pinyin_ruby_still_uses_pinyin_path(self):
+        """汉字手标拼音读音（无谚文内容）→ 仍走拼音表音路径。"""
+        s = _sentence([("愛", 1, ["ài"], False)])
+        project, plan = _resolved_project([s])
+        tokens = build_alignment_tokens(plan)
+        assert [t.text for t in tokens] == ["ai"]
+
+    def test_mixed_japanese_hangul_line(self):
+        """日韩混排行：假名走罗马字化，谚文走表音转写，互不干扰。"""
+        s = _sentence(
+            [("き", 1, None, False), ("사", 1, None, False), ("랑", 1, None, False)]
+        )
+        project, plan = _resolved_project([s])
+        tokens = build_alignment_tokens(plan)
+        assert [t.text for t in tokens] == ["ki", "sa", "rang"]
+
     def test_latin_and_number_readings_pass_through(self):
         s = _sentence([("L", 1, None, False), ("3", 1, ["さん"], False)])
         project, plan = _resolved_project([s])

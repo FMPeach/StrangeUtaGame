@@ -194,6 +194,52 @@ class TestAutoCheckService:
         assert not sentence.characters[-1].is_line_end
 
 
+class TestHangulCheckpoints:
+    """韩文谚文节奏点：每音节固定 1 个，不受 alphabet 等开关门控。"""
+
+    def test_hangul_keeps_checkpoint_with_alphabet_flag_off(self):
+        """alphabet=false（默认）不得把谚文节奏点清零——旧版误归字母类时会被清零。"""
+        flags = {"alphabet": False, "kanji": True, "hiragana": True}
+        service = AutoCheckService(DummyAnalyzer(), auto_check_flags=flags)
+        sentence = Sentence.from_text("사랑해", "s1")
+
+        service.apply_to_sentence(sentence)
+
+        assert [c.check_count for c in sentence.characters] == [1, 1, 1]
+
+    def test_space_after_hangul_follows_space_after_japanese(self):
+        """谚文后的空格跟随 space_after_japanese（默认开 = 空格打拍）。"""
+        service = AutoCheckService(
+            DummyAnalyzer(), auto_check_flags={"space_after_japanese": True}
+        )
+        sentence = Sentence.from_text("사랑 해", "s1")
+
+        service.apply_to_sentence(sentence)
+
+        assert [c.char for c in sentence.characters] == ["사", "랑", " ", "해"]
+        assert sentence.characters[2].check_count == 1
+
+    def test_space_after_hangul_disabled(self):
+        service = AutoCheckService(
+            DummyAnalyzer(), auto_check_flags={"space_after_japanese": False}
+        )
+        sentence = Sentence.from_text("사랑 해", "s1")
+
+        service.apply_to_sentence(sentence)
+
+        assert sentence.characters[2].check_count == 0
+
+    def test_mixed_japanese_hangul_line(self):
+        """日韩混排：假名/汉字走原规则，谚文保持每字 1 拍。"""
+        service = AutoCheckService(DummyAnalyzer())
+        sentence = Sentence.from_text("きれい 사랑", "s1")
+
+        service.apply_to_sentence(sentence)
+
+        hangul = [c for c in sentence.characters if "가" <= c.char <= "힣"]
+        assert [c.check_count for c in hangul] == [1, 1]
+
+
 class TestA3RootCauseEmptyRubyGroup:
     """批 17 A.3 根因锁定（集成层红测）。
 
@@ -560,6 +606,17 @@ class TestDeleteCheckpointsByTypeNames:
         chars = project.sentences[0].characters
         assert chars[1].check_count == 0
         assert chars[0].check_count == 1 and chars[2].check_count == 1
+
+    def test_hangul_type_name_deletes_checkpoints(self):
+        """按类型删除支持 "hangul"：谚文节奏点可被独立删除，不再挂在 alphabet 下。"""
+        project = self._make_project("사랑A")
+
+        removed = self._delete(project, ["hangul"])
+
+        assert removed == 2
+        chars = project.sentences[0].characters
+        assert chars[0].check_count == 0 and chars[1].check_count == 0
+        assert chars[2].check_count == 1  # 拉丁字母不属于 hangul 类型
 
     def test_kanji_linked_word_deleted_as_whole(self):
         project = self._make_project("赤い")

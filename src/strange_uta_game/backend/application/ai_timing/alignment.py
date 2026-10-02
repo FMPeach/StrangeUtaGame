@@ -220,17 +220,20 @@ def _build_tokens_and_word_groups(
             word_groups（CTC 逐音节直接定位，FA-Kara 音素口径）；
             回退口径（e2k 按拍等）仍按词组比例切分。
 
-            中文模式下的汉字拉丁读音按拼音→表音转写；拉丁词优先走
-            CMU 音素→音节（transcription 模块），未收录回退 e2k/
-            pyphen（模块内部静默降级）。
+            中文模式下的汉字拉丁读音按拼音→表音转写；汉字的谚文读音
+            （韩文模式生成的韩音或用户手标）按谚文→表音转写；拉丁词
+            优先走 CMU 音素→音节（transcription 模块），未收录回退
+            e2k/pyphen（模块内部静默降级）。
             """
             from strange_uta_game.backend.application.ai_timing.pronunciation import (
                 ScriptKind,
             )
             from strange_uta_game.backend.application.ai_timing.transcription import (
+                contains_hangul,
                 english_number_reading,
                 english_word_phoneme_syllables,
                 english_word_syllables,
+                hangul_to_phonetic,
                 pinyin_to_phonetic,
             )
 
@@ -246,12 +249,29 @@ def _build_tokens_and_word_groups(
                 if reading:
                     return [reading], False
             if (
+                u.script == ScriptKind.KANJI
+                and rom
+                and not _contains_kana(rom)
+                and contains_hangul(rom)
+            ):
+                # 韩文模式汉字：韩音谚文读音（含用户手标谚文 ruby）→
+                # 罗马字表音；按内容路由，不依赖工程级模式标志
+                converted = hangul_to_phonetic(rom)
+                text = converted if converted else _strip_diacritics(rom)
+                return [text], False
+            if (
                 plan.chinese_mode
                 and u.script == ScriptKind.KANJI
                 and rom
                 and not _contains_kana(rom)
             ):
                 converted = pinyin_to_phonetic(rom)
+                text = converted if converted else _strip_diacritics(rom)
+                return [text], False
+            if u.script == ScriptKind.HANGUL and rom and not _contains_kana(rom):
+                # 谚文音节 → 罗马字表音（每音节 1 token，与中文拼音口径
+                # 同构）；用户手标拉丁读音时原样小写透传
+                converted = hangul_to_phonetic(rom)
                 text = converted if converted else _strip_diacritics(rom)
                 return [text], False
             if u.script == ScriptKind.LATIN and rom and not _contains_kana(rom):

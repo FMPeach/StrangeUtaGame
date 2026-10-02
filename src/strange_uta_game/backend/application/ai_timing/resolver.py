@@ -45,21 +45,31 @@ class PronunciationResolver:
             pykakasi → Dummy 的现有降级链）。
         chinese_analyzer: 中文拼音分析器；None 时懒创建（依赖
             pypinyin + jieba，缺失时记录错误而不抛出）。
+        korean_analyzer: 韩文汉字（韩音）分析器；None 时懒创建
+            （纯查 hanja_korean.json 表，无外部依赖）。
         chinese_mode: 中文歌词模式（工程级，与 SUG 自动检查口径一致）。
             True/False 显式指定；None 时按整工程文本自动检测
             （is_chinese_lyrics：全工程不含假名即视为中文）。
+        korean_mode: 韩文歌词模式（仅影响 AI 打轴的缺口注音路由，
+            不触碰 is_chinese_lyrics / 自动检查语义）。None 时自动检测：
+            全工程无假名且含谚文即视为韩文。优先级：假名→日语注音；
+            无假名含谚文→汉字按韩音；无假名无谚文→汉字按拼音。
     """
 
     def __init__(
         self,
         analyzer: Optional[RubyAnalyzer] = None,
         chinese_analyzer: Optional[RubyAnalyzer] = None,
+        korean_analyzer: Optional[RubyAnalyzer] = None,
         *,
         chinese_mode: Optional[bool] = None,
+        korean_mode: Optional[bool] = None,
     ):
         self._analyzer = analyzer
         self._chinese_analyzer = chinese_analyzer
+        self._korean_analyzer = korean_analyzer
         self._chinese_mode = chinese_mode
+        self._korean_mode = korean_mode
 
     # ── 对外入口 ──
 
@@ -122,12 +132,13 @@ class PronunciationResolver:
             )
 
         chinese = self._effective_chinese_mode(project)
+        korean = self._effective_korean_mode(project)
         for line_idx, sentence in enumerate(project.sentences):
             gap_char_idxs = self._gap_chars_for_line(plan, line_idx, sentence)
             if not gap_char_idxs:
                 continue
             readings = self._generate_readings(
-                sentence, gap_char_idxs, plan, chinese, line_idx
+                sentence, gap_char_idxs, plan, chinese, line_idx, korean
             )
             readings = self._merge_latin_linked_words(
                 sentence, readings
@@ -139,6 +150,21 @@ class PronunciationResolver:
         if self._chinese_mode is not None:
             return self._chinese_mode
         return is_chinese_lyrics("".join(s.text for s in project.sentences))
+
+    def _effective_korean_mode(self, project: Project) -> bool:
+        """解析生效的韩文模式：显式指定优先，否则自动检测（无假名+含谚文）。
+
+        仅路由 AI 打轴缺口注音的分析器选择，不影响 chinese_mode 本身
+        （韩文工程无假名，is_chinese_lyrics 仍为 True——汉字读音按内容
+        分流：谚文读音走 hangul_to_phonetic，见 alignment 侧）。
+        """
+        if self._korean_mode is not None:
+            return self._korean_mode
+        text = "".join(s.text for s in project.sentences)
+        if is_chinese_lyrics(text):
+            # 无假名：含谚文即韩文（否则纯中文，走拼音）
+            return any("\uac00" <= c <= "\ud7a3" for c in text)
+        return False
 
     # ── 既有标注收集 ──
 
@@ -169,8 +195,9 @@ class PronunciationResolver:
             # part 数量少于 checkpoint 数（旧档失配）：不虚构读音、不重新切分，
             # 该单元保持缺口；此类字符已有部分 Ruby，不属于自动补注音的范围。
             return
-        if script == ScriptKind.KANA:
-            # 假名/促音/长音自身即读音（与 romaji.is_self_romanizable_kana 同义）
+        if script in (ScriptKind.KANA, ScriptKind.HANGUL):
+            # 假名/促音/长音自身即读音（与 romaji.is_self_romanizable_kana 同义）；
+            # 谚文是表音文字，音节块自身同样即读音（罗马化在 token 阶段进行）
             unit.reading = char_text
             unit.display_text = char_text
             unit.source = PronunciationSource.EXISTING_CHARACTER
@@ -202,10 +229,11 @@ class PronunciationResolver:
         plan: PronunciationPlan,
         chinese: bool,
         line_idx: int,
+        korean: bool = False,
     ) -> Dict[int, str]:
         """为一行内的缺口字符生成读音，返回 char_idx → 读音。"""
         text = sentence.text
-        analyzer = self._resolve_analyzer(chinese, plan)
+        analyzer = self._resolve_analyzer(chinese, plan, korean)
         if analyzer is None:
             return {}
         try:
@@ -307,14 +335,30 @@ class PronunciationResolver:
         return offsets
 
     def _resolve_analyzer(
-        self, chinese: bool, plan: PronunciationPlan
+        self, chinese: bool, plan: PronunciationPlan, korean: bool = False
     ) -> Optional[RubyAnalyzer]:
-        """按工程级中文模式路由分析器（与 SUG 自动检查的 chinese_mode 同义）。
+        """按工程级语言模式路由分析器（与 SUG 自动检查的 chinese_mode 同义）。
 
+        - 韩文模式（无假名且含谚文）：汉字缺口用韩音查表分析器（纯
+          hanja_korean.json 表，词首두음법칙在表值上动态应用）；
         - 中文模式：中文拼音分析器（纯汉字歌词逐字注音）；
         - 非中文模式：日语分析器（形态素上下文；纯汉字日文行不会被误判，
           与「全部注音」按钮不做中文检测的语义一致）。
         """
+        if korean:
+            if self._korean_analyzer is None:
+                try:
+                    from strange_uta_game.backend.infrastructure.parsers.ruby_analyzer import (
+                        create_korean_analyzer,
+                    )
+
+                    self._korean_analyzer = create_korean_analyzer()
+                except ImportError as exc:
+                    plan.generation_errors.append(
+                        f"韩文汉字分析器不可用（{exc}），无法为汉字缺口补注音"
+                    )
+                    return None
+            return self._korean_analyzer
         if chinese:
             if self._chinese_analyzer is None:
                 try:

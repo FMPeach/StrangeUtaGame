@@ -240,6 +240,7 @@ class TestCollectExistingAnnotations:
                 ("あ", 1, None, False),
                 ("赤", 1, None, False),
                 ("A", 1, None, False),
+                ("사", 1, None, False),
                 ("3", 1, None, False),
                 ("，", 1, None, False),
                 (" ", 1, None, False),
@@ -252,10 +253,36 @@ class TestCollectExistingAnnotations:
             ScriptKind.KANA,
             ScriptKind.KANJI,
             ScriptKind.LATIN,
+            ScriptKind.HANGUL,
             ScriptKind.NUMBER,
             ScriptKind.PUNCTUATION,
             ScriptKind.SPACE,
         ]
+
+    def test_hangul_self_reads_without_ruby(self):
+        """谚文是表音文字：无 ruby 时字符自身即读音（与假名同语义）。"""
+        s = _sentence([("사", 1, None, False), ("랑", 1, None, False), ("해", 1, None, False)])
+        plan = PronunciationResolver().collect_existing_annotations(
+            _project_with_sentence(s)
+        )
+        for u in plan.units:
+            assert u.script == ScriptKind.HANGUL
+            assert u.source == PronunciationSource.EXISTING_CHARACTER
+            assert u.reading == u.char_text
+            assert u.has_model_token()
+        assert plan.is_complete
+        assert not plan.pending_units
+
+    def test_hangul_existing_ruby_takes_priority(self):
+        """用户手标读音（含拉丁罗马字）优先于自读音。"""
+        s = _sentence([("사", 1, ["sa"], False), ("랑", 1, ["랑"], False)])
+        plan = PronunciationResolver().collect_existing_annotations(
+            _project_with_sentence(s)
+        )
+        assert [u.reading for u in plan.units] == ["sa", "랑"]
+        assert all(
+            u.source == PronunciationSource.EXISTING_PART for u in plan.units
+        )
 
 
 class TestFillMissingAnnotations:
@@ -395,6 +422,63 @@ class TestFillMissingAnnotations:
         assert readings[(0, "る")] == "る"
         assert readings[(1, "世")] == "せ"
         assert readings[(1, "界")] == "かい"
+
+    def test_korean_mode_auto_detected_for_hangul_project(self):
+        """无假名且含谚文 → 韩文模式：汉字缺口走韩音分析器而非拼音。"""
+        s = _sentence(
+            [("사", 1, None, False), ("랑", 1, None, False), ("漢", 1, None, False)]
+        )
+        ko = _FixedReadingAnalyzer({"漢": "한"})
+        zh = _FixedReadingAnalyzer({"漢": "hàn"})
+        resolver = PronunciationResolver(chinese_analyzer=zh, korean_analyzer=ko)
+        plan = resolver.resolve_project(_project_with_sentence(s), fill_missing=True)
+        by_char = {u.char_text: u for u in plan.units}
+        assert by_char["漢"].reading == "한"
+        assert by_char["漢"].source == PronunciationSource.GENERATED
+        assert plan.is_complete
+
+    def test_korean_mode_false_forces_chinese_for_hangul_project(self):
+        """显式 korean_mode=False：韩文工程仍按拼音注音（行为可覆写）。"""
+        s = _sentence([("사", 1, None, False), ("漢", 1, None, False)])
+        ko = _FixedReadingAnalyzer({"漢": "한"})
+        zh = _FixedReadingAnalyzer({"漢": "hàn"})
+        resolver = PronunciationResolver(
+            chinese_analyzer=zh, korean_analyzer=ko, korean_mode=False
+        )
+        plan = resolver.resolve_project(_project_with_sentence(s), fill_missing=True)
+        by_char = {u.char_text: u for u in plan.units}
+        assert by_char["漢"].reading == "hàn"
+
+    def test_korean_mode_skipped_when_kana_present(self):
+        """含假名（日韩混排）→ 日语分析器处理汉字，不进韩文模式。"""
+        s = _sentence([("き", 1, None, False), ("漢", 1, None, False)])
+        ja = _FixedReadingAnalyzer({"漢": "かん"})
+        ko = _FixedReadingAnalyzer({"漢": "한"})
+        resolver = PronunciationResolver(analyzer=ja, korean_analyzer=ko)
+        plan = resolver.resolve_project(_project_with_sentence(s), fill_missing=True)
+        by_char = {u.char_text: u for u in plan.units}
+        assert by_char["漢"].reading == "かん"
+
+    def test_korean_mode_real_table_fills_and_rare_hanja_stays_pending(self):
+        """真实 bundled 表：常用字韩音补齐；未收录生僻字保持缺口。"""
+        from strange_uta_game.backend.infrastructure.parsers.ruby_analyzer import (
+            create_korean_analyzer,
+        )
+
+        s1 = _sentence([("龍", 1, None, False), ("사", 1, None, False)])
+        resolver = PronunciationResolver(korean_analyzer=create_korean_analyzer())
+        project = Project()
+        project.sentences = [s1]
+        plan = resolver.resolve_project(project, fill_missing=True)
+        by_char = {u.char_text: u for u in plan.units}
+        assert by_char["龍"].reading == "용"  # 行首두음법칙 룡→용
+        assert plan.is_complete
+
+        s2 = _sentence([("사", 1, None, False), ("㐀", 1, None, False)])
+        project2 = Project()
+        project2.sentences = [s2]
+        plan2 = resolver.resolve_project(project2, fill_missing=True)
+        assert plan2.pending_units, "表未收录的生僻汉字应保持缺口（执行前阻断）"
 
     def test_analyzer_exception_records_error_and_keeps_pending(self):
         class _BrokenAnalyzer(RubyAnalyzer):

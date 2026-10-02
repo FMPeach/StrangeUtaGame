@@ -222,6 +222,24 @@ embedded 语义（对应主仓库 AI 打轴计划 §6.2）：跟随工作台当�
 分离参数。宿主实现见工作台
 `krok_helper/audio_processing/separation/ai_timing_host.py`。
 
+### 6.1 内置数据文件（随 SUG 包分发）
+
+SUG 的 `config/` 目录随包携带 AI 打轴的词典数据，嵌入（冻结）形态经
+`sys._MEIPASS/strange_uta_game/config/` 解析，源码形态经包内相对路径解析；
+宿主无需复制、注入或另行配置这些文件：
+
+- `e2k.txt` / `cmudict-0.7b`：英文词 → 片假名 / CMU 音素（英文 token
+  转写的主进程数据源）；
+- `kanji_readings.json`：日语汉字读音；
+- `hanja_korean.json`：汉字 → 韩音谚文映射（8,525 字，Unihan kHangul
+  派生，词典词目形优先，词首두음법칙由运行时应用）——韩文歌词的汉字
+  缺口注音查表，纯 SUG 内部行为，不涉及 worker 协议与宿主接口；文件
+  缺席时韩文汉字保持缺口并在执行前明确报「缺少读音」，不静默注错音。
+
+宿主若维护构建产物校验清单（例如对 `_internal/strange_uta_game/config/`
+做文件存在性检查），可自行决定是否纳入上述文件——这不是契约要求，
+仅信息同步。
+
 ## 7. 宿主侧职责（工作台，分离后**不**跟 SUG 走）
 
 以下在宿主仓库实现，仅列出供理解契约全貌：
