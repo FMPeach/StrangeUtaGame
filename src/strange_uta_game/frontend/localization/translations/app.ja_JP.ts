@@ -1162,228 +1162,238 @@
 </context><context>
     <name>AutoCheckSubInterface</name>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="143" />
-        <source>长音复写</source>
-        <translation>長音の母音表記</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="144" />
-        <source>长音链接</source>
-        <translation>長音リンク</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="145" />
-        <source>促音链接</source>
-        <translation>促音リンク</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="146" />
-        <source>大写转换</source>
-        <translation>大文字変換</translation>
-    </message>
-    <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="28" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="78" />
         <source>生成节奏点的字符类型</source>
         <translation>リズム点を生成する文字タイプ</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="28" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="78" />
         <source>选择哪些字符类型自动生成节奏点</source>
         <translation>自動でリズム点を生成する文字タイプを選択</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="82" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="30" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="150" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="80" />
         <source>ひらがな（平假名）</source>
         <translation>ひらがな（平仮名）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="30" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="80" />
         <source>カタカナ（片假名）</source>
         <translation>カタカナ（片仮名）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="85" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="31" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="153" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="81" />
         <source>漢字（汉字）</source>
         <translation>漢字</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="85" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="31" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="153" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="81" />
         <source>アルファベット（英文字母）</source>
         <translation>アルファベット（英字）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="86" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="32" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="154" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="82" />
         <source>数字</source>
         <translation>数字</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="86" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="32" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="154" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="82" />
         <source>記号（符号 + - * 等）</source>
         <translation>記号（符号 + - * など）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="88" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="33" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="156" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="83" />
         <source>空格</source>
         <translation>空白</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="34" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="84" />
         <source>  ↳日语后空格check</source>
         <translation>  ↳日本語後の空白 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="35" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="85" />
         <source>  ↳字母后空格check</source>
         <translation>  ↳アルファベット後の空白 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="36" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="86" />
         <source>  ↳符号/数字后空格check</source>
         <translation>  ↳記号/数字後の空白 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="42" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="92" />
         <source>额外check规则</source>
         <translation>追加 check ルール</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="42" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="92" />
         <source>选择启用哪些自动节奏点规则</source>
         <translation>有効化する自動リズム点ルールを選択</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="44" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="94" />
         <source>「ん/ン」check</source>
         <translation>「ん/ン」check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="44" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="94" />
         <source>促音check</source>
         <translation>促音 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="45" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="95" />
         <source>长音符号check</source>
         <translation>長音符号 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="45" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="95" />
         <source>小写假名check</source>
         <translation>小書き仮名 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="46" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="96" />
         <source>括号内文字check</source>
         <translation>括弧内文字 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="47" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="97" />
         <source>空行check</source>
         <translation>空行 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="47" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="97" />
         <source>行首check</source>
         <translation>行頭 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="48" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="98" />
         <source>行尾check</source>
         <translation>行末 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="49" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="99" />
         <source>空格视为停顿点</source>
         <translation>空白を停止点とみなす</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="50" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="100" />
         <source>英文单词结尾停顿点</source>
         <translation>英単語末を停止点扱い</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="51" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="101" />
         <source>按音节Check英文单词</source>
         <translation>音節単位で英単語を Check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="56" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="106" />
         <source>读取时自动check</source>
         <translation>読込時に自動 check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="57" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="107" />
         <source>导入文本后自动执行check分析</source>
         <translation>テキスト読込後に自動で check 解析を実行</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="61" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="111" />
         <source>中文歌词检测</source>
         <translation>中国語歌詞検出</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="62" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="112" />
         <source>加载歌词时，若未检测到日文假名则自动切换为中文模式（汉字每字一个节奏点，跳过日文注音）</source>
         <translation>歌詞読込時、日本語仮名が検出されない場合は中国語モードへ自動切替（漢字 1 字に 1 リズム点、日本語ルビをスキップ）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="67" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="117" />
         <source>中文歌标注拼音</source>
         <translation>中国語歌詞にピンイン注音</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="68" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="118" />
         <source>检测到中文歌词时，自动为汉字标注带声调拼音注音</source>
         <translation>中国語歌詞を検出した時、自動的に漢字に声調付きピンイン注音を付与</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="73" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="123" />
         <source>罗马音注音</source>
         <translation>ローマ字ルビ</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="74" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="124" />
         <source>需重新执行自动注音以生效</source>
         <translation>自動ルビを再実行すると有効になります</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="80" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="128" />
+        <source>罗马音注音设置</source>
+        <translation>ローマ字ルビ設定</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="129" />
+        <source>长音复写、链接与大写等转换风格，应用于自动注音、一键转罗马音与 Kirakara 导出</source>
+        <translation>長音の母音表記・リンク・大文字変換などの変換スタイル。自動ルビ付与・一括ローマ字変換・Kirakara エクスポートに適用</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="131" />
+        <source>长音复写</source>
+        <translation>長音の母音表記</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="132" />
+        <source>长音链接</source>
+        <translation>長音リンク</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="133" />
+        <source>促音链接</source>
+        <translation>促音リンク</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="134" />
+        <source>大写转换</source>
+        <translation>大文字変換</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="148" />
         <source>自动删除注音</source>
         <translation>ルビを自動削除</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="80" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="148" />
         <source>自动注音完成后，自动删除指定类型的注音</source>
         <translation>自動ルビ完了後、指定タイプのルビを自動削除</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="83" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="151" />
         <source>カタカナ（片假名・注音为平假名）</source>
         <translation>カタカナ（片仮名・ルビが平仮名）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="84" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="152" />
         <source>カタカナ（片假名・注音含有英文）</source>
         <translation>カタカナ（片仮名・ルビに英字含む）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="87" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="155" />
         <source>長音符号（ー、～等）</source>
         <translation>長音符号（ー、～等）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="87" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="155" />
         <source>促音（っ/ッ）</source>
         <translation>促音（っ/ッ）</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="88" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="156" />
         <source>その他</source>
         <translation>その他</translation>
     </message>
@@ -3349,7 +3359,7 @@
         <translation>{n} 文字をコピーしました</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10013" />
+        <location filename="..\..\editor\timing_interface.py" line="10020" />
         <location filename="..\..\editor\timing_interface.py" line="8051" />
         <location filename="..\..\editor\timing_interface.py" line="4763" />
         <location filename="..\..\editor\timing_interface.py" line="4697" />
@@ -3367,7 +3377,7 @@
         <translation>プロジェクトなし</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10014" />
+        <location filename="..\..\editor\timing_interface.py" line="10021" />
         <location filename="..\..\editor\timing_interface.py" line="8052" />
         <location filename="..\..\editor\timing_interface.py" line="4764" />
         <location filename="..\..\editor\timing_interface.py" line="4698" />
@@ -3458,7 +3468,7 @@
         <translation>SUG結合中</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9907" />
+        <location filename="..\..\editor\timing_interface.py" line="9914" />
         <location filename="..\..\editor\timing_interface.py" line="9430" />
         <location filename="..\..\editor\timing_interface.py" line="9208" />
         <location filename="..\..\editor\timing_interface.py" line="3056" />
@@ -3561,7 +3571,7 @@
         <translation>ルビを削除中</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9943" />
+        <location filename="..\..\editor\timing_interface.py" line="9950" />
         <location filename="..\..\editor\timing_interface.py" line="3680" />
         <location filename="..\..\editor\timing_interface.py" line="3632" />
         <location filename="..\..\editor\timing_interface.py" line="3473" />
@@ -4416,27 +4426,27 @@
         <translation>先に解析する文字を選択してください</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9907" />
+        <location filename="..\..\editor\timing_interface.py" line="9914" />
         <source>正在转换罗马字注音</source>
         <translation>ローマ字ルビに変換中</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9944" />
+        <location filename="..\..\editor\timing_interface.py" line="9951" />
         <source>没有可转为罗马字的注音或单假名</source>
         <translation>ローマ字に変換できるルビや単独の仮名がありません</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9976" />
+        <location filename="..\..\editor\timing_interface.py" line="9983" />
         <source>已转为罗马字注音</source>
         <translation>ローマ字ルビに変換しました</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9977" />
+        <location filename="..\..\editor\timing_interface.py" line="9984" />
         <source>共处理 {n} 行</source>
         <translation>{n} 行を処理しました</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9989" />
+        <location filename="..\..\editor\timing_interface.py" line="9996" />
         <source>罗马字转换失败</source>
         <translation>ローマ字変換に失敗しました</translation>
     </message>
@@ -4802,336 +4812,336 @@
 </context><context>
     <name>ExportInterface</name>
     <message>
-        <location filename="..\..\export\export_interface.py" line="365" />
-        <location filename="..\..\export\export_interface.py" line="186" />
+        <location filename="..\..\export\export_interface.py" line="366" />
+        <location filename="..\..\export\export_interface.py" line="187" />
         <source>导出</source>
         <translation>書き出し</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="189" />
+        <location filename="..\..\export\export_interface.py" line="190" />
         <source>将项目导出为多种歌词格式</source>
         <translation>プロジェクトをさまざまな歌詞形式で書き出し</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="202" />
+        <location filename="..\..\export\export_interface.py" line="203" />
         <source>选择导出格式</source>
         <translation>書き出し形式を選択</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="217" />
+        <location filename="..\..\export\export_interface.py" line="218" />
         <source>导出设置</source>
         <translation>書き出し設定</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="253" />
+        <location filename="..\..\export\export_interface.py" line="254" />
         <source>输出路径</source>
         <translation>出力パス</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="258" />
+        <location filename="..\..\export\export_interface.py" line="259" />
         <source>选择导出目录...</source>
         <translation>書き出しディレクトリを選択...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="262" />
+        <location filename="..\..\export\export_interface.py" line="263" />
         <source>浏览...</source>
         <translation>参照...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="269" />
+        <location filename="..\..\export\export_interface.py" line="270" />
         <source>文件名（不含扩展名）</source>
         <translation>ファイル名（拡張子なし）</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="277" />
+        <location filename="..\..\export\export_interface.py" line="278" />
         <source>导出罗马音</source>
         <translation>ローマ字を出力</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="279" />
+        <location filename="..\..\export\export_interface.py" line="280" />
         <source>勾选时输出假名与罗马音双注音；不勾选时仅输出假名注音</source>
         <translation>有効にすると仮名とローマ字の両方のルビを出力し、無効にすると仮名ルビのみを出力します</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="286" />
+        <location filename="..\..\export\export_interface.py" line="287" />
         <source>Nicokara 标签设置...</source>
         <translation>Nicokara タグ設定...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="294" />
+        <location filename="..\..\export\export_interface.py" line="295" />
         <source>导出字幕分组</source>
         <translation>字幕グループ書き出し</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="316" />
+        <location filename="..\..\export\export_interface.py" line="317" />
         <source>修改分组...</source>
         <translation>グループを編集...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="319" />
+        <location filename="..\..\export\export_interface.py" line="320" />
         <source>打开导出字幕分组编辑器：按组勾选演唱者（分色）、命名分组、指定主分组。存在 1 个以上分组时，导出将按组拆分为多个文件（文件名追加 _分组名）；主分组的文件携带完整标签信息</source>
         <translation>字幕グループ書き出しエディタを開きます。グループごとに歌手（色分け）にチェックを入れ、グループ名を付け、メイングループを指定します。グループが 2 つ以上ある場合、書き出しはグループごとに複数ファイルへ分割されます（ファイル名に _グループ名 を追加）。メイングループのファイルに完全なタグ情報が含まれます</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="526" />
-        <location filename="..\..\export\export_interface.py" line="328" />
+        <location filename="..\..\export\export_interface.py" line="527" />
+        <location filename="..\..\export\export_interface.py" line="329" />
         <source>插入【演唱者名】标签</source>
         <translation>【歌手名】タグを挿入</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="529" />
-        <location filename="..\..\export\export_interface.py" line="330" />
+        <location filename="..\..\export\export_interface.py" line="530" />
+        <location filename="..\..\export\export_interface.py" line="331" />
         <source>导出时，当演唱者发生变化，在字符前自动插入演唱者名称标签</source>
         <translation>書き出し時、歌手が切り替わった文字の前に歌手名タグを自動挿入</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="334" />
+        <location filename="..\..\export\export_interface.py" line="335" />
         <source>-&gt;每行行首都插入演唱者</source>
         <translation>-&gt;各行頭に歌手を挿入</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="532" />
-        <location filename="..\..\export\export_interface.py" line="336" />
+        <location filename="..\..\export\export_interface.py" line="533" />
+        <location filename="..\..\export\export_interface.py" line="337" />
         <source>每一行开头都插入演唱者名称标签（需先启用「插入【演唱者名】标签」）</source>
         <translation>各行頭に歌手名タグを挿入（「【歌手名】タグを挿入」を先に有効化してください）</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="345" />
+        <location filename="..\..\export\export_interface.py" line="346" />
         <source>分色标签设置助手...</source>
         <translation>色分けタグ設定ヘルパー...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="347" />
+        <location filename="..\..\export\export_interface.py" line="348" />
         <source>为每位演唱者配置 @Emoji 分色标签，配置后自动写入 Nicokara 标签的自定义字段</source>
         <translation>歌手ごとに @Emoji 色分けタグを設定。設定後は Nicokara タグのカスタムフィールドに自動書き込み</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="374" />
+        <location filename="..\..\export\export_interface.py" line="375" />
         <source>进入下一步</source>
         <translation>次のステップへ進む</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="379" />
+        <location filename="..\..\export\export_interface.py" line="380" />
         <source>把项目送往宿主的下一步；已配置导出字幕分组时，宿主按分组拆分多个轴</source>
         <translation>プロジェクトをホストの次ステップへ送ります。字幕グループが設定されている場合、ホストはグループごとに複数の軸へ分割します</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="462" />
+        <location filename="..\..\export\export_interface.py" line="463" />
         <source>LRC (增强型)</source>
         <translation>LRC (拡張)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="463" />
+        <location filename="..\..\export\export_interface.py" line="464" />
         <source>LRC (逐行)</source>
         <translation>LRC (行単位)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="464" />
+        <location filename="..\..\export\export_interface.py" line="465" />
         <source>LRC (逐字)</source>
         <translation>LRC (字単位)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="465" />
+        <location filename="..\..\export\export_interface.py" line="466" />
         <source>Nicokara (带注音)</source>
         <translation>Nicokara (ルビ付き)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="466" />
+        <location filename="..\..\export\export_interface.py" line="467" />
         <source>RL 编辑模式</source>
         <translation>RL 編集モード</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="467" />
+        <location filename="..\..\export\export_interface.py" line="468" />
         <source>春日向注音</source>
         <translation>春日向注音</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="516" />
+        <location filename="..\..\export\export_interface.py" line="517" />
         <source>插入【@演唱者名】标签</source>
         <translation>【@歌手名】タグを挿入</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="519" />
+        <location filename="..\..\export\export_interface.py" line="520" />
         <source>导出时，当演唱者发生变化，在字符前自动插入【@演唱者名】标签</source>
         <translation>エクスポート時に歌手が変わると、文字の前に【@歌手名】タグを自動挿入します</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="522" />
+        <location filename="..\..\export\export_interface.py" line="523" />
         <source>每一行开头都插入【@演唱者名】标签（需先启用演唱者标签）</source>
         <translation>各行の先頭に【@歌手名】タグを挿入します（歌手タグを先に有効にしてください）</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="755" />
-        <location filename="..\..\export\export_interface.py" line="708" />
+        <location filename="..\..\export\export_interface.py" line="756" />
+        <location filename="..\..\export\export_interface.py" line="709" />
         <source>未分组：导出全部演唱者</source>
         <translation>未グループ：すべての歌手を書き出します</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="845" />
-        <location filename="..\..\export\export_interface.py" line="714" />
+        <location filename="..\..\export\export_interface.py" line="846" />
+        <location filename="..\..\export\export_interface.py" line="715" />
         <source>未知</source>
         <translation>不明</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="719" />
+        <location filename="..\..\export\export_interface.py" line="720" />
         <source>全部</source>
         <translation>全員</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="722" />
+        <location filename="..\..\export\export_interface.py" line="723" />
         <source>共 {n} 组：{parts}</source>
         <translation>全 {n} グループ：{parts}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="773" />
-        <location filename="..\..\export\export_interface.py" line="731" />
+        <location filename="..\..\export\export_interface.py" line="774" />
+        <location filename="..\..\export\export_interface.py" line="732" />
         <source>未入组（不进入任何轴）：{names}</source>
         <translation>未所属（どの軸にも入りません）：{names}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="830" />
+        <location filename="..\..\export\export_interface.py" line="831" />
         <source>主分组</source>
         <translation>メイングループ</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1124" />
-        <location filename="..\..\export\export_interface.py" line="931" />
+        <location filename="..\..\export\export_interface.py" line="1125" />
+        <location filename="..\..\export\export_interface.py" line="932" />
         <source>选择导出目录</source>
         <translation>書き出しディレクトリを選択</translation>
-    </message>
-    <message>
-        <location filename="..\..\export\export_interface.py" line="1093" />
-        <location filename="..\..\export\export_interface.py" line="1078" />
-        <location filename="..\..\export\export_interface.py" line="1019" />
-        <location filename="..\..\export\export_interface.py" line="963" />
-        <source>无项目</source>
-        <translation>プロジェクトなし</translation>
     </message>
     <message>
         <location filename="..\..\export\export_interface.py" line="1094" />
         <location filename="..\..\export\export_interface.py" line="1079" />
         <location filename="..\..\export\export_interface.py" line="1020" />
         <location filename="..\..\export\export_interface.py" line="964" />
+        <source>无项目</source>
+        <translation>プロジェクトなし</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1095" />
+        <location filename="..\..\export\export_interface.py" line="1080" />
+        <location filename="..\..\export\export_interface.py" line="1021" />
+        <location filename="..\..\export\export_interface.py" line="965" />
         <source>请先创建或打开项目</source>
         <translation>先にプロジェクトを作成または開いてください</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1032" />
-        <location filename="..\..\export\export_interface.py" line="981" />
+        <location filename="..\..\export\export_interface.py" line="1033" />
+        <location filename="..\..\export\export_interface.py" line="982" />
         <source>无演唱者</source>
         <translation>歌手なし</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1033" />
-        <location filename="..\..\export\export_interface.py" line="982" />
+        <location filename="..\..\export\export_interface.py" line="1034" />
+        <location filename="..\..\export\export_interface.py" line="983" />
         <source>项目中没有可用的演唱者</source>
         <translation>プロジェクトに利用可能な歌手がありません</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1106" />
+        <location filename="..\..\export\export_interface.py" line="1107" />
         <source>未选择格式</source>
         <translation>形式が選択されていません</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1107" />
+        <location filename="..\..\export\export_interface.py" line="1108" />
         <source>请选择导出格式</source>
         <translation>書き出し形式を選択してください</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1138" />
+        <location filename="..\..\export\export_interface.py" line="1139" />
         <source>第 {line} 行 第 {char} 字</source>
         <translation>{line} 行目 {char} 文字目</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1142" />
+        <location filename="..\..\export\export_interface.py" line="1143" />
         <source>
 ...另 {n} 处</source>
         <translation>
 ...他 {n} 件</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1148" />
+        <location filename="..\..\export\export_interface.py" line="1149" />
         <source>仍有导唱待办未处理</source>
         <translation>ガイド符の未処理項目があります</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1149" />
+        <location filename="..\..\export\export_interface.py" line="1150" />
         <source>还剩 {n} 个标记点未添加导唱符。</source>
         <translation>ガイド符が未追加のマーカーが {n} 件残っています。</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1153" />
+        <location filename="..\..\export\export_interface.py" line="1154" />
         <source>继续导出</source>
         <translation>書き出しを続行</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1320" />
-        <location filename="..\..\export\export_interface.py" line="1254" />
-        <location filename="..\..\export\export_interface.py" line="1154" />
+        <location filename="..\..\export\export_interface.py" line="1325" />
+        <location filename="..\..\export\export_interface.py" line="1258" />
+        <location filename="..\..\export\export_interface.py" line="1155" />
         <source>取消</source>
         <translation>キャンセル</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1162" />
+        <location filename="..\..\export\export_interface.py" line="1163" />
         <source>导出提醒</source>
         <translation>書き出し通知</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1244" />
+        <location filename="..\..\export\export_interface.py" line="1248" />
         <source>...另 {n} 个文件</source>
         <translation>...他 {n} 個のファイル</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1315" />
-        <location filename="..\..\export\export_interface.py" line="1249" />
+        <location filename="..\..\export\export_interface.py" line="1320" />
+        <location filename="..\..\export\export_interface.py" line="1253" />
         <source>文件已存在</source>
         <translation>ファイルが既に存在します</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1250" />
+        <location filename="..\..\export\export_interface.py" line="1254" />
         <source>以下文件已存在：
 {files}</source>
         <translation>以下のファイルが既に存在します：
 {files}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1252" />
+        <location filename="..\..\export\export_interface.py" line="1256" />
         <source>是否覆盖这些文件？</source>
         <translation>これらのファイルを上書きしますか？</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1319" />
-        <location filename="..\..\export\export_interface.py" line="1253" />
+        <location filename="..\..\export\export_interface.py" line="1324" />
+        <location filename="..\..\export\export_interface.py" line="1257" />
         <source>覆盖</source>
         <translation>上書き</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1355" />
-        <location filename="..\..\export\export_interface.py" line="1279" />
+        <location filename="..\..\export\export_interface.py" line="1361" />
+        <location filename="..\..\export\export_interface.py" line="1284" />
         <source>未知错误</source>
         <translation>不明なエラー</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1344" />
-        <location filename="..\..\export\export_interface.py" line="1288" />
+        <location filename="..\..\export\export_interface.py" line="1350" />
+        <location filename="..\..\export\export_interface.py" line="1293" />
         <source>导出成功</source>
         <translation>書き出しました</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1354" />
-        <location filename="..\..\export\export_interface.py" line="1298" />
+        <location filename="..\..\export\export_interface.py" line="1360" />
+        <location filename="..\..\export\export_interface.py" line="1303" />
         <source>导出失败</source>
         <translation>書き出しに失敗しました</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1316" />
+        <location filename="..\..\export\export_interface.py" line="1321" />
         <source>文件已存在：
 {filename}</source>
         <translation>ファイルが既に存在します：
 {filename}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1318" />
+        <location filename="..\..\export\export_interface.py" line="1323" />
         <source>是否覆盖该文件？</source>
         <translation>このファイルを上書きしますか？</translation>
     </message>
@@ -7698,49 +7708,49 @@ OFF にすると .cache 占有が小さく、切替も即時ですが、音割�
 </context><context>
     <name>RubyMismatchDialog</name>
     <message>
-        <location filename="..\..\export\export_interface.py" line="65" />
+        <location filename="..\..\export\export_interface.py" line="66" />
         <source>注音分段不匹配</source>
         <translation>ルビ分段が一致しません</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="72" />
+        <location filename="..\..\export\export_interface.py" line="73" />
         <source>以下字符的注音分段数量与节奏点数量不匹配。
 可选择自动均分方案修复后继续导出，或忽略继续导出。</source>
         <translation>以下の文字のルビ分段数とリズム点数が一致しません。
 自動均等分割で修復して書き出すか、無視して書き出してください。</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="87" />
+        <location filename="..\..\export\export_interface.py" line="88" />
         <source>按字符均分并导出</source>
         <translation>文字均等分割で書き出し</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="88" />
+        <location filename="..\..\export\export_interface.py" line="89" />
         <source>按mora均分并导出</source>
         <translation>mora 均等分割で書き出し</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="89" />
+        <location filename="..\..\export\export_interface.py" line="90" />
         <source>忽略并继续导出</source>
         <translation>無視して書き出しを続行</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="90" />
+        <location filename="..\..\export\export_interface.py" line="91" />
         <source>取消</source>
         <translation>キャンセル</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="106" />
+        <location filename="..\..\export\export_interface.py" line="107" />
         <source>【不匹配列表】</source>
         <translation>【不一致リスト】</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="112" />
+        <location filename="..\..\export\export_interface.py" line="113" />
         <source>【按字符均分预览】</source>
         <translation>【文字均等分割プレビュー】</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="118" />
+        <location filename="..\..\export\export_interface.py" line="119" />
         <source>【按mora均分预览】</source>
         <translation>【mora 均等分割プレビュー】</translation>
     </message>

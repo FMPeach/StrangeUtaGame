@@ -28,6 +28,35 @@ def test_romaji_settings_keep_existing_behavior_by_default():
     assert defaults["romaji_uppercase"] is False
 
 
+def test_romaji_style_card_is_separate_from_romanize_switch(qapp):
+    page = AutoCheckSubInterface()
+    page.load_settings(_SettingsStub())
+
+    switch_card = page.card_romanize_ruby
+    style_card = page.card_romaji_style
+    assert switch_card.titleLabel.text() == "罗马音注音"
+    assert style_card.card.titleLabel.text() == "罗马音注音设置"
+    # 风格选项不在开关卡内：两张卡各自独立
+    assert not hasattr(switch_card, "check_repeat_long_vowels")
+    assert hasattr(style_card, "check_repeat_long_vowels")
+
+    before = [
+        style_card.check_repeat_long_vowels.isChecked(),
+        style_card.check_link_sokuon.isChecked(),
+        style_card.check_uppercase.isChecked(),
+    ]
+    switch_card.setChecked(True)
+    qapp.processEvents()
+    assert [
+        style_card.check_repeat_long_vowels.isChecked(),
+        style_card.check_link_sokuon.isChecked(),
+        style_card.check_uppercase.isChecked(),
+    ] == before
+
+    page.deleteLater()
+    qapp.processEvents()
+
+
 def test_long_vowel_link_is_forced_visually_without_losing_preference(qapp):
     settings = _SettingsStub(
         {
@@ -42,8 +71,7 @@ def test_long_vowel_link_is_forced_visually_without_losing_preference(qapp):
 
     page.load_settings(settings)
 
-    card = page.card_romanize_ruby
-    assert card.card.titleLabel.text() == "罗马音注音"
+    card = page.card_romaji_style
     assert not card.isExpand
     assert all(
         not checkbox.toolTip()

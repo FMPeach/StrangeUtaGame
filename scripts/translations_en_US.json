@@ -1866,5 +1866,7 @@
   "长音复写": "Repeat long vowels",
   "长音链接": "Link long vowels",
   "促音链接": "Link sokuon",
-  "大写转换": "Uppercase conversion"
+  "大写转换": "Uppercase conversion",
+  "罗马音注音设置": "Romaji ruby settings",
+  "长音复写、链接与大写等转换风格，应用于自动注音、一键转罗马音与 Kirakara 导出": "Conversion styles such as long-vowel repetition, linking, and uppercase; applied to auto-annotation, one-click romanization, and Kirakara export"
 }
