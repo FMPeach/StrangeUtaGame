@@ -30,7 +30,10 @@ _KANA: dict[str, str] = {
     "ん": "n", "ゔ": "vu",
     "ぁ": "a", "ぃ": "i", "ぅ": "u", "ぇ": "e", "ぉ": "o",
     "ゃ": "ya", "ゅ": "yu", "ょ": "yo", "ゎ": "wa",
+    "ゕ": "ka", "ゖ": "ke",
 }
+
+_SMALL_KANA = frozenset("ぁぃぅぇぉゃゅょゎゕゖ")
 
 _DIGRAPHS: dict[str, str] = {
     "きゃ": "kya", "きゅ": "kyu", "きょ": "kyo",
@@ -71,6 +74,7 @@ _DIGRAPH_SPLIT: dict[str, Tuple[str, str]] = {
 _LINK_DIGRAPH = "digraph"
 _LINK_LONG_VOWEL = "long_vowel"
 _LINK_SOKUON = "sokuon"
+_LINK_SMALL_KANA = "small_kana"
 
 
 @dataclass(frozen=True)
@@ -181,8 +185,9 @@ def _romanize_ruby_parts_with_ownership(
     """转换 RubyPart，并返回跨 part 的字符链接候选。
 
     候选中的 ``(lead_part, next_part, kind)`` 直接来自转换器命中的拗音、
-    长音或促音规则，供句子级转换结合原歌词 Character 类型决定是否链接。它不
-    根据转换后的空字符串反推，因此不会把普通空 part 误认为被吸收的字符。
+    长音、促音或大小假名规则，供句子级转换结合原歌词 Character 类型决定是否
+    链接。它不根据转换后的空字符串反推，因此不会把普通空 part 误认为被吸收
+    的字符。
     """
     options = options or RomajiOptions()
     source = list(parts)
@@ -300,6 +305,19 @@ def _romanize_ruby_parts_with_ownership(
                 prev_vowel = _last_vowel(digraph)
                 index += 2
                 continue
+
+            if (
+                options.effective_link_long_vowels
+                and hira in _KANA
+                and hira not in _SMALL_KANA
+                and _kata_to_hira_char(next_ch) in _SMALL_KANA
+                and part_idx != next_part_idx
+            ):
+                # 非拗音组合也保留小假名自己的罗马音与时间点，仅建立字符链接。
+                # 例如 あ|ぁ -> a(link)|a。
+                link_candidates.add(
+                    (part_idx, next_part_idx, _LINK_SMALL_KANA)
+                )
 
         romaji = _KANA.get(hira, ch)
         result[part_idx] += romaji
@@ -492,6 +510,22 @@ def romanize_sentence_in_place(
         elif link_kind == _LINK_LONG_VOWEL and consumed_char.char != "ー":
             # 只认日文长音符 U+30FC；不把 OCR 误识别的汉字「一」等当成长音。
             continue
+        elif link_kind == _LINK_SMALL_KANA:
+            from strange_uta_game.backend.infrastructure.parsers.text_splitter import (
+                CharType,
+                get_char_type,
+            )
+
+            # 只连接歌词正文中的普通假名 + 小假名；不跨汉字 Ruby 建立链接，
+            # 促音也仍由独立的「促音链接」选项控制。
+            if (
+                len(lead_char.char) != 1
+                or get_char_type(lead_char.char)
+                not in (CharType.HIRAGANA, CharType.KATAKANA)
+                or consumed_char.char
+                not in "ぁぃぅぇぉゃゅょゎゕゖァィゥェォャュョヮヵヶ"
+            ):
+                continue
 
         sentence.characters[lead_char_idx].linked_to_next = True
 

@@ -226,6 +226,46 @@ def test_sokuon_link_only_applies_between_literal_kana_characters():
     assert not any(ch.linked_to_next for ch in mixed_sentence.characters)
 
 
+def test_small_kana_link_only_applies_between_literal_kana_characters():
+    options = RomajiOptions(link_long_vowels=True)
+
+    kana_sentence = Sentence.from_text("あぁアァ", "s1")
+    romanize_project_to_self_ruby(_project(kana_sentence), options=options)
+    assert _parts(kana_sentence) == [["a"], ["a"], ["a"], ["a"]]
+    assert [ch.linked_to_next for ch in kana_sentence.characters] == [
+        True, False, True, False,
+    ]
+
+    kanji_sentence = Sentence(
+        singer_id="s1",
+        characters=[
+            _kanji_with_ruby("亜", ["あ"]),
+            Character(char="ぁ", check_count=1, singer_id="s1"),
+        ],
+    )
+    romanize_project_to_self_ruby(_project(kanji_sentence), options=options)
+    assert _parts(kanji_sentence) == [["a"], ["a"]]
+    assert not any(ch.linked_to_next for ch in kanji_sentence.characters)
+
+    sokuon_sentence = Sentence.from_text("まって", "s1")
+    romanize_project_to_self_ruby(_project(sokuon_sentence), options=options)
+    assert not any(ch.linked_to_next for ch in sokuon_sentence.characters)
+
+
+def test_small_kana_link_follows_forced_long_link_when_repetition_is_off():
+    sentence = Sentence.from_text("あぁ", "s1")
+    options = RomajiOptions(
+        repeat_long_vowels=False,
+        link_long_vowels=False,
+    )
+
+    romanize_project_to_self_ruby(_project(sentence), options=options)
+
+    # 小假名不参与长音复写，仅与 ``ー`` 共用链接策略。
+    assert _parts(sentence) == [["a"], ["a"]]
+    assert [ch.linked_to_next for ch in sentence.characters] == [True, False]
+
+
 def test_uppercase_project_conversion():
     sent = Sentence.from_text("わたし", "s1")
     romanize_project_to_self_ruby(

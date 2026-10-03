@@ -129,3 +129,6 @@ class TestEdgeCases:
         assert romanize_ruby_parts(
             ["わ", "た", "し", "ん", "あ"], options=options
         ) == ["WA", "TA", "SHI", "N'", "A"]
+
+    def test_small_ka_and_ke_are_romanized(self):
+        assert romanize_ruby_parts(["ヵ", "ヶ"]) == ["ka", "ke"]
