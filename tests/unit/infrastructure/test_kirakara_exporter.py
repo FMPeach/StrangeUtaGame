@@ -1,8 +1,10 @@
+from strange_uta_game.backend.application import ExportService
 from strange_uta_game.backend.domain import Project, Sentence, Singer
 from strange_uta_game.backend.infrastructure.exporters import (
     KirakaraExporter,
     get_exporter_by_name,
 )
+from strange_uta_game.backend.infrastructure.parsers.romaji import RomajiOptions
 
 
 def _timed_sentence(text: str, singer_id: str, start: int = 1000) -> Sentence:
@@ -32,6 +34,26 @@ def test_romaji_option_switches_between_single_and_double_ruby(tmp_path):
 
     assert plain_path.read_text(encoding="utf-8") == "[00:01:00]か"
     assert romaji_path.read_text(encoding="utf-8") == "{か|>[00:01:00]ka}"
+
+
+def test_export_service_passes_romaji_options_to_kirakara(tmp_path):
+    project = Project()
+    singer = project.singers[0]
+    project.add_sentence(_timed_sentence("ピー", singer.id))
+    output = tmp_path / "uppercase-hyphen.krl"
+
+    result = ExportService().export(
+        project,
+        "Kirakara",
+        str(output),
+        romaji_options=RomajiOptions(
+            repeat_long_vowels=False,
+            uppercase=True,
+        ),
+    )
+
+    assert result.success
+    assert output.read_text(encoding="utf-8") == "{ピー|>[00:01:00]PI-}"
 
 
 def test_singer_filter_and_at_singer_tags(tmp_path):

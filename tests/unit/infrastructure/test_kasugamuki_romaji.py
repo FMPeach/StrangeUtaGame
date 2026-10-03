@@ -1,8 +1,11 @@
+import pytest
+
 from strange_uta_game.backend.domain import Character, Ruby, RubyPart, Sentence
 from strange_uta_game.backend.infrastructure.parsers.kasugamuki_format import (
     sentence_to_kasugamuki,
     sentence_to_kasugamuki_romaji,
 )
+from strange_uta_game.backend.infrastructure.parsers.romaji import RomajiOptions
 
 
 def test_export_uses_editor_sentence_level_romaji_context_without_mutating_source():
@@ -59,6 +62,56 @@ def test_export_keeps_digraph_in_one_romaji_annotation():
     )
 
     assert sentence_to_kasugamuki_romaji(sentence) == "{きゃ|>kya}"
+
+
+@pytest.mark.parametrize(
+    ("options", "expected"),
+    [
+        (
+            RomajiOptions(
+                repeat_long_vowels=True,
+                link_long_vowels=False,
+            ),
+            "{オ|>o}{ー|>o}{プ|>pu}{ン|>n}{カ|>ka}{ー|>a}",
+        ),
+        (
+            RomajiOptions(
+                repeat_long_vowels=True,
+                link_long_vowels=True,
+            ),
+            "{オー|>oo}{プ|>pu}{ン|>n}{カー|>kaa}",
+        ),
+        (
+            RomajiOptions(
+                repeat_long_vowels=False,
+                link_long_vowels=False,
+            ),
+            "{オー|>o-}{プ|>pu}{ン|>n}{カー|>ka-}",
+        ),
+    ],
+)
+def test_export_applies_long_vowel_options(options, expected):
+    sentence = Sentence.from_text("オープンカー", "s1")
+
+    assert sentence_to_kasugamuki_romaji(sentence, options=options) == expected
+
+
+def test_export_long_vowel_link_also_groups_small_kana():
+    sentence = Sentence.from_text("あぁ", "s1")
+
+    assert sentence_to_kasugamuki_romaji(
+        sentence,
+        options=RomajiOptions(link_long_vowels=True),
+    ) == "{あぁ|>aa}"
+
+
+def test_export_applies_sokuon_link_and_uppercase_options():
+    sentence = Sentence.from_text("まって", "s1")
+
+    assert sentence_to_kasugamuki_romaji(
+        sentence,
+        options=RomajiOptions(link_sokuon=True, uppercase=True),
+    ) == "{ま|>MA}{って|>TTE}"
 
 
 def test_export_groups_per_character_kana_ruby_digraph_without_mutating_source():

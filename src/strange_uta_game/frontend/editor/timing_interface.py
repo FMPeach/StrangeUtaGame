@@ -9886,8 +9886,10 @@ class EditorInterface(QWidget):
             return
 
         from strange_uta_game.backend.infrastructure.parsers.romaji import (
+            RomajiOptions,
             romanize_project_to_self_ruby,
         )
+        from strange_uta_game.frontend.settings.app_settings import AppSettings
         from strange_uta_game.frontend.workers import ProjectTaskWorker
 
         before_sentences = deepcopy(self._project.sentences)
@@ -9897,10 +9899,15 @@ class EditorInterface(QWidget):
 
         project_copy = deepcopy(self._project)
         changed_box = [0]
+        romaji_options = RomajiOptions.from_mapping(
+            AppSettings().get("auto_check", {})
+        )
 
         def _task(proj, progress_cb):
             changed_box[0] = romanize_project_to_self_ruby(
-                proj, progress_callback=progress_cb
+                proj,
+                progress_callback=progress_cb,
+                options=romaji_options,
             )
 
         green = theme.status_complete.name()

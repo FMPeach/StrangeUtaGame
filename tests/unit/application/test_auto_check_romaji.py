@@ -76,6 +76,27 @@ def test_cross_character_digraph_link_is_created_by_romaji_step():
     ]
 
 
+def test_romaji_display_options_are_read_from_auto_check_flags():
+    flags = {
+        **ROMAJI_FLAGS,
+        "romaji_repeat_long_vowels": False,
+        "romaji_link_long_vowels": False,
+        "romaji_uppercase": True,
+    }
+    service = AutoCheckService(DummyAnalyzer(), auto_check_flags=flags)
+    sentence = Sentence.from_text("ピーあぁ", "s1")
+
+    service.apply_to_sentence(sentence)
+
+    assert _ruby_parts(sentence) == [["PI-"], [""], ["A"], ["A"]]
+    assert [ch.linked_to_next for ch in sentence.characters] == [
+        True,
+        False,
+        True,
+        False,
+    ]
+
+
 def test_kana_annotation_without_romaji_does_not_create_digraph_link():
     analyzer = StaticAnalyzer([
         RubyResult(text=base, reading=reading, start_idx=i, end_idx=i + 1)

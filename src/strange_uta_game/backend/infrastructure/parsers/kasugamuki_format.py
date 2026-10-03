@@ -27,6 +27,7 @@ from strange_uta_game.backend.infrastructure.parsers.inline_format import (
     parse_timestamp,
 )
 from strange_uta_game.backend.infrastructure.parsers.romaji import (
+    RomajiOptions,
     romanize_sentence_to_self_ruby,
 )
 
@@ -458,7 +459,11 @@ def _linked_group_kana(group: List[Character]) -> str:
 # ── 双注音格式（带罗马音） ──
 
 
-def sentence_to_kasugamuki_romaji(sentence: Sentence) -> str:
+def sentence_to_kasugamuki_romaji(
+    sentence: Sentence,
+    *,
+    options: Optional[RomajiOptions] = None,
+) -> str:
     """一行 → 春日向双注音格式（假名 + 罗马音）。"""
     chars = sentence.characters
     # Use the exact same sentence-level path as 注音管理 -> 转罗马音.  Work on
@@ -466,7 +471,7 @@ def sentence_to_kasugamuki_romaji(sentence: Sentence) -> str:
     # 跨字符拗音链接仅存在于此副本；促音仍独立成拍（っ|>t、だ|>da），与后字
     # 各自持有罗马音和时间戳。
     romanized_sentence = deepcopy(sentence)
-    romanize_sentence_to_self_ruby(romanized_sentence)
+    romanize_sentence_to_self_ruby(romanized_sentence, options=options)
     effective_chars = romanized_sentence.characters
     romaji_by_char = {
         i: [part.text for part in ch.ruby.parts]
@@ -528,8 +533,15 @@ def sentence_to_kasugamuki_romaji(sentence: Sentence) -> str:
     return "".join(segments)
 
 
-def sentences_to_kasugamuki_romaji(sentences: List[Sentence]) -> str:
-    return "\n".join(sentence_to_kasugamuki_romaji(s) for s in sentences)
+def sentences_to_kasugamuki_romaji(
+    sentences: List[Sentence],
+    *,
+    options: Optional[RomajiOptions] = None,
+) -> str:
+    return "\n".join(
+        sentence_to_kasugamuki_romaji(sentence, options=options)
+        for sentence in sentences
+    )
 
 
 def _char_ruby_romaji(

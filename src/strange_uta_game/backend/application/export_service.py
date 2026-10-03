@@ -15,6 +15,7 @@ from strange_uta_game.backend.infrastructure.exporters import (
     get_exporter_by_name,
     get_all_exporters,
 )
+from strange_uta_game.backend.infrastructure.parsers.romaji import RomajiOptions
 
 
 _INVALID_FILENAME_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]+')
@@ -118,6 +119,7 @@ class ExportService:
         export_romaji: bool = True,
         software_compensation_ms: int = 0,
         tag_data: Optional[Dict[str, Any]] = None,
+        romaji_options: Optional[RomajiOptions] = None,
     ) -> ExportResult:
         """导出项目
 
@@ -136,6 +138,7 @@ class ExportService:
             tag_data: Nicokara 元数据标签快照（结构同 AppSettings 的
                       ``nicokara_tags``）。轴分组拆分导出时传入按组过滤后的
                       标签；None = 导出器自行回退读取 AppSettings（原行为）。
+            romaji_options: Kirakara 罗马音显示与链接策略
 
         Returns:
             导出结果
@@ -187,6 +190,7 @@ class ExportService:
                     insert_singer_each_line=insert_singer_each_line,
                     singer_map=singer_map,
                     export_romaji=export_romaji,
+                    romaji_options=romaji_options,
                 )
             elif isinstance(exporter, NicokaraWithRubyExporter):
                 exporter.export(
