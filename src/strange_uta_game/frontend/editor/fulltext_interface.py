@@ -467,6 +467,7 @@ class DeleteCheckpointByTypeDialog(QDialog):
         (CharType.SYMBOL, "記号（符号）"),
         (CharType.LONG_VOWEL, "長音符号（ー、～等）"),
         (CharType.SOKUON, "促音（っ/ッ）"),
+        ("small_kana", "小写假名（ぁゃ等）"),
         (CharType.OTHER, "その他（♪等特殊符号）"),
         (CharType.SPACE, "空格"),
     ]
@@ -481,6 +482,7 @@ class DeleteCheckpointByTypeDialog(QDialog):
         CharType.SYMBOL: "symbol",
         CharType.LONG_VOWEL: "long_vowel",
         CharType.SOKUON: "sokuon",
+        "small_kana": "small_kana",
         CharType.OTHER: "other",
         CharType.SPACE: "space",
     }
@@ -525,6 +527,7 @@ class DeleteCheckpointByTypeDialog(QDialog):
         self.tr("記号（符号）")
         self.tr("長音符号（ー、～等）")
         self.tr("促音（っ/ッ）")
+        self.tr("小写假名（ぁゃ等）")
         self.tr("その他（♪等特殊符号）")
         self.tr("空格")
 

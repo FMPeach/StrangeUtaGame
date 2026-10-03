@@ -3006,6 +3006,7 @@ def delete_checkpoints_by_type_names(project: "Project", type_names: List[str]) 
     - 勾选 hiragana → 平假名 + 促音 っ
     - 勾选 katakana → 片假名 + 促音 ッ + 长音 ー（未被显式选择时随片假名家族处理）
     - 显式勾选 sokuon / long_vowel → っ/ッ 或 ー 单独匹配
+    - 勾选 small_kana → 小写假名（ぁゃ等捨て仮名，不含促音 っ/ッ）单独匹配
     - 与汉字处于同一连词链中的字符整体视为汉字：选择汉字时删除，选择其他类型时保留
     与注音删除不同：本操作不改动 linked_to_next 与注音本身，只清节奏点
     （clear_timestamps + set_check_count(0, force=True) + is_sentence_end=False，
@@ -3013,13 +3014,14 @@ def delete_checkpoints_by_type_names(project: "Project", type_names: List[str]) 
 
     Args:
         project: 项目
-        type_names: 类型名称列表（config 格式），如 ["hiragana", "katakana"]
+        type_names: 类型名称列表（config 格式），如 ["hiragana", "small_kana"]
 
     Returns:
         删除节奏点的字符数量
     """
+    small_kana_selected = "small_kana" in type_names
     ct_selected = [_RUBY_TYPE_NAME_MAP[n] for n in type_names if n in _RUBY_TYPE_NAME_MAP]
-    if not ct_selected:
+    if not ct_selected and not small_kana_selected:
         return 0
 
     selected = set(ct_selected)
@@ -3040,7 +3042,10 @@ def delete_checkpoints_by_type_names(project: "Project", type_names: List[str]) 
                     continue
             else:
                 ct = get_char_type(ch.char)
-                if ct not in selected:
+                if (
+                    ct not in selected
+                    and not (small_kana_selected and ch.char in _SMALL_KANA_SET)
+                ):
                     # 家族连带：平假名→っ、片假名→ッ/ー；
                     # 显式选择 sokuon/long_vowel 时已在上方 ct in selected 命中。
                     if ct == CharType.SOKUON:

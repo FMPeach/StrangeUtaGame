@@ -168,6 +168,7 @@
   "例如 http://127.0.0.1:7890 ；仅在选择「手动指定地址」时生效": "E.g. http://127.0.0.1:7890. Only active when 'Manual' is selected.",
   "促音check": "sokuon check",
   "促音（っ/ッ）": "Sokuon (っ/ッ)",
+  "小写假名（ぁゃ等）": "Small kana (ぁゃ etc.)",
   "保存": "Save",
   "保存为软件预设": "Save as app preset",
   "保存修改": "Save changes",

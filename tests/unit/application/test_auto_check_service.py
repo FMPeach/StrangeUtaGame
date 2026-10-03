@@ -597,6 +597,35 @@ class TestDeleteCheckpointsByTypeNames:
         assert chars[2].check_count == 1  # シ 保留
         assert chars[1].check_count == 0 and chars[3].check_count == 0
 
+    def test_small_kana_only_deletes_small_kana(self):
+        project = self._make_project("きょァ")
+
+        removed = self._delete(project, ["small_kana"])
+
+        assert removed == 2
+        chars = project.sentences[0].characters
+        assert chars[0].check_count == 1  # き 保留
+        assert chars[1].check_count == 0 and chars[2].check_count == 0
+
+    def test_small_kana_excludes_sokuon(self):
+        """促音 っ/ッ 是独立类型（sokuon），不属于小写假名。"""
+        project = self._make_project("ぁっ")
+
+        removed = self._delete(project, ["small_kana"])
+
+        assert removed == 1
+        chars = project.sentences[0].characters
+        assert chars[0].check_count == 0  # ぁ 删除
+        assert chars[1].check_count == 1  # っ 保留
+
+    def test_small_kana_covered_by_script_type(self):
+        """勾选平假名/片假名时仍连带小写假名（既有行为不变）。"""
+        project = self._make_project("きょァ")
+
+        removed = self._delete(project, ["hiragana", "katakana"])
+
+        assert removed == 3
+
     def test_long_vowel_only(self):
         project = self._make_project("カーさ")
 
