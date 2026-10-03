@@ -87,6 +87,64 @@ def test_sokuon_cross_char_context():
     ])
     romanize_project_to_self_ruby(_project(sent))
     assert _parts(sent) == [["ma"], ["t"], ["te"]]
+    assert [ch.linked_to_next for ch in sent.characters] == [False, False, False]
+
+
+def test_cross_character_digraph_links_as_part_of_romaji_conversion():
+    sent = Sentence(
+        singer_id="s1",
+        characters=[
+            _kanji_with_ruby(base, [reading])
+            for base, reading in zip("キャンセル", ("き", "ゃ", "ん", "せ", "る"))
+        ],
+    )
+
+    changed = romanize_project_to_self_ruby(_project(sent))
+
+    assert _parts(sent) == [["kya"], [""], ["n"], ["se"], ["ru"]]
+    assert [ch.linked_to_next for ch in sent.characters] == [
+        True,
+        False,
+        False,
+        False,
+        False,
+    ]
+    assert changed == 1
+
+
+def test_digraph_parts_on_same_character_do_not_link_next_character():
+    sent = Sentence(
+        singer_id="s1",
+        characters=[
+            _kanji_with_ruby("響", ["き", "ゃ"]),
+            Character(char="く", check_count=1, singer_id="s1"),
+        ],
+    )
+
+    romanize_project_to_self_ruby(_project(sent))
+
+    assert _parts(sent) == [["kya", ""], ["ku"]]
+    assert [ch.linked_to_next for ch in sent.characters] == [False, False]
+
+
+def test_sokuon_keeps_own_beat_but_following_digraph_is_linked():
+    sent = Sentence(
+        singer_id="s1",
+        characters=[
+            _kanji_with_ruby(base, [reading])
+            for base, reading in zip("マッチャ", ("ま", "っ", "ち", "ゃ"))
+        ],
+    )
+
+    romanize_project_to_self_ruby(_project(sent))
+
+    assert _parts(sent) == [["ma"], ["c"], ["cha"], [""]]
+    assert [ch.linked_to_next for ch in sent.characters] == [
+        False,
+        False,
+        True,
+        False,
+    ]
 
 
 def test_idempotent_second_run_no_change():

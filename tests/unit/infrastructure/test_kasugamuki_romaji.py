@@ -61,6 +61,39 @@ def test_export_keeps_digraph_in_one_romaji_annotation():
     assert sentence_to_kasugamuki_romaji(sentence) == "{きゃ|>kya}"
 
 
+def test_export_groups_per_character_kana_ruby_digraph_without_mutating_source():
+    sentence = Sentence(
+        singer_id="s1",
+        characters=[
+            Character(
+                char=base,
+                ruby=Ruby(parts=[RubyPart(text=reading)]),
+                check_count=1,
+                singer_id="s1",
+            )
+            for base, reading in zip("キャンセル", ("き", "ゃ", "ん", "せ", "る"))
+        ],
+    )
+
+    assert sentence_to_kasugamuki_romaji(sentence) == (
+        "{キャ|きゃ>kya}{ン|ん>n}{セ|せ>se}{ル|る>ru}"
+    )
+    assert [ch.ruby.text for ch in sentence.characters if ch.ruby] == [
+        "き",
+        "ゃ",
+        "ん",
+        "せ",
+        "る",
+    ]
+    assert [ch.linked_to_next for ch in sentence.characters] == [
+        False,
+        False,
+        False,
+        False,
+        False,
+    ]
+
+
 def test_sokuon_keeps_own_block_and_own_timestamp():
     """促音独立成块，用自身时间戳，不并入后续假名、不借用其时间戳。"""
     sentence = Sentence(
