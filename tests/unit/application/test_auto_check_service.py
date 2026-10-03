@@ -1,8 +1,15 @@
 """AutoCheckService 测试。"""
 
 import pytest
-from strange_uta_game.backend.application import AutoCheckService
-from strange_uta_game.backend.domain import Sentence
+from strange_uta_game.backend.application import (
+    AutoCheckService,
+    is_chinese_lyrics,
+    is_korean_lyrics,
+)
+from strange_uta_game.backend.application.auto_check_service import (
+    delete_rubies_by_type_names,
+)
+from strange_uta_game.backend.domain import Project, Sentence
 from strange_uta_game.backend.infrastructure.parsers.ruby_analyzer import (
     DummyAnalyzer,
     RubyAnalyzer,
@@ -195,12 +202,31 @@ class TestAutoCheckService:
 
 
 class TestHangulCheckpoints:
-    """韩文谚文节奏点：每音节固定 1 个，不受 alphabet 等开关门控。"""
+    """韩文谚文节奏点：每音节固定 1 个；hangul 开关（默认开）可控。"""
 
     def test_hangul_keeps_checkpoint_with_alphabet_flag_off(self):
         """alphabet=false（默认）不得把谚文节奏点清零——旧版误归字母类时会被清零。"""
         flags = {"alphabet": False, "kanji": True, "hiragana": True}
         service = AutoCheckService(DummyAnalyzer(), auto_check_flags=flags)
+        sentence = Sentence.from_text("사랑해", "s1")
+
+        service.apply_to_sentence(sentence)
+
+        assert [c.check_count for c in sentence.characters] == [1, 1, 1]
+
+    def test_hangul_flag_off_zeroes_checkpoints(self):
+        """hangul 开关关闭：自动清零韩文节奏点（与其他字符类型语义一致）。"""
+        service = AutoCheckService(
+            DummyAnalyzer(), auto_check_flags={"hangul": False}
+        )
+        sentence = Sentence.from_text("사랑해", "s1")
+
+        service.apply_to_sentence(sentence)
+
+        assert [c.check_count for c in sentence.characters] == [0, 0, 0]
+
+    def test_hangul_flag_on_by_default(self):
+        service = AutoCheckService(DummyAnalyzer())
         sentence = Sentence.from_text("사랑해", "s1")
 
         service.apply_to_sentence(sentence)
@@ -238,6 +264,98 @@ class TestHangulCheckpoints:
 
         hangul = [c for c in sentence.characters if "가" <= c.char <= "힣"]
         assert [c.check_count for c in hangul] == [1, 1]
+
+
+class TestKoreanAnnotation:
+    """韩文注音模式：导入语义与中文路径对齐（ruby + 每字 1 拍）。"""
+
+    @staticmethod
+    def _korean_service(style=None, flags=None):
+        from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+            create_korean_reading_analyzer,
+        )
+
+        return AutoCheckService(
+            auto_check_flags=flags or {},
+            korean_mode=True,
+            korean_analyzer=(
+                create_korean_reading_analyzer(style) if style else None
+            ),
+        )
+
+    @staticmethod
+    def _apply(text, service):
+        project = Project()
+        project.sentences = [Sentence.from_text(text, "s1")]
+        service.apply_to_project(project)
+        return project.sentences[0]
+
+    def test_is_korean_lyrics_detection(self):
+        assert is_korean_lyrics("사랑해 너를")
+        assert not is_korean_lyrics("我爱你")
+        assert not is_korean_lyrics("きみは 사랑")  # 含假名 → 日文路径
+        assert not is_korean_lyrics("")
+
+    def test_katakana_style_annotation(self):
+        s = self._apply(
+            "사랑 漢字", self._korean_service("katakana")
+        )
+        got = [
+            (c.char, c.check_count, c.ruby.parts[0].text if c.ruby else None)
+            for c in s.characters
+        ]
+        assert got == [
+            ("사", 1, "サ"), ("랑", 1, "ラン"), (" ", 1, None),
+            ("漢", 1, "ハン"), ("字", 1, "ジャ"),
+        ]
+
+    def test_hiragana_and_romaji_styles(self):
+        s = self._apply("사랑", self._korean_service("hiragana"))
+        assert [c.ruby.parts[0].text for c in s.characters] == ["さ", "らん"]
+        s2 = self._apply("사랑", self._korean_service("romaji"))
+        assert [c2.ruby.parts[0].text for c2 in s2.characters] == ["sa", "rang"]
+
+    def test_no_analyzer_checkpoints_only(self):
+        """不传分析器：仅节奏点模式（每字 1 拍、无 ruby），镜像中文路径语义。"""
+        s = self._apply("사랑해", self._korean_service())
+        assert all(c.ruby is None for c in s.characters)
+        assert [c.check_count for c in s.characters] == [1, 1, 1]
+
+    def test_checkpoints_not_inflated_by_kana_moras(self):
+        """片假名读音多 mora 也不拉高节奏点：한(ハン 2 mora) 仍 1 拍。"""
+        s = self._apply("한국", self._korean_service("katakana"))
+        assert [c.check_count for c in s.characters] == [1, 1]
+
+    def test_delete_hangul_ruby_by_type(self):
+        s = self._apply("사랑해", self._korean_service("katakana"))
+        project = Project()
+        project.sentences = [s]
+        removed = delete_rubies_by_type_names(project, ["hangul"])
+        assert removed == 3
+        assert all(c.ruby is None for c in project.sentences[0].characters)
+
+    def test_romanize_ruby_applies_in_korean_mode(self):
+        """「全部转为罗马字」在韩文模式照常生效（片假名 ruby → 罗马字）。"""
+        service = self._korean_service(
+            "katakana", flags={"romanize_ruby": True}
+        )
+        project = Project()
+        project.sentences = [Sentence.from_text("사랑", "s1")]
+        service.analyze_and_apply_pipeline(project)
+        s = project.sentences[0]
+        assert [c.ruby.parts[0].text for c in s.characters] == ["sa", "ran"]
+
+    def test_existing_ruby_wiped_on_reapply(self):
+        """重跑覆盖既有标注（与中文路径的重建语义一致）。"""
+        service = self._korean_service("katakana")
+        s = self._apply("사랑", service)
+        assert s.characters[0].ruby.parts[0].text == "サ"
+        service2 = self._korean_service("romaji")
+        project = Project()
+        project.sentences = [s]
+        service2.apply_to_project(project)
+        s2 = project.sentences[0]
+        assert [c.ruby.parts[0].text for c in s2.characters] == ["sa", "rang"]
 
 
 class TestA3RootCauseEmptyRubyGroup:

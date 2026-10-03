@@ -10,7 +10,12 @@ from qfluentwidgets import (
     SettingCardGroup,
 )
 
-from ..cards import MultiBoolSettingCard, MultiCheckSettingCard, SwitchSettingCard
+from ..cards import (
+    ComboSettingCard,
+    MultiBoolSettingCard,
+    MultiCheckSettingCard,
+    SwitchSettingCard,
+)
 from .base import SubSettingInterface
 
 
@@ -59,6 +64,8 @@ class RomajiStyleSettingCard(ExpandSettingCard):
 
 class AutoCheckSubInterface(SubSettingInterface):
     _ROMAJI_EXCLUSIVE_DELETE_TYPES = {"hiragana", "katakana_hiragana_ruby", "katakana_english_ruby", "kanji"}
+    # 韩文注音风格下拉的取值序（config 持久化值，非显示文本）
+    _KOREAN_STYLE_VALUES = ["katakana", "hiragana", "romaji"]
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -79,6 +86,7 @@ class AutoCheckSubInterface(SubSettingInterface):
                 items=[
                     ("hiragana", tr("ひらがな（平假名）")), ("katakana", tr("カタカナ（片假名）")),
                     ("kanji", tr("漢字（汉字）")), ("alphabet", tr("アルファベット（英文字母）")),
+                    ("hangul", tr("韩文（谚文）")),
                     ("digit", tr("数字")), ("symbol", tr("記号（符号 + - * 等）")),
                     ("space", tr("空格")),
                     ("space_after_japanese", tr("  ↳日语后空格check")),
@@ -119,6 +127,20 @@ class AutoCheckSubInterface(SubSettingInterface):
                 parent=g),
             title_source="中文歌标注拼音",
             content_source="检测到中文歌词时，自动为汉字标注带声调拼音注音")
+        self.card_korean_lyrics_detection = self._tr_register(
+            SwitchSettingCard(FIF.LANGUAGE, tr("韩文歌词检测"),
+                tr("加载歌词时，若未检测到日文假名且含谚文则自动切换为韩文模式（韩文字每字一个节奏点并按风格注音）"),
+                parent=g),
+            title_source="韩文歌词检测",
+            content_source="加载歌词时，若未检测到日文假名且含谚文则自动切换为韩文模式（韩文字每字一个节奏点并按风格注音）")
+        self.card_korean_annotation_style = self._tr_register(
+            ComboSettingCard(FIF.FONT, tr("韩文注音风格"),
+                tr("韩文歌词自动注音的读音形式"),
+                items=[tr("片假名"), tr("平假名"), tr("罗马音")],
+                parent=g),
+            title_source="韩文注音风格",
+            content_source="韩文歌词自动注音的读音形式")
+        self.card_korean_annotation_style.set_item_sources(["片假名", "平假名", "罗马音"])
         self.card_romanize_ruby = self._tr_register(
             SwitchSettingCard(FIF.LANGUAGE, tr("罗马音注音"),
                 tr("需重新执行自动注音以生效"), parent=g),
@@ -151,6 +173,7 @@ class AutoCheckSubInterface(SubSettingInterface):
                     ("katakana_hiragana_ruby", tr("カタカナ（片假名・注音为平假名）")),
                     ("katakana_english_ruby", tr("カタカナ（片假名・注音含有英文）")),
                     ("kanji", tr("漢字（汉字）")), ("alphabet", tr("アルファベット（英文字母）")),
+                    ("hangul", tr("韩文（谚文）")),
                     ("number", tr("数字")), ("symbol", tr("記号（符号 + - * 等）")),
                     ("long_vowel", tr("長音符号（ー、～等）")), ("sokuon", tr("促音（っ/ッ）")),
                     ("other", tr("その他")), ("space", tr("空格")),
@@ -160,6 +183,8 @@ class AutoCheckSubInterface(SubSettingInterface):
         for c in [self.card_checkpoint_chars, self.card_check_rules,
                   self.card_auto_on_load, self.card_chinese_lyrics_detection,
                   self.card_chinese_pinyin_annotation,
+                  self.card_korean_lyrics_detection,
+                  self.card_korean_annotation_style,
                   self.card_romanize_ruby, self.card_romaji_style,
                   self.card_delete_ruby_types]:
             g.addSettingCard(c)
@@ -171,6 +196,8 @@ class AutoCheckSubInterface(SubSettingInterface):
         self.card_auto_on_load.checked_changed.connect(self._notify_changed)
         self.card_chinese_lyrics_detection.checked_changed.connect(self._notify_changed)
         self.card_chinese_pinyin_annotation.checked_changed.connect(self._notify_changed)
+        self.card_korean_lyrics_detection.checked_changed.connect(self._notify_changed)
+        self.card_korean_annotation_style.index_changed.connect(self._notify_changed)
         self.card_romanize_ruby.checked_changed.connect(self._on_romanize_ruby_changed)
         self.card_delete_ruby_types.selection_changed.connect(self._on_delete_ruby_types_changed)
         self.card_romaji_style.check_repeat_long_vowels.toggled.connect(
@@ -267,6 +294,7 @@ class AutoCheckSubInterface(SubSettingInterface):
                 "katakana": s.get("auto_check.katakana", True),
                 "kanji": s.get("auto_check.kanji", True),
                 "alphabet": s.get("auto_check.alphabet", False),
+                "hangul": s.get("auto_check.hangul", True),
                 "digit": s.get("auto_check.digit", False),
                 "symbol": s.get("auto_check.symbol", False),
                 "space": s.get("auto_check.space", False),
@@ -290,6 +318,13 @@ class AutoCheckSubInterface(SubSettingInterface):
             self.card_auto_on_load.setChecked(s.get("auto_check.auto_on_load", True))
             self.card_chinese_lyrics_detection.setChecked(s.get("auto_check.chinese_lyrics_detection", True))
             self.card_chinese_pinyin_annotation.setChecked(s.get("auto_check.chinese_pinyin_annotation", False))
+            self.card_korean_lyrics_detection.setChecked(s.get("auto_check.korean_lyrics_detection", True))
+            style = s.get("auto_check.korean_annotation_style", "katakana")
+            style_index = (
+                self._KOREAN_STYLE_VALUES.index(style)
+                if style in self._KOREAN_STYLE_VALUES else 0
+            )
+            self.card_korean_annotation_style.setCurrentIndex(style_index)
             romanize_ruby = s.get("auto_check.romanize_ruby", False)
             saved_delete_types = s.get("auto_check.delete_ruby_types", [])
             if "katakana" in saved_delete_types:
@@ -335,6 +370,13 @@ class AutoCheckSubInterface(SubSettingInterface):
         s.set("auto_check.auto_on_load", self.card_auto_on_load.isChecked())
         s.set("auto_check.chinese_lyrics_detection", self.card_chinese_lyrics_detection.isChecked())
         s.set("auto_check.chinese_pinyin_annotation", self.card_chinese_pinyin_annotation.isChecked())
+        s.set("auto_check.korean_lyrics_detection", self.card_korean_lyrics_detection.isChecked())
+        s.set(
+            "auto_check.korean_annotation_style",
+            self._KOREAN_STYLE_VALUES[
+                max(0, self.card_korean_annotation_style.currentIndex())
+            ],
+        )
         delete_types = self.card_delete_ruby_types.selectedValues()
         romanize_ruby = self.card_romanize_ruby.isChecked()
         if romanize_ruby:

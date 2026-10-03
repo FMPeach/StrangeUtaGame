@@ -2,7 +2,12 @@
 
 from .command_manager import CommandManager
 from .project_service import ProjectService, ProjectCallbacks, ProjectServiceError
-from .auto_check_service import AutoCheckService, AutoCheckResult, is_chinese_lyrics
+from .auto_check_service import (
+    AutoCheckService,
+    AutoCheckResult,
+    is_chinese_lyrics,
+    is_korean_lyrics,
+)
 from .singer_service import SingerService, SingerCallbacks
 from .export_service import ExportService, ExportResult
 # timing_service 依赖 PyQt6：无头环境（AI Runtime worker）没有 Qt，
@@ -54,6 +59,7 @@ __all__ = [
     "AutoCheckService",
     "AutoCheckResult",
     "is_chinese_lyrics",
+    "is_korean_lyrics",
     "SingerService",
     "SingerCallbacks",
     "ExportService",

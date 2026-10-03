@@ -1054,16 +1054,21 @@ class RubyInterface(QWidget):
             )
         )
 
-    def _create_auto_check_service(self, auto_detect_chinese: bool = False):
+    def _create_auto_check_service(
+        self, auto_detect_chinese: bool = False, annotate_korean: bool = False
+    ):
         """创建带设置的自动检查服务
 
         Args:
             auto_detect_chinese: True=自动检测中文歌词并走中文模式。
                 「更新节奏点」传 True，使其与主编辑器注音流程行为一致；
                 「全部注音」传 False，用户明确表达注音意图不做中文检测。
+            annotate_korean: True=韩文歌词带风格注音（片假名/平假名/罗马音）；
+                False=韩文分支仅重算节奏点（每字 1 拍，不写注音，
+                与中文路径无拼音时的语义一致）。
         """
         from strange_uta_game.frontend.settings.settings_interface import AppSettings
-        from strange_uta_game.backend.application import is_chinese_lyrics
+        from strange_uta_game.backend.application import is_chinese_lyrics, is_korean_lyrics
 
         app_settings = AppSettings()
         all_settings = app_settings.get_all()
@@ -1079,6 +1084,32 @@ class RubyInterface(QWidget):
             and bool(self._project)
             and is_chinese_lyrics("".join(s.text for s in self._project.sentences))
         )
+
+        # 韩文歌词检测（含谚文即韩文，「韩文歌词检测」设置门控）：
+        # 注音与更新节奏点均按韩文分支处理节奏点；是否写风格注音
+        # 由 annotate_korean 区分调用方意图。
+        korean_mode = (
+            auto_check_flags.get("korean_lyrics_detection", True)
+            and bool(self._project)
+            and is_korean_lyrics("".join(s.text for s in self._project.sentences))
+        )
+        if korean_mode:
+            korean_analyzer = None
+            if annotate_korean:
+                from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+                    create_korean_reading_analyzer,
+                )
+
+                korean_analyzer = create_korean_reading_analyzer(
+                    auto_check_flags.get("korean_annotation_style", "katakana")
+                )
+            return AutoCheckService(
+                auto_check_flags=auto_check_flags,
+                user_dictionary=user_dict,
+                annotate_katakana_with_english=annotate_katakana_with_english,
+                korean_mode=True,
+                korean_analyzer=korean_analyzer,
+            )
 
         # 用户主动触发：不做中文检测——按下"自动分析全部注音"按钮即明确表达
         # 注音意图，避免纯汉字日文行被误判跳过。
@@ -1133,9 +1164,18 @@ class RubyInterface(QWidget):
 
         from strange_uta_game.frontend.settings.settings_interface import AppSettings
 
+        _app_flags = AppSettings().get_all().get("auto_check", {})
         _llm_active = AppSettings().llm_ruby_active()
+        # 韩文歌词不需要日语 IME，跳过 WinRT 安装引导
+        from strange_uta_game.backend.application import is_korean_lyrics
+
+        _korean = (
+            _app_flags.get("korean_lyrics_detection", True)
+            and bool(self._project)
+            and is_korean_lyrics("".join(s.text for s in self._project.sentences))
+        )
         # LLM 注音激活时不需要本地日语 IME，跳过 WinRT 安装引导。
-        if not _llm_active:
+        if not _llm_active and not _korean:
             from strange_uta_game.frontend.winrt_japanese_guide import (
                 ensure_winrt_japanese,
             )
@@ -1176,7 +1216,8 @@ class RubyInterface(QWidget):
 
         # AutoCheckService（含 WinRTAnalyzer / LLMRubyAnalyzer）在主线程创建，
         # 确保 WinRT STA apartment 正确；worker 只在自己的线程执行计算。
-        auto_check = self._create_auto_check_service()
+        # 韩文歌词按「韩文注音风格」设置标注片假名/平假名/罗马音。
+        auto_check = self._create_auto_check_service(annotate_korean=True)
         # LLM 注音时是否仍应用用户词典（非 LLM 模式恒为 True）。
         _apply_user_dict = (
             AppSettings().llm_apply_user_dict() if _llm_active else True

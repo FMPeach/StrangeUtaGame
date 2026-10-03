@@ -513,11 +513,18 @@ class HomeInterface(QWidget):
 
                 if auto_check_flags.get("auto_on_load", True):
                     # 检测是否为中文歌词（无任何假名）
-                    from strange_uta_game.backend.application import is_chinese_lyrics
+                    from strange_uta_game.backend.application import (
+                        is_chinese_lyrics,
+                        is_korean_lyrics,
+                    )
+                    all_text = "".join(s.text for s in project.sentences)
                     chinese_mode = False
                     if auto_check_flags.get("chinese_lyrics_detection", True):
-                        all_text = "".join(s.text for s in project.sentences)
                         chinese_mode = is_chinese_lyrics(all_text)
+                    # 韩文检测（无假名且含谚文）优先于中文分流
+                    korean_mode = False
+                    if auto_check_flags.get("korean_lyrics_detection", True):
+                        korean_mode = is_korean_lyrics(all_text)
 
                     user_dict = app_settings.load_effective_dictionary()
                     annotate_katakana_with_english = app_settings.get(
@@ -532,7 +539,28 @@ class HomeInterface(QWidget):
 
                     auto_check = None
                     delete_types = auto_check_flags.get("delete_ruby_types", [])
-                    if chinese_mode:
+                    if korean_mode:
+                        # 韩文模式：导入即自动注音（风格 = 韩文注音风格设置）
+                        from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+                            create_korean_reading_analyzer,
+                        )
+
+                        auto_check = AutoCheckService(
+                            auto_check_flags=auto_check_flags,
+                            user_dictionary=user_dict,
+                            annotate_katakana_with_english=annotate_katakana_with_english,
+                            korean_mode=True,
+                            korean_analyzer=create_korean_reading_analyzer(
+                                auto_check_flags.get(
+                                    "korean_annotation_style", "katakana"
+                                )
+                            ),
+                        )
+                        auto_check.analyze_and_apply_pipeline(
+                            project, only_noruby=True, apply_user_dict=True,
+                            delete_types=delete_types or None,
+                        )
+                    elif chinese_mode:
                         auto_check = AutoCheckService(
                             auto_check_flags=auto_check_flags,
                             user_dictionary=user_dict,

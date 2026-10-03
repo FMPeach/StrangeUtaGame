@@ -9133,7 +9133,11 @@ class EditorInterface(QWidget):
         if getattr(self, "_ruby_analyzing", False):
             return
 
-        from strange_uta_game.backend.application import AutoCheckService, is_chinese_lyrics
+        from strange_uta_game.backend.application import (
+            AutoCheckService,
+            is_chinese_lyrics,
+            is_korean_lyrics,
+        )
         from strange_uta_game.frontend.settings.settings_interface import AppSettings
         from strange_uta_game.frontend.workers import RubyAnalyzeWorker
 
@@ -9153,9 +9157,15 @@ class EditorInterface(QWidget):
             and auto_check_flags.get("chinese_lyrics_detection", True)
             and is_chinese_lyrics("".join(s.text for s in self._project.sentences))
         )
+        # 韩文歌词检测：含谚文即韩文（无纯汉字歧义），注音分析与导入均启用；
+        # 「韩文歌词检测」设置关闭时回落日文注音路径。
+        korean_mode = (
+            auto_check_flags.get("korean_lyrics_detection", True)
+            and is_korean_lyrics("".join(s.text for s in self._project.sentences))
+        )
 
         # LLM 注音激活时不需要本地日语 IME，跳过 WinRT 安装引导。中文模式同样跳过。
-        if not chinese_mode and not llm_active:
+        if not chinese_mode and not korean_mode and not llm_active:
             from strange_uta_game.frontend.winrt_japanese_guide import (
                 ensure_winrt_japanese,
             )
@@ -9164,7 +9174,23 @@ class EditorInterface(QWidget):
 
         # AutoCheckService（含 WinRTAnalyzer / LLMRubyAnalyzer）在主线程创建，
         # 确保 WinRT STA apartment 正确；LLM 整首一次发送需传入全部行文本。
-        if chinese_mode:
+        if korean_mode:
+            analyzer = None
+            llm_apply_user_dict = True
+            from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+                create_korean_reading_analyzer,
+            )
+
+            auto_check = AutoCheckService(
+                auto_check_flags=auto_check_flags,
+                user_dictionary=user_dict,
+                annotate_katakana_with_english=annotate_katakana_with_english,
+                korean_mode=True,
+                korean_analyzer=create_korean_reading_analyzer(
+                    auto_check_flags.get("korean_annotation_style", "katakana")
+                ),
+            )
+        elif chinese_mode:
             analyzer = None
             llm_apply_user_dict = True
             pinyin_analyzer = None

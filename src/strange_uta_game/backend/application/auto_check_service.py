@@ -69,13 +69,14 @@ _RUBY_ALLOWED_TYPES = {
 # 字符类型 → 标志键映射（用于标志过滤器，提取为模块级常量避免循环内重复构造）
 # 注意：CharType.SPACE / CharType.FULL_SPACE 不在此表中，空格由 _apply_flags_filter 单独处理
 # （需要同时读取 space_after_* 三个子选项，逻辑与其他类型不同）。
-# CharType.HANGUL 刻意不在此表中：韩文谚文每音节固定 1 个节奏点，
-# 不受任何开关门控（用户口径），无条目即不会被归零。
+# 韩文谚文（hangul）默认开：每音节固定 1 个节奏点；设置里可单独关闭
+# 以自动清零韩文节奏点（与其他字符类型的开关语义一致）。
 _TYPE_FLAG_MAP: Dict[CharType, str] = {
     CharType.HIRAGANA: "hiragana",
     CharType.KATAKANA: "katakana",
     CharType.KANJI: "kanji",
     CharType.ALPHABET: "alphabet",
+    CharType.HANGUL: "hangul",
     CharType.NUMBER: "digit",
     CharType.SYMBOL: "symbol",
 }
@@ -104,6 +105,20 @@ def is_chinese_lyrics(text: str) -> bool:
     if not text:
         return False
     return not any(c in _KANA_DETECTION_CHARS for c in text)
+
+
+def is_korean_lyrics(text: str) -> bool:
+    """判断文本是否为「韩文歌词」：无假名且含谚文音节。
+
+    与 AI 打轴 PronunciationResolver 的韩文判据同款。语言路由优先级：
+    含假名（含日韩混排）→ 日文注音；无假名含谚文 → 韩文注音
+    （`_apply_korean_to_sentence`）；无假名无谚文 → 中文模式。
+    """
+    if not text:
+        return False
+    if any(c in _KANA_DETECTION_CHARS for c in text):
+        return False
+    return any("\uac00" <= c <= "\ud7a3" for c in text)
 
 
 def _merge_trailing_n_ruby_parts(parts: List[str]) -> List[str]:
@@ -321,6 +336,8 @@ class AutoCheckService:
         annotate_katakana_with_english: bool = False,
         chinese_mode: bool = False,
         pinyin_analyzer: Optional[RubyAnalyzer] = None,
+        korean_mode: bool = False,
+        korean_analyzer: Optional[RubyAnalyzer] = None,
     ):
         """
         Args:
@@ -331,10 +348,19 @@ class AutoCheckService:
             chinese_mode: 中文歌词模式（跳过日文注音分析，每个汉字视为中文单字节奏点）
             pinyin_analyzer: 中文拼音分析器（chinese_mode=True 时，
                 若提供则为每个汉字标注带声调拼音 ruby；若为 None 则不产生 ruby）
+            korean_mode: 韩文歌词模式（每字 cc=1；跳过日文注音/用户词典/
+                节奏点重算，与中文模式的跳过面一致）
+            korean_analyzer: 韩文注音分析器（korean_mode=True 时，若提供则
+                为韩文字/汉字标注片假名/平假名/罗马音风格 ruby；
+                KoreanReadingAnalyzer，None 则不产生 ruby 仅节奏点）
         """
         self._chinese_mode = chinese_mode
-        self._analyzer = ruby_analyzer or (None if chinese_mode else create_analyzer())
+        self._korean_mode = korean_mode
+        self._analyzer = ruby_analyzer or (
+            None if (chinese_mode or korean_mode) else create_analyzer()
+        )
         self._pinyin_analyzer = pinyin_analyzer
+        self._korean_analyzer = korean_analyzer
         self._ruby_analyzer = ruby_analyzer
         self._flags = auto_check_flags or {}
         self._romanize_ruby = bool(self._flags.get("romanize_ruby", False))
@@ -1415,6 +1441,84 @@ class AutoCheckService:
                     char.sentence_end_ts = old_sentence_end_ts[i]
                     char.push_to_ruby()
 
+    def _apply_korean_to_sentence(
+        self,
+        sentence: Sentence,
+        keep_existing_timetags: bool = True,
+    ) -> None:
+        """韩文歌词模式：按字符流计算节奏点 + 风格注音。
+
+        镜像 ``_apply_chinese_to_sentence`` 的结构（旧时间戳回种/重建
+        Character/flags 过滤/端点规则），差异仅在注音来源：
+
+        - 若 ``self._korean_analyzer`` 已提供（``KoreanReadingAnalyzer``），
+          为每个韩文字/汉字标注片假名/平假名/罗马音风格 ruby（词首语境
+          由分析器按整行判定：紧音 ッ、词中浊化、汉字두음법칙）；
+        - 否则全程不产生 ruby（仅节奏点模式，语义与中文路径无拼音时一致）。
+
+        每字固定 cc=1（谚文每音节一拍；不被片假名读音的 mora 数拉高），
+        ``hangul`` 节奏点开关（默认开）经 ``_apply_flags_filter`` 生效。
+        """
+        text = sentence.text
+        if not text:
+            return
+
+        old_timestamps: Dict[int, List[int]] = {}
+        old_sentence_end_ts: Dict[int, int] = {}
+        old_singer_map: Dict[int, str] = {}
+        for i, c in enumerate(sentence.characters):
+            if c.timestamps:
+                old_timestamps[i] = list(c.timestamps)
+            if c.sentence_end_ts is not None:
+                old_sentence_end_ts[i] = c.sentence_end_ts
+            old_singer_map[i] = c.singer_id
+
+        chars = list(text)
+        n = len(chars)
+        check_counts: List[int] = [1] * n
+
+        # 韩文注音子步骤：korean_mode 下若传入了 korean_analyzer，
+        # 按风格（片假名/平假名/罗马音）标注 ruby
+        reading_map: Dict[int, str] = {}
+        if self._korean_analyzer is not None:
+            for r in self._korean_analyzer.analyze(text):
+                for offset in range(r.end_idx - r.start_idx):
+                    idx = r.start_idx + offset
+                    if r.reading and r.reading != r.text:
+                        reading_map[idx] = r.reading
+
+        new_characters: List[Character] = []
+        for i, ch in enumerate(chars):
+            ruby = None
+            reading = reading_map.get(i, "")
+            if reading:
+                ruby = Ruby(parts=[RubyPart(text=reading)])
+            character = Character(
+                char=ch,
+                ruby=ruby,
+                check_count=1,
+                is_line_end=False,
+                is_sentence_end=False,
+                singer_id=old_singer_map.get(i, sentence.singer_id),
+            )
+            new_characters.append(character)
+        sentence.characters = new_characters
+
+        if keep_existing_timetags:
+            for i, char in enumerate(sentence.characters):
+                if i in old_timestamps:
+                    char.timestamps = list(old_timestamps[i])
+
+        self._apply_flags_filter(chars, check_counts, text)
+        self._apply_english_and_endpoints(sentence, check_counts)
+
+        if keep_existing_timetags:
+            for i, char in enumerate(sentence.characters):
+                if i in old_sentence_end_ts:
+                    char.is_sentence_end = True
+                    char.sentence_end_ts = old_sentence_end_ts[i]
+                    char.push_to_ruby()
+
     def analyze_sentence(
         self, sentence: Sentence, split_config: Optional[SplitConfig] = None
     ) -> List[AutoCheckResult]:
@@ -2475,6 +2579,13 @@ class AutoCheckService:
         """分析并应用到整个项目"""
         sentences = project.sentences
         total = len(sentences)
+        if self._korean_mode:
+            for i, sentence in enumerate(sentences):
+                self._apply_korean_to_sentence(sentence, keep_existing_timetags)
+                if progress_callback is not None:
+                    progress_callback("注音分析", i + 1, total)
+            project.shift_selected_checkpoint_if_lost()
+            return
         if self._chinese_mode:
             for i, sentence in enumerate(sentences):
                 self._apply_chinese_to_sentence(sentence, keep_existing_timetags)
@@ -2502,7 +2613,7 @@ class AutoCheckService:
         Args:
             progress_callback: ``(phase, current, total)`` 进度回调。
         """
-        if self._chinese_mode:
+        if self._chinese_mode or self._korean_mode:
             return
         if not self._dict:
             return
@@ -2647,7 +2758,9 @@ class AutoCheckService:
             preserve_ruby_segments: 透传到 update_checkpoints_from_rubies。
             progress_callback: ``(phase, current, total)`` 进度回调。
         """
-        if self._chinese_mode:
+        # 中文/韩文模式：每字 cc=1 由 _apply_*_to_sentence 全权决定，
+        # 按读音重算节奏点不适用（韩文读音的假名 mora 数不代表拍数）
+        if self._chinese_mode or self._korean_mode:
             return
         sentences = project.sentences
         total = len(sentences)

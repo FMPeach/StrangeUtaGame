@@ -1869,5 +1869,11 @@
   "促音链接": "Link sokuon",
   "大写转换": "Uppercase conversion",
   "罗马音注音设置": "Romaji ruby settings",
-  "长音复写、链接与大写等转换风格，应用于自动注音、一键转罗马音与 Kirakara 导出": "Conversion styles such as long-vowel repetition, linking, and uppercase; applied to auto-annotation, one-click romanization, and Kirakara export"
+  "长音复写、链接与大写等转换风格，应用于自动注音、一键转罗马音与 Kirakara 导出": "Conversion styles such as long-vowel repetition, linking, and uppercase; applied to auto-annotation, one-click romanization, and Kirakara export",
+  "韩文（谚文）": "Hangul (Korean)",
+  "韩文歌词检测": "Korean lyrics detection",
+  "加载歌词时，若未检测到日文假名且含谚文则自动切换为韩文模式（韩文字每字一个节奏点并按风格注音）": "When loading lyrics, if no Japanese kana is present and Hangul is detected, switch to Korean mode automatically (one checkpoint per Hangul syllable, annotated in the selected style)",
+  "韩文注音风格": "Korean reading style",
+  "韩文歌词自动注音的读音形式": "Reading form used for automatic Korean annotation",
+  "罗马音": "Romaji"
 }
