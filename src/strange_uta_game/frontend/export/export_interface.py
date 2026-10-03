@@ -48,6 +48,7 @@ from strange_uta_game.backend.application.export_service import (
     ExportService,
     sanitize_export_basename,
 )
+from strange_uta_game.backend.infrastructure.parsers.romaji import RomajiOptions
 from strange_uta_game.frontend.settings.settings_interface import (
     AppSettings,
     NicokaraTagsDialog,
@@ -1192,6 +1193,9 @@ class ExportInterface(QWidget):
                 return
 
         name = selected.data(Qt.ItemDataRole.UserRole)
+        romaji_options = RomajiOptions.from_mapping(
+            AppSettings().get("auto_check", {})
+        )
         # 获取扩展名
         formats = self._export_service.get_available_formats()
         ext = ""
@@ -1269,6 +1273,7 @@ class ExportInterface(QWidget):
                     insert_singer_each_line=self._chk_insert_singer_each_line.isChecked(),
                     singer_map=self._get_singer_map(),
                     export_romaji=self._chk_export_romaji.isChecked(),
+                    romaji_options=romaji_options,
                     software_compensation_ms=self._get_software_compensation(),
                     tag_data=self._build_axis_tag_data(group, is_primary),
                 )
@@ -1332,6 +1337,7 @@ class ExportInterface(QWidget):
             insert_singer_each_line=self._chk_insert_singer_each_line.isChecked(),
             singer_map=self._get_singer_map(),
             export_romaji=self._chk_export_romaji.isChecked(),
+            romaji_options=romaji_options,
             software_compensation_ms=self._get_software_compensation(),
         )
         if result.success:

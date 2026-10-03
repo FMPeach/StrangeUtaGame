@@ -1162,6 +1162,26 @@ Install log: {p}</translation>
 </context><context>
     <name>AutoCheckSubInterface</name>
     <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="143" />
+        <source>长音复写</source>
+        <translation>Repeat long vowels</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="144" />
+        <source>长音链接</source>
+        <translation>Link long vowels</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="145" />
+        <source>促音链接</source>
+        <translation>Link sokuon</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="146" />
+        <source>大写转换</source>
+        <translation>Uppercase conversion</translation>
+    </message>
+    <message>
         <location filename="..\..\settings\sub_interfaces\auto_check.py" line="28" />
         <source>生成节奏点的字符类型</source>
         <translation>Character types that generate checkpoints</translation>

@@ -1862,5 +1862,9 @@
   "工作台分离任务正在进行中{detail}，请等待其完成（或在工作台中取消）后重试 AI 打轴": "A workbench separation task is currently running{detail}. Wait for it to finish (or cancel it in the workbench), then retry AI timing",
   "工作台分离环境暂不可用，已改用 AI 运行环境内置分离（与工作台第 2 步环境不同，CPU 下可能需数分钟）": "The workbench separation environment is unavailable; switched to the AI runtime's built-in separation (different from the workbench step-2 environment; may take several minutes on CPU)",
   "（内置分离）{msg}": "(built-in separation) {msg}",
-  "已补齐分离模型文件 {name}": "Filled in missing separation model file {name}"
+  "已补齐分离模型文件 {name}": "Filled in missing separation model file {name}",
+  "长音复写": "Repeat long vowels",
+  "长音链接": "Link long vowels",
+  "促音链接": "Link sokuon",
+  "大写转换": "Uppercase conversion"
 }

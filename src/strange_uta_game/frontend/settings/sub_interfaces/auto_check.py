@@ -2,10 +2,76 @@
 
 from __future__ import annotations
 
-from qfluentwidgets import FluentIcon as FIF, SettingCardGroup
+from PyQt6.QtCore import QEvent, pyqtSignal
+from PyQt6.QtWidgets import QGridLayout, QWidget
+from qfluentwidgets import (
+    CheckBox,
+    ExpandSettingCard,
+    FluentIcon as FIF,
+    SettingCardGroup,
+    SwitchButton,
+)
 
 from ..cards import MultiBoolSettingCard, MultiCheckSettingCard, SwitchSettingCard
 from .base import SubSettingInterface
+
+
+class RomanizeSettingCard(ExpandSettingCard):
+    """带主开关和可展开策略选项的罗马音设置卡。"""
+
+    checked_changed = pyqtSignal(bool)
+
+    def __init__(self, icon, title, content, option_labels, parent=None):
+        super().__init__(icon, title, content, parent=parent)
+        self.titleLabel = self.card.titleLabel
+        self.contentLabel = self.card.contentLabel
+        self.switch = SwitchButton(self.card)
+        self.switch.setOnText(self.tr("开"))
+        self.switch.setOffText(self.tr("关"))
+        self.switch.checkedChanged.connect(self.checked_changed.emit)
+        self.addWidget(self.switch)
+
+        self.optionsWidget = QWidget(self.view)
+        (
+            repeat_label,
+            long_link_label,
+            sokuon_link_label,
+            uppercase_label,
+        ) = option_labels
+        self.check_repeat_long_vowels = CheckBox(
+            repeat_label, self.optionsWidget
+        )
+        self.check_link_long_vowels = CheckBox(
+            long_link_label, self.optionsWidget
+        )
+        self.check_link_sokuon = CheckBox(
+            sokuon_link_label, self.optionsWidget
+        )
+        self.check_uppercase = CheckBox(uppercase_label, self.optionsWidget)
+
+        self.optionsLayout = QGridLayout(self.optionsWidget)
+        self.optionsLayout.setContentsMargins(48, 12, 24, 12)
+        self.optionsLayout.setHorizontalSpacing(18)
+        self.optionsLayout.setVerticalSpacing(8)
+        self.optionsLayout.addWidget(self.check_repeat_long_vowels, 0, 0)
+        self.optionsLayout.addWidget(self.check_link_long_vowels, 0, 1)
+        self.optionsLayout.addWidget(self.check_link_sokuon, 1, 0)
+        self.optionsLayout.addWidget(self.check_uppercase, 1, 1)
+        self.viewLayout.setContentsMargins(0, 0, 0, 0)
+        self.viewLayout.addWidget(self.optionsWidget)
+        self._adjustViewSize()
+
+    def setChecked(self, checked: bool) -> None:
+        self.switch.setChecked(checked)
+
+    def isChecked(self) -> bool:
+        return self.switch.isChecked()
+
+    def changeEvent(self, event) -> None:
+        if event.type() == QEvent.Type.LanguageChange and hasattr(self, "switch"):
+            self.switch.setOnText(self.tr("开"))
+            self.switch.setOffText(self.tr("关"))
+        super().changeEvent(event)
 
 
 class AutoCheckSubInterface(SubSettingInterface):
@@ -16,6 +82,7 @@ class AutoCheckSubInterface(SubSettingInterface):
         self._loading_values = False
         self._delete_types_before_romanize: list[str] = []
         self._skip_restore_on_romanize_off = False
+        self._romaji_link_long_vowels_preference = False
         self._init_ui()
 
     def _init_ui(self):
@@ -70,11 +137,24 @@ class AutoCheckSubInterface(SubSettingInterface):
             title_source="中文歌标注拼音",
             content_source="检测到中文歌词时，自动为汉字标注带声调拼音注音")
         self.card_romanize_ruby = self._tr_register(
-            SwitchSettingCard(FIF.LANGUAGE, tr("罗马音注音"),
+            RomanizeSettingCard(FIF.LANGUAGE, tr("罗马音注音"),
                 tr("需重新执行自动注音以生效"),
+                option_labels=(
+                    tr("长音复写"),
+                    tr("长音链接"),
+                    tr("促音链接"),
+                    tr("大写转换"),
+                ),
                 parent=g),
             title_source="罗马音注音",
             content_source="需重新执行自动注音以生效")
+        for checkbox, label_source in (
+            (self.card_romanize_ruby.check_repeat_long_vowels, "长音复写"),
+            (self.card_romanize_ruby.check_link_long_vowels, "长音链接"),
+            (self.card_romanize_ruby.check_link_sokuon, "促音链接"),
+            (self.card_romanize_ruby.check_uppercase, "大写转换"),
+        ):
+            self._tr_register_text(checkbox, "setText", label_source)
         self.card_delete_ruby_types = self._tr_register(
             MultiCheckSettingCard(
                 FIF.DELETE, tr("自动删除注音"), tr("自动注音完成后，自动删除指定类型的注音"),
@@ -104,6 +184,51 @@ class AutoCheckSubInterface(SubSettingInterface):
         self.card_chinese_pinyin_annotation.checked_changed.connect(self._notify_changed)
         self.card_romanize_ruby.checked_changed.connect(self._on_romanize_ruby_changed)
         self.card_delete_ruby_types.selection_changed.connect(self._on_delete_ruby_types_changed)
+        self.card_romanize_ruby.check_repeat_long_vowels.toggled.connect(
+            self._on_romaji_repeat_long_vowels_changed
+        )
+        self.card_romanize_ruby.check_link_long_vowels.toggled.connect(
+            self._on_romaji_link_long_vowels_changed
+        )
+        self.card_romanize_ruby.check_link_sokuon.toggled.connect(
+            self._notify_changed
+        )
+        self.card_romanize_ruby.check_uppercase.toggled.connect(
+            self._notify_changed
+        )
+
+    @staticmethod
+    def _set_checked_silently(checkbox: CheckBox, checked: bool) -> None:
+        blocked = checkbox.blockSignals(True)
+        try:
+            checkbox.setChecked(checked)
+        finally:
+            checkbox.blockSignals(blocked)
+
+    def _sync_romaji_long_vowel_link_checkbox(self) -> None:
+        repeat_enabled = (
+            self.card_romanize_ruby.check_repeat_long_vowels.isChecked()
+        )
+        link_checkbox = self.card_romanize_ruby.check_link_long_vowels
+        link_checkbox.setEnabled(repeat_enabled)
+        checked = (
+            self._romaji_link_long_vowels_preference
+            if repeat_enabled
+            else True
+        )
+        self._set_checked_silently(link_checkbox, checked)
+
+    def _on_romaji_repeat_long_vowels_changed(self, _checked: bool) -> None:
+        if self._loading_values:
+            return
+        self._sync_romaji_long_vowel_link_checkbox()
+        self._notify_changed()
+
+    def _on_romaji_link_long_vowels_changed(self, checked: bool) -> None:
+        if self._loading_values:
+            return
+        self._romaji_link_long_vowels_preference = checked
+        self._notify_changed()
 
     def _delete_types_without_romaji_exclusive(self, values: list[str]) -> list[str]:
         return [v for v in values if v not in self._ROMAJI_EXCLUSIVE_DELETE_TYPES]
@@ -197,6 +322,19 @@ class AutoCheckSubInterface(SubSettingInterface):
                 self._delete_types_before_romanize = list(saved_delete_types)
             self.card_romanize_ruby.setChecked(romanize_ruby)
             self.card_delete_ruby_types.setSelectedValues(saved_delete_types)
+            self.card_romanize_ruby.check_repeat_long_vowels.setChecked(
+                s.get("auto_check.romaji_repeat_long_vowels", True)
+            )
+            self._romaji_link_long_vowels_preference = s.get(
+                "auto_check.romaji_link_long_vowels", False
+            )
+            self.card_romanize_ruby.check_link_sokuon.setChecked(
+                s.get("auto_check.romaji_link_sokuon", False)
+            )
+            self.card_romanize_ruby.check_uppercase.setChecked(
+                s.get("auto_check.romaji_uppercase", False)
+            )
+            self._sync_romaji_long_vowel_link_checkbox()
         finally:
             self._loading_values = False
 
@@ -219,3 +357,19 @@ class AutoCheckSubInterface(SubSettingInterface):
             self._delete_types_before_romanize = list(delete_types)
         s.set("auto_check.romanize_ruby", romanize_ruby)
         s.set("auto_check.delete_ruby_types", delete_types)
+        s.set(
+            "auto_check.romaji_repeat_long_vowels",
+            self.card_romanize_ruby.check_repeat_long_vowels.isChecked(),
+        )
+        s.set(
+            "auto_check.romaji_link_long_vowels",
+            self._romaji_link_long_vowels_preference,
+        )
+        s.set(
+            "auto_check.romaji_link_sokuon",
+            self.card_romanize_ruby.check_link_sokuon.isChecked(),
+        )
+        s.set(
+            "auto_check.romaji_uppercase",
+            self.card_romanize_ruby.check_uppercase.isChecked(),
+        )

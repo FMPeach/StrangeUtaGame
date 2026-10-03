@@ -46,6 +46,7 @@ from strange_uta_game.backend.infrastructure.parsers.e2k_engine import (
     EnglishToKanaEngine,
 )
 from strange_uta_game.backend.infrastructure.parsers.romaji import (
+    RomajiOptions,
     detect_particle_part_indices,
     is_self_romanizable_kana,
     romanize_sentence_in_place,
@@ -337,6 +338,7 @@ class AutoCheckService:
         self._ruby_analyzer = ruby_analyzer
         self._flags = auto_check_flags or {}
         self._romanize_ruby = bool(self._flags.get("romanize_ruby", False))
+        self._romaji_options = RomajiOptions.from_mapping(self._flags)
         self._annotate_katakana_with_english = annotate_katakana_with_english
         # 用户词典：按 word 长度降序排列（最长匹配优先），
         # 同长度条目保持原始数组顺序。在 apply_to_sentence 末尾
@@ -385,7 +387,7 @@ class AutoCheckService:
     def _romanize_sentence_ruby(self, sentence: Sentence) -> None:
         if not self._romanize_ruby:
             return
-        romanize_sentence_in_place(sentence)
+        romanize_sentence_in_place(sentence, options=self._romaji_options)
 
     def _apply_english_dictionary(
         self, text: str, ruby_results: List[RubyResult], dict_covered: set

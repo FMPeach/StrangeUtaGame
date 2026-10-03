@@ -1162,6 +1162,26 @@
 </context><context>
     <name>AutoCheckSubInterface</name>
     <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="143" />
+        <source>长音复写</source>
+        <translation>長音の母音表記</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="144" />
+        <source>长音链接</source>
+        <translation>長音リンク</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="145" />
+        <source>促音链接</source>
+        <translation>促音リンク</translation>
+    </message>
+    <message>
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="146" />
+        <source>大写转换</source>
+        <translation>大文字変換</translation>
+    </message>
+    <message>
         <location filename="..\..\settings\sub_interfaces\auto_check.py" line="28" />
         <source>生成节奏点的字符类型</source>
         <translation>リズム点を生成する文字タイプ</translation>

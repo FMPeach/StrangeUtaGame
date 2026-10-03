@@ -12,6 +12,7 @@ from strange_uta_game.backend.infrastructure.parsers.kasugamuki_format import (
     sentences_to_kasugamuki,
     sentences_to_kasugamuki_romaji,
 )
+from strange_uta_game.backend.infrastructure.parsers.romaji import RomajiOptions
 from .base import BaseExporter, ExportError
 
 
@@ -180,6 +181,7 @@ class KirakaraExporter(BaseExporter):
         insert_singer_each_line: bool = False,
         singer_map: Optional[Dict[str, str]] = None,
         export_romaji: bool = True,
+        romaji_options: Optional[RomajiOptions] = None,
     ) -> None:
         self._validate_project(project)
         file_path = self._ensure_extension(file_path)
@@ -192,7 +194,10 @@ class KirakaraExporter(BaseExporter):
                 singer_map,
             )
             if export_romaji:
-                content = sentences_to_kasugamuki_romaji(sentences)
+                content = sentences_to_kasugamuki_romaji(
+                    sentences,
+                    options=romaji_options,
+                )
             else:
                 content = sentences_to_kasugamuki(sentences)
             with open(file_path, "w", encoding="utf-8") as file:
