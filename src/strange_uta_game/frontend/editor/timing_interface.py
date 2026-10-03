@@ -544,6 +544,7 @@ class EditorInterface(QWidget):
         self.toolbar.auto_generate_interlude_guide_clicked.connect(self._on_auto_generate_interlude_guide)
         self.toolbar.auto_insert_guide_clicked.connect(self._on_auto_insert_guide)
         self.toolbar.analyze_pinyin_clicked.connect(self._on_analyze_pinyin)
+        self.toolbar.analyze_korean_clicked.connect(self._on_analyze_korean)
         self.toolbar.concat_sug_clicked.connect(self._on_concat_sug)
         self.toolbar.ai_timing_clicked.connect(self._on_ai_timing_clicked)
         self.toolbar.offset_changed.connect(self._on_offset_changed)
@@ -1107,6 +1108,7 @@ class EditorInterface(QWidget):
             "concat_sug",
             "auto_insert_guide",
             "analyze_pinyin",
+            "analyze_korean",
             "auto_generate_interlude_guide",
         ]
         # 末级兜底（设置页 _SHORTCUT_ACTIONS 表未收录的动作才会用到；
@@ -1184,6 +1186,7 @@ class EditorInterface(QWidget):
             "concat_sug": "",
             "auto_insert_guide": "",
             "analyze_pinyin": "",
+            "analyze_korean": "",
             "auto_generate_interlude_guide": "",
         }
 
@@ -8008,6 +8011,8 @@ class EditorInterface(QWidget):
             self._on_auto_insert_guide()
         elif action == "analyze_pinyin":
             self._on_analyze_pinyin()
+        elif action == "analyze_korean":
+            self._on_analyze_korean()
         elif action == "auto_generate_interlude_guide":
             self._on_auto_generate_interlude_guide()
 
@@ -9529,6 +9534,137 @@ class EditorInterface(QWidget):
             )
 
         worker.llm_progress.connect(lambda _: None)  # pinyin 无 LLM，忽略
+        thread.started.connect(worker.run)
+        worker.progress.connect(_on_progress)
+        worker.finished.connect(_on_finished)
+        worker.error.connect(_on_error)
+        worker.finished.connect(thread.quit)
+        worker.error.connect(thread.quit)
+        thread.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+
+        thread.start()
+
+    def _on_analyze_korean(self):
+        """工具栏「韩文注音」— 为全项目韩文字/汉字按设置风格标注读音。"""
+        self._auto_analyze_korean()
+
+    def _auto_analyze_korean(self):
+        """韩文注音入口：片假名/平假名/罗马音（风格 = 韩文注音风格设置）。
+
+        镜像 _auto_analyze_pinyin 的结构（进度提示 / 后台 worker /
+        SentenceSnapshotCommand 撤销 / 结构变更同步）；韩文注音纯查表，
+        无依赖缺失分支，也无需 WinRT 日语组件。
+        """
+        if not self._project:
+            return
+        if getattr(self, "_ruby_analyzing", False):
+            return
+
+        from strange_uta_game.backend.application import AutoCheckService
+        from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+            create_korean_reading_analyzer,
+        )
+        from strange_uta_game.frontend.settings.settings_interface import AppSettings
+        from strange_uta_game.frontend.workers import RubyAnalyzeWorker
+        from qfluentwidgets import InfoBar, InfoBarPosition, StateToolTip
+        from PyQt6.QtCore import Qt, QThread
+        from copy import deepcopy
+
+        app_settings = AppSettings()
+        auto_check_flags = app_settings.get_all().get("auto_check", {})
+        style = auto_check_flags.get("korean_annotation_style", "katakana")
+
+        auto_check = AutoCheckService(
+            auto_check_flags=auto_check_flags,
+            korean_mode=True,
+            korean_analyzer=create_korean_reading_analyzer(style),
+        )
+
+        before_sentences = deepcopy(self._project.sentences)
+        undo_pos = (self._current_line_idx, self.preview._current_char_idx)
+        focus_line_idx = self._current_line_idx
+        focus_char_idx = self.preview._current_char_idx
+
+        project_copy = deepcopy(self._project)
+
+        green = theme.status_complete.name()
+        state_tooltip = StateToolTip(self.tr("正在韩文注音"), self.tr("准备中..."), self)
+        state_tooltip.setStyleSheet(f"""
+            StateToolTip {{
+                background-color: {green};
+                border: 1px solid {green};
+                border-radius: 8px;
+            }}
+            StateToolTip QLabel {{
+                color: white;
+            }}
+        """)
+        state_tooltip.move(state_tooltip.getSuitablePos())
+        state_tooltip.show()
+        self._ruby_analyzing = True
+
+        worker = RubyAnalyzeWorker(
+            project_copy, auto_check, only_noruby=False, delete_types=[],
+            llm_apply_user_dict=True, update_checkpoints=False,
+        )
+        thread = QThread(self)
+        worker.moveToThread(thread)
+
+        self._ruby_analyze_worker = worker
+        self._ruby_analyze_thread = thread
+
+        def _on_progress(phase: str, current: int, total: int) -> None:
+            state_tooltip.setContent(f"{phase} {current}/{total}")
+
+        def _cleanup() -> None:
+            self._ruby_analyze_worker = None
+            self._ruby_analyze_thread = None
+            self._ruby_analyzing = False
+
+        def _on_finished(analyzed_project, deleted_count: int) -> None:
+            state_tooltip.setState(True)
+            _cleanup()
+
+            after_sentences = analyzed_project.sentences
+            command_manager = (
+                self._timing_service.command_manager if self._timing_service else None
+            )
+            if command_manager is not None:
+                command = SentenceSnapshotCommand(
+                    self._project,
+                    before_sentences,
+                    after_sentences,
+                    "韩文注音",
+                )
+                command.undo_position = undo_pos
+                command.redo_position = (focus_line_idx, focus_char_idx)
+                command_manager.execute(command)
+            else:
+                self._project.sentences = deepcopy(after_sentences)
+
+            self._sync_after_structure_change(
+                change_type="rubies",
+                focus_line_idx=focus_line_idx,
+                focus_char_idx=focus_char_idx,
+                checkpoint_idx=None,
+                move_cp=False,
+            )
+
+        def _on_error(error_msg: str) -> None:
+            _cleanup()
+            state_tooltip.setState(False)
+            InfoBar.error(
+                title=self.tr("韩文注音失败"),
+                content=error_msg or "",
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self,
+            )
+
+        worker.llm_progress.connect(lambda _: None)  # 韩文注音无 LLM，忽略
         thread.started.connect(worker.run)
         worker.progress.connect(_on_progress)
         worker.finished.connect(_on_finished)

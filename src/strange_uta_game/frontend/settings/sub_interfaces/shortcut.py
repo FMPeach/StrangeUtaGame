@@ -91,6 +91,7 @@ class ShortcutSubInterface(SubSettingInterface):
         ("analyze_rubies_selected_no_cp", FIF.SYNC, "注音分析所选字符（仅注音）", "仅分析选中字符注音，但不更新节奏点", "", "", "both", None, None, False),
         ("romanize_all", FIF.FONT, "全部转为罗马字", "将现有注音整体转为罗马字（不更新节奏点、不删除注音）", "", "", "both", None, None, False),
         ("analyze_pinyin", FIF.FONT, "中文拼音注音", "为中文歌词自动添加拼音注音", "", "", "both", None, None, False),
+        ("analyze_korean", FIF.FONT, "韩文注音", "为韩文歌词按设置风格标注片假名/平假名/罗马音注音", "", "", "both", None, None, False),
         ("delete_rubies_by_type", FIF.DELETE, "按类型删除注音", "按类型删除注音对话框", "CTRL+4:short", "CTRL+4:short", "both", None, None, False),
 
         # ── 演唱者 ──
@@ -255,7 +256,7 @@ class ShortcutSubInterface(SubSettingInterface):
         # 新增：工具栏功能对应的可设置快捷键 title（默认留空）
         tr("注音分析（仅注音）"); tr("按行注音分析（仅注音）")
         tr("注音分析所选字符（仅注音）"); tr("全部转为罗马字")
-        tr("中文拼音注音")
+        tr("中文拼音注音"); tr("韩文注音")
         tr("演唱者管理")
         tr("补全时间戳"); tr("分离符号时间戳")
         tr("调整原始时间戳"); tr("按行调整原始时间戳"); tr("调整所选字符原始时间戳")
@@ -323,7 +324,7 @@ class ShortcutSubInterface(SubSettingInterface):
         tr("根据时间戳自动生成间奏指引")
         tr("新建空白项目"); tr("打开已有项目文件"); tr("将当前项目另存为新文件")
         tr("加载音频文件"); tr("加载歌词文本文件"); tr("拼接多个 SUG 项目")
-        tr("为中文歌词自动添加拼音注音")
+        tr("为中文歌词自动添加拼音注音"); tr("为韩文歌词按设置风格标注片假名/平假名/罗马音注音")
         tr("撤销操作"); tr("重做操作"); tr("保存项目")
         tr("复制选中字符的完整信息")
         tr("无歌词时粘贴整批歌词文本；已有歌词时在光标处插入（复制的字符或纯文本）")

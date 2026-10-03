@@ -1875,5 +1875,9 @@
   "加载歌词时，若未检测到日文假名且含谚文则自动切换为韩文模式（韩文字每字一个节奏点并按风格注音）": "When loading lyrics, if no Japanese kana is present and Hangul is detected, switch to Korean mode automatically (one checkpoint per Hangul syllable, annotated in the selected style)",
   "韩文注音风格": "Korean reading style",
   "韩文歌词自动注音的读音形式": "Reading form used for automatic Korean annotation",
-  "罗马音": "Romaji"
+  "罗马音": "Romaji",
+  "韩文注音": "Korean reading annotation",
+  "正在韩文注音": "Annotating Korean readings",
+  "韩文注音失败": "Korean annotation failed",
+  "为韩文歌词按设置风格标注片假名/平假名/罗马音注音": "Annotate Korean lyrics with katakana/hiragana/romaji readings in the configured style"
 }

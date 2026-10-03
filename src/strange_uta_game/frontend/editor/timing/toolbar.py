@@ -66,6 +66,7 @@ class EditorToolBar(QFrame):
 
     delete_timestamps_selected_clicked = pyqtSignal()      # 删除所选范围时间戳
     analyze_pinyin_clicked = pyqtSignal()                   # 中文拼音注音
+    analyze_korean_clicked = pyqtSignal()                    # 韩文注音（片假名/平假名/罗马音，风格按设置）
     concat_sug_clicked = pyqtSignal()                       # 拼接多个SUG
     ai_timing_clicked = pyqtSignal()                        # AI 打轴（一级入口）
     offset_changed = pyqtSignal(int)  # 偏移量变化（毫秒）
@@ -134,6 +135,7 @@ class EditorToolBar(QFrame):
         ruby_menu.addAction(Action(FIF.DELETE, tr("按类型删除节奏点"), self, triggered=self.delete_checkpoints_by_type_clicked.emit))
         ruby_menu.addSeparator()
         ruby_menu.addAction(Action(FIF.FONT, tr("中文拼音注音"), self, triggered=self.analyze_pinyin_clicked.emit))
+        ruby_menu.addAction(Action(FIF.FONT, tr("韩文注音"), self, triggered=self.analyze_korean_clicked.emit))
         self.btn_ruby.setMenu(ruby_menu)
         layout.addWidget(self.btn_ruby)
 
