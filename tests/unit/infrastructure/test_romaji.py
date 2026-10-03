@@ -1,6 +1,9 @@
 """纯转换器测试：不依赖 Sentence/Character，只测 romanize_ruby_parts。"""
 
-from strange_uta_game.backend.infrastructure.parsers.romaji import romanize_ruby_parts
+from strange_uta_game.backend.infrastructure.parsers.romaji import (
+    RomajiOptions,
+    romanize_ruby_parts,
+)
 
 
 class TestBasicKana:
@@ -60,6 +63,16 @@ class TestLongVowel:
     def test_long_vowel_initial(self):
         assert romanize_ruby_parts(["ー", "あ"]) == ["-", "a"]
 
+    def test_long_vowel_hyphen_is_absorbed_by_leading_part(self):
+        options = RomajiOptions(repeat_long_vowels=False)
+        assert romanize_ruby_parts(["ぴ", "ー"], options=options) == ["pi-", ""]
+
+    def test_long_vowel_hyphen_uses_digraph_leading_part(self):
+        options = RomajiOptions(repeat_long_vowels=False)
+        assert romanize_ruby_parts(
+            ["き", "ゃ", "ー"], options=options
+        ) == ["kya-", "", ""]
+
 
 class TestN:
     def test_n_before_vowel(self):
@@ -110,3 +123,9 @@ class TestEdgeCases:
 
     def test_katakana_sokuon(self):
         assert romanize_ruby_parts(["マ", "ッ", "テ"]) == ["ma", "t", "te"]
+
+    def test_uppercase_applies_after_conversion(self):
+        options = RomajiOptions(uppercase=True)
+        assert romanize_ruby_parts(
+            ["わ", "た", "し", "ん", "あ"], options=options
+        ) == ["WA", "TA", "SHI", "N'", "A"]

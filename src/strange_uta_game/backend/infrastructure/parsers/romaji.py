@@ -1,7 +1,9 @@
 ﻿"""假名→赫本式罗马音转换器（纯打表，零依赖）。"""
 
 from __future__ import annotations
-from typing import Iterable, List, Optional, Sequence, Tuple
+
+from dataclasses import dataclass
+from typing import Any, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 _VOWELS = frozenset("aeiou")
 # \u52a9\u8bcd\u8bfb\u97f3\u8986\u76d6\u8868\uff08\u8d6b\u672c\u5f0f\uff09\uff1a\u306f\u2192wa, \u3078\u2192e, \u3092\u2192o\u3002
@@ -65,6 +67,43 @@ _DIGRAPH_SPLIT: dict[str, Tuple[str, str]] = {
     "mya": ("my", "a"), "myu": ("my", "u"), "myo": ("my", "o"),
     "rya": ("ry", "a"), "ryu": ("ry", "u"), "ryo": ("ry", "o"),
 }
+
+_LINK_DIGRAPH = "digraph"
+_LINK_LONG_VOWEL = "long_vowel"
+_LINK_SOKUON = "sokuon"
+
+
+@dataclass(frozen=True)
+class RomajiOptions:
+    """用户可配置的罗马音显示与分组策略。
+
+    默认值保持历史行为：长音复写为元音，长音与促音不额外创建字符链接，
+    输出使用小写。关闭长音复写时，连字符必须依附前一拍，因此长音链接的
+    有效值始终为开启。
+    """
+
+    repeat_long_vowels: bool = True
+    link_long_vowels: bool = False
+    link_sokuon: bool = False
+    uppercase: bool = False
+
+    @property
+    def effective_link_long_vowels(self) -> bool:
+        return self.link_long_vowels or not self.repeat_long_vowels
+
+    @classmethod
+    def from_mapping(
+        cls, values: Optional[Mapping[str, Any]] = None
+    ) -> "RomajiOptions":
+        values = values or {}
+        return cls(
+            repeat_long_vowels=bool(
+                values.get("romaji_repeat_long_vowels", True)
+            ),
+            link_long_vowels=bool(values.get("romaji_link_long_vowels", False)),
+            link_sokuon=bool(values.get("romaji_link_sokuon", False)),
+            uppercase=bool(values.get("romaji_uppercase", False)),
+        )
 
 
 def _kata_to_hira_char(ch: str) -> str:
@@ -137,16 +176,18 @@ def _romanize_ruby_parts_with_ownership(
     particle_indices: Optional[Iterable[int]] = None,
     *,
     for_alignment: bool = False,
-) -> tuple[list[str], set[tuple[int, int]]]:
-    """转换 RubyPart，并返回跨 part 拗音的归属关系。
+    options: Optional[RomajiOptions] = None,
+) -> tuple[list[str], set[tuple[int, int, str]]]:
+    """转换 RubyPart，并返回跨 part 的字符链接候选。
 
-    归属关系中的 ``(lead_part, consumed_part)`` 直接来自转换器命中的
-    ``_DIGRAPHS``，供句子级转换把跨字符的拗音并入同一次罗马音操作。它不是根据
-    转换后的空字符串反推，因此不会把普通空 part 误认为小假名。
+    候选中的 ``(lead_part, next_part, kind)`` 直接来自转换器命中的拗音、
+    长音或促音规则，供句子级转换结合原歌词 Character 类型决定是否链接。它不
+    根据转换后的空字符串反推，因此不会把普通空 part 误认为被吸收的字符。
     """
+    options = options or RomajiOptions()
     source = list(parts)
     result = ["" for _ in source]
-    digraph_ownership: set[tuple[int, int]] = set()
+    link_candidates: set[tuple[int, int, str]] = set()
     flat = _flat_chars(source)
     particle_set = set(particle_indices or ())
     prev_vowel = ""
@@ -177,6 +218,10 @@ def _romanize_ruby_parts_with_ownership(
                 # 会与后字重合
                 result[part_idx] += prefix
                 result[next_part_idx] += next_romaji
+                if options.link_sokuon and part_idx != next_part_idx:
+                    link_candidates.add(
+                        (part_idx, next_part_idx, _LINK_SOKUON)
+                    )
                 prev_vowel = _last_vowel(next_romaji)
                 index += 2
                 if index < len(flat):
@@ -187,8 +232,12 @@ def _romanize_ruby_parts_with_ownership(
                     )
                     if pair in _DIGRAPHS:
                         if next_part_idx != small_part_idx:
-                            digraph_ownership.add(
-                                (next_part_idx, small_part_idx)
+                            link_candidates.add(
+                                (
+                                    next_part_idx,
+                                    small_part_idx,
+                                    _LINK_DIGRAPH,
+                                )
                             )
                         index += 1
             else:
@@ -199,9 +248,32 @@ def _romanize_ruby_parts_with_ownership(
             continue
 
         if hira == "ー":
-            repeated = prev_vowel or "-"
-            result[part_idx] += repeated
-            prev_vowel = repeated if repeated in _VOWELS else ""
+            previous_part_idx = flat[index - 1][0] if index > 0 else None
+            if options.repeat_long_vowels:
+                repeated = prev_vowel or "-"
+                result[part_idx] += repeated
+                prev_vowel = repeated if repeated in _VOWELS else ""
+            elif prev_vowel and previous_part_idx is not None:
+                # ``キャ|ー`` 等情况下，紧邻长音的 part 可能是已被拗音吸收的
+                # 空 part；连字符仍应附到实际承载该拍罗马音的前导 part。
+                anchor_part_idx = previous_part_idx
+                for previous_index in range(index - 1, -1, -1):
+                    candidate_part_idx = flat[previous_index][0]
+                    if result[candidate_part_idx]:
+                        anchor_part_idx = candidate_part_idx
+                        break
+                result[anchor_part_idx] += "-"
+            else:
+                result[part_idx] += "-"
+                prev_vowel = ""
+            if (
+                options.effective_link_long_vowels
+                and previous_part_idx is not None
+                and previous_part_idx != part_idx
+            ):
+                link_candidates.add(
+                    (previous_part_idx, part_idx, _LINK_LONG_VOWEL)
+                )
             index += 1
             continue
 
@@ -222,7 +294,9 @@ def _romanize_ruby_parts_with_ownership(
                 # when the small kana lives in the next RubyPart.
                 result[part_idx] += digraph
                 if part_idx != next_part_idx:
-                    digraph_ownership.add((part_idx, next_part_idx))
+                    link_candidates.add(
+                        (part_idx, next_part_idx, _LINK_DIGRAPH)
+                    )
                 prev_vowel = _last_vowel(digraph)
                 index += 2
                 continue
@@ -232,7 +306,9 @@ def _romanize_ruby_parts_with_ownership(
         prev_vowel = _last_vowel(romaji) or prev_vowel
         index += 1
 
-    return result, digraph_ownership
+    if options.uppercase:
+        result = [text.upper() for text in result]
+    return result, link_candidates
 
 
 def romanize_ruby_parts(
@@ -240,6 +316,7 @@ def romanize_ruby_parts(
     particle_indices: Optional[Iterable[int]] = None,
     *,
     for_alignment: bool = False,
+    options: Optional[RomajiOptions] = None,
 ) -> List[str]:
     """将假名 RubyPart 文本逐一转为赫本式罗马音，保持 part 数量不变。
 
@@ -255,6 +332,7 @@ def romanize_ruby_parts(
         parts,
         particle_indices=particle_indices,
         for_alignment=for_alignment,
+        options=options,
     )
     return converted
 
@@ -358,7 +436,11 @@ def detect_particle_part_indices(sentence) -> set:
     return particle_indices
 
 
-def romanize_sentence_in_place(sentence) -> None:
+def romanize_sentence_in_place(
+    sentence,
+    *,
+    options: Optional[RomajiOptions] = None,
+) -> None:
     """将句中所有假名 ruby part 就地转为赫本式罗马音（含助词/促音上下文）。
 
     保持每个 ruby 的 part 数量不变；非假名（已是罗马音/英文读音）原样保留。
@@ -378,19 +460,47 @@ def romanize_sentence_in_place(sentence) -> None:
     if not refs:
         return
     particle_indices = detect_particle_part_indices(sentence)
-    converted, digraph_ownership = _romanize_ruby_parts_with_ownership(
-        texts, particle_indices=particle_indices
+    converted, link_candidates = _romanize_ruby_parts_with_ownership(
+        texts,
+        particle_indices=particle_indices,
+        options=options,
     )
     for part, text in zip(refs, converted):
         part.text = text
-    for lead_part_idx, consumed_part_idx in digraph_ownership:
+    for lead_part_idx, consumed_part_idx, link_kind in link_candidates:
         lead_char_idx = part_char_indices[lead_part_idx]
         consumed_char_idx = part_char_indices[consumed_part_idx]
-        if consumed_char_idx == lead_char_idx + 1:
-            sentence.characters[lead_char_idx].linked_to_next = True
+        if consumed_char_idx != lead_char_idx + 1:
+            continue
+
+        lead_char = sentence.characters[lead_char_idx]
+        consumed_char = sentence.characters[consumed_char_idx]
+        if link_kind == _LINK_SOKUON:
+            from strange_uta_game.backend.infrastructure.parsers.text_splitter import (
+                CharType,
+                get_char_type,
+            )
+
+            # 只允许歌词正文中的 ``っ/ッ`` 链接到下一个假名。汉字 Ruby 内的
+            # 促音（如 一体），以及 ``っ`` 后接汉字（如 真っ直ぐ）均不链接。
+            if lead_char.char not in ("っ", "ッ"):
+                continue
+            if len(consumed_char.char) != 1 or get_char_type(
+                consumed_char.char
+            ) not in (CharType.HIRAGANA, CharType.KATAKANA):
+                continue
+        elif link_kind == _LINK_LONG_VOWEL and consumed_char.char != "ー":
+            # 只认日文长音符 U+30FC；不把 OCR 误识别的汉字「一」等当成长音。
+            continue
+
+        sentence.characters[lead_char_idx].linked_to_next = True
 
 
-def romanize_sentence_to_self_ruby(sentence) -> bool:
+def romanize_sentence_to_self_ruby(
+    sentence,
+    *,
+    options: Optional[RomajiOptions] = None,
+) -> bool:
     """Apply the editor's one-click romaji conversion to one sentence.
 
     Bare single kana first receive self-ruby, then every ruby part is converted
@@ -408,11 +518,16 @@ def romanize_sentence_to_self_ruby(sentence) -> bool:
         ch.set_check_count(max(ch.check_count, 1), force=True)
         added_self_ruby = True
 
-    romanize_sentence_in_place(sentence)
+    romanize_sentence_in_place(sentence, options=options)
     return added_self_ruby
 
 
-def romanize_project_to_self_ruby(project, progress_callback=None) -> int:
+def romanize_project_to_self_ruby(
+    project,
+    progress_callback=None,
+    *,
+    options: Optional[RomajiOptions] = None,
+) -> int:
     """「全部转为罗马字注音」一次性操作。
 
     两步：
@@ -440,7 +555,7 @@ def romanize_project_to_self_ruby(project, progress_callback=None) -> int:
             )
 
         before = _join(sentence)
-        touched = romanize_sentence_to_self_ruby(sentence)
+        touched = romanize_sentence_to_self_ruby(sentence, options=options)
         if touched or before != _join(sentence):
             changed += 1
         if progress_callback is not None:
