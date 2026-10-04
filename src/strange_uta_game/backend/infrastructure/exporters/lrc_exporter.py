@@ -81,6 +81,7 @@ class LRCExporter(BaseExporter):
             raise ExportError(f"写入文件失败: {e}")
 
     # ── 辅助：定位停顿点拖音时间戳 ──
+
     def _find_sentence_end_ts(self, sentence: Sentence) -> Optional[int]:
         """取本行最后一个标记为 is_sentence_end 的字符的 global_sentence_end_ts。
 
