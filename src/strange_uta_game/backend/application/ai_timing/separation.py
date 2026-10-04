@@ -464,6 +464,8 @@ import os, shutil
 src = stem_files[0]
 dst = os.path.join(out_dir, os.path.splitext(os.path.basename(inp))[0] + "_人声.wav")
 shutil.move(os.path.join(out_dir, src), dst)
+# 伴奏轨保留（上游评审：这是用户判别人声分离异常还是对齐异常的依据），
+# 不做任何删除
 print("done:" + dst, flush=True)
 """
 

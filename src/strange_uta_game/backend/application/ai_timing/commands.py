@@ -59,6 +59,9 @@ class ApplyAiTimingCommand(Command):
     # ── Command 协议 ──
 
     def execute(self) -> None:
+        # 校验始终先行（上游评审：redo 恢复 ProjectDriftError 安全校验）。
+        # 重做遇标注漂移会抛错——配合事务式 CommandManager（失败命令留在
+        # 重做栈，不再丢失），用户可继续撤销或改回注音后重试。
         self._validate_or_raise()
         if self._after_sentences is not None:
             # 重做路径：恢复 execute 后的快照
