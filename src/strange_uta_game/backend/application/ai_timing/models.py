@@ -572,6 +572,9 @@ class ModelDownloadService:
             raise ModelRegistryError(f"模型仓库中没有可下载的文件：{model_id}")
 
         entries: List[ModelFileEntry] = []
+        # 远端未提供 LFS oid 的文件（非 LFS 小文件属正常；若镜像源整体
+        # 不回传 oid，权重也会落进来——记录出来，退化不再完全静默）
+        no_remote_sha: List[str] = []
         for i, item in enumerate(files):
             filename, size = str(item[0]), int(item[1])
             remote_sha = str(item[2]) if len(item) > 2 and item[2] else None
@@ -627,6 +630,8 @@ class ModelDownloadService:
                     f"下载 {filename} 完整性校验失败（与远端 sha256 不符，"
                     "文件可能损坏或被篡改），请重试下载"
                 )
+            if remote_sha is None:
+                no_remote_sha.append(filename)
             entries.append(
                 ModelFileEntry(
                     filename=filename,
@@ -635,6 +640,13 @@ class ModelDownloadService:
                 )
             )
 
+        if no_remote_sha:
+            ailog(
+                "model",
+                f"注意：{len(no_remote_sha)} 个文件远端未提供 LFS sha256"
+                f"（如 {no_remote_sha[0]}），仅校验文件大小，"
+                "未与远端哈希比对",
+            )
         if cancel():
             raise ModelRegistryError("已取消")
         progress(97, "写入模型清单")

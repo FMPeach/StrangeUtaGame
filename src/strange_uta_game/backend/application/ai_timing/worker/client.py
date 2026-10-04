@@ -257,10 +257,9 @@ class AlignmentWorkerClient:
             def _on_timeout() -> None:
                 if not self._finished.is_set():
                     timed_out.set()
-                    try:
-                        proc.kill()
-                    except OSError:
-                        pass
+                    # 进程树击杀：torch/CUDA 可能派生辅助子进程，只杀父进程
+                    # 会把子进程孤儿化（显存占用不释放）
+                    self._kill_tree(proc)
 
             watchdog = threading.Timer(timeout_s, _on_timeout)
             watchdog.daemon = True
@@ -336,10 +335,7 @@ class AlignmentWorkerClient:
             try:
                 proc.wait(timeout=2)
             except subprocess.TimeoutExpired:
-                try:
-                    proc.kill()
-                except OSError:
-                    pass
+                self._kill_tree(proc)
 
     def cancel(self) -> None:
         """请求协作取消；宽限期后强制终止进程。
@@ -357,9 +353,10 @@ class AlignmentWorkerClient:
             return
         except subprocess.TimeoutExpired:
             pass
-        # 宽限期超时：强制终止（§8.3 必要时终止本任务拥有的 worker）
+        # 宽限期超时：强制终止（§8.3 必要时终止本任务拥有的 worker）。
+        # 进程树击杀：只杀父进程会孤儿化 torch/CUDA 子进程
         try:
-            proc.kill()
+            self._kill_tree(proc)
             proc.wait(timeout=2)
         except OSError:
             pass
@@ -398,10 +395,7 @@ class AlignmentWorkerClient:
             try:
                 proc.wait(timeout=2)
             except subprocess.TimeoutExpired:
-                try:
-                    proc.kill()
-                except OSError:
-                    pass
+                self._kill_tree(proc)
 
     @staticmethod
     def _kill_tree(proc) -> None:
