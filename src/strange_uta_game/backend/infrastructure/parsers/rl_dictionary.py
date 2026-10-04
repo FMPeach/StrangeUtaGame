@@ -369,7 +369,7 @@ def parse_rl_dictionary(text: str) -> List[Dict[str, object]]:
 
 
 def read_rl_dictionary_file(path: str) -> str:
-    """读取 RL 字典文件并自动选择编码（utf-8 优先，cp932 兜底）。
+    """读取 RL 字典文件并自动选择编码（统一走 decode_lyric_bytes）。
 
     Args:
         path: 文件路径（``.txt`` / ``.hsp`` / ``.ini`` 均可）。
@@ -377,11 +377,11 @@ def read_rl_dictionary_file(path: str) -> str:
     Returns:
         解码后的字符串文本，可直接喂入 :func:`parse_rl_dictionary`。
     """
+    from .encoding import decode_lyric_bytes
+
     with open(path, "rb") as f:
         data = f.read()
-    for enc in ("utf-8-sig", "utf-8", "cp932", "shift_jis"):
-        try:
-            return data.decode(enc)
-        except UnicodeDecodeError:
-            continue
-    return data.decode("utf-8", errors="replace")
+    try:
+        return decode_lyric_bytes(data)[0]
+    except UnicodeDecodeError:
+        return data.decode("utf-8", errors="replace")

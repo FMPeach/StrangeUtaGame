@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from strange_uta_game.backend.infrastructure.parsers.rl_dictionary import (
+    read_rl_dictionary_file,
     parse_rl_dictionary,
 )
 
@@ -112,3 +113,32 @@ class TestFrontendShimCompatibility:
 
         text = "赤い\tあ,かい\n本当\tほん,とう\n"
         assert _parse_rl_dictionary(text) == parse_rl_dictionary(text)
+
+
+class TestReadRlDictionaryFileEncoding:
+    """read_rl_dictionary_file 统一走 decode_lyric_bytes（GBK/Big5 可读）。"""
+
+    def test_gbk_file_decoded(self, tmp_path):
+        p = tmp_path / "user.txt"
+        p.write_bytes("赤い\tあ,かい\n本当\tほん,とう\n".encode("gbk"))
+
+        text = read_rl_dictionary_file(str(p))
+
+        assert "本当\tほん,とう" in text
+
+    def test_cp932_file_still_decoded(self, tmp_path):
+        p = tmp_path / "user.txt"
+        p.write_bytes("赤い\tあ,かい\n".encode("cp932"))
+
+        text = read_rl_dictionary_file(str(p))
+
+        assert "赤い" in text
+
+    def test_undecodable_bytes_degrade_to_replace(self, tmp_path):
+        p = tmp_path / "user.txt"
+        p.write_bytes(b"\xff\xfe\xfa\xfd\x00\x01")
+
+        text = read_rl_dictionary_file(str(p))
+
+        # 不抛错，errors=replace 兜底
+        assert isinstance(text, str)
