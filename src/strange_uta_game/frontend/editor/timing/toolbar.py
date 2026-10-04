@@ -218,8 +218,8 @@ class EditorToolBar(QFrame):
         load_menu.addAction(Action(FIF.SAVE, tr("保存项目"), self, triggered=self.save_clicked.emit))
         load_menu.addAction(Action(FIF.SAVE_AS, tr("项目另存为"), self, triggered=self.save_as_clicked.emit))
         load_menu.addSeparator()
-        load_menu.addAction(Action(FIF.MUSIC, tr("加载音频"), self, triggered=self.load_audio_clicked.emit))
         load_menu.addAction(Action(FIF.DOCUMENT, tr("加载歌词"), self, triggered=self.load_lyrics_clicked.emit))
+        load_menu.addAction(Action(FIF.MUSIC, tr("加载音频"), self, triggered=self.load_audio_clicked.emit))
         load_menu.addSeparator()
         load_menu.addAction(Action(FIF.LINK, tr("多项目拼接"), self, triggered=self.concat_sug_clicked.emit))
         return load_menu

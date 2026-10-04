@@ -57,6 +57,18 @@ def classify_supported_file(file_path: str) -> str | None:
     return None
 
 
+def _same_file(a: str | None, b: str | None) -> bool:
+    """判断两个路径是否指向同一文件（大小写/分隔符不敏感，尽力归一化）。"""
+    if not a or not b:
+        return False
+    try:
+        return os.path.normcase(os.path.abspath(a)) == os.path.normcase(
+            os.path.abspath(b)
+        )
+    except OSError:
+        return a == b
+
+
 class FileLoader:
     """文件加载管理器 — 处理项目/音频/歌词的加载"""
 
@@ -78,6 +90,8 @@ class FileLoader:
         self._lyric_thread: QThread | None = None
         self._lyric_worker = None
         self._lyric_tooltip = None
+        # 打开 .sug 时已保留当前音频的一次性标记（_apply_project_extras 消费）
+        self._audio_kept_for_open = False
 
     @property
     def _project(self):
@@ -112,17 +126,39 @@ class FileLoader:
             self._save_last_dir(file_path)
             self.load_project(file_path)
 
-    def create_fresh_project(self) -> None:
+    def create_fresh_project(self, inherit_audio: bool = False) -> None:
         """新建空项目替换当前项目（与工具栏「新建项目」一致）。
 
         重置演唱者/音频/metadata/nicokara_tags，使随后装入的文件落在纯净
         项目上。不做未保存检测，由调用方决定是否先检测。
+
+        Args:
+            inherit_audio: 保留 store 中的音频上下文（音频/原始媒体路径
+                不随项目替换重置）。用于「先加载音频，再加载歌词」时把
+                音频带进新项目；引擎/波形状态由编辑器的
+                ``_preserve_audio_on_project_load`` 标记配合 set_project
+                保留，二者需成对置位。
         """
         from strange_uta_game.backend.application import ProjectService
 
+        audio_path = self._store.audio_path if inherit_audio else None
+        media_path = self._store.original_media_path if inherit_audio else None
         project = ProjectService().create_project()
-        self._store.load_project(project)
+        self._store.load_project(project, audio_path=audio_path)
+        if media_path:
+            # 静默恢复原始媒体路径：新项目指向同一媒体文件，不算用户修改
+            self._store.restore_media_path(media_path)
         self._reset_nicokara_tags_to_defaults()
+
+    def _project_has_lyrics(self) -> bool:
+        """当前项目是否已有歌词行。"""
+        return bool(self._project and self._project.sentences)
+
+    def _has_loaded_audio(self) -> bool:
+        """编辑器/store 中是否已有可继承的已加载音频。"""
+        if getattr(self._editor, "_audio_file_path", None):
+            return True
+        return bool(self._store and self._store.audio_path)
 
     def load_media(self, file_path: str) -> None:
         """加载音频或视频文件（视频先经 FFmpeg 提取音轨，异步）。"""
@@ -275,8 +311,11 @@ class FileLoader:
         与 prompt_load_project 一致：先做未保存检测再弹文件框，避免用户选完
         文件后才被要求保存；选定文件后以全新项目装入歌词（check_unsaved=False
         避免二次弹窗）。无项目时也可加载——会自动创建项目，与拖拽路径一致。
+
+        例外：项目内没有歌词行（典型是「先加载音频，再加载歌词」的中间态）
+        时没有可被覆盖丢失的歌词内容，直接弹文件框，不先做未保存检测。
         """
-        if not self.check_unsaved_changes():
+        if self._project_has_lyrics() and not self.check_unsaved_changes():
             return
         init_dir = self._store.working_dir if self._store else ""
         path, _ = QFileDialog.getOpenFileName(
@@ -537,6 +576,41 @@ class FileLoader:
         # 启动线程
         self._loading_thread.start()
 
+    def _plan_audio_keep_for_open(self, extras: dict):
+        """打开 .sug 前规划音频处理：判断是否保留当前已加载的音频。
+
+        三种保留情形（与「先音频后歌词」例外同一哲学）：
+        1. .sug 关联的媒体就是引擎中已加载的音频（原样重开/纯音频）；
+        2. .sug 关联的是已加载视频的原始路径（引擎中是其提取音轨）；
+        3. .sug 未关联媒体，但当前已有音频——该音频大概率就是为这个
+           项目准备的，直接继承。
+
+        其余情形（.sug 关联了另一个媒体，或双方都无音频）不保留，
+        走原有「清音频 + 按需重载」流程。
+
+        Returns:
+            (keep, audio_path, media_path)：
+            - keep=True：编辑器保留音频标记置位、store 继承 audio_path；
+            - media_path：需在项目替换后恢复的原始媒体路径（None 跳过）。
+        """
+        media = (extras.get("media_path") or "").strip()
+        engine_audio = getattr(self._editor, "_audio_file_path", None)
+        store_audio = self._store.audio_path if self._store else None
+        store_media = (
+            self._store.original_media_path if self._store else None
+        )
+
+        if media:
+            if _same_file(media, engine_audio) or _same_file(media, store_media):
+                # 引擎已在放这首（含视频提取音轨）→ 保留，不清理不重载
+                return True, store_audio or engine_audio, media
+            return False, None, None
+
+        # .sug 未关联媒体：当前已有音频则继承（无则无可保留，正常清理）
+        if engine_audio or store_audio:
+            return True, store_audio, store_media
+        return False, None, None
+
     def _on_project_loaded(self, project, file_path: str, extras: dict = None) -> None:
         """项目加载完成的回调"""
         if self._state_tooltip:
@@ -546,7 +620,19 @@ class FileLoader:
             self._state_tooltip = None
 
         if self._store:
-            self._store.load_project(project, save_path=file_path)
+            # 打开 .sug 前先规划音频：媒体已加载/未关联但已有音频 → 保留
+            keep_audio, keep_audio_path, keep_media = (
+                self._plan_audio_keep_for_open(extras or {})
+            )
+            if keep_audio:
+                # set_project 消费：替换项目时不清音频，并把引擎时长带入
+                self._editor._preserve_audio_on_project_load = True
+                self._audio_kept_for_open = True
+            self._store.load_project(
+                project, save_path=file_path, audio_path=keep_audio_path
+            )
+            if keep_media:
+                self._store.restore_media_path(keep_media)
             self._store.set_working_dir(file_path)
         else:
             self._editor.set_project(project)
@@ -585,7 +671,16 @@ class FileLoader:
 
         # 加载媒体文件
         media_path = extras.get("media_path", "")
+        audio_kept = getattr(self, "_audio_kept_for_open", False)
+        self._audio_kept_for_open = False
         if not media_path:
+            return
+
+        # 打开时已保留当前音频（.sug 关联的媒体正是引擎中已加载的那份，
+        # 含视频提取音轨）→ 只恢复路径，不重载，避免整轨重解码/波形闪烁
+        if audio_kept:
+            if self._store:
+                self._store.restore_media_path(media_path)
             return
 
         if not Path(media_path).exists():
@@ -872,6 +967,11 @@ class FileLoader:
         项目（重置演唱者/音频/metadata/nicokara_tags）。这样「拖入歌词」「按
         快捷键/工具栏加载歌词」都不会再静默覆盖已有项目的未保存歌词。
 
+        例外——当前项目没有歌词行：视为空项目（典型是「先加载音频，再加载
+        歌词」的中间态），没有可被覆盖丢失的歌词内容，跳过未保存检测直接
+        替换；若此时已加载音频，该音频大概率就是为这批新歌词准备的，直接
+        继承到新项目（引擎/波形/store 路径全部保留），不清理。
+
         Args:
             check_unsaved: 是否在替换前做未保存检测。调用方若已在更早阶段
                 （如弹文件框前）检测过，可传 False 避免二次弹窗。
@@ -895,10 +995,16 @@ class FileLoader:
             return True
 
         # 已有项目：先做未保存检测（用户取消则中止，旧项目原样保留）。
-        if check_unsaved and self._project and not self.check_unsaved_changes():
+        # 项目内没有歌词行 → 空项目，无内容可丢，免弹窗直通。
+        has_lyrics = self._project_has_lyrics()
+        if check_unsaved and has_lyrics and not self.check_unsaved_changes():
             return False
 
-        self.create_fresh_project()
+        inherit_audio = not has_lyrics and self._has_loaded_audio()
+        if inherit_audio:
+            # TimingInterface.set_project 消费此标记：替换项目时保留音频
+            self._editor._preserve_audio_on_project_load = True
+        self.create_fresh_project(inherit_audio=inherit_audio)
         return True
 
     def load_lyrics(self, path: str, check_unsaved: bool = True):

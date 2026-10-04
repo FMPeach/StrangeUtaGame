@@ -152,6 +152,10 @@ class EditorInterface(QWidget):
         self._project: Optional[Project] = None
         self._timing_service: Optional[TimingService] = None
         self._audio_file_path: Optional[str] = None
+        # 一次性标记：下一次 set_project（项目替换）保留音频引擎/波形状态。
+        # 由 FileLoader 在「加载歌词替换无歌词项目」前置位（音频继承），
+        # set_project 内消费后立即复位。
+        self._preserve_audio_on_project_load = False
         self._current_line_idx = 0
         self._pressed_keys: set[str] = set()  # 当前按下的打轴按键集合（支持多键独立）
         self._last_position_update_time = 0.0  # 60fps UI 节流
@@ -1416,9 +1420,15 @@ class EditorInterface(QWidget):
     def set_project(self, project: Project):
         previous_project = self._project
         self._project = project
-        # 支持“先导入音频，再创建/导入歌词”的工作流。首次设置项目时音频
+        # 支持“先导入音频，再创建/导入歌词”的工作流。首次设置项目或调用方
+        # 显式标记继承音频（加载歌词替换无歌词项目时音频跟随带入）时，音频
         # 引擎会被保留，因此也要把引擎中的真实时长带入新项目。
-        if previous_project is None and self._timing_service:
+        preserve_audio = (
+            previous_project is None
+            or getattr(self, "_preserve_audio_on_project_load", False)
+        )
+        self._preserve_audio_on_project_load = False
+        if preserve_audio and self._timing_service:
             self._sync_project_audio_duration(
                 self._timing_service.get_duration_ms(),
                 mark_dirty=False,
@@ -1476,9 +1486,10 @@ class EditorInterface(QWidget):
         # 重新应用设置（字体大小、行间距、对齐方式等）
         self._apply_settings()
         # 仅在替换已有项目时清除旧音频缓存，避免旧波形/时长/缓存残留。
-        # 首次设置项目（self._project 原为 None）时保留已加载的音频，
-        # 支持"先导入音频再导入歌词"的工作流。
-        if previous_project is not None:
+        # 首次设置项目（self._project 原为 None）或调用方标记继承音频
+        # （加载歌词替换无歌词项目）时保留已加载的音频，支持“先导入
+        # 音频再导入歌词”的工作流。
+        if previous_project is not None and not preserve_audio:
             self._clear_audio_state()
 
     def release_resources(self):
