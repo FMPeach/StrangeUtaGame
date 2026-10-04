@@ -55,6 +55,82 @@ class TestSettingsProviderContract:
         # 内嵌默认值仍可读
         assert s.get("audio.default_volume") == 80
 
+    def test_flat_shortcut_conversion_persists_via_provider(self):
+        """旧扁平键位 → 双模式 schema 的自动转化条目经 provider 可持久化。
+
+        背景：嵌入式模式下打包默认值深度合并后 shortcuts.{mode}.* 恒存在，
+        扁平老 schema 的转化实际只发生在 standalone 旧 config.json；但转化
+        产物（新增嵌套键）一旦经 set+save 写入，必须能沿两条 provider 保存
+        路径（未实现 save_partial → 整字典 save；实现了 → 增量）到达宿主
+        存储——宿主无需任何协议变更即可承接（纯新增嵌套键，无删除、无形状
+        变化）。
+        """
+        from strange_uta_game.frontend.editor.timing_interface import EditorInterface
+
+        class _FlatDict:
+            def __init__(self, data):
+                self._data = data
+
+            def get(self, path, default=None):
+                v = self._data
+                for key in path.split("."):
+                    if isinstance(v, dict) and key in v:
+                        v = v[key]
+                    else:
+                        return default
+                return v
+
+            def set(self, path, value):
+                t = self._data
+                keys = path.split(".")
+                for key in keys[:-1]:
+                    t = t.setdefault(key, {})
+                t[keys[-1]] = value
+
+        migrated_all = []
+        for mode_key in ("timing_mode", "edit_mode"):
+            _, _, _, migrated = EditorInterface._collect_shortcut_map(
+                _FlatDict({"shortcuts": {"remove_checkpoint": "9:short"}}),
+                mode_key,
+                ["remove_checkpoint"],
+                {"remove_checkpoint": "Backspace:short"},
+            )
+            migrated_all.extend(migrated)
+        assert migrated_all, "扁平键应被列入转化迁移"
+
+        # 路径一：宿主未实现 save_partial → 整字典 save
+        p = MockProvider()
+        s = AppSettings(provider=p)
+        for path, value in migrated_all:
+            s.set(path, value)
+        s.save()
+        assert p.main["shortcuts"]["timing_mode"]["remove_checkpoint"] == "9:short"
+        assert p.main["shortcuts"]["edit_mode"]["remove_checkpoint"] == "9:short"
+
+        # 路径二：宿主实现 save_partial → 增量 payload 携带新键
+        class PartialProvider(MockProvider):
+            def __init__(self):
+                super().__init__()
+                self.partials = []
+
+            def save_partial(self, payload):
+                self.partials.append(deepcopy(payload))
+                for path, value in payload.items():
+                    t = self.main
+                    keys = path.split(".")
+                    for key in keys[:-1]:
+                        t = t.setdefault(key, {})
+                    t[keys[-1]] = deepcopy(value)
+
+        p2 = PartialProvider()
+        s2 = AppSettings(provider=p2)
+        for path, value in migrated_all:
+            s2.set(path, value)
+        s2.save()
+        assert p2.partials, "增量保存应被调用"
+        assert p2.main["shortcuts"]["timing_mode"]["remove_checkpoint"] == "9:short"
+        assert p2.main["shortcuts"]["edit_mode"]["remove_checkpoint"] == "9:short"
+
     def test_main_config_roundtrip(self):
         p = MockProvider()
         s = AppSettings(provider=p)
