@@ -28,6 +28,46 @@ class MockProvider:
 
     def save(self, d):
         self.main = deepcopy(d)
+        self._count("save")
+
+    def _count(self, kind):
+        counter = getattr(self, "_write_counter", None)
+        if counter is not None:
+            counter.append(kind)
+
+    def load_extra(self, key, default):
+        return deepcopy(self.extra.get(key, default))
+
+    def save_extra(self, key, data):
+        self.extra[key] = deepcopy(data)
+        self._count("extra")
+
+
+class CountingProvider(MockProvider):
+    """带写入计数的 MockProvider（save / save_partial / save_extra）。"""
+
+    def __init__(self):
+        super().__init__()
+        self._write_counter = []
+        self.save_calls = 0
+        self.partial_calls = 0
+        self.extra_writes = 0
+
+    def _count(self, kind):
+        self._write_counter.append(kind)
+        if kind in ("save", "partial"):
+            self.save_calls += 1
+        elif kind == "extra":
+            self.extra_writes += 1
+
+    def save_partial(self, payload):
+        for path, value in payload.items():
+            t = self.main
+            keys = path.split(".")
+            for key in keys[:-1]:
+                t = t.setdefault(key, {})
+            t[keys[-1]] = deepcopy(value)
+        self._count("partial")
 
     def load_extra(self, key, default):
         return deepcopy(self.extra.get(key, default))
@@ -55,81 +95,72 @@ class TestSettingsProviderContract:
         # 内嵌默认值仍可读
         assert s.get("audio.default_volume") == 80
 
-    def test_flat_shortcut_conversion_persists_via_provider(self):
-        """旧扁平键位 → 双模式 schema 的自动转化条目经 provider 可持久化。
+    def test_legacy_flat_shortcuts_migrated_on_provider_load(self):
+        """宿主存储里的旧扁平键位在加载时自动转化进双模式并写回宿主。
 
-        背景：嵌入式模式下打包默认值深度合并后 shortcuts.{mode}.* 恒存在，
-        扁平老 schema 的转化实际只发生在 standalone 旧 config.json；但转化
-        产物（新增嵌套键）一旦经 set+save 写入，必须能沿两条 provider 保存
-        路径（未实现 save_partial → 整字典 save；实现了 → 增量）到达宿主
-        存储——宿主无需任何协议变更即可承接（纯新增嵌套键，无删除、无形状
-        变化）。
+        深度合并后打包默认的 shortcuts.{mode}.* 恒存在，读取优先级会遮蔽
+        旧扁平键——不迁移的话老嵌入用户的自定义键位静默回落打包默认
+        （standalone 同款转化在 timing_interface._collect_shortcut_map，
+        其「模式键缺失」条件在嵌入模式永不成立，故须在 provider 加载
+        路径做）。
         """
-        from strange_uta_game.frontend.editor.timing_interface import EditorInterface
-
-        class _FlatDict:
-            def __init__(self, data):
-                self._data = data
-
-            def get(self, path, default=None):
-                v = self._data
-                for key in path.split("."):
-                    if isinstance(v, dict) and key in v:
-                        v = v[key]
-                    else:
-                        return default
-                return v
-
-            def set(self, path, value):
-                t = self._data
-                keys = path.split(".")
-                for key in keys[:-1]:
-                    t = t.setdefault(key, {})
-                t[keys[-1]] = value
-
-        migrated_all = []
-        for mode_key in ("timing_mode", "edit_mode"):
-            _, _, _, migrated = EditorInterface._collect_shortcut_map(
-                _FlatDict({"shortcuts": {"remove_checkpoint": "9:short"}}),
-                mode_key,
-                ["remove_checkpoint"],
-                {"remove_checkpoint": "Backspace:short"},
-            )
-            migrated_all.extend(migrated)
-        assert migrated_all, "扁平键应被列入转化迁移"
-
-        # 路径一：宿主未实现 save_partial → 整字典 save
-        p = MockProvider()
+        p = CountingProvider()
+        p.main = {"shortcuts": {"remove_checkpoint": "9:short"}}
         s = AppSettings(provider=p)
-        for path, value in migrated_all:
-            s.set(path, value)
-        s.save()
+
+        # 内存读值：两个模式都吃到用户的旧扁平键位（而非打包默认）
+        assert s.get("shortcuts.timing_mode.remove_checkpoint") == "9:short"
+        assert s.get("shortcuts.edit_mode.remove_checkpoint") == "9:short"
+        # 已持久化回宿主
         assert p.main["shortcuts"]["timing_mode"]["remove_checkpoint"] == "9:short"
         assert p.main["shortcuts"]["edit_mode"]["remove_checkpoint"] == "9:short"
+        # 旧扁平键保留（惰性残留：save_partial 无法表达删除）
+        assert p.main["shortcuts"]["remove_checkpoint"] == "9:short"
 
-        # 路径二：宿主实现 save_partial → 增量 payload 携带新键
-        class PartialProvider(MockProvider):
-            def __init__(self):
-                super().__init__()
-                self.partials = []
+    def test_explicit_mode_key_not_overwritten_by_flat(self):
+        """宿主已显式存储的模式键不被旧扁平值覆盖（用户后来改的值优先）。"""
+        p = CountingProvider()
+        p.main = {
+            "shortcuts": {
+                "remove_checkpoint": "9:short",
+                "edit_mode": {"remove_checkpoint": "8:short"},
+            }
+        }
+        s = AppSettings(provider=p)
 
-            def save_partial(self, payload):
-                self.partials.append(deepcopy(payload))
-                for path, value in payload.items():
-                    t = self.main
-                    keys = path.split(".")
-                    for key in keys[:-1]:
-                        t = t.setdefault(key, {})
-                    t[keys[-1]] = deepcopy(value)
+        assert s.get("shortcuts.edit_mode.remove_checkpoint") == "8:short"
+        # 未显式存储的模式仍从扁平键转化
+        assert s.get("shortcuts.timing_mode.remove_checkpoint") == "9:short"
 
-        p2 = PartialProvider()
-        s2 = AppSettings(provider=p2)
-        for path, value in migrated_all:
-            s2.set(path, value)
-        s2.save()
-        assert p2.partials, "增量保存应被调用"
-        assert p2.main["shortcuts"]["timing_mode"]["remove_checkpoint"] == "9:short"
-        assert p2.main["shortcuts"]["edit_mode"]["remove_checkpoint"] == "9:short"
+    def test_no_flat_keys_no_write_on_load(self):
+        """宿主无旧扁平键位：加载不触发任何写（构造即写会打扰宿主）。
+
+        首次构造的词典引导写入（applied_dictionary_version 等）是既有
+        行为，先构造一次完成引导、清零计数后再验证键位迁移不产生写入。
+        """
+        p = CountingProvider()
+        AppSettings(provider=p)  # 词典引导
+        assert p.save_calls > 0  # 引导写入(既有行为)
+        p.save_calls = 0
+
+        p.main = {"audio": {"default_volume": 42},
+                  "applied_dictionary_version": 999}
+        s = AppSettings(provider=p)
+        s.reload()
+        assert p.save_calls == 0, "无迁移不应写宿主存储"
+
+    def test_flat_migration_idempotent(self):
+        """迁移幂等：转化写回后再次构造/重载不再产生新写入。"""
+        p = CountingProvider()
+        p.main = {"shortcuts": {"remove_checkpoint": "9:short"}}
+        AppSettings(provider=p)
+        first_writes = p.save_calls
+        assert first_writes > 0
+
+        AppSettings(provider=p)  # 共享实例缓存命中,不重跑——用显式 reload 验证
+        s = AppSettings(provider=p)
+        s.reload()
+        assert p.save_calls == first_writes, "第二次加载不应再写宿主"
 
     def test_main_config_roundtrip(self):
         p = MockProvider()

@@ -684,6 +684,7 @@ class AppSettings:
             if isinstance(loaded, dict):
                 self._migrate_display_heights(loaded)
                 self._deep_merge(self._settings, deepcopy(loaded))
+                self._migrate_legacy_flat_shortcuts(loaded)
             try:
                 provider_dictionary_version = int(
                     loaded.get("applied_dictionary_version", 0)
@@ -995,6 +996,44 @@ class AppSettings:
         except Exception as e:
             print(f"保存设置失败: {e}")
 
+    def _migrate_legacy_flat_shortcuts(self, raw_provider_data: Any) -> None:
+        """provider 模式：旧扁平键位自动转化进双模式 schema 并写回宿主。
+
+        深度合并后打包默认的 ``shortcuts.{mode}.*`` 恒存在，读取优先级
+        （模式键 > 扁平键）会**遮蔽**宿主存储里的旧扁平
+        ``shortcuts.{action}``——老嵌入用户的自定义键位静默回落打包默认
+        （standalone 的同款转化由 timing_interface._collect_shortcut_map
+        在读取时完成，但其「模式键缺失」条件在嵌入模式下永不成立）。
+        因此必须在这里、深度合并之后做：拿宿主原始数据分辨「模式键来自
+        宿主存储还是打包默认」，只补宿主缺失的模式键。
+
+        转化后立即 save 持久化到宿主（此后 provider.load 自带模式键，
+        迁移幂等不再写）；旧扁平键保留为惰性残留（save_partial 增量
+        保存无法表达删除，且被模式键优先级压制）。
+        """
+        if not isinstance(raw_provider_data, dict):
+            return
+        raw_sc = raw_provider_data.get("shortcuts")
+        if not isinstance(raw_sc, dict):
+            return
+        flat_items = [
+            (action, value)
+            for action, value in raw_sc.items()
+            if action not in ("timing_mode", "edit_mode")
+            and isinstance(value, str)
+            and value
+        ]
+        converted = False
+        for action, value in flat_items:
+            for mode_key in ("timing_mode", "edit_mode"):
+                raw_mode = raw_sc.get(mode_key)
+                if isinstance(raw_mode, dict) and action in raw_mode:
+                    continue  # 宿主已显式存储该模式键：不覆盖用户后来改的值
+                self.set(f"shortcuts.{mode_key}.{action}", value)
+                converted = True
+        if converted:
+            self.save()
+
     def reload(self) -> None:
         """从后端存储重新加载配置（discard 内存内未保存的改动）。
 
@@ -1010,6 +1049,7 @@ class AppSettings:
             if isinstance(loaded, dict):
                 self._migrate_display_heights(loaded)
                 self._deep_merge(self._settings, deepcopy(loaded))
+                self._migrate_legacy_flat_shortcuts(loaded)
             self._dirty_paths.clear()
             return
         self._settings = self._load_settings()

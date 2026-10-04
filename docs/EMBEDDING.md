@@ -154,6 +154,13 @@ class SettingsProvider(Protocol):
 - `AppSettings(provider=<obj>)`：provider 模式 —— 不碰文件系统，主 config 走 `provider.load/save`，词典/演唱者/网络走 `provider.load_extra/save_extra`。
 - `AppSettings.set_default_provider(provider)`：**进程级全局默认**。SUG 代码里散落大量裸 `AppSettings()` 调用，靠这个让它们自动走宿主存储。`for_embedding` 内部会调它。优先级：显式 `provider=` 参数 > `_default_provider` > 文件模式。
 - **边界 deepcopy**：进出 provider 的数据都 deepcopy，防止宿主与 SUG 共享嵌套引用导致互相污染。
+- **加载期自动迁移（宿主可观察）**：宿主存储里若存在旧扁平键位
+  `shortcuts.<action>`，SUG 在首次加载时会把它转化进双模式
+  `shortcuts.timing_mode.<action>` / `shortcuts.edit_mode.<action>` 并**立即
+  写回宿主**（不覆盖宿主已显式存储的模式键；旧扁平键保留不删——增量
+  save_partial 无法表达删除）。此前打包默认的模式键会在深度合并后遮蔽
+  旧扁平键，老嵌入用户的自定义键位会静默失效。此外词典引导等既有迁移
+  也会在宿主存储为空时首次写入。
 
 ## 4. 运行时路径注入
 
