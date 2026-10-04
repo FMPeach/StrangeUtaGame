@@ -1142,22 +1142,23 @@ class TestLRCRepeatLinesE2:
 class TestLRCOffsetE13:
     """E13：[offset:±ms] 元数据整体平移时间轴。"""
 
-    def test_negative_offset_shifts_earlier(self):
+    def test_positive_offset_shifts_earlier(self):
+        # LRC 常见约定：正值 = 歌词提前显示（时间戳前移）
         parser = LRCParser()
-        result = parser.parse("[offset:-500]\n[00:06.540]一闪一闪亮晶晶[00:09.300]")
-
-        assert result[0].timetags == [(0, 6040)]
-        assert result[0].line_end_ts == 8800
-
-    def test_positive_offset_shifts_later(self):
-        parser = LRCParser()
-        result = parser.parse("[00:00.500]あ\n[offset:1000]")
+        result = parser.parse("[00:02.500]あ\n[offset:1000]")
 
         assert result[0].timetags == [(0, 1500)]
 
+    def test_negative_offset_shifts_later(self):
+        parser = LRCParser()
+        result = parser.parse("[offset:-500]\n[00:06.540]一闪一闪亮晶晶[00:09.300]")
+
+        assert result[0].timetags == [(0, 7040)]
+        assert result[0].line_end_ts == 9800
+
     def test_offset_clamped_at_zero(self):
         parser = LRCParser()
-        result = parser.parse("[offset:-10000]\n[00:00.500]あ")
+        result = parser.parse("[offset:10000]\n[00:00.500]あ")
 
         assert result[0].timetags == [(0, 0)]
 

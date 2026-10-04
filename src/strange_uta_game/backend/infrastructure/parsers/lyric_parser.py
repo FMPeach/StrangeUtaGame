@@ -230,8 +230,9 @@ class LRCParser(LyricParser):
         content = content.lstrip("\ufeff")
 
         # [offset:±ms] 全局偏移标签（E13）：LRC 元数据可整体平移时间轴。
-        # 取文件中最后一次出现的值；约定正值 = 时间戳整体后移
-        # （歌词延后显示），负值前移；平移后不产生负时间戳。
+        # 取文件中最后一次出现的值；按 LRC 常见约定（foobar2000/MiniLyrics
+        # 等）正值 = 歌词提前显示（时间戳整体前移），负值 = 延后；
+        # 平移后不产生负时间戳。
         offset_ms = 0
         for offset_match in re.finditer(r"\[offset:([+-]?\d+)\]", content, re.IGNORECASE):
             offset_ms = int(offset_match.group(1))
@@ -366,14 +367,14 @@ class LRCParser(LyricParser):
                     )
                 )
 
-        # 应用 [offset:] 全局偏移（E13）
+        # 应用 [offset:] 全局偏移（E13）：正值前移（提前）、负值后移
         if offset_ms:
             for parsed in lines:
                 parsed.timetags = [
-                    (ci, max(0, ts + offset_ms)) for ci, ts in parsed.timetags
+                    (ci, max(0, ts - offset_ms)) for ci, ts in parsed.timetags
                 ]
                 if parsed.line_end_ts is not None:
-                    parsed.line_end_ts = max(0, parsed.line_end_ts + offset_ms)
+                    parsed.line_end_ts = max(0, parsed.line_end_ts - offset_ms)
 
         return lines
 
