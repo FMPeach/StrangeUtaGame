@@ -175,6 +175,9 @@ class ExportInterface(QWidget):
                     self.format_list.setCurrentRow(saved["fmt_row"])
                 except Exception:
                     pass
+            # 导出中整页重建：新按钮文字须反映「取消导出」态而非默认「导出」
+            if getattr(self, "_exporting", False) and hasattr(self, "btn_export"):
+                self.btn_export.setText(self.tr("取消导出"))
             # 重新填充导出字幕分组摘要（_init_ui 不负责，仅在 set_store 时被调）
             if hasattr(self, "_store") and self._store is not None:
                 try:
