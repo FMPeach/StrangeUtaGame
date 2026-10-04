@@ -6,9 +6,12 @@ FFmpeg 路径优先使用用户在「设置-关于/语言」中配置的路径�
 
 from __future__ import annotations
 
+import hashlib
+import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -28,6 +31,7 @@ VIDEO_EXTENSIONS = {
 _MP3_QUALITY = 128  # kbps
 _TARGET_SAMPLE_RATE = 44100  # Hz
 _CACHE_DIR_NAME = ".cache"
+_EXTRACTED_TTL_DAYS = 30  # 提取产物保留期（天）：mtime 超过即按陈旧缓存清理
 
 
 def _get_cache_dir() -> Path:
@@ -94,24 +98,119 @@ def is_ffmpeg_available() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
+def _extracted_cache_name(video_path: str) -> str:
+    """提取产物的稳定文件名：``{stem}_{内容指纹}.mp3``。
+
+    指纹取（规范化路径 + mtime_ns）的 sha1 前 12 位：
+    - 不同目录的同名视频指纹不同，不会再按 stem 互相覆盖串音；
+    - 同一路径重复提取得到同一文件名（覆盖写，不产生副本）；
+    - 文件内容被替换（mtime 变化）后指纹改变，不会复用过期音频。
+    """
+    p = Path(video_path)
+    try:
+        mtime_ns = p.stat().st_mtime_ns
+    except OSError:
+        mtime_ns = 0
+    try:
+        key = f"{p.resolve()}|{mtime_ns}"
+    except OSError:
+        key = f"{p}|{mtime_ns}"
+    # surrogatepass：Windows 路径可能含无法按严格 UTF-8 编码的字符
+    digest = hashlib.sha1(key.encode("utf-8", "surrogatepass")).hexdigest()[:12]
+    return f"{p.stem}_{digest}.mp3"
+
+
 def clear_extracted_cache() -> None:
-    """清空 .cache/extracted/ 下的所有提取文件。"""
+    """清理提取管线的临时残留（``*.part-*`` 分片文件）。
+
+    注意：**不能**整目录清扫。提取产物会被 file_loader 存进项目当持久
+    音频，清掉其它视频的产物会破坏已保存的视频项目（数据丢失）。旧命名
+    残留与超期产物的有界清理在每次提取时进行（见 _remove_legacy_extracted
+    / _prune_extracted_cache）；这里唯一要清的是 ffmpeg 写到一半（崩溃/
+    断电/超时被杀）残留的临时分片。
+    """
     cache_dir = _get_cache_dir()
-    if cache_dir.exists():
-        for f in cache_dir.glob("*"):
-            try:
-                if f.is_file():
-                    f.unlink()
-            except Exception:
-                pass
+    if not cache_dir.exists():
+        return
+    for f in cache_dir.glob("*.part-*"):
+        try:
+            if f.is_file():
+                f.unlink()
+        except Exception:
+            pass
 
 
-def extract_audio(video_path: str, progress_cb: Optional[LoadProgressCallback] = None) -> str:
+def _remove_legacy_extracted(video_path: str, cache_dir: Path, keep_path: Optional[str]) -> None:
+    """清理旧命名的提取产物 ``<stem>.mp3``。
+
+    产物改名内容指纹（``<stem>_<指纹>.mp3``）后，旧名残留永不再被覆盖，
+    只会在 extracted/ 里静静堆积。新产物已就位，按当前视频 stem 清掉对应
+    旧名文件。``keep_path``（引擎正在播放的源文件，若 accessible）是旧名
+    文件时跳过，避免删掉使用中的音频。
+    """
+    legacy = cache_dir / f"{Path(video_path).stem}.mp3"
+    if keep_path:
+        try:
+            if legacy.resolve() == Path(keep_path).resolve():
+                return
+        except OSError:
+            if str(legacy) == str(keep_path):
+                return
+    _silent_unlink(legacy)
+
+
+def _prune_extracted_cache(cache_dir: Path, keep: tuple) -> None:
+    """有界清理 extracted/：mtime 超过保留期的条目删除（单次 listdir，廉价）。
+
+    内容指纹命名后旧产物不会被覆盖，extracted/ 只增不减；按 mtime 滚动
+    清理兜底。``keep`` 中的路径（引擎正在播放的源文件、刚写入的目标产物）
+    一律跳过；删除一律 best-effort，失败静默。
+    """
+    cutoff = time.time() - _EXTRACTED_TTL_DAYS * 86400
+    keep_keys = set()
+    for k in keep:
+        if not k:
+            continue
+        try:
+            keep_keys.add(str(Path(k).resolve()).lower())
+        except OSError:
+            keep_keys.add(str(Path(k)).lower())
+    try:
+        entries = list(cache_dir.iterdir())
+    except OSError:
+        return
+    for entry in entries:
+        try:
+            if not entry.is_file() or entry.stat().st_mtime >= cutoff:
+                continue
+            if str(entry.resolve()).lower() in keep_keys:
+                continue
+            entry.unlink()
+        except Exception:
+            pass
+
+
+def _silent_unlink(path: Path) -> None:
+    """best-effort 删除文件（清理失败静默，不影响主流程）。"""
+    try:
+        if path.is_file():
+            path.unlink()
+    except Exception:
+        pass
+
+
+def extract_audio(
+    video_path: str,
+    progress_cb: Optional[LoadProgressCallback] = None,
+    keep_path: Optional[str] = None,
+) -> str:
     """从视频/音频文件中提取音频并压缩为 MP3 临时文件。
 
     Args:
         video_path: 视频文件路径
         progress_cb: 进度回调 (stage, 0.0~1.0)
+        keep_path: 提取清理时须跳过的路径（引擎正在播放的源文件，若
+            accessible），避免旧命名清理 / TTL 清理误删使用中的音频
 
     Returns:
         生成的临时 MP3 文件路径
@@ -135,22 +234,30 @@ def extract_audio(video_path: str, progress_cb: Optional[LoadProgressCallback] =
 
     clear_extracted_cache()
 
-    video_stem = Path(video_path).stem
     cache_dir = _get_cache_dir()
-    temp_path = str(cache_dir / f"{video_stem}.mp3")
+    # 产物名稳定（内容指纹），直接写最终名会在提取中途失败时留下同名的
+    # 截断 mp3 被后续当完整产物引用——先写临时分片，成功后原子改名。
+    final_path = cache_dir / _extracted_cache_name(video_path)
+    tmp_path = cache_dir / f"{final_path.name}.part-{os.getpid()}"
+    temp_path = str(final_path)
 
     if progress_cb:
         progress_cb("正在提取音频...", 0.1)
 
     ffmpeg = get_ffmpeg_path()
     cmd = [
-        ffmpeg, "-y",
+        ffmpeg,
+        # 损坏文件可能触发 ffmpeg 从 stdin 读交互指令而挂住至超时
+        "-nostdin",
+        "-y",
         "-i", video_path,
         "-vn",
         "-acodec", "libmp3lame",
         "-ab", f"{_MP3_QUALITY}k",
         "-ar", str(_TARGET_SAMPLE_RATE),
-        temp_path,
+        # 输出扩展名是 .part-*，ffmpeg 无法从扩展名推断容器，显式指定格式
+        "-f", "mp3",
+        str(tmp_path),
     ]
 
     # Windows 下隐藏控制台窗口，避免 GUI 应用调用 FFmpeg 时闪出黑框
@@ -164,8 +271,10 @@ def extract_audio(video_path: str, progress_cb: Optional[LoadProgressCallback] =
             creationflags=creation_flags,
         )
     except subprocess.TimeoutExpired:
+        _silent_unlink(tmp_path)
         raise RuntimeError("FFmpeg 提取超时（超过 10 分钟）")
     except FileNotFoundError:
+        _silent_unlink(tmp_path)
         if is_embedded():
             raise RuntimeError(
                 f"找不到 FFmpeg 可执行文件: {ffmpeg}。嵌入式运行的 FFmpeg 由工作台统一管理，"
@@ -177,10 +286,21 @@ def extract_audio(video_path: str, progress_cb: Optional[LoadProgressCallback] =
 
     if result.returncode != 0:
         stderr = result.stderr.decode("utf-8", errors="replace")
+        _silent_unlink(tmp_path)
         raise RuntimeError(f"FFmpeg 提取失败:\n{stderr[-800:]}")
 
-    if not Path(temp_path).is_file():
+    if not tmp_path.is_file():
         raise RuntimeError("FFmpeg 未生成输出文件，请确认视频文件包含音频流。")
+
+    try:
+        os.replace(str(tmp_path), str(final_path))
+    except OSError as exc:
+        raise RuntimeError(f"提取音频写入缓存失败: {exc}") from exc
+
+    # 新产物已就位：清掉同 stem 的旧命名残留，并对整个目录做一次有界的
+    # TTL 清理（正在播放的源文件与刚写入的目标产物跳过）。
+    _remove_legacy_extracted(video_path, cache_dir, keep_path)
+    _prune_extracted_cache(cache_dir, keep=(keep_path, str(final_path)))
 
     if progress_cb:
         progress_cb("音频提取完成", 1.0)

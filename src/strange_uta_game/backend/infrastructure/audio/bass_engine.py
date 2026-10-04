@@ -26,6 +26,7 @@ from .base import (
     PlaybackState,
     compute_mono_samples,
 )
+from .sample_registry import invalidate_all_bass_samples
 
 # ═══════════════════════════════════════════════════════════════════
 # Load BASS DLLs
@@ -395,7 +396,11 @@ class BassEngine(IAudioEngine):
             from .video_converter import VIDEO_EXTENSIONS, extract_audio
 
             if Path(file_path).suffix.lower() in VIDEO_EXTENSIONS:
-                return extract_audio(file_path, progress_cb=progress_cb)
+                # keep_path：此刻 _playback_path 仍是正在播放的旧源文件，
+                # 提取管线的旧命名/TTL 清理须跳过它，避免删掉使用中的音频。
+                return extract_audio(
+                    file_path, progress_cb=progress_cb, keep_path=self._playback_path
+                )
         except Exception as exc:
             raise AudioLoadError(str(exc)) from exc
 
@@ -806,8 +811,22 @@ class BassEngine(IAudioEngine):
         if not self._playback_path:
             return False
         if self._recovering:
-            if self._recovery_thread is not None:
-                self._recovery_thread.join(timeout=3.0)
+            thread = self._recovery_thread
+            if thread is not None:
+                # 必须先释放本线程持有的外层锁再 join：后台恢复线程要拿到
+                # _stream_lock 才能推进（_do_recover 全程持锁），而锁此刻正
+                # 被本线程持有（play() 进入时获取的那一层 RLock）。持锁 join
+                # 只能等满超时——表现为播放期间设备丢失点播放时 UI 卡 3 秒。
+                # 此刻本线程对锁的持有深度恰为 1（play() 获取后未再嵌套获取，
+                # _recover_device_sync 亦只由 play() 调用），公共 API 的
+                # release/acquire 配对即可；若未来出现深度 >1 的调用点，
+                # release 只减一层，join 仍会等满超时再由 finally 补回——
+                # 行为退化为等待，不会死锁。
+                self._stream_lock.release()
+                try:
+                    thread.join(timeout=3.0)
+                finally:
+                    self._stream_lock.acquire()
             return self._tempo_stream != 0
         self._recovering = True
         self._last_recovery_attempt = time.monotonic()
@@ -829,9 +848,11 @@ class BassEngine(IAudioEngine):
             should_resume = self._state == PlaybackState.PLAYING
             speed = self._speed
             volume = self._volume
+            freed = False
             try:
                 self._free_streams()
                 _bass.BASS_Free()
+                freed = True
                 self._initialized = False
                 if not self._ensure_initialized():
                     self._state = PlaybackState.PAUSED
@@ -854,6 +875,16 @@ class BassEngine(IAudioEngine):
                 print(f"[BassEngine] device recovery failed: {exc}")
                 self._state = PlaybackState.PAUSED
                 return False
+            finally:
+                if freed:
+                    # D10：BASS_Free 已使进程内所有 sample 句柄失效（按键音/
+                    # 节拍器）。无论恢复成败都要失效全部登记的播放器实例，
+                    # 各实例在下一次播放时对新会话惰性重载样本（登记表自
+                    # 闭合接线，见 sample_registry，无需 UI 层回调）。
+                    try:
+                        invalidate_all_bass_samples()
+                    except Exception as exc:
+                        print(f"[BassEngine] sample invalidation error: {exc}")
 
     # ═══════════════════════════════════════════════════════════════
     # IAudioEngine — speed (real-time via BASS_FX)
