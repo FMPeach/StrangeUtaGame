@@ -523,6 +523,11 @@ class ExportTaskWorker(QObject):
                         self._project, job["format_name"], tmp_path, **job["kwargs"]
                     )
                     if result.success:
+                        # fsync 临时文件后再 replace（断电不致半截正式文件）；
+                        # r+b 打开保证 Windows 上 FlushFileBuffers 的写权限
+                        with open(tmp_path, "r+b") as f:
+                            f.flush()
+                            os.fsync(f.fileno())
                         os.replace(tmp_path, target)
                         exported.append(target)
                     else:

@@ -987,6 +987,9 @@ class AppSettings:
                 tmp_path = self._config_path.with_name(self._config_path.name + ".tmp")
                 with open(tmp_path, "w", encoding="utf-8") as f:
                     json.dump(payload, f, indent=2, ensure_ascii=False)
+                    # fsync 后再 replace：断电时 config.json 不致空/半截
+                    f.flush()
+                    os.fsync(f.fileno())
                 os.replace(str(tmp_path), str(self._config_path))
             self._dirty_paths.clear()
         except Exception as e:

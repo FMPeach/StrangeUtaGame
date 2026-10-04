@@ -330,6 +330,10 @@ class SugProjectParser:
         try:
             with open(temp_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
+                # fsync 后再 replace：rename 只防进程崩溃（内存页缓存仍在），
+                # 断电时数据未落盘会得到空/半截正式文件
+                f.flush()
+                os.fsync(f.fileno())
             os.replace(temp_path, path)
         except Exception:
             # 兜底清理临时文件；正式文件保持上一次写盘的完整内容
