@@ -33,6 +33,7 @@ from qfluentwidgets import (
     SubtitleLabel,
     CaptionLabel,
     StrongBodyLabel,
+    TransparentPushButton,
     themeColor,
     setCustomStyleSheet,
 )
@@ -275,13 +276,27 @@ class ExportInterface(QWidget):
         self._settings_layout.addWidget(self.line_filename)
 
         # Kirakara 可在同一个 .krl 格式中切换单注音/双注音。
+        # 勾选框右侧带「跳转到设置」按钮：Kirakara 罗马音的转换风格
+        # （长音复写/链接、促音链接、大写）统一在设置的「罗马音注音设置」卡配置，
+        # 点击后直达该卡并展开。
         self._chk_export_romaji = CheckBox(self.tr("导出罗马音"))
         self._chk_export_romaji.setToolTip(
             self.tr("勾选时输出假名与罗马音双注音；不勾选时仅输出假名注音")
         )
         self._chk_export_romaji.setChecked(True)
-        self._chk_export_romaji.hide()
-        self._settings_layout.addWidget(self._chk_export_romaji)
+        self.btn_romaji_settings = TransparentPushButton(
+            FIF.SETTING, self.tr("跳转到设置"), self
+        )
+        self.btn_romaji_settings.clicked.connect(self._on_jump_to_romaji_settings)
+        romaji_row = QHBoxLayout()
+        romaji_row.setContentsMargins(0, 0, 0, 0)
+        romaji_row.addWidget(self._chk_export_romaji)
+        romaji_row.addStretch(1)
+        romaji_row.addWidget(self.btn_romaji_settings)
+        self._romaji_option_row = QWidget()
+        self._romaji_option_row.setLayout(romaji_row)
+        self._romaji_option_row.hide()
+        self._settings_layout.addWidget(self._romaji_option_row)
 
         # Nicokara 标签设置按钮（仅 Nicokara 格式显示）
         self.btn_tags = PushButton(self.tr("Nicokara 标签设置..."), self)
@@ -499,6 +514,32 @@ class ExportInterface(QWidget):
         # 信号在 setCurrentRow 之后才连接，需手动触发一次以初始化格式专属控件
         self._on_format_selected(self.format_list.currentItem(), None)
 
+    def _get_setting_interface(self):
+        """向上查找宿主的设置界面（嵌入/独立窗口均兼容）。"""
+        widget = self
+        while widget is not None:
+            setting_iface = getattr(widget, "settingInterface", None)
+            if setting_iface is not None:
+                return setting_iface
+            widget = widget.parentWidget()
+        return getattr(self.window(), "settingInterface", None)
+
+    def _on_jump_to_romaji_settings(self) -> None:
+        """跳转到设置页的「罗马音注音设置」卡片并展开。"""
+        setting_iface = self._get_setting_interface()
+        if setting_iface is None:
+            return
+        window = setting_iface.window()
+        switch = getattr(window, "switchTo", None)
+        if callable(switch):
+            switch(setting_iface)
+        setting_iface.switch_to_tab("auto_check")
+        auto_check_iface = getattr(setting_iface, "autoCheckInterface", None)
+        if auto_check_iface is not None and hasattr(
+            auto_check_iface, "focus_romaji_style_card"
+        ):
+            auto_check_iface.focus_romaji_style_card()
+
     def _on_format_selected(self, current, _previous):
         """根据所选格式显示/隐藏格式专用控件。"""
         if current:
@@ -507,7 +548,7 @@ class ExportInterface(QWidget):
             is_kirakara = name.lower() == "kirakara"
             has_singer_options = is_nicokara or is_kirakara
             self.btn_tags.setVisible(is_nicokara)
-            self._chk_export_romaji.setVisible(is_kirakara)
+            self._romaji_option_row.setVisible(is_kirakara)
             self._singer_group.setVisible(has_singer_options)
             self._chk_insert_singer_tags.setVisible(has_singer_options)
             self._chk_insert_singer_each_line.setVisible(has_singer_options)

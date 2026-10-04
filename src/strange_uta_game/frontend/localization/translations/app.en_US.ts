@@ -1,4 +1,5 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
     <name>AboutSubInterface</name>
@@ -1008,103 +1009,103 @@ Install log: {p}</translation>
     <name>AiTimingSeparation</name>
     <message>
         <source>FFmpeg 不可用：请在「设置 → 关于/语言」配置 FFmpeg 路径后重试</source>
-        <translation>FFmpeg is unavailable: set the FFmpeg path in "Settings → About/Language" and retry</translation>
+        <translation type="vanished">FFmpeg is unavailable: set the FFmpeg path in "Settings → About/Language" and retry</translation>
     </message>
     <message>
         <source>FFmpeg 不可用：请检查工作台设置中的 FFmpeg 配置</source>
-        <translation>FFmpeg is unavailable: check the FFmpeg configuration in workbench settings</translation>
+        <translation type="vanished">FFmpeg is unavailable: check the FFmpeg configuration in workbench settings</translation>
     </message>
     <message>
         <source>FFmpeg 无响应（执行 ffmpeg -version 超时或失败）。请检查「设置 → 关于/语言」中配置的 FFmpeg（程序可能已损坏或被安全软件拦截）后重试</source>
-        <translation>FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configured in "Settings → About/Language" (the program may be corrupted or blocked by security software), then retry</translation>
+        <translation type="vanished">FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configured in "Settings → About/Language" (the program may be corrupted or blocked by security software), then retry</translation>
     </message>
     <message>
         <source>FFmpeg 无响应（执行 ffmpeg -version 超时或失败）。请检查工作台设置中的 FFmpeg 配置（程序可能已损坏或被安全软件拦截）后重试</source>
-        <translation>FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configuration in workbench settings (the program may be corrupted or blocked by security software), then retry</translation>
+        <translation type="vanished">FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configuration in workbench settings (the program may be corrupted or blocked by security software), then retry</translation>
     </message>
     <message>
         <source>下载分离模型文件 {name}：{cur}/{tot}</source>
-        <translation>Downloading separation model file {name}: {cur}/{tot}</translation>
+        <translation type="vanished">Downloading separation model file {name}: {cur}/{tot}</translation>
     </message>
     <message>
         <source>人声分离失败（返回码 {code}）。</source>
-        <translation>Vocal separation failed (exit code {code}).</translation>
+        <translation type="vanished">Vocal separation failed (exit code {code}).</translation>
     </message>
     <message>
         <source>人声分离失败（返回码 {code}）。请确认分离环境已完整安装后重试</source>
-        <translation>Vocal separation failed (exit code {code}). Make sure the separation environment is fully installed, then retry</translation>
+        <translation type="vanished">Vocal separation failed (exit code {code}). Make sure the separation environment is fully installed, then retry</translation>
     </message>
     <message>
         <source>人声分离长时间无响应（超过 {minutes} 分钟无任何输出），已自动终止。常见原因：显卡驱动异常（CUDA 初始化卡住）、网络下载无响应或 FFmpeg 异常；请更新显卡驱动、检查网络（可在「设置 → 网络与代理」配置代理）后重试</source>
-        <translation>Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Update the GPU driver and check the network (a proxy can be configured in "Settings → Network &amp; Proxy"), then retry</translation>
+        <translation type="vanished">Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Update the GPU driver and check the network (a proxy can be configured in "Settings → Network &amp; Proxy"), then retry</translation>
     </message>
     <message>
         <source>人声分离长时间无响应（超过 {minutes} 分钟无任何输出），已自动终止。常见原因：显卡驱动异常（CUDA 初始化卡住）、网络下载无响应或 FFmpeg 异常；请检查工作台中的分离环境与显卡驱动后重试</source>
-        <translation>Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Check the workbench separation environment and GPU driver, then retry</translation>
+        <translation type="vanished">Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Check the workbench separation environment and GPU driver, then retry</translation>
     </message>
     <message>
         <source>人声分离需要 FFmpeg，但未在系统中找到。请在「设置 → 关于/语言」中配置 FFmpeg 路径（或安装 FFmpeg 并加入系统 PATH）后重试</source>
-        <translation>Vocal separation requires FFmpeg, but it was not found on this system. Set the FFmpeg path in "Settings → About/Language" (or install FFmpeg and add it to PATH), then retry</translation>
+        <translation type="vanished">Vocal separation requires FFmpeg, but it was not found on this system. Set the FFmpeg path in "Settings → About/Language" (or install FFmpeg and add it to PATH), then retry</translation>
     </message>
     <message>
         <source>人声分离需要 FFmpeg，但未找到可用的 FFmpeg。嵌入式运行的 FFmpeg 由工作台统一管理，请检查工作台设置中的 FFmpeg 配置后重试</source>
-        <translation>Vocal separation requires FFmpeg, but no usable FFmpeg was found. In embedded mode FFmpeg is managed by the workbench; check the FFmpeg configuration in workbench settings and retry</translation>
+        <translation type="vanished">Vocal separation requires FFmpeg, but no usable FFmpeg was found. In embedded mode FFmpeg is managed by the workbench; check the FFmpeg configuration in workbench settings and retry</translation>
     </message>
     <message>
         <source>分离模型数据表已损坏，已重置（将自动重新下载）</source>
-        <translation>The separation model data table was corrupted and has been reset (it will be re-downloaded automatically)</translation>
+        <translation type="vanished">The separation model data table was corrupted and has been reset (it will be re-downloaded automatically)</translation>
     </message>
     <message>
         <source>分离模型文件不完整（下载中断残留），已自动删除，将在下次分离时重新下载</source>
-        <translation>The separation model file is incomplete (leftover from an interrupted download). It has been deleted and will be re-downloaded on the next separation</translation>
+        <translation type="vanished">The separation model file is incomplete (leftover from an interrupted download). It has been deleted and will be re-downloaded on the next separation</translation>
     </message>
     <message>
         <source>分离模型首次使用需从 GitHub 下载，当前下载失败：请检查网络（代理跟随工作台的网络设置）后重试</source>
-        <translation>The separation model downloads from GitHub on first use and the download just failed: check the network and retry (the proxy follows the workbench network settings)</translation>
+        <translation type="vanished">The separation model downloads from GitHub on first use and the download just failed: check the network and retry (the proxy follows the workbench network settings)</translation>
     </message>
     <message>
         <source>分离模型首次使用需从 GitHub 下载，当前下载失败：请检查网络（可在「设置 → 网络与代理」配置代理）后重试</source>
-        <translation>The separation model downloads from GitHub on first use and the download just failed: check the network (a proxy can be configured in "Settings → Network &amp; proxy") and retry</translation>
+        <translation type="vanished">The separation model downloads from GitHub on first use and the download just failed: check the network (a proxy can be configured in "Settings → Network &amp; proxy") and retry</translation>
     </message>
     <message>
         <source>分离环境未安装：请先在弹窗中安装对齐环境（含分离能力）</source>
-        <translation>Separation environment not installed: install the alignment environment (which includes separation) in the dialog first</translation>
+        <translation type="vanished">Separation environment not installed: install the alignment environment (which includes separation) in the dialog first</translation>
     </message>
     <message>
         <source>子进程输出：{output}</source>
-        <translation>Subprocess output: {output}</translation>
+        <translation type="vanished">Subprocess output: {output}</translation>
     </message>
     <message>
         <source>工作台分离任务正在进行中{detail}，请等待其完成（或在工作台中取消）后重试 AI 打轴</source>
-        <translation>A workbench separation task is currently running{detail}. Wait for it to finish (or cancel it in the workbench), then retry AI timing</translation>
+        <translation type="vanished">A workbench separation task is currently running{detail}. Wait for it to finish (or cancel it in the workbench), then retry AI timing</translation>
     </message>
     <message>
         <source>工作台分离环境暂不可用，已改用 AI 运行环境内置分离（与工作台第 2 步环境不同，CPU 下可能需数分钟）</source>
-        <translation>The workbench separation environment is unavailable; switched to the AI runtime's built-in separation (different from the workbench step-2 environment; may take several minutes on CPU)</translation>
+        <translation type="vanished">The workbench separation environment is unavailable; switched to the AI runtime's built-in separation (different from the workbench step-2 environment; may take several minutes on CPU)</translation>
     </message>
     <message>
         <source>已取消</source>
-        <translation>Cancelled</translation>
+        <translation type="vanished">Cancelled</translation>
     </message>
     <message>
         <source>已取消人声分离</source>
-        <translation>Vocal separation cancelled</translation>
+        <translation type="vanished">Vocal separation cancelled</translation>
     </message>
     <message>
         <source>已补齐分离模型文件 {name}</source>
-        <translation>Filled in missing separation model file {name}</translation>
+        <translation type="vanished">Filled in missing separation model file {name}</translation>
     </message>
     <message>
         <source>正在下载分离模型文件 {name}…</source>
-        <translation>Downloading separation model file {name}…</translation>
+        <translation type="vanished">Downloading separation model file {name}…</translation>
     </message>
     <message>
         <source>正在检查分离模型…</source>
-        <translation>Checking separation model…</translation>
+        <translation type="vanished">Checking separation model…</translation>
     </message>
     <message>
         <source>（内置分离）{msg}</source>
-        <translation>(built-in separation) {msg}</translation>
+        <translation type="vanished">(built-in separation) {msg}</translation>
     </message>
 </context><context>
     <name>ApplySingerDialog</name>
@@ -1161,279 +1162,279 @@ Install log: {p}</translation>
 </context><context>
     <name>AutoCheckSubInterface</name>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="85" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="86" />
         <source>生成节奏点的字符类型</source>
         <translation>Character types that generate checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="85" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="86" />
         <source>选择哪些字符类型自动生成节奏点</source>
         <translation>Choose which character types auto-generate checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="172" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="87" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="173" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="88" />
         <source>ひらがな（平假名）</source>
         <translation>Hiragana</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="87" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="88" />
         <source>カタカナ（片假名）</source>
         <translation>Katakana</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="175" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="88" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="176" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="89" />
         <source>漢字（汉字）</source>
         <translation>Kanji</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="175" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="88" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="176" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="89" />
         <source>アルファベット（英文字母）</source>
         <translation>Alphabet</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="176" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="89" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="177" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="90" />
         <source>韩文（谚文）</source>
         <translation>Hangul (Korean)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="177" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="90" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="178" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="91" />
         <source>数字</source>
         <translation>Digit</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="177" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="90" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="178" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="91" />
         <source>記号（符号 + - * 等）</source>
         <translation>Symbols (+ - * etc.)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="179" />
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="91" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="180" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="92" />
         <source>空格</source>
         <translation>Space</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="92" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="93" />
         <source>  ↳日语后空格check</source>
         <translation>  ↳ space-after-japanese check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="93" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="94" />
         <source>  ↳字母后空格check</source>
         <translation>  ↳ space-after-letter check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="94" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="95" />
         <source>  ↳符号/数字后空格check</source>
         <translation>  ↳ space-after-symbol/digit check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="100" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="101" />
         <source>额外check规则</source>
         <translation>Extra check rules</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="100" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="101" />
         <source>选择启用哪些自动节奏点规则</source>
         <translation>Choose which auto-checkpoint rules to enable</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="102" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="103" />
         <source>「ん/ン」check</source>
         <translation>'ん/ン' check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="102" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="103" />
         <source>促音check</source>
         <translation>sokuon check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="103" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="104" />
         <source>长音符号check</source>
         <translation>long-vowel check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="103" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="104" />
         <source>小写假名check</source>
         <translation>small-kana check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="104" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="105" />
         <source>括号内文字check</source>
         <translation>in-parentheses check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="105" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="106" />
         <source>空行check</source>
         <translation>blank-line check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="105" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="106" />
         <source>行首check</source>
         <translation>line-start check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="106" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="107" />
         <source>行尾check</source>
         <translation>line-end check</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="107" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="108" />
         <source>空格视为停顿点</source>
         <translation>Treat space as pause point</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="108" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="109" />
         <source>英文单词结尾停顿点</source>
         <translation>Treat English word-end as pause-point</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="109" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="110" />
         <source>按音节Check英文单词</source>
         <translation>Check English words by syllable</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="114" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="115" />
         <source>读取时自动check</source>
         <translation>Auto check on read</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="115" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="116" />
         <source>导入文本后自动执行check分析</source>
         <translation>Run check analysis automatically after importing text</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="119" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="120" />
         <source>中文歌词检测</source>
         <translation>Chinese lyrics detection</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="120" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="121" />
         <source>加载歌词时，若未检测到日文假名则自动切换为中文模式（汉字每字一个节奏点，跳过日文注音）</source>
         <translation>When loading lyrics, if no Japanese kana is detected, auto-switch to Chinese mode (one checkpoint per kanji, skip Japanese ruby)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="125" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="126" />
         <source>中文歌标注拼音</source>
         <translation>Annotate Chinese lyrics with Pinyin</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="126" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="127" />
         <source>检测到中文歌词时，自动为汉字标注带声调拼音注音</source>
         <translation>When Chinese lyrics are detected, automatically annotate Chinese characters with tone-marked Pinyin ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="131" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="132" />
         <source>韩文歌词检测</source>
         <translation>Korean lyrics detection</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="132" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="133" />
         <source>加载歌词时，若未检测到日文假名且含谚文则自动切换为韩文模式（韩文字每字一个节奏点并按风格注音）</source>
         <translation>When loading lyrics, if no Japanese kana is present and Hangul is detected, switch to Korean mode automatically (one checkpoint per Hangul syllable, annotated in the selected style)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="137" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="138" />
         <source>韩文注音风格</source>
         <translation>Korean reading style</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="138" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="139" />
         <source>韩文歌词自动注音的读音形式</source>
         <translation>Reading form used for automatic Korean annotation</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="139" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="140" />
         <source>片假名</source>
         <translation>Katakana</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="139" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="140" />
         <source>平假名</source>
         <translation>Hiragana</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="139" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="140" />
         <source>罗马音</source>
         <translation>Romaji</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="145" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="146" />
         <source>罗马音注音</source>
         <translation>Romaji ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="146" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="147" />
         <source>需重新执行自动注音以生效</source>
         <translation>Re-run auto-ruby to take effect</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="150" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="151" />
         <source>罗马音注音设置</source>
         <translation>Romaji ruby settings</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="151" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="152" />
         <source>长音复写、链接与大写等转换风格，应用于自动注音、一键转罗马音与 Kirakara 导出</source>
         <translation>Conversion styles such as long-vowel repetition, linking, and uppercase; applied to auto-annotation, one-click romanization, and Kirakara export</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="153" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="154" />
         <source>长音复写</source>
         <translation>Repeat long vowels</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="154" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="155" />
         <source>长音链接</source>
         <translation>Link long vowels</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="155" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="156" />
         <source>促音链接</source>
         <translation>Link sokuon</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="156" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="157" />
         <source>大写转换</source>
         <translation>Uppercase conversion</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="170" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="171" />
         <source>自动删除注音</source>
         <translation>Auto-delete ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="170" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="171" />
         <source>自动注音完成后，自动删除指定类型的注音</source>
         <translation>After auto-ruby, automatically delete ruby of specified types</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="173" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="174" />
         <source>カタカナ（片假名・注音为平假名）</source>
         <translation>Katakana (ruby is hiragana)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="174" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="175" />
         <source>カタカナ（片假名・注音含有英文）</source>
         <translation>Katakana (ruby contains English)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="178" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="179" />
         <source>長音符号（ー、～等）</source>
         <translation>Chōonpu (ー, ～ etc.)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="178" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="179" />
         <source>促音（っ/ッ）</source>
         <translation>Sokuon (っ/ッ)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="179" />
+        <location filename="..\..\settings\sub_interfaces\auto_check.py" line="180" />
         <source>その他</source>
         <translation>Others</translation>
     </message>
@@ -4873,338 +4874,347 @@ Zoom defaults to 100% (subtitle size); Zoom allows 10%~500%; Fix keeps original 
 </context><context>
     <name>ExportInterface</name>
     <message>
-        <location filename="..\..\export\export_interface.py" line="366" />
-        <location filename="..\..\export\export_interface.py" line="187" />
+        <location filename="..\..\export\export_interface.py" line="381" />
+        <location filename="..\..\export\export_interface.py" line="188" />
         <source>导出</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="190" />
+        <location filename="..\..\export\export_interface.py" line="191" />
         <source>将项目导出为多种歌词格式</source>
         <translation>Export project to various lyrics formats</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="203" />
+        <location filename="..\..\export\export_interface.py" line="204" />
         <source>选择导出格式</source>
         <translation>Choose export format</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="218" />
+        <location filename="..\..\export\export_interface.py" line="219" />
         <source>导出设置</source>
         <translation>Export settings</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="254" />
+        <location filename="..\..\export\export_interface.py" line="255" />
         <source>输出路径</source>
         <translation>Output path</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="259" />
+        <location filename="..\..\export\export_interface.py" line="260" />
         <source>选择导出目录...</source>
         <translation>Choose export directory...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="263" />
+        <location filename="..\..\export\export_interface.py" line="264" />
         <source>浏览...</source>
         <translation>Browse...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="270" />
+        <location filename="..\..\export\export_interface.py" line="271" />
         <source>文件名（不含扩展名）</source>
         <translation>Filename (no extension)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="278" />
+        <location filename="..\..\export\export_interface.py" line="282" />
         <source>导出罗马音</source>
         <translation>Export Romaji</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="280" />
+        <location filename="..\..\export\export_interface.py" line="284" />
         <source>勾选时输出假名与罗马音双注音；不勾选时仅输出假名注音</source>
         <translation>When enabled, export both kana and romaji ruby; when disabled, export kana ruby only</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="287" />
+        <location filename="..\..\export\export_interface.py" line="288" />
+        <source>跳转到设置</source>
+        <translation>Go to settings</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="302" />
         <source>Nicokara 标签设置...</source>
         <translation>Nicokara tag settings...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="295" />
+        <location filename="..\..\export\export_interface.py" line="310" />
         <source>导出字幕分组</source>
         <translation>Export subtitle groups</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="317" />
+        <location filename="..\..\export\export_interface.py" line="332" />
         <source>修改分组...</source>
         <translation>Edit groups...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="320" />
+        <location filename="..\..\export\export_interface.py" line="335" />
         <source>打开导出字幕分组编辑器：按组勾选演唱者（分色）、命名分组、指定主分组。存在 1 个以上分组时，导出将按组拆分为多个文件（文件名追加 _分组名）；主分组的文件携带完整标签信息</source>
         <translation>Open the subtitle grouping editor: check singers (colors) per group, name groups, and pick the primary group. With more than one group, export splits into one file per group (filename gets _GroupName appended); the primary group's file carries the full tag info</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="527" />
-        <location filename="..\..\export\export_interface.py" line="329" />
+        <location filename="..\..\export\export_interface.py" line="568" />
+        <location filename="..\..\export\export_interface.py" line="344" />
         <source>插入【演唱者名】标签</source>
         <translation>Insert [singer name] tag</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="530" />
-        <location filename="..\..\export\export_interface.py" line="331" />
+        <location filename="..\..\export\export_interface.py" line="571" />
+        <location filename="..\..\export\export_interface.py" line="346" />
         <source>导出时，当演唱者发生变化，在字符前自动插入演唱者名称标签</source>
         <translation>On export, insert singer-name tag before chars where the singer changes</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="335" />
+        <location filename="..\..\export\export_interface.py" line="350" />
         <source>-&gt;每行行首都插入演唱者</source>
         <translation>-&gt;Insert singer at start of every line</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="533" />
-        <location filename="..\..\export\export_interface.py" line="337" />
+        <location filename="..\..\export\export_interface.py" line="574" />
+        <location filename="..\..\export\export_interface.py" line="352" />
         <source>每一行开头都插入演唱者名称标签（需先启用「插入【演唱者名】标签」）</source>
         <translation>Insert singer-name tag at the start of every line (enable 'Insert [singer name] tag' first)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="346" />
+        <location filename="..\..\export\export_interface.py" line="361" />
         <source>分色标签设置助手...</source>
         <translation>Color tag setup helper...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="348" />
+        <location filename="..\..\export\export_interface.py" line="363" />
         <source>为每位演唱者配置 @Emoji 分色标签，配置后自动写入 Nicokara 标签的自定义字段</source>
         <translation>Configure @Emoji color tags per singer; auto-written to Nicokara custom tag field</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="375" />
+        <location filename="..\..\export\export_interface.py" line="390" />
         <source>进入下一步</source>
         <translation>Go to Next Step</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="380" />
+        <location filename="..\..\export\export_interface.py" line="395" />
         <source>把项目送往宿主的下一步；已配置导出字幕分组时，宿主按分组拆分多个轴</source>
         <translation>Send the project to the host's next step; when subtitle groups are configured, the host splits them into multiple axes</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="463" />
+        <location filename="..\..\export\export_interface.py" line="478" />
         <source>LRC (增强型)</source>
         <translation>LRC (enhanced)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="464" />
+        <location filename="..\..\export\export_interface.py" line="479" />
         <source>LRC (逐行)</source>
         <translation>LRC (per line)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="465" />
+        <location filename="..\..\export\export_interface.py" line="480" />
         <source>LRC (逐字)</source>
         <translation>LRC (per character)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="466" />
+        <location filename="..\..\export\export_interface.py" line="481" />
         <source>Nicokara (带注音)</source>
         <translation>Nicokara (with ruby)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="467" />
+        <location filename="..\..\export\export_interface.py" line="482" />
         <source>RL 编辑模式</source>
         <translation>RL Editor Mode</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="468" />
+        <location filename="..\..\export\export_interface.py" line="483" />
         <source>春日向注音</source>
         <translation>Kasugamuki Ruby</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="517" />
+        <location filename="..\..\export\export_interface.py" line="558" />
         <source>插入【@演唱者名】标签</source>
         <translation>Insert [@Singer Name] Tags</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="520" />
+        <location filename="..\..\export\export_interface.py" line="561" />
         <source>导出时，当演唱者发生变化，在字符前自动插入【@演唱者名】标签</source>
         <translation>When the singer changes during export, automatically insert an [@Singer Name] tag before the character</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="523" />
+        <location filename="..\..\export\export_interface.py" line="564" />
         <source>每一行开头都插入【@演唱者名】标签（需先启用演唱者标签）</source>
         <translation>Insert an [@Singer Name] tag at the start of every line (singer tags must be enabled)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="756" />
-        <location filename="..\..\export\export_interface.py" line="709" />
+        <location filename="..\..\export\export_interface.py" line="797" />
+        <location filename="..\..\export\export_interface.py" line="750" />
         <source>未分组：导出全部演唱者</source>
         <translation>No groups: export all singers</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="846" />
-        <location filename="..\..\export\export_interface.py" line="715" />
+        <location filename="..\..\export\export_interface.py" line="887" />
+        <location filename="..\..\export\export_interface.py" line="756" />
         <source>未知</source>
         <translation>Unknown</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="720" />
+        <location filename="..\..\export\export_interface.py" line="761" />
         <source>全部</source>
         <translation>all</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="723" />
+        <location filename="..\..\export\export_interface.py" line="764" />
         <source>共 {n} 组：{parts}</source>
         <translation>{n} group(s): {parts}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="774" />
-        <location filename="..\..\export\export_interface.py" line="732" />
+        <location filename="..\..\export\export_interface.py" line="815" />
+        <location filename="..\..\export\export_interface.py" line="773" />
         <source>未入组（不进入任何轴）：{names}</source>
         <translation>Unassigned (excluded from every axis): {names}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="831" />
+        <location filename="..\..\export\export_interface.py" line="872" />
         <source>主分组</source>
         <translation>Primary group</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1125" />
-        <location filename="..\..\export\export_interface.py" line="932" />
+        <location filename="..\..\export\export_interface.py" line="1166" />
+        <location filename="..\..\export\export_interface.py" line="973" />
         <source>选择导出目录</source>
         <translation>Choose export directory</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1094" />
-        <location filename="..\..\export\export_interface.py" line="1079" />
-        <location filename="..\..\export\export_interface.py" line="1020" />
-        <location filename="..\..\export\export_interface.py" line="964" />
+        <location filename="..\..\export\export_interface.py" line="1135" />
+        <location filename="..\..\export\export_interface.py" line="1120" />
+        <location filename="..\..\export\export_interface.py" line="1061" />
+        <location filename="..\..\export\export_interface.py" line="1005" />
         <source>无项目</source>
         <translation>No project</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1095" />
-        <location filename="..\..\export\export_interface.py" line="1080" />
-        <location filename="..\..\export\export_interface.py" line="1021" />
-        <location filename="..\..\export\export_interface.py" line="965" />
+        <location filename="..\..\export\export_interface.py" line="1136" />
+        <location filename="..\..\export\export_interface.py" line="1121" />
+        <location filename="..\..\export\export_interface.py" line="1062" />
+        <location filename="..\..\export\export_interface.py" line="1006" />
         <source>请先创建或打开项目</source>
         <translation>Please create or open a project first</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1033" />
-        <location filename="..\..\export\export_interface.py" line="982" />
+        <location filename="..\..\export\export_interface.py" line="1074" />
+        <location filename="..\..\export\export_interface.py" line="1023" />
         <source>无演唱者</source>
         <translation>No singer</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1034" />
-        <location filename="..\..\export\export_interface.py" line="983" />
+        <location filename="..\..\export\export_interface.py" line="1075" />
+        <location filename="..\..\export\export_interface.py" line="1024" />
         <source>项目中没有可用的演唱者</source>
         <translation>No singer available in the project</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1107" />
+        <location filename="..\..\export\export_interface.py" line="1148" />
         <source>未选择格式</source>
         <translation>No format selected</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1108" />
+        <location filename="..\..\export\export_interface.py" line="1149" />
         <source>请选择导出格式</source>
         <translation>Please choose an export format</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1139" />
+        <location filename="..\..\export\export_interface.py" line="1180" />
         <source>第 {line} 行 第 {char} 字</source>
         <translation>Line {line} char {char}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1143" />
+        <location filename="..\..\export\export_interface.py" line="1184" />
         <source>
 ...另 {n} 处</source>
         <translation>
 ...{n} more</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1149" />
+        <location filename="..\..\export\export_interface.py" line="1190" />
         <source>仍有导唱待办未处理</source>
         <translation>Some guide-symbol TODOs remain</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1150" />
+        <location filename="..\..\export\export_interface.py" line="1191" />
         <source>还剩 {n} 个标记点未添加导唱符。</source>
         <translation>{n} markers still missing a guide symbol.</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1154" />
+        <location filename="..\..\export\export_interface.py" line="1195" />
         <source>继续导出</source>
         <translation>Continue exporting</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1325" />
-        <location filename="..\..\export\export_interface.py" line="1258" />
-        <location filename="..\..\export\export_interface.py" line="1155" />
+        <location filename="..\..\export\export_interface.py" line="1366" />
+        <location filename="..\..\export\export_interface.py" line="1299" />
+        <location filename="..\..\export\export_interface.py" line="1196" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1163" />
+        <location filename="..\..\export\export_interface.py" line="1204" />
         <source>导出提醒</source>
         <translation>Export notice</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1248" />
+        <location filename="..\..\export\export_interface.py" line="1289" />
         <source>...另 {n} 个文件</source>
         <translation>...and {n} more file(s)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1320" />
-        <location filename="..\..\export\export_interface.py" line="1253" />
+        <location filename="..\..\export\export_interface.py" line="1361" />
+        <location filename="..\..\export\export_interface.py" line="1294" />
         <source>文件已存在</source>
         <translation>File already exists</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1254" />
+        <location filename="..\..\export\export_interface.py" line="1295" />
         <source>以下文件已存在：
 {files}</source>
         <translation>The following files already exist:
 {files}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1256" />
+        <location filename="..\..\export\export_interface.py" line="1297" />
         <source>是否覆盖这些文件？</source>
         <translation>Overwrite these files?</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1324" />
-        <location filename="..\..\export\export_interface.py" line="1257" />
+        <location filename="..\..\export\export_interface.py" line="1365" />
+        <location filename="..\..\export\export_interface.py" line="1298" />
         <source>覆盖</source>
         <translation>Overwrite</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1361" />
-        <location filename="..\..\export\export_interface.py" line="1284" />
+        <location filename="..\..\export\export_interface.py" line="1402" />
+        <location filename="..\..\export\export_interface.py" line="1325" />
         <source>未知错误</source>
         <translation>Unknown error</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1350" />
-        <location filename="..\..\export\export_interface.py" line="1293" />
+        <location filename="..\..\export\export_interface.py" line="1391" />
+        <location filename="..\..\export\export_interface.py" line="1334" />
         <source>导出成功</source>
         <translation>Exported</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1360" />
-        <location filename="..\..\export\export_interface.py" line="1303" />
+        <location filename="..\..\export\export_interface.py" line="1401" />
+        <location filename="..\..\export\export_interface.py" line="1344" />
         <source>导出失败</source>
         <translation>Export failed</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1321" />
+        <location filename="..\..\export\export_interface.py" line="1362" />
         <source>文件已存在：
 {filename}</source>
         <translation>File already exists:
 {filename}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1323" />
+        <location filename="..\..\export\export_interface.py" line="1364" />
         <source>是否覆盖该文件？</source>
         <translation>Overwrite this file?</translation>
+    </message>
+    <message>
+        <source>跳转到罗马音设置</source>
+        <translation type="vanished">Go to Romaji ruby settings</translation>
     </message>
 </context><context>
     <name>ExportSubInterface</name>
@@ -6054,39 +6064,39 @@ Imported files fill this area and are parsed when creating a project.</translati
     <name>Installer</name>
     <message>
         <source>更新器已是最新，无需更新</source>
-        <translation>Updater is up to date, no update needed</translation>
+        <translation type="vanished">Updater is up to date, no update needed</translation>
     </message>
     <message>
         <source>更新器更新完毕</source>
-        <translation>Updater update completed</translation>
+        <translation type="vanished">Updater update completed</translation>
     </message>
     <message>
         <source>正在下载更新器…</source>
-        <translation>Downloading updater…</translation>
+        <translation type="vanished">Downloading updater…</translation>
     </message>
     <message>
         <source>正在下载更新器… (已下载 {done} MB)</source>
-        <translation>Downloading updater… ({done} MB downloaded)</translation>
+        <translation type="vanished">Downloading updater… ({done} MB downloaded)</translation>
     </message>
     <message>
         <source>正在下载更新器… {pct}%  ({done} / {total} MB)</source>
-        <translation>Downloading updater… {pct}%  ({done} / {total} MB)</translation>
+        <translation type="vanished">Downloading updater… {pct}%  ({done} / {total} MB)</translation>
     </message>
     <message>
         <source>正在启动更新器…</source>
-        <translation>Starting updater…</translation>
+        <translation type="vanished">Starting updater…</translation>
     </message>
     <message>
         <source>正在提取更新器…</source>
-        <translation>Extracting updater…</translation>
+        <translation type="vanished">Extracting updater…</translation>
     </message>
     <message>
         <source>正在校验文件完整性…</source>
-        <translation>Verifying file integrity…</translation>
+        <translation type="vanished">Verifying file integrity…</translation>
     </message>
     <message>
         <source>正在检查更新器版本…</source>
-        <translation>Checking updater version…</translation>
+        <translation type="vanished">Checking updater version…</translation>
     </message>
 </context><context>
     <name>InterfacePreview</name>
@@ -7768,49 +7778,49 @@ Example: {大冒険||[00:01.00]だ|[00:01.20]い,...}</translation>
 </context><context>
     <name>RubyMismatchDialog</name>
     <message>
-        <location filename="..\..\export\export_interface.py" line="66" />
+        <location filename="..\..\export\export_interface.py" line="67" />
         <source>注音分段不匹配</source>
         <translation>Ruby segmentation mismatch</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="73" />
+        <location filename="..\..\export\export_interface.py" line="74" />
         <source>以下字符的注音分段数量与节奏点数量不匹配。
 可选择自动均分方案修复后继续导出，或忽略继续导出。</source>
         <translation>The ruby segment count does not match the checkpoint count for the following characters.
 Choose an auto-even option to fix and continue, or ignore and continue exporting.</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="88" />
+        <location filename="..\..\export\export_interface.py" line="89" />
         <source>按字符均分并导出</source>
         <translation>Even by character and export</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="89" />
+        <location filename="..\..\export\export_interface.py" line="90" />
         <source>按mora均分并导出</source>
         <translation>Even by mora and export</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="90" />
+        <location filename="..\..\export\export_interface.py" line="91" />
         <source>忽略并继续导出</source>
         <translation>Ignore and continue exporting</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="91" />
+        <location filename="..\..\export\export_interface.py" line="92" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="107" />
+        <location filename="..\..\export\export_interface.py" line="108" />
         <source>【不匹配列表】</source>
         <translation>[Mismatch list]</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="113" />
+        <location filename="..\..\export\export_interface.py" line="114" />
         <source>【按字符均分预览】</source>
         <translation>[Even-by-char preview]</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="119" />
+        <location filename="..\..\export\export_interface.py" line="120" />
         <source>【按mora均分预览】</source>
         <translation>[Even-by-mora preview]</translation>
     </message>
@@ -8196,71 +8206,71 @@ and transfer the original symbol timestamp to the immediately following non-symb
         <translation>About/Language</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="464" />
+        <location filename="..\..\settings\settings_interface.py" line="475" />
         <source>设置已保存</source>
         <translation>Settings saved</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="464" />
+        <location filename="..\..\settings\settings_interface.py" line="475" />
         <source>所有设置已保存到配置文件</source>
         <translation>All settings saved to config file</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="472" />
+        <location filename="..\..\settings\settings_interface.py" line="483" />
         <source>确认重置</source>
         <translation>Confirm reset</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="473" />
+        <location filename="..\..\settings\settings_interface.py" line="484" />
         <source>确定要将所有设置重置为默认值吗？
 这将覆盖您当前的设置（用户词典和演唱者预设不受影响）。</source>
         <translation>Reset all settings to defaults?
 This overwrites your current settings (user dict and singer presets are unaffected).</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="572" />
-        <location filename="..\..\settings\settings_interface.py" line="474" />
+        <location filename="..\..\settings\settings_interface.py" line="583" />
+        <location filename="..\..\settings\settings_interface.py" line="485" />
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="573" />
-        <location filename="..\..\settings\settings_interface.py" line="475" />
+        <location filename="..\..\settings\settings_interface.py" line="584" />
+        <location filename="..\..\settings\settings_interface.py" line="486" />
         <source>否</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="493" />
+        <location filename="..\..\settings\settings_interface.py" line="504" />
         <source>设置已重置</source>
         <translation>Settings reset</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="493" />
+        <location filename="..\..\settings\settings_interface.py" line="504" />
         <source>所有设置已恢复为默认值</source>
         <translation>All settings restored to defaults</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="497" />
+        <location filename="..\..\settings\settings_interface.py" line="508" />
         <source>重置失败</source>
         <translation>Reset failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="550" />
+        <location filename="..\..\settings\settings_interface.py" line="561" />
         <source>不支持</source>
         <translation>Not Supported</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="551" />
+        <location filename="..\..\settings\settings_interface.py" line="562" />
         <source>嵌入模式下不支持从 KS 配置导入</source>
         <translation>KS config import is not supported in embedded mode</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="560" />
+        <location filename="..\..\settings\settings_interface.py" line="571" />
         <source>确认导入</source>
         <translation>Confirm Import</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="561" />
+        <location filename="..\..\settings\settings_interface.py" line="572" />
         <source>确定要从前 Karaoke Studio 的 settings.json 导入配置吗？
 
 将从 KS 配置中提取以下内容并合并到当前 SUG 配置：
@@ -8285,12 +8295,12 @@ The following will be extracted and merged into current SUG config:
 KS config values will take priority.</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="583" />
+        <location filename="..\..\settings\settings_interface.py" line="594" />
         <source>未找到 KS 配置</source>
         <translation>KS Config Not Found</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="584" />
+        <location filename="..\..\settings\settings_interface.py" line="595" />
         <source>未能自动找到 Karaoke Studio 的 settings.json。
 
 是否手动选择文件？</source>
@@ -8299,97 +8309,97 @@ KS config values will take priority.</translation>
 Browse for the file manually?</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="588" />
+        <location filename="..\..\settings\settings_interface.py" line="599" />
         <source>浏览</source>
         <translation>Browse</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="589" />
+        <location filename="..\..\settings\settings_interface.py" line="600" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="594" />
+        <location filename="..\..\settings\settings_interface.py" line="605" />
         <source>选择 KS settings.json</source>
         <translation>Select KS settings.json</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="595" />
+        <location filename="..\..\settings\settings_interface.py" line="606" />
         <source>所有文件 (*.*)</source>
         <translation>All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="607" />
+        <location filename="..\..\settings\settings_interface.py" line="618" />
         <source>读取失败</source>
         <translation>Read failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="608" />
+        <location filename="..\..\settings\settings_interface.py" line="619" />
         <source>无法读取 KS 配置文件: {err}</source>
         <translation>Cannot read KS config file: {err}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="616" />
+        <location filename="..\..\settings\settings_interface.py" line="627" />
         <source>格式错误</source>
         <translation>Format Error</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="617" />
+        <location filename="..\..\settings\settings_interface.py" line="628" />
         <source>KS 配置文件格式不正确</source>
         <translation>KS config file format is incorrect</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="630" />
+        <location filename="..\..\settings\settings_interface.py" line="641" />
         <source>主设置</source>
         <translation>Main Settings</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="659" />
+        <location filename="..\..\settings\settings_interface.py" line="670" />
         <source>用户词典</source>
         <translation>Dictionary</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="688" />
+        <location filename="..\..\settings\settings_interface.py" line="699" />
         <source>演唱者预设</source>
         <translation>Singer Presets</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="696" />
+        <location filename="..\..\settings\settings_interface.py" line="707" />
         <source>网络词典缓存</source>
         <translation>Network Dict Cache</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="702" />
+        <location filename="..\..\settings\settings_interface.py" line="713" />
         <source>界面主题</source>
         <translation>UI Theme</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="727" />
+        <location filename="..\..\settings\settings_interface.py" line="738" />
         <source>更新器设置</source>
         <translation>Updater Settings</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="734" />
+        <location filename="..\..\settings\settings_interface.py" line="745" />
         <source>保存失败</source>
         <translation>Save failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="747" />
+        <location filename="..\..\settings\settings_interface.py" line="758" />
         <source>导入成功</source>
         <translation>Imported</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="748" />
+        <location filename="..\..\settings\settings_interface.py" line="759" />
         <source>已从 KS 配置导入: {items}</source>
         <translation>Imported from KS config: {items}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="756" />
+        <location filename="..\..\settings\settings_interface.py" line="767" />
         <source>无数据可导入</source>
         <translation>No Data to Import</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="757" />
+        <location filename="..\..\settings\settings_interface.py" line="768" />
         <source>KS 配置文件中未找到 SUG 相关的设置数据</source>
         <translation>No SUG-related settings found in KS config file</translation>
     </message>
@@ -10643,346 +10653,346 @@ Drag cards to reorder; edit offset/length/interval to generate a new SUG project
     <name>UpdateProgressWindow</name>
     <message>
         <source>取消更新</source>
-        <translation>Cancel Update</translation>
+        <translation type="vanished">Cancel Update</translation>
     </message>
     <message>
         <source>正在准备更新</source>
-        <translation>Preparing update</translation>
+        <translation type="vanished">Preparing update</translation>
     </message>
     <message>
         <source>正在取消…</source>
-        <translation>Cancelling…</translation>
+        <translation type="vanished">Cancelling…</translation>
     </message>
     <message>
         <source>正在获取最新更新器，请稍候…</source>
-        <translation>Fetching latest updater, please wait…</translation>
+        <translation type="vanished">Fetching latest updater, please wait…</translation>
     </message>
 </context><context>
     <name>UpdaterUI</name>
     <message>
         <source> 小时</source>
-        <translation> h</translation>
+        <translation type="vanished"> h</translation>
     </message>
     <message>
         <source>GitHub 可达</source>
-        <translation>GitHub reachable</translation>
+        <translation type="vanished">GitHub reachable</translation>
     </message>
     <message>
         <source>Windows 系统代理未启用，但 {hint}。建议切换为「自动检测代理」或「手动指定地址」。</source>
-        <translation>Windows system proxy not enabled, but {hint}. Consider switching to 'Auto-detect proxy' or 'Manual'.</translation>
+        <translation type="vanished">Windows system proxy not enabled, but {hint}. Consider switching to 'Auto-detect proxy' or 'Manual'.</translation>
     </message>
     <message>
         <source>Windows 系统代理未启用，本机也未发现常用代理端口监听。若你的代理软件正在运行，请改用「手动指定地址」。</source>
-        <translation>Windows system proxy not enabled, and no common local proxy ports are listening. If your proxy is running, use 'Manual' instead.</translation>
+        <translation type="vanished">Windows system proxy not enabled, and no common local proxy ports are listening. If your proxy is running, use 'Manual' instead.</translation>
     </message>
     <message>
         <source>{url}　已生效（{mode} · 来源：{source}）</source>
-        <translation>{url}　active ({mode} · source: {source})</translation>
+        <translation type="vanished">{url}　active ({mode} · source: {source})</translation>
     </message>
     <message>
         <source>↑ 上移</source>
-        <translation>↑ Up</translation>
+        <translation type="vanished">↑ Up</translation>
     </message>
     <message>
         <source>↓ 下移</source>
-        <translation>↓ Down</translation>
+        <translation type="vanished">↓ Down</translation>
     </message>
     <message>
         <source>下载源：{label}</source>
-        <translation>Download source: {label}</translation>
+        <translation type="vanished">Download source: {label}</translation>
     </message>
     <message>
         <source>代理可正常访问 GitHub，但官方 API 对你的出口 IP 限流（403）。检查更新会自动改用网页端探测，通常不受影响。</source>
-        <translation>The proxy can reach GitHub fine, but the official API is rate-limiting your egress IP (403). Update checks fall back to web-page detection automatically, so this usually has no impact.</translation>
+        <translation type="vanished">The proxy can reach GitHub fine, but the official API is rate-limiting your egress IP (403). Update checks fall back to web-page detection automatically, so this usually has no impact.</translation>
     </message>
     <message>
         <source>代理模式</source>
-        <translation>Proxy mode</translation>
+        <translation type="vanished">Proxy mode</translation>
     </message>
     <message>
         <source>使用系统代理</source>
-        <translation>Use system proxy</translation>
+        <translation type="vanished">Use system proxy</translation>
     </message>
     <message>
         <source>例如 http://127.0.0.1:7890 ；仅在选择「手动指定地址」时生效</source>
-        <translation>E.g. http://127.0.0.1:7890. Only active when 'Manual' is selected.</translation>
+        <translation type="vanished">E.g. http://127.0.0.1:7890. Only active when 'Manual' is selected.</translation>
     </message>
     <message>
         <source>关闭代理</source>
-        <translation>No proxy</translation>
+        <translation type="vanished">No proxy</translation>
     </message>
     <message>
         <source>即将退出当前应用，由 Updater 完成替换并自动重启…</source>
-        <translation>Exiting current app. Updater will perform replacement and auto-restart…</translation>
+        <translation type="vanished">Exiting current app. Updater will perform replacement and auto-restart…</translation>
     </message>
     <message>
         <source>发现新版本</source>
-        <translation>New version available</translation>
+        <translation type="vanished">New version available</translation>
     </message>
     <message>
         <source>取消</source>
-        <translation>Cancel</translation>
+        <translation type="vanished">Cancel</translation>
     </message>
     <message>
         <source>启动时检查更新</source>
-        <translation>Check for updates on startup</translation>
+        <translation type="vanished">Check for updates on startup</translation>
     </message>
     <message>
         <source>启动检查间隔</source>
-        <translation>Startup check interval</translation>
+        <translation type="vanished">Startup check interval</translation>
     </message>
     <message>
         <source>在本机端口 {ports} 上检测到代理监听</source>
-        <translation>Detected proxy listening on local ports {ports}</translation>
+        <translation type="vanished">Detected proxy listening on local ports {ports}</translation>
     </message>
     <message>
         <source>在浏览器中查看完整发布说明</source>
-        <translation>Open full release notes in browser</translation>
+        <translation type="vanished">Open full release notes in browser</translation>
     </message>
     <message>
         <source>尚未填写手动代理地址，例如 http://127.0.0.1:7897</source>
-        <translation>Manual proxy address not set (e.g. http://127.0.0.1:7897)</translation>
+        <translation type="vanished">Manual proxy address not set (e.g. http://127.0.0.1:7897)</translation>
     </message>
     <message>
         <source>已使用代理 {url}（来源：{source}）</source>
-        <translation>Using proxy {url} (source: {source})</translation>
+        <translation type="vanished">Using proxy {url} (source: {source})</translation>
     </message>
     <message>
         <source>已关闭代理 —— 应用将直接访问网络。</source>
-        <translation>Proxy off — the app will access the network directly.</translation>
+        <translation type="vanished">Proxy off — the app will access the network directly.</translation>
     </message>
     <message>
         <source>已是最新版本</source>
-        <translation>Already up to date</translation>
+        <translation type="vanished">Already up to date</translation>
     </message>
     <message>
         <source>已跳过此版本</source>
-        <translation>This version has been skipped</translation>
+        <translation type="vanished">This version has been skipped</translation>
     </message>
     <message>
         <source>应用启动后在后台轻量检查 GitHub Release，发现新版本时弹窗提示</source>
-        <translation>After startup, lightly check GitHub Release in background; notify on new version</translation>
+        <translation type="vanished">After startup, lightly check GitHub Release in background; notify on new version</translation>
     </message>
     <message>
         <source>应用更新</source>
-        <translation>App update</translation>
+        <translation type="vanished">App update</translation>
     </message>
     <message>
         <source>当前版本 v{local}　|　发布于 {date}</source>
-        <translation>Current v{local}　|　Released on {date}</translation>
+        <translation type="vanished">Current v{local}　|　Released on {date}</translation>
     </message>
     <message>
         <source>当前版本 v{version} 已是最新</source>
-        <translation>Current v{version} is up to date</translation>
+        <translation type="vanished">Current v{version} is up to date</translation>
     </message>
     <message>
         <source>当前生效代理</source>
-        <translation>Active proxy</translation>
+        <translation type="vanished">Active proxy</translation>
     </message>
     <message>
         <source>恢复默认</source>
-        <translation>Restore default</translation>
+        <translation type="vanished">Restore default</translation>
     </message>
     <message>
         <source>您可以稍后在设置中重新检查更新</source>
-        <translation>You can check for updates later in Settings</translation>
+        <translation type="vanished">You can check for updates later in Settings</translation>
     </message>
     <message>
         <source>我知道了</source>
-        <translation>Got it</translation>
+        <translation type="vanished">Got it</translation>
     </message>
     <message>
         <source>手动代理地址</source>
-        <translation>Manual proxy address</translation>
+        <translation type="vanished">Manual proxy address</translation>
     </message>
     <message>
         <source>手动地址 {url!r} 无效，请检查协议与端口。</source>
-        <translation>Manual address {url!r} is invalid. Check the scheme and port.</translation>
+        <translation type="vanished">Manual address {url!r} is invalid. Check the scheme and port.</translation>
     </message>
     <message>
         <source>手动指定</source>
-        <translation>Manual</translation>
+        <translation type="vanished">Manual</translation>
     </message>
     <message>
         <source>手动指定地址</source>
-        <translation>Specify address manually</translation>
+        <translation type="vanished">Specify address manually</translation>
     </message>
     <message>
         <source>按顺序尝试，前一项失败时自动降级到下一项。
 你可以拖动条目，或选中条目后用右侧 ↑/↓ 按钮调整。</source>
-        <translation>Try in order; on failure, fall back to next. Drag items or use ↑/↓ on the right to reorder.</translation>
+        <translation type="vanished">Try in order; on failure, fall back to next. Drag items or use ↑/↓ on the right to reorder.</translation>
     </message>
     <message>
         <source>无法启动 Updater</source>
-        <translation>Cannot launch Updater</translation>
+        <translation type="vanished">Cannot launch Updater</translation>
     </message>
     <message>
         <source>更新内容：</source>
-        <translation>Changes:</translation>
+        <translation type="vanished">Changes:</translation>
     </message>
     <message>
         <source>更新器未就绪</source>
-        <translation>Updater not ready</translation>
+        <translation type="vanished">Updater not ready</translation>
     </message>
     <message>
         <source>更新已取消</source>
-        <translation>Update Cancelled</translation>
+        <translation type="vanished">Update Cancelled</translation>
     </message>
     <message>
         <source>更新已启动</source>
-        <translation>Update started</translation>
+        <translation type="vanished">Update started</translation>
     </message>
     <message>
         <source>更新源优先级</source>
-        <translation>Update-source priority</translation>
+        <translation type="vanished">Update-source priority</translation>
     </message>
     <message>
         <source>未发现系统代理，也未在常用端口（{ports} 等）发现监听</source>
-        <translation>No system proxy found; nothing listening on common ports ({ports} etc.)</translation>
+        <translation type="vanished">No system proxy found; nothing listening on common ports ({ports} etc.)</translation>
     </message>
     <message>
         <source>未启用代理</source>
-        <translation>Proxy disabled</translation>
+        <translation type="vanished">Proxy disabled</translation>
     </message>
     <message>
         <source>未来不再为 v{version} 提示。重新检测可重新启用。</source>
-        <translation>Will not notify for v{version} again. Re-check to re-enable.</translation>
+        <translation type="vanished">Will not notify for v{version} again. Re-check to re-enable.</translation>
     </message>
     <message>
         <source>未检测到代理</source>
-        <translation>No proxy detected</translation>
+        <translation type="vanished">No proxy detected</translation>
     </message>
     <message>
         <source>未知</source>
-        <translation>Unknown</translation>
+        <translation type="vanished">Unknown</translation>
     </message>
     <message>
         <source>未知日期</source>
-        <translation>Unknown date</translation>
+        <translation type="vanished">Unknown date</translation>
     </message>
     <message>
         <source>未知错误</source>
-        <translation>Unknown error</translation>
+        <translation type="vanished">Unknown error</translation>
     </message>
     <message>
         <source>检查中...</source>
-        <translation>Checking...</translation>
+        <translation type="vanished">Checking...</translation>
     </message>
     <message>
         <source>检查更新</source>
-        <translation>Check for updates</translation>
+        <translation type="vanished">Check for updates</translation>
     </message>
     <message>
         <source>检查更新失败</source>
-        <translation>Update check failed</translation>
+        <translation type="vanished">Update check failed</translation>
     </message>
     <message>
         <source>检测成功</source>
-        <translation>Detection succeeded</translation>
+        <translation type="vanished">Detection succeeded</translation>
     </message>
     <message>
         <source>测试中...</source>
-        <translation>Testing...</translation>
+        <translation type="vanished">Testing...</translation>
     </message>
     <message>
         <source>测试连通性</source>
-        <translation>Test connection</translation>
+        <translation type="vanished">Test connection</translation>
     </message>
     <message>
         <source>源尝试记录：</source>
-        <translation>Source attempt log:</translation>
+        <translation type="vanished">Source attempt log:</translation>
     </message>
     <message>
         <source>版本 v{ver}  |  由 RhythmicaLyrics 启发</source>
-        <translation>Version v{ver}  |  Inspired by RhythmicaLyrics</translation>
+        <translation type="vanished">Version v{ver}  |  Inspired by RhythmicaLyrics</translation>
     </message>
     <message>
         <source>确定</source>
-        <translation>OK</translation>
+        <translation type="vanished">OK</translation>
     </message>
     <message>
         <source>稍后再说</source>
-        <translation>Later</translation>
+        <translation type="vanished">Later</translation>
     </message>
     <message>
         <source>立即从所选源拉取最新发布信息（不受启动检查间隔限制）</source>
-        <translation>Fetch latest release info from selected source now (not limited by startup interval)</translation>
+        <translation type="vanished">Fetch latest release info from selected source now (not limited by startup interval)</translation>
     </message>
     <message>
         <source>立即更新</source>
-        <translation>Update now</translation>
+        <translation type="vanished">Update now</translation>
     </message>
     <message>
         <source>立即检查更新</source>
-        <translation>Check now</translation>
+        <translation type="vanished">Check now</translation>
     </message>
     <message>
         <source>系统代理</source>
-        <translation>System proxy</translation>
+        <translation type="vanished">System proxy</translation>
     </message>
     <message>
         <source>编辑顺序</source>
-        <translation>Edit order</translation>
+        <translation type="vanished">Edit order</translation>
     </message>
     <message>
         <source>缺少 Updater.exe。请到 GitHub Release 手动下载最新版本。</source>
-        <translation>Updater.exe missing. Download the latest version from GitHub Release manually.</translation>
+        <translation type="vanished">Updater.exe missing. Download the latest version from GitHub Release manually.</translation>
     </message>
     <message>
         <source>网络与代理（更新源）</source>
-        <translation>Network &amp; proxy (update sources)</translation>
+        <translation type="vanished">Network &amp; proxy (update sources)</translation>
     </message>
     <message>
         <source>自动检测</source>
-        <translation>Auto-detect</translation>
+        <translation type="vanished">Auto-detect</translation>
     </message>
     <message>
         <source>自动检测代理</source>
-        <translation>Auto-detect proxy</translation>
+        <translation type="vanished">Auto-detect proxy</translation>
     </message>
     <message>
         <source>自动检测未发现可用代理。如确有代理在运行，请改用「手动指定地址」。</source>
-        <translation>No proxy found via auto-detect. If one is running, use 'Manual' instead.</translation>
+        <translation type="vanished">No proxy found via auto-detect. If one is running, use 'Manual' instead.</translation>
     </message>
     <message>
         <source>访问 GitHub 时是否经过代理；自动检测会探测常用本地代理端口</source>
-        <translation>Whether to use a proxy when accessing GitHub; auto-detect probes common local proxy ports</translation>
+        <translation type="vanished">Whether to use a proxy when accessing GitHub; auto-detect probes common local proxy ports</translation>
     </message>
     <message>
         <source>调整更新源优先级</source>
-        <translation>Adjust update-source priority</translation>
+        <translation type="vanished">Adjust update-source priority</translation>
     </message>
     <message>
         <source>距上次检查不足该时长时，启动期不再发起请求（手动检查不受限）</source>
-        <translation>If less than this duration has passed since last check, do not request at startup (manual checks unrestricted)</translation>
+        <translation type="vanished">If less than this duration has passed since last check, do not request at startup (manual checks unrestricted)</translation>
     </message>
     <message>
         <source>跳过此版本</source>
-        <translation>Skip this version</translation>
+        <translation type="vanished">Skip this version</translation>
     </message>
     <message>
         <source>连通失败</source>
-        <translation>Connectivity failed</translation>
+        <translation type="vanished">Connectivity failed</translation>
     </message>
     <message>
         <source>连通成功</source>
-        <translation>Connectivity succeeded</translation>
+        <translation type="vanished">Connectivity succeeded</translation>
     </message>
     <message>
         <source>连通成功（API 限流中）</source>
-        <translation>Connected (API rate-limited)</translation>
+        <translation type="vanished">Connected (API rate-limited)</translation>
     </message>
     <message>
         <source>（发布说明为空）</source>
-        <translation>(release notes empty)</translation>
+        <translation type="vanished">(release notes empty)</translation>
     </message>
     <message>
         <source>（尚未检测）</source>
-        <translation>(not yet detected)</translation>
+        <translation type="vanished">(not yet detected)</translation>
     </message>
     <message>
         <source>（尚未读取）</source>
-        <translation>(not yet read)</translation>
+        <translation type="vanished">(not yet read)</translation>
     </message>
 </context><context>
     <name>VideoExtractOnlyWorker</name>

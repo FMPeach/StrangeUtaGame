@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import QGridLayout, QWidget
 from qfluentwidgets import (
     CheckBox,
@@ -233,6 +234,16 @@ class AutoCheckSubInterface(SubSettingInterface):
             else True
         )
         self._set_checked_silently(link_checkbox, checked)
+
+    def focus_romaji_style_card(self) -> None:
+        """展开「罗马音注音设置」卡并滚动到可见区域（供外部跳转入口定位）。"""
+        card = getattr(self, "card_romaji_style", None)
+        if card is None:
+            return
+        card.setExpand(True)
+        self.ensureWidgetVisible(card)
+        # 展开动画会改变卡片高度，动画结束后再校正一次滚动位置
+        QTimer.singleShot(250, lambda: self.ensureWidgetVisible(card))
 
     def _on_romaji_repeat_long_vowels_changed(self, _checked: bool) -> None:
         if self._loading_values:

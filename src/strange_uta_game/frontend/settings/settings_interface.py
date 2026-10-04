@@ -344,6 +344,17 @@ class SettingsInterface(ScrollArea):
         tab_map = {k: i for i, (k, _) in enumerate(self._tab_config)}
         self.stackedWidget.setCurrentIndex(tab_map.get(routeKey, 0))
 
+    def switch_to_tab(self, routeKey: str) -> None:
+        """程序化切换子页面（供外部跳转入口使用，如导出页「跳转到设置」）。"""
+        if routeKey not in dict(self._tab_config):
+            return
+        try:
+            self.pivot.setCurrentItem(routeKey)
+        except Exception:
+            # 子页面懒加载尚未完成时 pivot 可能还没有该项，只切 stackedWidget
+            pass
+        self._on_tab_changed(routeKey)
+
     # ── 外部接口 ──────────────────────────────────────────────────────
 
     def set_store(self, store):
