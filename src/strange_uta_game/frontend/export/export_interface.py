@@ -1447,7 +1447,10 @@ class ExportInterface(QWidget):
         state_tooltip.show()
 
         worker = ExportTaskWorker(self._project, self._export_service, jobs)
-        thread = QThread(self)
+        # 不以页面为父：导出进行中页面被销毁时，父子关系会导致
+        # "QThread: Destroyed while thread is still running"；引用由
+        # _export_thread/_cleanup 管理，thread.finished 链接 deleteLater
+        thread = QThread()
         worker.moveToThread(thread)
         self._exporting = True
         self._export_worker = worker
