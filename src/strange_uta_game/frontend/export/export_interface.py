@@ -1425,8 +1425,8 @@ class ExportInterface(QWidget):
                 },
             })
 
-        # 对项目副本执行导出，后台线程期间 UI 继续编辑不影响导出内容
-        project_copy = deepcopy(self._project)
+        # 副本由 ExportTaskWorker 在导出线程内制作（大项目 deepcopy 不卡
+        # UI 线程），导出期间 UI 继续编辑不影响导出内容
 
         green = _theme.status_complete.name()
         state_tooltip = StateToolTip(self.tr("正在导出"), self.tr("准备中..."), self)
@@ -1443,7 +1443,7 @@ class ExportInterface(QWidget):
         state_tooltip.move(state_tooltip.getSuitablePos())
         state_tooltip.show()
 
-        worker = ExportTaskWorker(project_copy, self._export_service, jobs)
+        worker = ExportTaskWorker(self._project, self._export_service, jobs)
         thread = QThread(self)
         worker.moveToThread(thread)
         self._exporting = True

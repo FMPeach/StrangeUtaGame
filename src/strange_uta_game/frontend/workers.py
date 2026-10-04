@@ -494,9 +494,12 @@ class ExportTaskWorker(QObject):
     finished = pyqtSignal(object)         # {"exported": [...], "failed": [(path, msg)], "cancelled": bool}
     error = pyqtSignal(str)
 
-    def __init__(self, project_copy: Project, export_service, jobs: list):
+    def __init__(self, project: Project, export_service, jobs: list, *, snapshot: bool = True):
         super().__init__()
-        self._project = project_copy
+        # 持原始引用；snapshot=True 时副本在本线程 run() 内制作，大项目
+        # deepcopy 的数百毫秒不再卡 UI 线程
+        self._project = project
+        self._snapshot = snapshot
         self._export_service = export_service
         self._jobs = jobs
         self._cancelled = False
@@ -505,10 +508,23 @@ class ExportTaskWorker(QObject):
         self._cancelled = True
 
     def run(self) -> None:
+        from copy import deepcopy
+
         exported: list = []
         failed: list = []
         cancelled = False
         try:
+            project = self._project
+            if self._snapshot:
+                # 导出期间 UI 可继续编辑：对副本导出。并发编辑可能令
+                # deepcopy 抛 RuntimeError（容器尺寸变化），重试一次
+                for attempt in range(2):
+                    try:
+                        project = deepcopy(self._project)
+                        break
+                    except RuntimeError:
+                        if attempt == 1:
+                            raise
             total = len(self._jobs)
             for done, job in enumerate(self._jobs):
                 if self._cancelled:
@@ -520,7 +536,7 @@ class ExportTaskWorker(QObject):
                 tmp_path = str(target_path.with_name(f"{target_path.stem}.tmp{ext}"))
                 try:
                     result = self._export_service.export(
-                        self._project, job["format_name"], tmp_path, **job["kwargs"]
+                        project, job["format_name"], tmp_path, **job["kwargs"]
                     )
                     if result.success:
                         # fsync 临时文件后再 replace（断电不致半截正式文件）；
