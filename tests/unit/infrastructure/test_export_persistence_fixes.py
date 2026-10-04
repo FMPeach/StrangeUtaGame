@@ -659,6 +659,72 @@ class TestNetworkDictionaryFetchFixes:
         nd.fetch_source_entries("https://example.net/d.php", diagnostics=diagnostics)
         assert diagnostics == {}
 
+    def test_https_network_error_falls_back_to_http(self, monkeypatch, caplog):
+        """https 网络层失败（握手/超时）→ 降级 http 重试成功，诊断可见。"""
+        conn_error = urllib.error.URLError(ConnectionError("timed out"))
+        opener = _ScriptedOpener([conn_error, b'[success]\n\xe3\x81\x82\t\xe3\x81\x82\n'])
+        monkeypatch.setattr(urllib.request, "build_opener", lambda *h: opener)
+
+        diagnostics: dict = {}
+        with caplog.at_level(
+            logging.WARNING,
+            logger="strange_uta_game.backend.infrastructure.network_dictionary",
+        ):
+            entries = nd.fetch_source_entries(
+                "https://example.net/d.php", diagnostics=diagnostics
+            )
+
+        assert len(opener.requests) == 2, "https 失败后应 http 重试一次"
+        assert opener.requests[0].full_url.startswith("https://")
+        assert opener.requests[1].full_url.startswith("http://"), "第二次必须是 http"
+        assert len(entries) == 1
+        assert diagnostics.get("http_fallback") is True
+        assert "降级 http" in caplog.text
+
+    def test_cert_error_then_insecure_fail_then_http(self, monkeypatch):
+        """证书错误→无验证重试也网络层失败→仍回退 http。"""
+        cert_error = urllib.error.URLError(
+            ssl.SSLError("CERTIFICATE_VERIFY_FAILED: certificate verify failed")
+        )
+        conn_error = urllib.error.URLError(ConnectionError("handshake reset"))
+        opener = _ScriptedOpener(
+            [cert_error, conn_error, b'[success]\n\xe3\x81\x82\t\xe3\x81\x82\n']
+        )
+        monkeypatch.setattr(urllib.request, "build_opener", lambda *h: opener)
+
+        diagnostics: dict = {}
+        entries = nd.fetch_source_entries(
+            "https://example.net/d.php", diagnostics=diagnostics
+        )
+
+        assert len(opener.requests) == 3
+        assert opener.requests[2].full_url.startswith("http://")
+        assert len(entries) == 1
+        assert diagnostics.get("insecure_fallback") is True
+        assert diagnostics.get("http_fallback") is True
+
+    def test_http_url_never_upgraded(self, monkeypatch):
+        """http 源失败不升级 https，直接失败。"""
+        conn_error = urllib.error.URLError(ConnectionError("refused"))
+        opener = _ScriptedOpener([conn_error])
+        monkeypatch.setattr(urllib.request, "build_opener", lambda *h: opener)
+
+        with pytest.raises(urllib.error.URLError):
+            nd.fetch_source_entries("http://example.net/d.php")
+        assert len(opener.requests) == 1
+
+    def test_http_fallback_disabled_raises(self, monkeypatch):
+        """allow_http_fallback=False 时不降级，透传网络错误。"""
+        conn_error = urllib.error.URLError(ConnectionError("timed out"))
+        opener = _ScriptedOpener([conn_error])
+        monkeypatch.setattr(urllib.request, "build_opener", lambda *h: opener)
+
+        with pytest.raises(urllib.error.URLError):
+            nd.fetch_source_entries(
+                "https://example.net/d.php", allow_http_fallback=False
+            )
+        assert len(opener.requests) == 1
+
     def test_auto_update_surfaces_downgrade_message(self, monkeypatch):
         """F13：auto_update_enabled_sources 把降级事件放进 UI 可见的消息列表。"""
 

@@ -137,6 +137,7 @@ def fetch_source_entries(
     allow_insecure_fallback: bool = True,
     proxies: Optional[Dict[str, str]] = None,
     diagnostics: Optional[Dict[str, Any]] = None,
+    allow_http_fallback: bool = True,
 ) -> List[Dict[str, Any]]:
     """HTTP 拉取一个 RL 兼容的网络源 → annotated entries。
 
@@ -150,10 +151,16 @@ def fetch_source_entries(
     降级**不静默**：记录 warning 日志，并写入 ``diagnostics`` 供调用方在
     UI 上展示。
 
+    若 https 拉取（含无验证重试）仍网络层失败且 ``allow_http_fallback=True``，
+    再以 http 重试一次——部分 RL 兼容源的 https 可用性差（握手慢/间歇
+    超时），协议回退保可用性；同样记录日志并写入 ``diagnostics``
+    （``{"http_fallback": True}``）。只降级不升级，http 源永不改 https。
+
     Args:
         url: 服务端 PHP 端点 URL。
         timeout: 连接 + 读超时（秒）。
         allow_insecure_fallback: 默认 True；遇到证书验证错误时尝试无验证重试。
+        allow_http_fallback: 默认 True；https 网络层失败时降级 http 重试一次。
         proxies: 应用代理（:func:`resolve_app_proxies` 产物）。
             ``None`` 保持 urllib 默认（读系统环境变量）；``{}`` 显式禁用
             代理（mode=off）；非空 dict 则经 ``ProxyHandler`` 走代理。
@@ -171,14 +178,21 @@ def fetch_source_entries(
     # 源 URL 自带 query（如 ...php?req=version）时必须用 & 续接参数，
     # 直接拼 ? 会得到非法 URL 破坏原有查询串
     sep = "&" if "?" in url else "?"
-    full_url = f"{url}{sep}req=get&dummy={int(time.time() * 1000)}"
-    req = urllib.request.Request(
-        full_url,
-        headers={"User-Agent": "StrangeUtaGame/1.0 (+rl-compat)"},
-    )
+    is_https = url.lower().startswith("https://")
 
-    def _do_request(insecure: bool) -> bytes:
-        ctx = _build_ssl_context(insecure=insecure) if url.lower().startswith("https") else None
+    def _build_request(scheme_downgrade: bool = False) -> urllib.request.Request:
+        target = url
+        if scheme_downgrade and is_https:
+            target = "http://" + url[len("https://"):]
+        full_url = f"{target}{sep}req=get&dummy={int(time.time() * 1000)}"
+        return urllib.request.Request(
+            full_url,
+            headers={"User-Agent": "StrangeUtaGame/1.0 (+rl-compat)"},
+        )
+
+    def _do_request(insecure: bool = False, scheme_downgrade: bool = False) -> bytes:
+        use_https = is_https and not scheme_downgrade
+        ctx = _build_ssl_context(insecure=insecure) if use_https else None
         handlers: List[urllib.request.BaseHandler] = []
         if proxies is not None:
             # {} 显式禁用代理；非空则走 ProxyHandler（覆盖环境变量）
@@ -186,30 +200,49 @@ def fetch_source_entries(
         if ctx is not None:
             handlers.append(urllib.request.HTTPSHandler(context=ctx))
         opener = urllib.request.build_opener(*handlers)
-        with opener.open(req, timeout=timeout) as resp:
+        with opener.open(_build_request(scheme_downgrade), timeout=timeout) as resp:
             return resp.read()
 
+    def _fetch_https() -> bytes:
+        try:
+            return _do_request(insecure=False)
+        except urllib.error.URLError as e:
+            # 仅在 SSL 证书验证失败 / 系统证书链缺失时尝试无验证重试
+            reason = getattr(e, "reason", e)
+            is_cert_err = isinstance(reason, ssl.SSLCertVerificationError) or (
+                isinstance(reason, ssl.SSLError)
+                and "CERTIFICATE_VERIFY_FAILED" in str(reason)
+            )
+            if not (is_cert_err and allow_insecure_fallback):
+                raise
+            # 降级为无验证重试不能静默：记录日志并写入诊断信息，
+            # 供调用方（auto_update_enabled_sources 等）在 UI 上提示
+            logger.warning(
+                "网络词典源证书验证失败，已降级为无验证拉取: %s（%s）",
+                url,
+                reason,
+            )
+            if diagnostics is not None:
+                diagnostics["insecure_fallback"] = True
+                diagnostics["reason"] = str(reason)
+            return _do_request(insecure=True)
+
     try:
-        raw = _do_request(insecure=False)
+        raw = _fetch_https()
     except urllib.error.URLError as e:
-        # 仅在 SSL 证书验证失败 / 系统证书链缺失时尝试无验证重试
-        reason = getattr(e, "reason", e)
-        is_cert_err = isinstance(reason, ssl.SSLCertVerificationError) or (
-            isinstance(reason, ssl.SSLError) and "CERTIFICATE_VERIFY_FAILED" in str(reason)
-        )
-        if not (is_cert_err and allow_insecure_fallback):
+        # https 网络层失败（握手失败/连接被拒/超时，含无验证重试仍失败）：
+        # 降级 http 再试一次——只降级不升级
+        if not (is_https and allow_http_fallback):
             raise
-        # 降级为无验证重试不能静默：记录日志并写入诊断信息，
-        # 供调用方（auto_update_enabled_sources 等）在 UI 上提示
         logger.warning(
-            "网络词典源证书验证失败，已降级为无验证拉取: %s（%s）",
+            "网络词典源 https 拉取失败，降级 http 重试: %s（%s）",
             url,
-            reason,
+            e,
         )
         if diagnostics is not None:
-            diagnostics["insecure_fallback"] = True
-            diagnostics["reason"] = str(reason)
-        raw = _do_request(insecure=True)
+            diagnostics["http_fallback"] = True
+            diagnostics.setdefault("reason", str(e))
+        raw = _do_request(scheme_downgrade=True)
 
     body = raw.decode("utf-8", errors="replace")
     if not body.startswith("[success]"):
@@ -457,6 +490,11 @@ def auto_update_enabled_sources(
                 ok_msgs.append(
                     f"{src.get('name', src.get('id', '?'))}: "
                     "证书验证失败，已降级为无验证拉取（请检查系统证书链）"
+                )
+            elif diag.get("http_fallback"):
+                ok_msgs.append(
+                    f"{src.get('name', src.get('id', '?'))}: "
+                    "https 拉取失败，已降级为 http 拉取"
                 )
         except Exception as e:
             fail_msgs.append(f"{src.get('name', src.get('id', '?'))}: {e}")
