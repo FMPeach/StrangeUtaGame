@@ -9,6 +9,7 @@
 """
 
 import json
+from copy import deepcopy
 
 from PyQt6.QtWidgets import (
     QApplication,
@@ -116,6 +117,21 @@ class SingerEditDialog(QDialog):
     """演唱者编辑对话框，支持单色与分色（最多5色）模式"""
 
     MAX_COLORS = 5
+
+    # 演唱者名会被原样嵌入各种列分隔/标签序列：行详情「演唱者」列以逗号
+    # 分隔；全文本/Nicokara 以【名】作切换标签。名称含这些字符会破坏序列
+    # （如字符的 singer_id 被静默清空）。上游评审：不做硬拒绝，统一自动
+    # 清洗为全角形近字（老用户加载旧工程时同样自动修复）。
+    _INVALID_NAME_CHARS = set(",{}|[]>【】")
+    _NAME_CHAR_REPAIR = str.maketrans({
+        ",": "，", "{": "｛", "}": "｝", "|": "｜", ">": "＞",
+        "[": "［", "]": "］", "【": "〖", "】": "〗",
+    })
+
+    @classmethod
+    def sanitize_singer_name(cls, name: str) -> str:
+        """把会破坏列分隔/【名】标签序列的字符替换为全角形近字。"""
+        return name.translate(cls._NAME_CHAR_REPAIR)
 
     def __init__(
         self,
@@ -248,10 +264,13 @@ class SingerEditDialog(QDialog):
         # 初始化分色行
         self._rebuild_split_rows()
 
-        # 默认演唱者
+        # 默认演唱者。编辑「已是默认」的演唱者时置灰：取消默认没有交互入口
+        # （勾选值会被静默忽略却提示已更新），先在交互上禁掉并说明。
         self.chk_default = TogglePushButton(self.tr("设为默认演唱者"))
         if self._singer and self._singer.is_default:
             self.chk_default.setChecked(True)
+            self.chk_default.setEnabled(False)
+            self.chk_default.setToolTip(self.tr("该演唱者已是默认演唱者"))
         outer.addWidget(self.chk_default)
 
         # 确定 / 取消
@@ -431,6 +450,8 @@ class SingerEditDialog(QDialog):
         self._color = src.color
         self._color_mode = src.color_mode
         self._split_colors = list(src.split_colors)
+        # 颜色列表整体替换，激活槽位重新指到主色，避免残留旧索引越界失效
+        self._active_split_idx = 0
 
         # 同步 UI
         if self._color_mode == "split":
@@ -521,6 +542,26 @@ class SingerEditDialog(QDialog):
             self._refresh_solid_swatch()
 
     # ── 安全关闭 ──────────────────────────────────────────────────────────
+
+    def accept(self):
+        # 名称含分隔/标签字符时自动清洗为全角形近字（上游评审：不硬拒绝，
+        # 避免老用户已有的演唱者名失效）
+        name = self.line_name.text().strip()
+        fixed = self.sanitize_singer_name(name)
+        if fixed != name:
+            self.line_name.setText(fixed)
+            InfoBar.warning(
+                title=self.tr("演唱者名称已自动修正"),
+                content=self.tr("名称中会破坏歌词标注/导出序列的字符已替换为全角：{name}").format(
+                    name=fixed
+                ),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=5000,
+                parent=self,
+            )
+        super().accept()
 
     def done(self, result):
         combo = getattr(self, "combo_group", None)
@@ -1233,7 +1274,29 @@ class SingerManagerInterface(QWidget):
         self._project = project
         self._singer_service = SingerService(project)
         self._selected_ids.clear()
+        self._repair_legacy_singer_names()
         self._refresh_list()
+
+    def _repair_legacy_singer_names(self):
+        """上游评审：老工程里的演唱者名可能含 ,{}|[]>【】 等会破坏列分隔/
+        【名】标签序列的字符——加载时自动替换为全角形近字并去重，替代
+        直接拒绝（避免老用户的演唱者名失效）。"""
+        if not self._project:
+            return
+        seen = set()
+        changed = 0
+        for singer in self._project.singers:
+            fixed = SingerEditDialog.sanitize_singer_name(singer.name)
+            base, n = fixed, 2
+            while fixed in seen:
+                fixed = f"{base} {n}"
+                n += 1
+            seen.add(fixed)
+            if fixed != singer.name:
+                singer.name = fixed
+                changed += 1
+        if changed and getattr(self, "_store", None) is not None:
+            self._store.mark_dirty()
 
     def set_store(self, store):
         """接入 ProjectStore 统一数据中心。"""
@@ -1554,11 +1617,13 @@ class SingerManagerInterface(QWidget):
             self._refresh_list()
             return
 
+        before_singers = deepcopy(self._project.singers)
         ok = self._singer_service.reorder_singers(ordered_ids)
         if not ok:
             self._refresh_list()
             return
 
+        self._push_singers_undo(before_singers, self.tr("调整演唱者顺序"))
         self._notify_singers_changed()
 
     # ==================== 添加 / 编辑 ====================
@@ -1587,6 +1652,7 @@ class SingerManagerInterface(QWidget):
 
         data = dialog.get_data()
         try:
+            before_singers = deepcopy(self._project.singers)
             singer_name = data["name"] if data["name"] else None
             singer = self._singer_service.add_singer(
                 name=singer_name,
@@ -1598,6 +1664,10 @@ class SingerManagerInterface(QWidget):
             if data["is_default"]:
                 self._singer_service.set_default_singer(singer.id)
 
+            self._push_singers_undo(
+                before_singers,
+                self.tr("添加演唱者 {name}").format(name=singer.name),
+            )
             self._notify_singers_changed()
             self._info(self.tr("添加成功"),
                        self.tr("已添加演唱者: {name}").format(name=singer.name))
@@ -1623,6 +1693,7 @@ class SingerManagerInterface(QWidget):
 
         data = dialog.get_data()
         try:
+            before_singers = deepcopy(self._project.singers)
             if data["name"] and data["name"] != singer.name:
                 self._singer_service.rename_singer(singer.id, data["name"])
             color_changed = (
@@ -1643,6 +1714,10 @@ class SingerManagerInterface(QWidget):
             if new_group != singer.group:
                 self._singer_service.change_singer_group(singer.id, new_group)
 
+            self._push_singers_undo(
+                before_singers,
+                self.tr("编辑演唱者 {name}").format(name=data["name"] or singer.name),
+            )
             self._notify_singers_changed()
             self._info(self.tr("修改成功"),
                        self.tr("已更新演唱者: {name}").format(name=singer.name))
@@ -1706,11 +1781,19 @@ class SingerManagerInterface(QWidget):
         if not transfer_to:
             return
 
+        # 删除会转移/级联句子，singers 与 sentences 都要快照才能完整撤销
+        before_singers = deepcopy(self._project.singers)
+        before_sentences = deepcopy(self._project.sentences)
         ok = self._singer_service.batch_remove_singers(selected_ids, transfer_to)
         if not ok:
             self._error(self.tr("删除失败"), self.tr("请检查转移目标是否有效"))
             return
 
+        self._push_singers_undo(
+            before_singers,
+            self.tr("删除 {n} 位演唱者").format(n=len(selected_singers)),
+            before_sentences=before_sentences,
+        )
         self._notify_singers_changed()
         self._info(self.tr("删除成功"),
                    self.tr("已删除 {n} 位演唱者").format(n=len(selected_singers)))
@@ -1721,6 +1804,7 @@ class SingerManagerInterface(QWidget):
         selected_ids = self._get_selected_singer_ids()
         if not selected_ids:
             return
+        before_singers = deepcopy(self._project.singers)
         ok = self._singer_service.batch_set_enabled(selected_ids, enabled)
         if not ok:
             self._error(
@@ -1728,6 +1812,10 @@ class SingerManagerInterface(QWidget):
                 self.tr("部分演唱者状态未能更新") if not enabled else self.tr("部分演唱者未能启用"),
             )
             return
+        self._push_singers_undo(
+            before_singers,
+            self.tr("启用演唱者") if enabled else self.tr("禁用演唱者"),
+        )
         self._notify_singers_changed()
         self._info(
             self.tr("完成"),
@@ -1747,6 +1835,7 @@ class SingerManagerInterface(QWidget):
             return
 
         new_group = dialog.get_group()
+        before_singers = deepcopy(self._project.singers)
         ok = all(
             self._singer_service.change_singer_group(sid, new_group)
             for sid in selected_ids
@@ -1755,6 +1844,7 @@ class SingerManagerInterface(QWidget):
             self._error(self.tr("操作失败"), self.tr("部分演唱者分组未能更新"))
             return
 
+        self._push_singers_undo(before_singers, self.tr("设置演唱者分组"))
         self._notify_singers_changed()
         label = f"「{new_group}」" if new_group else self.tr("（无分组）")
         self._info(self.tr("完成"),
@@ -1768,9 +1858,11 @@ class SingerManagerInterface(QWidget):
         if not selected_ids:
             return
         # 顺序操作期间用 backend 提供的"保持相对间隔"语义
+        before_singers = deepcopy(self._project.singers)
         ok = self._singer_service.move_singers(selected_ids, direction)
         if not ok:
             return
+        self._push_singers_undo(before_singers, self.tr("移动演唱者"))
         self._notify_singers_changed()
 
     # ==================== 演唱者预设 ====================
@@ -1865,6 +1957,9 @@ class SingerManagerInterface(QWidget):
         ):
             unnamed_default_id = self._project.singers[0].id
 
+        # 导入会添加演唱者并删除占位符（句子转移），两者都要快照
+        before_singers = deepcopy(self._project.singers)
+        before_sentences = deepcopy(self._project.sentences)
         added = 0
         for preset in selected_presets:
             name = preset.get("name", "")
@@ -1893,6 +1988,13 @@ class SingerManagerInterface(QWidget):
             except Exception:
                 pass
 
+        if added > 0:
+            self._push_singers_undo(
+                before_singers,
+                self.tr("加载演唱者预设（{n} 位）").format(n=added),
+                before_sentences=before_sentences,
+            )
+
         self._notify_singers_changed()
 
         if added > 0:
@@ -1901,8 +2003,56 @@ class SingerManagerInterface(QWidget):
 
     # ==================== 工具方法 ====================
 
+    def _get_shared_command_manager(self):
+        """获取主窗口共享的 CommandManager（经打轴服务只读属性），无则 None。
+
+        演唱者界面不持有撤销栈；登记到打轴服务的 CommandManager 后，
+        演唱者操作与打轴操作共用同一套撤销/重做（同批量变更弹窗的做法）。
+        """
+        timing_service = getattr(self.window(), "_timing_service", None)
+        if timing_service is None:
+            return None
+        return getattr(timing_service, "command_manager", None)
+
+    def _push_singers_undo(self, before_singers, description: str, before_sentences=None) -> None:
+        """把一次演唱者操作登记为 SingersSnapshotCommand（可撤销）。
+
+        before_* 传操作前的深拷贝快照；句子未被操作触碰时 before_sentences
+        传 None（拖放重排等高频操作免整表歌词快照开销）。删除演唱者会转移/
+        级联句子，必须传入句子快照。拿不到共享 CommandManager 时静默跳过。
+        """
+        if not self._project:
+            return
+        command_manager = self._get_shared_command_manager()
+        if command_manager is None:
+            return
+
+        from strange_uta_game.backend.application.commands.ui_extra_commands import (
+            SingersSnapshotCommand,
+        )
+
+        command = SingersSnapshotCommand(
+            self._project,
+            before_singers,
+            deepcopy(self._project.singers),
+            description,
+            before_sentences=before_sentences,
+            after_sentences=(
+                deepcopy(self._project.sentences)
+                if before_sentences is not None
+                else None
+            ),
+        )
+        command_manager.execute(command)
+
     def _notify_singers_changed(self):
         """统一通知：刷新本地列表 + 通知 ProjectStore"""
+        # 清理僵尸选中 ID（如删除演唱者后残留），避免统计栏长期显示错误
+        if self._project:
+            alive_ids = {s.id for s in self._project.singers}
+            self._selected_ids &= alive_ids
+        else:
+            self._selected_ids.clear()
         self._refresh_list()
         if getattr(self, "_store", None) is not None:
             self._store.notify("singers")
