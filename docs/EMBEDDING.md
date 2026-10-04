@@ -183,6 +183,9 @@ class SettingsProvider(Protocol):
 - 全局 Ctrl+S 快捷键注册（改由宿主转发 `trigger_save`）
 - 启动期定时器：崩溃恢复弹窗、应用 updater 自检
 - `_init_window` 的全局主题 / 标题 / 尺寸 / 居中（只保留 widget 本地背景兜底）
+- macOS 原生标题栏、系统按钮和导入后的无边框刷新：嵌入后 `NSView.window()`
+  指向宿主窗口，SUG 不修改它的装饰、按钮位置或拖动状态。正常的显示、重绘和
+  可见性通知仍保留；standalone 与 Windows 的窗口初始化保持原有行为。
 - `closeEvent` 的 `QApplication.quit()`（embedded 下会杀掉宿主进程）
 - **全局主题写入**：`SettingsInterface._apply_theme_setting` 在 embedded 下直接
   return —— 不能 set `theme.mode`，否则会通过 `_sync_app_palette()` 掀翻
