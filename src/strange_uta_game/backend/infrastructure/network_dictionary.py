@@ -308,9 +308,11 @@ def ensure_builtin_sources(doc: Dict[str, Any]) -> Dict[str, Any]:
             existing.setdefault("enabled", True)
             existing.setdefault("entries", [])
             existing.setdefault("last_fetched", None)
-            # 内置源 name 默认与 BUILTIN_SOURCES 保持一致（用户改过的不动）
+            # 内置源 name 默认与 BUILTIN_SOURCES 保持一致（用户改过的不动）；
+            # url 属代码所有，强制刷新——http→https 等修正需对旧存档生效
+            # （setdefault 会让老存档永远停留在 http://）
             existing.setdefault("name", b["name"])
-            existing.setdefault("url", b["url"])
+            existing["url"] = b["url"]
         else:
             new = dict(b)
             new.setdefault("entries", [])

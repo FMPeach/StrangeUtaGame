@@ -584,6 +584,29 @@ class TestNetworkDictionaryFetchFixes:
         """F12：内置源 URL 走 https（不再明文 HTTP）。"""
         assert nd.BUILTIN_SOURCES[0]["url"].startswith("https://")
 
+    def test_ensure_builtin_sources_upgrades_legacy_http_url(self):
+        """旧存档中内置源的 http URL 被 BUILTIN_SOURCES 强制刷新（非 setdefault）。"""
+        legacy = {
+            "sources": [
+                {
+                    "id": nd.BUILTIN_SOURCES[0]["id"],
+                    "name": nd.BUILTIN_SOURCES[0]["name"],
+                    "url": "http://legacy.example/dict.php",
+                    "builtin": True,
+                    "enabled": True,
+                    "entries": [],
+                    "last_fetched": None,
+                }
+            ],
+            "source_order": [nd._LOCAL_SOURCE_ID],
+        }
+        upgraded = nd.ensure_builtin_sources(legacy)
+        saved = next(
+            s for s in upgraded["sources"] if s["id"] == nd.BUILTIN_SOURCES[0]["id"]
+        )
+        assert saved["url"] == nd.BUILTIN_SOURCES[0]["url"]
+        assert saved["url"].startswith("https://")
+
     def test_query_separator_for_url_with_existing_query(self, monkeypatch):
         """F12：源 URL 自带 query 时用 & 续接参数，不破坏原查询串。"""
         opener = _ScriptedOpener([b"[success]\n\xe3\x81\x82\t\xe3\x81\x82\n"])
