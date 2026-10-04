@@ -89,8 +89,10 @@ class WorkerLike:
 
 
 WORKER_RUN_TIMEOUT_S = 60 * 60
-"""对齐 worker 单次执行硬超时（默认 60 分钟）：CUDA 死锁等永久挂起时由
-client 的 watchdog 击杀进程并转换成中文超时错误，宿主不再无限等待。"""
+"""对齐 worker 停滞超时阈值（默认 60 分钟无进展）：client 侧看门狗以
+progress 变化为探针，仅当超过该时长没有任何 progress 变化（CUDA 死锁等
+永久挂起）才击杀进程并转换成中文超时错误——慢机器上总时长超过阈值的
+正常任务不受影响，宿主也不再无限等待。"""
 
 
 @dataclass

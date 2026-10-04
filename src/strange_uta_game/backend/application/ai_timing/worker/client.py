@@ -17,6 +17,7 @@ import os
 import subprocess
 import sys
 import threading
+import time
 from typing import Callable, Dict, List, Optional
 
 from strange_uta_game.backend.application.ai_timing.alignment import (
@@ -247,22 +248,42 @@ class AlignmentWorkerClient:
         on_progress: Optional[ProgressCallback] = None,
         timeout_s: Optional[float] = None,
     ) -> AlignmentResult:
-        """阻塞执行一次对齐；取消/超时/崩溃分别抛对应异常。"""
+        """阻塞执行一次对齐；取消/停滞超时/崩溃分别抛对应异常。
+
+        timeout_s 为**停滞阈值**而非总时长上限：worker 的 progress
+        （stage/percent/message）有变化即重置看门狗，仅当连续 timeout_s
+        无任何变化时击杀——慢机器上的长任务只要在推进就不会被超时。
+        """
         proc = self._ensure_started()
 
-        watchdog: Optional[threading.Timer] = None
+        # 停滞看门狗（progress 探针）：worker 的 progress（stage, percent,
+        # message）发生变化即视为有进展并重置时钟，超过 timeout_s 无任何
+        # 变化才击杀——慢机器上任务总时长可以超过阈值，只要还在推进就不
+        # 超时；CUDA 死锁等真挂死在阈值内无 progress 变化，仍会被终止。
+        # stall_state 的跨线程读写依赖 CPython 字节码原子性，读侧拿到
+        # 略旧值只会让检查晚一轮，无害。
+        stall_state = {"last_change": time.monotonic(), "last_sig": None}
         timed_out = threading.Event()
+        stop_watchdog = threading.Event()
+        watchdog: Optional[threading.Thread] = None
+
+        def _stall_watchdog() -> None:
+            check_interval = min(30.0, max(0.2, timeout_s / 20.0))
+            while not stop_watchdog.wait(check_interval):
+                if self._finished.is_set():
+                    return
+                if time.monotonic() - stall_state["last_change"] > timeout_s:
+                    if not self._finished.is_set():
+                        timed_out.set()
+                        # 进程树击杀：torch/CUDA 可能派生辅助子进程，只杀父
+                        # 进程会把子进程孤儿化（显存占用不释放）
+                        self._kill_tree(proc)
+                    return
+
         if timeout_s is not None:
-
-            def _on_timeout() -> None:
-                if not self._finished.is_set():
-                    timed_out.set()
-                    # 进程树击杀：torch/CUDA 可能派生辅助子进程，只杀父进程
-                    # 会把子进程孤儿化（显存占用不释放）
-                    self._kill_tree(proc)
-
-            watchdog = threading.Timer(timeout_s, _on_timeout)
-            watchdog.daemon = True
+            watchdog = threading.Thread(
+                target=_stall_watchdog, name="aitiming-stall-watchdog", daemon=True
+            )
             watchdog.start()
 
         self._send(
@@ -291,12 +312,18 @@ class AlignmentWorkerClient:
                 except WorkerProtocolError:
                     continue  # 跳过非协议输出，保持通道健壮
                 mtype = message.get("type")
-                if mtype == "progress" and on_progress is not None:
-                    on_progress(
+                if mtype == "progress":
+                    sig = (
                         str(message.get("stage", "")),
                         int(message.get("percent", 0)),
                         str(message.get("message", "")),
                     )
+                    if sig != stall_state["last_sig"]:
+                        # progress 有变化：重置停滞时钟
+                        stall_state["last_sig"] = sig
+                        stall_state["last_change"] = time.monotonic()
+                    if on_progress is not None:
+                        on_progress(sig[0], sig[1], sig[2])
                 elif mtype == "result":
                     self._finished.set()
                     return deserialize_result(message.get("payload") or {})
@@ -312,7 +339,10 @@ class AlignmentWorkerClient:
             if self._cancel_requested.is_set():
                 raise AlignmentWorkerCancelled()
             if timed_out.is_set():
-                raise AlignmentWorkerTimeout("对齐超时，进程已终止")
+                raise AlignmentWorkerTimeout(
+                    f"对齐无进展超时（{int(timeout_s or 0) // 60} 分钟无进度"
+                    "更新），进程已终止"
+                )
             detail = ""
             try:
                 self._stderr_file.flush()
@@ -329,7 +359,8 @@ class AlignmentWorkerClient:
             )
         finally:
             if watchdog is not None:
-                watchdog.cancel()
+                stop_watchdog.set()
+                watchdog.join(timeout=2)
             if not self._finished.is_set():
                 self._finished.set()
             try:

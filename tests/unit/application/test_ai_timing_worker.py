@@ -193,7 +193,43 @@ class TestWorkerProcessLifecycle:
                 )
 
     def test_timeout_kills_worker(self, tmp_path):
-        request = _fake_request(n_tokens=100, fake_duration_ms=100000, fake_delay_ms=100)
+        """停滞超时：align 循环静默（无 progress 变化）→ 阈值内击杀。"""
+        request = _fake_request(
+            n_tokens=100, fake_duration_ms=100000, fake_delay_ms=100,
+            fake_progress_mode="silent",
+        )
+        with AlignmentWorkerClient() as client:
+            with pytest.raises(AlignmentWorkerTimeout):
+                client.run(
+                    request,
+                    audio_path=str(tmp_path / "v.wav"),
+                    model_spec=_FAKE_MODEL,
+                    timeout_s=2.0,
+                )
+
+    def test_progress_change_prevents_timeout(self, tmp_path):
+        """停滞看门狗（progress 探针）：总时长超过阈值但 progress 持续
+        变化的任务不被超时——慢机器长任务只要在推进就放行。"""
+        # 30 token × 150ms ≈ 4.5s 总时长，阈值 1.5s；每 token 发变化的
+        # progress（默认 normal 模式）→ 不应触发 AlignmentWorkerTimeout
+        request = _fake_request(
+            n_tokens=30, fake_duration_ms=30000, fake_delay_ms=150,
+        )
+        with AlignmentWorkerClient() as client:
+            result = client.run(
+                request,
+                audio_path=str(tmp_path / "v.wav"),
+                model_spec=_FAKE_MODEL,
+                timeout_s=1.5,
+            )
+        assert result.spans, "正常完成，未被停滞看门狗误杀"
+
+    def test_static_progress_spam_still_times_out(self, tmp_path):
+        """progress 重复同一内容不算变化：刷屏式假进度仍按停滞超时击杀。"""
+        request = _fake_request(
+            n_tokens=100, fake_duration_ms=100000, fake_delay_ms=100,
+            fake_progress_mode="static",
+        )
         with AlignmentWorkerClient() as client:
             with pytest.raises(AlignmentWorkerTimeout):
                 client.run(

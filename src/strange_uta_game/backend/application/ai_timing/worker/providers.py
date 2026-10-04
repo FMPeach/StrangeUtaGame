@@ -332,7 +332,10 @@ class FakeProvider(ForcedAlignmentProvider):
     均分 token 区间（duration_ms / token 数），支持 options 控制：
     - ``fake_duration_ms``：音频总时长（默认 1000）；
     - ``fake_delay_ms``：每个 token 之间的延迟（模拟长任务，取消测试用）；
-    - ``fake_crash``：load 阶段抛出异常（崩溃隔离测试用）。
+    - ``fake_crash``：load 阶段抛出异常（崩溃隔离测试用）；
+    - ``fake_progress_mode``：align 循环 progress 发射模式（停滞看门狗
+      测试用）：normal（默认，每 token 变化）/ static（每 token 同内容）/
+      silent（不发）。
     """
 
     provider_id = "fake"
@@ -374,6 +377,11 @@ class FakeProvider(ForcedAlignmentProvider):
         spans: List[EmissionSpan] = []
         import time
 
+        # fake_progress_mode（停滞看门狗测试用）：
+        # - "normal"（默认）：每个 token 发一条变化的 progress（percent/计数递增）；
+        # - "static"：每个 token 发同一内容 progress（有输出但无变化）；
+        # - "silent"：align 循环不发 progress（模拟挂死/无探针输出）。
+        progress_mode = str(options.get("fake_progress_mode", "normal"))
         for i, token in enumerate(tokens):
             _cancelled_check(cancel)
             if delay:
@@ -386,10 +394,13 @@ class FakeProvider(ForcedAlignmentProvider):
                     score=1.0,
                 )
             )
-            progress(
-                50 + int(50 * (i + 1) / len(tokens)),
-                f"对齐进度 {i + 1}/{len(tokens)}",
-            )
+            if progress_mode == "normal":
+                progress(
+                    50 + int(50 * (i + 1) / len(tokens)),
+                    f"对齐进度 {i + 1}/{len(tokens)}",
+                )
+            elif progress_mode == "static":
+                progress(42, "对齐进度")
         return AlignmentResult(
             annotation_digest=request.annotation_digest,
             model_id="fake",
