@@ -6136,14 +6136,56 @@ class EditorInterface(QWidget):
     # ==================== 打轴 ====================
 
     def _on_tag_now(self):
+        """打轴按钮点击：与键盘打轴按键（tag_now）完全同源的打轴入口。
+
+        旧实现直连 on_timing_key_pressed/released，服务 shim 内的裸
+        engine.play() 会绕过 _on_play：音频在响而界面仍停留在编辑模式
+        （不切打轴模式、无位置轮询/时间同步、无按键音），属遗留 BUG。
+
+        现与键盘 tag_now 路径逐项对齐：
+        1. 未播放 → 先走 _on_play() 正常启播（锁定区间回退 seek、
+           「模式：打轴」切换、位置轮询（时间同步）、节拍器、自动滚动
+           全部开启）；启播失败（如未加载音频）则不打点；
+        2. 按键音路由同键盘：普通 cp 在 press 响、停顿点 cp 在 release 响；
+        3. 时间戳同源同宿：queue_delay_ms 以 time.monotonic() 补偿
+           handler 入口到读位置的耗时，经 on_timing_key_pressed/released
+           写入当前 checkpoint——与键盘打轴键拿同一个位置、写同一个位置。
+        """
         if not self._timing_service:
             return
 
+        handler_entry_s = time.monotonic()
+        keysound = getattr(self, "_keysound_player", None)
+        key_name = self._tag_now_button_key_name()
         try:
-            self._timing_service.on_timing_key_pressed("SPACE")
-            self._timing_service.on_timing_key_released("SPACE")
+            if not self._timing_service.is_playing():
+                self._on_play()
+                if not self._timing_service.is_playing():
+                    # 启播失败：错误提示已由 _on_play 弹出，不再打点
+                    return
+            # press 语义：普通 cp 写时间戳并推进（停顿点 cp 由服务层过滤）
+            if keysound is not None and not self._timing_service.is_current_cp_sentence_end_tail():
+                keysound.play_press()
+            queue_delay_ms = max(0, int((time.monotonic() - handler_entry_s) * 1000))
+            if queue_delay_ms > 500:
+                queue_delay_ms = 0
+            self._timing_service.on_timing_key_pressed(key_name, queue_delay_ms)
+            # release 语义：停顿点 cp 在"抬起"时写入（模拟一次完整敲击）
+            if keysound is not None and self._timing_service.is_current_cp_sentence_end_tail():
+                keysound.play_release()
+            queue_delay_ms = max(0, int((time.monotonic() - handler_entry_s) * 1000))
+            if queue_delay_ms > 500:
+                queue_delay_ms = 0
+            self._timing_service.on_timing_key_released(key_name, queue_delay_ms)
         except Exception as e:
             self._show_runtime_error(str(e))
+
+    def _tag_now_button_key_name(self) -> str:
+        """打轴按钮对应的按键名：打轴模式 tag_now 首个绑定键（与按钮文案一致）。"""
+        actions = getattr(self, "_shortcut_actions_timing", None) or {}
+        raw = actions.get("tag_now", "") or ""
+        first = raw.split(",")[0].split(":")[0].strip()
+        return first or "SPACE"
 
     def _on_clear_current_line_tags(self):
         if not self._timing_service:
