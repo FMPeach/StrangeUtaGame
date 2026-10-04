@@ -865,6 +865,16 @@ Under <b>Settings → Network</b> you can switch dictionary sources (<b>Rhythmic
 
 </details>
 
+<details>
+<summary><b>Q8. 启动报 "Failed to load Python DLL '…_internal\python313.dll' LoadLibrary: 找不到指定的模块"？</b> &nbsp; <i>Startup fails with "Failed to load Python DLL … python313.dll"?</i></summary>
+
+<br/>
+
+按顺序排查：① 杀毒软件<b>隔离</b>了 python313.dll（到杀毒软件隔离区恢复文件，并把软件目录加入白名单）；② <b>首次安装误用 app 分包</b> —— 发布资产里的 <code>*-app.zip</code> 是给老用户增量更新用的分包（不含 Python 运行时），<b>首次安装必须下载不带 -app / -runtime 后缀的完整 zip</b>，用本地解压软件完整解压后再运行，勿在压缩软件预览中直接运行；③ 缺 <b>VC++ 运行库</b> —— 安装 <code>vc_redist.x64.exe</code>（2015-2022）；④ 右键 exe → 属性 → <b>解除锁定</b>。  
+Troubleshoot in order: ① antivirus <b>quarantined</b> <code>python313.dll</code> — restore it from the quarantine and whitelist the app folder; ② <b>first-time install used the app-only package</b> — the <code>*-app.zip</code> asset is an incremental update part for existing users (no Python runtime inside); first-time installs must download the <b>full zip without the -app / -runtime suffix</b> and extract it fully with a local unpacker, never run it from the archiver's preview window; ③ missing <b>VC++ runtime</b> — install <code>vc_redist.x64.exe</code> (2015-2022); ④ right-click the exe → Properties → <b>Unblock</b>.
+
+</details>
+
 <!-- ───────────────────────────── License ───────────────────────────── -->
 
 ## 📜 License
