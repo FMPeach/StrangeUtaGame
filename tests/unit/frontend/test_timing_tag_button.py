@@ -58,6 +58,10 @@ def _make_editor(service: _FakeTimingService, keysound=None, tag_raw="D:short,F:
         _keysound_player=keysound,
         _shortcut_actions_timing={"tag_now": tag_raw},
         on_play_calls=[],
+        # 打轴 UI 守卫替身（无分析任务在跑 → 打点放行）
+        _ruby_analysis_in_progress=lambda: False,
+        _reject_during_ruby_analysis=lambda: False,
+        _clamp_queue_delay=lambda ms: ms,
     )
 
     def fake_on_play():
