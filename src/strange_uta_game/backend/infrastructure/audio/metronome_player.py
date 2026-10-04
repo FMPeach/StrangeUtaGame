@@ -15,8 +15,10 @@ from __future__ import annotations
 
 import ctypes
 from pathlib import Path
+from typing import Optional
 
 from . import bass_available
+from .sample_registry import register_bass_sample_owner
 
 try:
     from .bass_engine import (
@@ -57,7 +59,14 @@ class MetronomePlayer:
     def __init__(self) -> None:
         self._beat_sample: int = 0
         self._accent_sample: int = 0
+        # 源路径记忆：BASS 会话被引擎 BASS_Free 重建后按路径惰性重载
+        self._beat_path: Optional[Path] = None
+        self._accent_path: Optional[Path] = None
+        self._invalidated: bool = False
         self._volume: float = 1.0  # 0.0 ~ 2.0（对应 0 ~ 200%）
+        # 登记：任一 BASS 引擎恢复设备（BASS_Free 重建会话）后统一失效
+        # 本实例句柄，下一次播放时对新会话惰性重载（sample_registry）。
+        register_bass_sample_owner(self)
 
     def load(self, beat_path: Path, accent_path: Path) -> None:
         """加载普通拍和重音样本。已有样本先释放。"""
@@ -66,8 +75,26 @@ class MetronomePlayer:
         if not _bass.BASS_Init(-1, 44100, BASS_DEVICE_LATENCY, None, None):
             if _bass.BASS_ErrorGetCode() != BASS_ERROR_ALREADY:
                 return  # 初始化失败，静默跳过
+        self._beat_path = beat_path
+        self._accent_path = accent_path
         self._beat_sample = self._load_sample(beat_path)
         self._accent_sample = self._load_sample(accent_path)
+        self._invalidated = False
+
+    def _reload_if_invalidated(self) -> None:
+        """设备恢复（BASS_Free 重建会话）后的惰性重载。
+
+        引擎恢复流程结束后本实例句柄已被失效归零；此处按记忆的源路径把
+        样本重新加载到新会话。只触发一次，失败静默（_invalidated 已清，
+        不会每个节拍点都重试无效文件 IO）。
+        """
+        if not self._invalidated:
+            return
+        self._invalidated = False
+        beat, accent = self._beat_path, self._accent_path
+        if beat is None or accent is None:
+            return
+        self.load(beat, accent)
 
     def _load_sample(self, path: Path) -> int:
         if not path.is_file():
@@ -98,10 +125,12 @@ class MetronomePlayer:
 
     def play_beat(self) -> None:
         """播放普通拍（立即返回，不阻塞）。"""
+        self._reload_if_invalidated()
         self._play_sample(self._beat_sample)
 
     def play_accent(self) -> None:
         """播放重音（每 4 拍的小节首拍）。"""
+        self._reload_if_invalidated()
         self._play_sample(self._accent_sample)
 
     def set_volume(self, volume_pct: int) -> None:
@@ -112,13 +141,16 @@ class MetronomePlayer:
         return int(round(self._volume * 100))
 
     def invalidate(self) -> None:
-        """BASS_Free 后调用：将 handle 归零，不再尝试 BASS_SampleFree。
+        """BASS_Free 后调用：将 handle 归零并标记待重载，不再尝试 BASS_SampleFree。
 
         BASS_Free 已经回收了所有资源；若之后再用旧 handle 调用 BASS_SampleFree，
-        可能误释放新 BASS 会话中复用了同一 handle 值的合法资源。
+        可能误释放新 BASS 会话中复用了同一 handle 值的合法资源。句柄失效后
+        在下一次播放时对新会话惰性重载（见 _reload_if_invalidated）。
         """
         self._beat_sample = 0
         self._accent_sample = 0
+        if self._beat_path is not None and self._accent_path is not None:
+            self._invalidated = True
 
     def is_loaded(self) -> bool:
         return bool(self._beat_sample and self._accent_sample)
@@ -139,6 +171,11 @@ class MetronomePlayer:
             pass
         finally:
             self._accent_sample = 0
+        # 路径一并清掉：free 后不再具备"惰性重载到新会话"的前提（实例即将
+        # 弃用，或 load() 换样本前的例行清理）；否则可能按过期路径重载。
+        self._beat_path = None
+        self._accent_path = None
+        self._invalidated = False
 
 
 # ── mac（BASS 不可用）回退实现 ──────────────────────────────────────────────
@@ -147,19 +184,24 @@ import sounddevice as _sd
 import soundfile as _sf
 import numpy as _np
 
+from .keysound_player import SdSampleStreamPool
+
 
 class SoundDeviceMetronomePlayer:
     """基于 sounddevice 的节拍音播放器（mac 等无 BASS 平台使用）。
 
     与 :class:`MetronomePlayer` 同接口：``load`` 预读 WAV 为 numpy 数组，
-    ``play_*`` 调 ``sounddevice.play``。节拍音对延迟容忍度高，per-call
-    播放足够，不复刻主引擎的 ring buffer。
+    ``play_*`` 经轮换 OutputStream 池播放（连打节拍音可重叠，不再后次
+    掐前次）。节拍音对延迟容忍度高，per-call 播放足够，不复刻主引擎的
+    ring buffer。
     """
 
     def __init__(self) -> None:
         self._beat: tuple[_np.ndarray, int] | None = None  # (data, sample_rate)
         self._accent: tuple[_np.ndarray, int] | None = None
-        self._volume: float = 1.0  # 0.0 ~ 2.0
+        self._volume: float = 0.0  # 0.0 ~ 2.0
+        # 轮换流池：密集节奏点处节拍音可重叠播放
+        self._pool = SdSampleStreamPool(size=3)
 
     def load(self, beat_path: Path, accent_path: Path) -> None:
         """加载普通拍和重音；失败静默跳过。"""
@@ -181,7 +223,7 @@ class SoundDeviceMetronomePlayer:
             return
         data, sr = sample
         try:
-            _sd.play(data * self._volume, sr)
+            self._pool.play(data * self._volume, sr)
         except Exception:
             pass  # 设备忙/不可用时不打断主流程
 
@@ -207,6 +249,7 @@ class SoundDeviceMetronomePlayer:
     def free(self) -> None:
         self._beat = None
         self._accent = None
+        self._pool.close()
 
 
 def create_metronome_player():

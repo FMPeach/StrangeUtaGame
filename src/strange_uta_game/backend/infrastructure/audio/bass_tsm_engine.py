@@ -76,6 +76,7 @@ from .tsm_cache import (
     _get_source_mp3_path,
     _quantize,
 )
+from .sample_registry import invalidate_all_bass_samples
 
 # SoundTouch anti-alias filter length (taps). Longer = less aliasing/metallic
 # artifact at the cost of a little CPU. Not exported by bass_engine.
@@ -121,6 +122,7 @@ class BassTsmEngine(IAudioEngine):
         self._output_latency_ms: int = 0
         self._initialized = False
         self._recovering = False
+        self._recovery_thread: Optional[threading.Thread] = None
         self._last_recovery_attempt = 0.0
         self._last_reported_ms: int = 0
 
@@ -260,7 +262,14 @@ class BassTsmEngine(IAudioEngine):
             from .video_converter import VIDEO_EXTENSIONS, extract_audio
 
             if Path(file_path).suffix.lower() in VIDEO_EXTENSIONS:
-                return extract_audio(file_path, progress_cb=progress_cb)
+                # keep_path：此刻 _current_source_path 仍是正在播放的旧源
+                # 文件，提取管线的旧命名/TTL 清理须跳过它，避免删掉使用中
+                # 的音频。
+                return extract_audio(
+                    file_path,
+                    progress_cb=progress_cb,
+                    keep_path=self._current_source_path or self._source_1x_path,
+                )
         except Exception as exc:
             raise AudioLoadError(str(exc)) from exc
 
@@ -292,8 +301,14 @@ class BassTsmEngine(IAudioEngine):
             return np.ascontiguousarray(data, np.float32), int(sr), int(data.shape[1])
         try:
             info = BASS_CHANNELINFO()
-            _bass.BASS_ChannelGetInfo(ds, ctypes.byref(info))
+            if not _bass.BASS_ChannelGetInfo(ds, ctypes.byref(info)):
+                raise AudioLoadError(f"BASS_ChannelGetInfo 失败: {path}")
             byte_len = _bass.BASS_ChannelGetLength(ds, BASS_POS_BYTE)
+            if byte_len == 0 or byte_len > (1 << 62):
+                # GetLength 失败时 BASS 返回 -1（c_uint64 下溢成 0xFFFF...），
+                # 直接 np.empty 会 MemoryError——照 bass_engine 同型守卫退回
+                # soundfile 解码。
+                raise AudioLoadError(f"BASS_ChannelGetLength 失败: {path}")
             total = int(byte_len // 4)
             raw = np.empty(max(total, 0), dtype=np.float32)
             off = 0
@@ -310,6 +325,17 @@ class BassTsmEngine(IAudioEngine):
             n = len(raw) // ch
             pcm = np.ascontiguousarray(raw[: n * ch].reshape(n, ch), np.float32)
             return pcm, int(info.freq) or 44100, ch
+        except AudioLoadError:
+            # BASS 元数据不可用：退回 soundfile 全量解码
+            try:
+                data, sr = sf.read(str(path), dtype="float32")
+            except Exception as exc:
+                raise AudioLoadError(
+                    f"BASS 读取音频元数据失败，且 soundfile 解码失败: {exc}"
+                ) from exc
+            if data.ndim == 1:
+                data = data.reshape(-1, 1)
+            return np.ascontiguousarray(data, np.float32), int(sr), int(data.shape[1])
         finally:
             _bass.BASS_StreamFree(ds)
 
@@ -344,7 +370,11 @@ class BassTsmEngine(IAudioEngine):
             if speed_min - 1e-9 <= speed <= speed_max + 1e-9:
                 # 不传 done_cb：预热任务完成后不触发 _on_render_ready，
                 # 实际速度只由用户指令（set_speed）管理。
-                self._cache.ensure(speed, priority=prio)
+                # check_only=True：只查存在性，绝不在调用线程（UI 线程、持
+                # _stream_lock）做整曲 MP3 同步解码——否则第二次打开同一首歌
+                # 时预热会逐档解码磁盘缓存并丢弃结果，UI 长阻塞 + GB 级无效
+                # 内存。真需要 PCM 时（换源/播放）由对应路径按需解码。
+                self._cache.ensure(speed, priority=prio, check_only=True)
                 prio += 1
 
     def _free_stream(self) -> None:
@@ -581,20 +611,42 @@ class BassTsmEngine(IAudioEngine):
     def _switch_to_file(self, q: float, path: str) -> None:
         cur_ms = self._read_position_ms(apply_latency=False)
         resume = self._state == PlaybackState.PLAYING
+        prev_is_tempo = self._is_tempo
+        prev_scale = self._speed_scale
+        prev_source = self._current_source_path
         self._is_tempo = False
         self._speed_scale = q
         self._current_source_path = path
-        self._build_stream_locked(target_original_ms=cur_ms, resume=resume)
+        if not self._build_stream_locked(target_original_ms=cur_ms, resume=resume):
+            # 建流失败：_build_stream_locked 失败时不动旧流，但模式标志已被
+            # 改写——不回滚的话 _effective_scale() 已按新速度换算而实际仍是
+            # 旧流，位置会整体跳变。恢复原标志，保留当前音源。
+            self._is_tempo = prev_is_tempo
+            self._speed_scale = prev_scale
+            self._current_source_path = prev_source
+            print(f"[TSM引擎] 切换音源失败（速度 {q:.2f}x），保留当前音源")
+            return
         kind = "原始 1.0x" if abs(q - 1.0) < 1e-9 else "预渲染（无损）"
         print(f"[TSM引擎] 切换音源 → {kind}，速度 {q:.2f}x，文件: {Path(path).name}")
 
     def _switch_to_tempo(self, speed: float) -> None:
         cur_ms = self._read_position_ms(apply_latency=False)
         resume = self._state == PlaybackState.PLAYING
+        prev_is_tempo = self._is_tempo
+        prev_scale = self._speed_scale
+        prev_source = self._current_source_path
+        prev_tempo_speed = self._tempo_speed
         self._is_tempo = True
         self._tempo_speed = speed
         self._current_source_path = self._source_1x_path
-        self._build_stream_locked(target_original_ms=cur_ms, resume=resume)
+        if not self._build_stream_locked(target_original_ms=cur_ms, resume=resume):
+            # 同 _switch_to_file：失败回滚模式标志，保留旧流一致性
+            self._is_tempo = prev_is_tempo
+            self._speed_scale = prev_scale
+            self._current_source_path = prev_source
+            self._tempo_speed = prev_tempo_speed
+            print(f"[TSM引擎] 切换实时变速失败（速度 {speed:.2f}x），保留当前音源")
+            return
         print(f"[TSM引擎] 切换音源 → 实时变速（临时，可能爆音），速度 {speed:.2f}x，后台渲染中...")
 
     def _retune_tempo(self, speed: float) -> None:
@@ -677,10 +729,16 @@ class BassTsmEngine(IAudioEngine):
             if self._state == PlaybackState.PLAYING:
                 return
             if not _bass.BASS_ChannelPlay(self._stream, 0):
-                if not self._recover_device("play failed"):
+                # 播放失败（设备热拔等）——同步做一次完整设备恢复；成功则
+                # 继续播放，仅在恢复确实失败时抛错。注意不能调用后台版
+                # _recover_device：它立即返回 None（后台线程尚未完成），
+                # 会让 play() 失去同步恢复机会、设备丢失后必抛错。
+                if not self._recover_device_sync("play failed"):
                     err = _bass.BASS_ErrorGetCode()
                     raise AudioPlaybackError(f"BASS 播放失败 (error {err})")
-                _bass.BASS_ChannelPlay(self._stream, 0)
+                if not _bass.BASS_ChannelPlay(self._stream, 0):
+                    err = _bass.BASS_ErrorGetCode()
+                    raise AudioPlaybackError(f"BASS 播放失败 (error {err})")
             self._state = PlaybackState.PLAYING
 
     def pause(self) -> None:
@@ -796,22 +854,86 @@ class BassTsmEngine(IAudioEngine):
         info = BASS_INFO()
         return not _bass.BASS_GetInfo(ctypes.byref(info))
 
-    def _recover_device(self, reason: str) -> bool:
-        """Synchronous, throttled device recovery. Returns success."""
+    def _recover_device(self, reason: str) -> None:
+        """Trigger device recovery off the calling thread.
+
+        Called from the position-poll path (UI 线程 60fps 轮询)；恢复含
+        BASS_Free + 全设备重建，可能耗时数百毫秒，同步执行会冻结界面
+        （BassEngine 有专门后台线程，注释 must never block——TSM 引擎补齐
+        同款模式）。去重后立即返回，恢复在守护线程完成并全程持
+        ``_stream_lock``；期间 get_position_ms/is_playing 返回最后已知位置。
+        """
         if self._recovering:
-            return self._stream != 0
+            return
         now = time.monotonic()
         if now - self._last_recovery_attempt < 1.0:
-            return False
+            return
         self._last_recovery_attempt = now
         self._recovering = True
+        t = threading.Thread(
+            target=self._run_recovery, args=(reason,), daemon=True, name="TsmRecovery"
+        )
+        self._recovery_thread = t
+        t.start()
+
+    def _run_recovery(self, reason: str) -> None:
+        try:
+            print(f"[TSM引擎] 设备恢复中（原因: {reason}）...")
+            with self._stream_lock:
+                self._do_recover_locked()
+        except Exception as exc:
+            print(f"[TSM引擎] 设备恢复失败: {exc}")
+        finally:
+            self._recovering = False
+
+    def _recover_device_sync(self, reason: str) -> bool:
+        """用户主动 play() 时的同步恢复，返回是否恢复成功。
+
+        后台恢复已在跑时等待其完成（不能并发跑两份 BASS_Free 重建）；
+        否则本线程直接同步恢复。调用方持有 ``_stream_lock``（play() 进入
+        时获取的那一层，递归深度为 1）。与 BassEngine._recover_device_sync
+        同构——play() 必须走这里而不是后台版 _recover_device，后者立即
+        返回、无法向调用方报告恢复结果。
+        """
+        if not (self._current_source_path or self._source_1x_path):
+            return False
+        if self._recovering:
+            thread = self._recovery_thread
+            if thread is not None:
+                # join 前必须先释放本线程持有的外层锁：后台恢复线程要拿到
+                # _stream_lock 才能推进（_do_recover_locked 全程持锁）。此刻
+                # 本线程对锁的持有深度恰为 1（play() 获取后未再嵌套获取，
+                # _recover_device_sync 亦只由 play() 调用），公共 API 的
+                # release/acquire 配对即可；若未来出现深度 >1 的调用点，
+                # release 只减一层，join 等满超时后由 finally 补回——行为
+                # 退化为等待，不会死锁。
+                self._stream_lock.release()
+                try:
+                    thread.join(timeout=3.0)
+                finally:
+                    self._stream_lock.acquire()
+            return self._stream != 0
+        self._recovering = True
+        self._last_recovery_attempt = time.monotonic()
+        try:
+            print(f"[TSM引擎] 设备恢复中（原因: {reason}）...")
+            return self._do_recover_locked()
+        finally:
+            self._recovering = False
+
+    def _do_recover_locked(self) -> bool:
+        """Rebuild device + streams, preserving position/speed/mode.
+
+        Caller holds ``_stream_lock``. Returns True on success.
+        """
         pos = self._read_position_ms(apply_latency=False)
         resume = self._state == PlaybackState.PLAYING
         has_source = bool(self._current_source_path or self._source_1x_path)
+        freed = False
         try:
-            print(f"[TSM引擎] 设备恢复中（原因: {reason}）...")
             self._free_stream()
             _bass.BASS_Free()
+            freed = True
             self._initialized = False
             if not self._ensure_initialized() or not has_source:
                 self._state = PlaybackState.PAUSED
@@ -825,7 +947,15 @@ class BassTsmEngine(IAudioEngine):
             self._state = PlaybackState.PAUSED
             return False
         finally:
-            self._recovering = False
+            if freed:
+                # D10：BASS_Free 已使进程内所有 sample 句柄失效（按键音/
+                # 节拍器）。无论恢复成败都要失效全部登记的播放器实例，
+                # 各实例在下一次播放时对新会话惰性重载样本（登记表自
+                # 闭合接线，见 sample_registry，无需 UI 层回调）。
+                try:
+                    invalidate_all_bass_samples()
+                except Exception as exc:
+                    print(f"[TSM引擎] sample 失效通知出错: {exc}")
 
     # ════════════════════════════════════ volume / callbacks / info
 
