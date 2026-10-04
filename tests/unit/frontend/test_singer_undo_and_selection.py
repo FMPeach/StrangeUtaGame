@@ -184,3 +184,42 @@ def test_name_dangerous_chars_auto_sanitized(qapp, monkeypatch):
     dlg2.accept()
     assert dlg2.result() == int(QDialog.DialogCode.Accepted)
     assert dlg2.line_name.text() == "AB"
+
+
+class TestLegacyNameRepairNotice:
+    """加载老工程自动修复演唱者名：修复发生时必须弹用户可见通知。"""
+
+    def test_repair_shows_warning(self, qapp, monkeypatch):
+        monkeypatch.setattr(si_mod, "InfoBar", _InfoBarRecorder)
+        _InfoBarRecorder.calls.clear()
+
+        page = SingerManagerInterface()
+        project = Project(
+            singers=[
+                Singer(name="默认", color="#FF0000", is_default=True),
+                Singer(name="A,B", color="#00FF00"),
+            ]
+        )
+        page.set_project(project)
+
+        # 名字被修复
+        assert [s.name for s in project.singers] == ["默认", "A，B"]
+        warnings = [kw for kind, kw in _InfoBarRecorder.calls if kind == "warning"]
+        assert warnings, "静默修复无通知"
+        assert "自动修复" in warnings[0]["title"]
+        assert "A,B" in warnings[0]["content"] and "A，B" in warnings[0]["content"]
+
+    def test_clean_names_no_notice(self, qapp, monkeypatch):
+        monkeypatch.setattr(si_mod, "InfoBar", _InfoBarRecorder)
+        _InfoBarRecorder.calls.clear()
+
+        page = SingerManagerInterface()
+        project = Project(
+            singers=[
+                Singer(name="默认", color="#FF0000", is_default=True),
+                Singer(name="正常名", color="#00FF00"),
+            ]
+        )
+        page.set_project(project)
+
+        assert _InfoBarRecorder.calls == [], "无修复不应弹通知"

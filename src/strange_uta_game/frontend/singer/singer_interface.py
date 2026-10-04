@@ -1280,11 +1280,11 @@ class SingerManagerInterface(QWidget):
     def _repair_legacy_singer_names(self):
         """上游评审：老工程里的演唱者名可能含 ,{}|[]>【】 等会破坏列分隔/
         【名】标签序列的字符——加载时自动替换为全角形近字并去重，替代
-        直接拒绝（避免老用户的演唱者名失效）。"""
+        直接拒绝（避免老用户的演唱者名失效）。修复须弹通知告知用户。"""
         if not self._project:
             return
         seen = set()
-        changed = 0
+        repairs: list = []  # [(旧名, 新名)]
         for singer in self._project.singers:
             fixed = SingerEditDialog.sanitize_singer_name(singer.name)
             base, n = fixed, 2
@@ -1293,10 +1293,27 @@ class SingerManagerInterface(QWidget):
                 n += 1
             seen.add(fixed)
             if fixed != singer.name:
+                repairs.append((singer.name, fixed))
                 singer.name = fixed
-                changed += 1
-        if changed and getattr(self, "_store", None) is not None:
+        if repairs and getattr(self, "_store", None) is not None:
             self._store.mark_dirty()
+        if repairs:
+            # 静默改名会让用户在导出/对轴时才发现名字变了。以顶层窗口为
+            # 父弹通知——加载工程时本页通常不可见，parent=self 会被埋掉
+            shown = "；".join(f"{old} → {new}" for old, new in repairs[:3])
+            if len(repairs) > 3:
+                shown += f"；等 {len(repairs)} 个"
+            InfoBar.warning(
+                title=self.tr("演唱者名称已自动修复"),
+                content=self.tr(
+                    "工程中有会破坏歌词标注/导出序列的字符，已替换为全角：{names}"
+                ).format(names=shown),
+                orient=Qt.Orientation.Horizontal,
+                isClosable=True,
+                position=InfoBarPosition.TOP,
+                duration=8000,
+                parent=self.window(),
+            )
 
     def set_store(self, store):
         """接入 ProjectStore 统一数据中心。"""
