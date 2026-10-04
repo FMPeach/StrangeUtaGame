@@ -145,6 +145,49 @@ def test_flat_legacy_schema_injects_both_modes():
     assert actions_edit["remove_checkpoint"] == "9:short"
 
 
+def test_flat_legacy_schema_converted_to_dual_mode():
+    """老 schema 自动转化为双模式并持久化：扁平值写入两个模式的
+    shortcuts.{mode}.{action}（迁移列表），模拟 _apply_settings_inner
+    回写后设置页即可直接读写新键。"""
+    data = {"shortcuts": {"remove_checkpoint": "9:short"}}
+    migrated_by_mode = {}
+    for mode_key in ("timing_mode", "edit_mode"):
+        _, _, _, migrated = _build(
+            _DictSettings(json.loads(json.dumps(data))), mode_key
+        )
+        migrated_by_mode[mode_key] = dict(migrated)
+        assert (
+            migrated_by_mode[mode_key].get(
+                f"shortcuts.{mode_key}.remove_checkpoint"
+            )
+            == "9:short"
+        )
+
+    # 模拟调用方回写：两个模式各得到新键
+    store = _DictSettings(json.loads(json.dumps(data)))
+    for mode_key, entries in migrated_by_mode.items():
+        for path, value in entries.items():
+            store.set(path, value)
+    assert store.get("shortcuts.timing_mode.remove_checkpoint") == "9:short"
+    assert store.get("shortcuts.edit_mode.remove_checkpoint") == "9:short"
+
+    # 转化后新 schema 为权威来源：修改模式键不再受扁平残留影响
+    store.set("shortcuts.edit_mode.remove_checkpoint", "8:short")
+    short, _, actions, _ = _build(store, "edit_mode")
+    assert short.get("8") == "remove_checkpoint"
+    assert actions["remove_checkpoint"] == "8:short"
+    # 且无重复迁移（模式键已存在，不再从扁平键转化）
+    _, _, _, migrated_after = _build(store, "edit_mode")
+    assert ("shortcuts.edit_mode.remove_checkpoint", "9:short") not in migrated_after
+
+
+def test_flat_legacy_unsuffixed_value_converted_normalized():
+    """扁平旧值无 :short 后缀时，转化写入的是规范化后的值。"""
+    data = {"shortcuts": {"remove_checkpoint": "9"}}
+    _, _, _, migrated = _build(_DictSettings(data), "edit_mode")
+    assert ("shortcuts.edit_mode.remove_checkpoint", "9:short") in migrated
+
+
 def test_old_format_trigger_gets_normalized_and_reported():
     """无 :short/:long 后缀的旧格式值被标准化并列入迁移写回。"""
     data = {"shortcuts": {"edit_mode": {"remove_checkpoint": "Backspace"}}}

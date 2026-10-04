@@ -855,6 +855,12 @@ class EditorInterface(QWidget):
         （两个模式都回填，上游评审：老用户的编辑模式键位不能回落默认值）
         > 设置页 _SHORTCUT_ACTIONS 的模式默认值 > fallback_defaults。
 
+        旧扁平值命中且模式键缺失时，把规范化后的值列入迁移写回
+        ``shortcuts.{mode}.{action}``（两个模式各转化一份）——老 schema
+        自动转化为双模式并持久化，此后新 schema 为权威来源；旧扁平键
+        保留为惰性残留（读取优先级被模式键压制，且 provider 增量保存
+        无法表达删除）。
+
         键冲突规则：**显式绑定（来自设置）不被回退默认值覆盖**。历史上内嵌
         config.json 的 edit_mode 段漏写 delete_timestamp 键时，该动作回退到
         单 schema 时代的打轴默认 "Backspace:short"，在遍历中后写覆盖了显式
@@ -891,6 +897,10 @@ class EditorInterface(QWidget):
             # 编辑模式下若同一键同时命中 tag_now 等打轴专属键，按模式各自
             # 的键表独立生效，互不影响。
             flat_raw = settings.get(f"shortcuts.{action}")
+            # 命中旧扁平值且模式键缺失 → 本次读值来自老 schema，需把
+            # 规范化后的值转化进双模式 schema（连同下方旧格式后缀修正
+            # 一起经迁移列表持久化）
+            converted_from_flat = mode_raw is None and flat_raw is not None
             if mode_raw is not None:
                 raw, explicit = mode_raw, True
             elif flat_raw is not None:
@@ -900,7 +910,7 @@ class EditorInterface(QWidget):
                 explicit = False
             # 旧格式自动更正：无后缀的键名补全为 :short
             normalized = cls._normalize_trigger(raw)
-            if normalized != raw:
+            if converted_from_flat or normalized != raw:
                 migrated.append((f"shortcuts.{mode_key}.{action}", normalized))
                 raw = normalized
             action_to_keys[action] = raw
