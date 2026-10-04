@@ -243,7 +243,7 @@ class EditorInterface(QWidget):
 
         # 按键音播放器（低延迟，基于 BASS Sample API）
         self._keysound_player = None
-        self._keysound_enabled: bool = True
+        self._keysound_enabled: bool = False
         # None 表示"尚未加载过任何风格"，确保 _apply_settings 首次调用时强制加载
         self._keysound_style = None
         self._init_keysound()
@@ -1331,7 +1331,9 @@ class EditorInterface(QWidget):
             self._scroll_mode = scroll_mode
             self._sync_scroll_mode()
         # 按键音开关、音量、风格
-        self._keysound_enabled = bool(settings.get("timing.keysound_enabled", True))
+        # 默认值与 DEFAULT_SETTINGS（keysound_enabled=False）一致：首次启动
+        # （config 缺键）时设置页与打轴界面的按键音开关不再互相矛盾
+        self._keysound_enabled = bool(settings.get("timing.keysound_enabled", False))
         if self._keysound_player is not None:
             self._keysound_player.set_enabled(self._keysound_enabled)
         keysound_volume = int(settings.get("timing.keysound_volume", 100))
