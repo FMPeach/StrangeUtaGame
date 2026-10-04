@@ -305,8 +305,14 @@
 
 ### 🚀 方式一 · 直接运行（推荐） / Pre-built release (recommended)
 
-从 [Releases](https://github.com/karaoke-studio/StrangeUtaGame/releases) 页面下载最新版本，解压后双击 `StrangeUtaGame.exe` 即可。  
-Download the latest archive from the [Releases](https://github.com/karaoke-studio/StrangeUtaGame/releases) page, unzip, then run `StrangeUtaGame.exe`.
+从 [Releases](https://github.com/karaoke-studio/StrangeUtaGame/releases) 页面下载**完整包**，解压后双击 `StrangeUtaGame.exe` 即可：
+
+- 🪟 **Windows**：下载 **`StrangeUtaGame-vX.Y.Z.zip`**（以版本号结尾的完整包）。
+- 🍎 **macOS**：按芯片下载 **`StrangeUtaGame-mac-arm64-vX.Y.Z.dmg`**（Apple Silicon）或 **`StrangeUtaGame-mac-intel-vX.Y.Z.dmg`**（Intel），详见下方注意事项。
+
+> ⚠️ **认准版本号结尾的完整包，不要下载 `-app` / `-runtime` 结尾的分包**（如 `StrangeUtaGame-vX.Y.Z-app.zip`、`…-runtime.zip`）。分包是应用内自动更新器给老用户做**增量更新**用的零件，`-app` 分包不含 Python 运行时，首次安装单独解压会启动失败。
+
+Download the **full archive** from the [Releases](https://github.com/karaoke-studio/StrangeUtaGame/releases) page, unzip, then run `StrangeUtaGame.exe` — Windows: `StrangeUtaGame-vX.Y.Z.zip`; macOS: `…-mac-arm64-*.dmg` (Apple Silicon) or `…-mac-intel-*.dmg` (Intel). **Do NOT grab the `-app` / `-runtime` parts** (`…-vX.Y.Z-app.zip`, `…-runtime.zip`): they are incremental-update pieces consumed by the built-in updater, and the `-app` part ships without the Python runtime — a fresh install from it will fail to launch.
 
 <sub>📦 体积参考 / Approx. size: <b>~250 MB</b></sub>
 
