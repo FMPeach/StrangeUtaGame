@@ -338,10 +338,14 @@ class _LaunchUpdaterWorker(QThread):
     # 下载进度文本（供 UI 实时更新提示）
     progress = pyqtSignal(str)
 
-    def __init__(self, plan: "installer.LaunchPlan", parent=None):
+    def __init__(self, plan: "installer.LaunchPlan", parent=None,
+                 sha256_fetch_spec: tuple | None = None):
         super().__init__(parent)
         self._plan = plan
         self._cancelled = False
+        # (asset_name, download_urls, proxy_url)：主包 .sha256 预取在后台
+        # 线程执行（上游评审：同步预取在弱网下冻结 UI 数十秒）
+        self._sha256_fetch_spec = sha256_fetch_spec
 
     def request_cancel(self) -> None:
         """由主线程调用，请求取消更新。"""
@@ -356,6 +360,13 @@ class _LaunchUpdaterWorker(QThread):
             self.progress.emit(text)
 
         try:
+            # 后台预取主包 .sha256 透传给 Updater（--sha256）；拉取失败置空，
+            # Updater 侧会再次尝试并在仍拿不到时拒绝安装（fail-closed）。
+            if self._sha256_fetch_spec and not self._plan.expected_sha256:
+                asset_name, urls, proxy_url = self._sha256_fetch_spec
+                self._plan.expected_sha256 = _installer.fetch_asset_sha256(
+                    asset_name, list(urls), proxy_url,
+                )
             result = _installer.launch_updater(self._plan, progress_cb=_cb)
         except _installer.UpdateCancelledError:
             result = _installer.LaunchResult(
@@ -433,6 +444,8 @@ def _show_update_dialog(parent: "SettingsInterface", result: CheckResult) -> Non
         proxy_url=proxy_url,
         locale=_get_current_locale(),
     )
+    # 主包 .sha256 预取移入 _LaunchUpdaterWorker 后台执行（弱网不冻结 UI）；
+    # 拉取失败置空，Updater 侧会再次尝试并在仍拿不到时拒绝安装（fail-closed）。
 
     # 弹出进度窗口，在后台线程完成"自更新 Updater + 启动"
     # （_update_updater_from_remote 有网络请求，同步调用会冻结 UI 数秒）
@@ -444,7 +457,11 @@ def _show_update_dialog(parent: "SettingsInterface", result: CheckResult) -> Non
     # parent=None：不让 Qt 把 QThread 的生命周期绑到 SettingsInterface 上。
     # 若 parent 被销毁时线程还在运行，Qt 会 destroy 运行中的 QThread（崩溃）。
     # 用 Python 引用防 GC 即可，由 os._exit(0) 统一结束。
-    worker = _LaunchUpdaterWorker(plan, parent=None)
+    worker = _LaunchUpdaterWorker(
+        plan, parent=None,
+        sha256_fetch_spec=(result.primary_asset_name,
+                           list(result.download_candidates), proxy_url),
+    )
     parent._update_launch_worker = worker  # type: ignore[attr-defined]
     parent._update_progress_window = progress_win  # type: ignore[attr-defined]
 
