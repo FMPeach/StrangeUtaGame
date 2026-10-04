@@ -580,18 +580,21 @@ class _ScriptedOpener:
 
 
 class TestNetworkDictionaryFetchFixes:
-    def test_builtin_source_uses_https(self):
-        """F12：内置源 URL 走 https（不再明文 HTTP）。"""
-        assert nd.BUILTIN_SOURCES[0]["url"].startswith("https://")
+    def test_builtin_source_prefers_http(self):
+        """内置源 URL 优先 http（实测该源 https 握手慢且不稳，http 稳定）。"""
+        assert nd.BUILTIN_SOURCES[0]["url"].startswith("http://")
 
-    def test_ensure_builtin_sources_upgrades_legacy_http_url(self):
-        """旧存档中内置源的 http URL 被 BUILTIN_SOURCES 强制刷新（非 setdefault）。"""
+    def test_ensure_builtin_sources_refreshes_legacy_url(self):
+        """旧存档中内置源的 URL 被 BUILTIN_SOURCES 强制刷新（非 setdefault）。
+
+        含此前一度强推的 https 版本 → 现刷新回 http 优先值。
+        """
         legacy = {
             "sources": [
                 {
                     "id": nd.BUILTIN_SOURCES[0]["id"],
                     "name": nd.BUILTIN_SOURCES[0]["name"],
-                    "url": "http://legacy.example/dict.php",
+                    "url": "https://timetag.main.jp/RhythmicaLyrics/kakuteiyominet.php",
                     "builtin": True,
                     "enabled": True,
                     "entries": [],
@@ -605,7 +608,7 @@ class TestNetworkDictionaryFetchFixes:
             s for s in upgraded["sources"] if s["id"] == nd.BUILTIN_SOURCES[0]["id"]
         )
         assert saved["url"] == nd.BUILTIN_SOURCES[0]["url"]
-        assert saved["url"].startswith("https://")
+        assert saved["url"].startswith("http://"), "曾强推的 https 应刷回 http 优先"
 
     def test_query_separator_for_url_with_existing_query(self, monkeypatch):
         """F12：源 URL 自带 query 时用 & 续接参数，不破坏原查询串。"""

@@ -52,10 +52,12 @@ BUILTIN_SOURCES: List[Dict[str, Any]] = [
     {
         "id": "rl_official",
         "name": "RhythmicaLyrics 官方",
-        # https：服务端已支持 TLS（避免明文 HTTP 传输 + 系统代理/防火墙
-        # 对明文请求的干扰）；ensure_builtin_sources 会把旧存档中的
-        # 内置源 URL 强制刷新为此值
-        "url": "https://timetag.main.jp/RhythmicaLyrics/kakuteiyominet.php",
+        # http 优先（实测 2026-10：该源 https 可用但握手慢且不稳
+        # （0.8-4.3s、偶发 15s 超时），http 稳定 ~0.5s）。词典数据无敏感性，
+        # 可用性优先；用户自加的 https 源仍可正常使用（失败时另有
+        # https→http 回退）。ensure_builtin_sources 会把旧存档中的内置源
+        # URL（含此前一度强推的 https 版本）强制刷新为此值
+        "url": "http://timetag.main.jp/RhythmicaLyrics/kakuteiyominet.php",
         "builtin": True,
         "enabled": True,
     }
