@@ -55,9 +55,10 @@ class SRTExporter(BaseExporter):
                 start_ms = 0
 
             # 结束时间：下一行的开始时间；末行用音频时长收尾（未知则退回
-            # 当前行 + 5 秒）。无论来源都钳制不早于「本行开始 + 最小显示
-            # 时长」——对唱重叠行下一行先于本行开始时直接沿用下一行 Start，
-            # 会导出 05:00 --> 04:00 的负时长非法 SRT。
+            # 当前行 + 5 秒）。仅当自然 End 不产生正时长（对唱行乱序，下一行
+            # 先于本行开始）时才抬到最小显示时长——沿用下一行 Start 会导出
+            # 05:00 --> 04:00 的负时长非法 SRT，但无条件下限会把正常短间隔
+            # 歌词的 End 抬过下一行 Start，制造大面积重叠字幕。
             if i + 1 < len(sentences):
                 next_sentence = sentences[i + 1]
                 if next_sentence.has_timetags:
@@ -68,7 +69,8 @@ class SRTExporter(BaseExporter):
                 end_ms = project.audio_duration_ms
             else:
                 end_ms = start_ms + _MIN_DISPLAY_MS
-            end_ms = max(end_ms, start_ms + _MIN_DISPLAY_MS)
+            if end_ms <= start_ms:
+                end_ms = start_ms + _MIN_DISPLAY_MS
 
             start_str = self._format_srt_timestamp(start_ms)
             end_str = self._format_srt_timestamp(end_ms)

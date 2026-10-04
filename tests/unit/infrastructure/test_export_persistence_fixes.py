@@ -108,6 +108,21 @@ class TestSRTOverlapClamp:
         content = _export_to(str(tmp_path), ".srt", SRTExporter(), self._make_overlap_project())
         assert "00:00:20,000 --> 00:00:30,000" in content, content
 
+    def test_short_gap_not_extended_into_overlap(self, tmp_path):
+        """正常短间隔（< 5s）歌词：End = 下一行 Start，不得被抬成重叠字幕。"""
+        project = Project()
+        singer = project.get_default_singer()
+        for text, ts in (("あ", 10000), ("い", 12000), ("う", 13000)):
+            sent = Sentence.from_text(text, singer.id)
+            sent.characters[0].add_timestamp(ts)
+            project.add_sentence(sent)
+        project.audio_duration_ms = 30000
+
+        content = _export_to(str(tmp_path), ".srt", SRTExporter(), project)
+
+        assert "00:00:10,000 --> 00:00:12,000" in content, content
+        assert "00:00:12,000 --> 00:00:13,000" in content, content
+
     def test_last_line_without_audio_falls_back(self, tmp_path):
         """audio_duration_ms 未知（0）时退回 Start + 5s（旧行为）。"""
         project = self._make_overlap_project()
