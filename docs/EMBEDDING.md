@@ -255,6 +255,39 @@ SUG 的 `config/` 目录随包携带 AI 打轴的词典数据，嵌入（冻结�
 - 启动时一次性迁移老 SUG 配置（`migrate_strange_uta_game_settings`）
 - `KaraokeAiTimingHost`（实现 §6 的 `AiTimingHost` 协议，注入给 SUG AI 打轴）
 
+### 7.1 更新器集成点（宿主包装 SUG 更新器内部函数 —— 契约面）
+
+SUG 的独立更新器（`updater_app/`，冻结为 Updater.exe）在宿主形态下由宿主
+负责启动、锁定与 handoff。工作台通过 monkey-patch 包装其内部函数注入宿主
+语义——**被包装的内部函数因此进入嵌入契约面**：
+
+| 被包装函数（`updater_app/main.py`） | 宿主包装语义（工作台 `krok_helper/updater_app/main.py`） |
+|---|---|
+| `_cleanup_temp_workdir(work_dir, keep_parts_version="")` | 包装为 `_cleanup_workbench_temp_workdir`：保留主程序 handoff 交接的 `parts/`（增量分包） |
+
+- **签名演进约定**：SUG 侧该函数 2026-10 起增加 `keep_parts_version`
+  关键字参数——启动期清理保留**当前运行版本**（`--target-version`）的
+  part zip，否则约 100 MB 的增量复用永远失效。宿主包装**必须接受并透传
+  新增关键字参数**（建议统一用 `def wrap(work_dir, **kwargs)` 转发形参，
+  防同类破坏），不能假定签名冻结。
+- **事故实例（2026-10，已修复）**：只收 `work_dir` 一个位置参数的旧包装
+  使更新器启动即 `TypeError` 崩溃（退出码 99），全量/增量路径全部不可达
+  （`%TEMP%\KaraokeStudioUpdater\updater.log` 可见 traceback）。
+- handoff 保住/保留的 part zip **不按版本白名单免检**：`_download_part`
+  复用前仍逐个校验内容哈希，过期或损坏缓存校验失败即删——保留不等于免检。
+
+### 7.2 更新分发的 fail-closed 校验（宿主镜像需跟随）
+
+- 每个发布 zip 的同目录必须存在 `.sha256` sidecar（格式
+  `<64位hex>  文件名`，coreutils `sha256sum` 兼容）；更新器按
+  「成功的 zip URL + `".sha256"`」拼出校验地址（适配 GitHub Release 的
+  重定向域名差异）。**缺失 / 拉取失败 / 解析失败 / 不匹配一律拒绝安装**
+  （旧行为是跳过校验继续装）。
+- 宿主若镜像或代理 SUG 发布资产，**必须连同 `.sha256` 一起镜像**，
+  否则该源的全部更新会被拒装。
+- 主程序侧 `LaunchPlan.expected_sha256` 经 `--sha256` 参数传给更新器，
+  与 sidecar 两条校验任一失败都拒装。
+
 ## 8. 字体缓存与预热（宿主可选复用）
 
 `frontend/font_cache.py` —— SUG 所有字体枚举的进程级缓存。宿主进程同样可能携带庞大字体库（数百上千族），可直接复用：
@@ -275,5 +308,10 @@ SUG 的 `config/` 目录随包携带 AI 打轴的词典数据，嵌入（冻结�
 1. 先更新本文档
 2. 跑 `tests/unit/test_embedded_contract.py` 确认（或同步更新测试）
 3. 通知宿主维护方
+
+§7.1 列出的**被宿主包装的更新器内部函数**同属契约面：SUG 侧改动其
+签名 / 行为（如新增 `keep_parts_version` 这类关键参数）同样视为破坏性
+变更，须先更新本文档并通知宿主——宿主包装层在 SUG 更新器冻结之后运行，
+签名不匹配会让更新器启动即崩且 standalone 侧无任何先兆。
 
 standalone 行为（`embedded=False` 路径）**绝不能**因 embedded 改动而回退 —— 这是 SUG 独立分发的红线。
