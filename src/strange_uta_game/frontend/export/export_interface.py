@@ -1553,7 +1553,28 @@ class ExportInterface(QWidget):
         thread.finished.connect(worker.deleteLater)
         thread.finished.connect(thread.deleteLater)
 
+        # 退出收尾（仅挂接一次）：导出进行中退出应用时取消并等待线程
+        # 结束——无父 QThread 在解释器关闭阶段被销毁时若仍在运行会触发
+        # qFatal（与 task_runner 的 aboutToQuit 收尾同型）
+        if not getattr(self, "_export_quit_hooked", False):
+            self._export_quit_hooked = True
+            from PyQt6.QtCore import QCoreApplication
+
+            app = QCoreApplication.instance()
+            if app is not None:
+                app.aboutToQuit.connect(self._shutdown_export_on_quit)
+
         thread.start()
+
+    def _shutdown_export_on_quit(self) -> None:
+        """应用退出收尾：取消并等待导出线程结束（仅退出路径允许 wait）。"""
+        worker = getattr(self, "_export_worker", None)
+        if worker is not None:
+            worker.request_cancel()
+        thread = getattr(self, "_export_thread", None)
+        if thread is not None:
+            thread.quit()
+            thread.wait(3000)
 
     def _on_export_cancel_requested(self) -> None:
         """请求取消当前导出（在任务边界生效，正在写盘的当前任务会完成）。"""
