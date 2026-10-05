@@ -289,6 +289,30 @@ def _ruby_timed_spans(
     return text, timed_spans
 
 
+def _ruby_timed_span_maps(
+    fm: QFontMetrics,
+    characters: list[Character],
+    linked_leader_groups: dict[int, list[int]],
+    linked_non_leader: set[int],
+) -> tuple[dict[int, list[tuple[int, int]]], dict[int, list[tuple[int, int]]]]:
+    """计算单字及连词组的 Ruby 静态打轴区间，不包含任何走字状态。"""
+    char_spans: dict[int, list[tuple[int, int]]] = {}
+    group_spans: dict[int, list[tuple[int, int]]] = {}
+    for char_idx, character in enumerate(characters):
+        if char_idx in linked_leader_groups or char_idx in linked_non_leader:
+            continue
+        if character.ruby and character.ruby.text:
+            _, char_spans[char_idx] = _ruby_timed_spans(
+                fm, _ruby_timing_chunks(characters, [char_idx])
+            )
+    for leader_idx, group in linked_leader_groups.items():
+        if any(characters[char_idx].ruby for char_idx in group):
+            _, group_spans[leader_idx] = _ruby_timed_spans(
+                fm, _ruby_timing_chunks(characters, group)
+            )
+    return char_spans, group_spans
+
+
 def _draw_ruby_timing_base(
     painter: QPainter,
     x: int,
@@ -1342,6 +1366,30 @@ class KaraokePreview(QWidget):
 
     def request_repaint(self):
         """Request a repaint without invalidating sentence layout caches."""
+        self.update()
+
+    def _refresh_ruby_timing_state(self, line_idx: int) -> None:
+        """只刷新 Ruby 静态打轴状态，保留既有走字时间轴缓存。"""
+        if (
+            not self._project
+            or line_idx < 0
+            or line_idx >= len(self._project.sentences)
+        ):
+            return
+
+        characters = self._project.sentences[line_idx].characters
+        for (cached_line_idx, _font_key), entry in self._sentence_cache.items():
+            if cached_line_idx != line_idx:
+                continue
+            char_spans, group_spans = _ruby_timed_span_maps(
+                self._fm_ruby,
+                characters,
+                entry["linked_leader_groups"],
+                entry["linked_non_leader"],
+            )
+            entry["char_ruby_timed_spans"] = char_spans
+            entry["group_ruby_timed_spans"] = group_spans
+
         self.update()
 
     def _update_display(self):
@@ -2550,17 +2598,12 @@ class KaraokePreview(QWidget):
         # ruby_x + ink_left，宽度由 ink_width × ratio 决定。
         char_ruby_ink: dict[int, tuple[int, int]] = {}
         group_ruby_ink: dict[int, tuple[int, int]] = {}
-        char_ruby_timed_spans: dict[int, list[tuple[int, int]]] = {}
-        group_ruby_timed_spans: dict[int, list[tuple[int, int]]] = {}
         for ci, ch_obj in enumerate(characters):
             if ci in linked_leader_groups or ci in linked_non_leader:
                 continue
             ruby = ch_obj.ruby
             if ruby and ruby.text:
                 char_ruby_ink[ci] = _ink_bounds(fm_ruby, ruby.text)
-                _, char_ruby_timed_spans[ci] = _ruby_timed_spans(
-                    fm_ruby, _ruby_timing_chunks(characters, [ci])
-                )
         for leader_ci, group in linked_leader_groups.items():
             merged_text = ""
             for _gci in group:
@@ -2569,9 +2612,9 @@ class KaraokePreview(QWidget):
                     merged_text += _r.text
             if merged_text:
                 group_ruby_ink[leader_ci] = _ink_bounds(fm_ruby, merged_text)
-                _, group_ruby_timed_spans[leader_ci] = _ruby_timed_spans(
-                    fm_ruby, _ruby_timing_chunks(characters, group)
-                )
+        char_ruby_timed_spans, group_ruby_timed_spans = _ruby_timed_span_maps(
+            fm_ruby, characters, linked_leader_groups, linked_non_leader
+        )
 
         # ---------- 连词组 ruby 的分段 wipe 时间轴 ----------
         # 连词组的 ruby 横跨整个组（如「明日」中「日」无节奏点，与「明」合并重分配

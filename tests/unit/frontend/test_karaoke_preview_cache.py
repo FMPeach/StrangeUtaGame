@@ -144,6 +144,34 @@ def test_ruby_timed_spans_keep_multi_codepoint_mora_atomic(qapp):
     assert spans == [(0, fm.horizontalAdvance("ちょ"))]
 
 
+def test_refresh_ruby_timing_state_preserves_wipe_cache(qapp, monkeypatch):
+    """退格清轴只更新 Ruby 底色，已缓存的走字时间轴不变。"""
+    monkeypatch.setattr(preview_module, "theme", _DummyTheme())
+    flower = _ruby_char(
+        "花", ["は", "な"], check_count=2, timestamps=[1000, 1200]
+    )
+    sentence = Sentence(singer_id="s", characters=[flower])
+    preview = preview_module.KaraokePreview()
+    preview.set_duration(2000)
+    preview.set_project(_project_from([sentence]))
+
+    entry = preview._sentence_cache[(0, "cur")]
+    wipe_times = entry["char_wipe_times"]
+    part_anchors = entry["char_part_anchors"]
+    group_wipe = entry["group_ruby_wipe"]
+    assert entry["char_ruby_timed_spans"][0]
+
+    flower.clear_timestamps()
+    preview._refresh_ruby_timing_state(0)
+
+    refreshed_entry = preview._sentence_cache[(0, "cur")]
+    assert refreshed_entry is entry
+    assert refreshed_entry["char_wipe_times"] is wipe_times
+    assert refreshed_entry["char_part_anchors"] is part_anchors
+    assert refreshed_entry["group_ruby_wipe"] is group_wipe
+    assert refreshed_entry["char_ruby_timed_spans"][0] == []
+
+
 @pytest.mark.parametrize(
     "color,foreground,background,expected",
     [
