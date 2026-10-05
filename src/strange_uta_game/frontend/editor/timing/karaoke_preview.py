@@ -200,6 +200,145 @@ def _guide_colors(colors: "list[QColor]", alpha: float) -> "list[QColor]":
     return out
 
 
+_RUBY_UNTIMED_ALPHA = 0.30
+
+
+def _foreground_alpha_for_color(
+    color: QColor, foreground: QColor, background: QColor
+) -> float:
+    """将现有实色换算为同一前景色叠在背景上时所需的不透明度。
+
+    非当前歌词行目前用实心灰色区分 past/future。Ruby 要继续使用纯黑/白，
+    因此把该灰色投影到 ``background -> foreground`` 的颜色轴上，得到它等效的
+    alpha 上限。这样只改变透明度，不引入另一套灰色。
+    """
+    bg = (background.redF(), background.greenF(), background.blueF())
+    fg = (foreground.redF(), foreground.greenF(), foreground.blueF())
+    color_alpha = color.alphaF()
+    target = tuple(
+        color_alpha * channel + (1.0 - color_alpha) * bg_channel
+        for channel, bg_channel in zip(
+            (color.redF(), color.greenF(), color.blueF()), bg
+        )
+    )
+    axis = tuple(fg_channel - bg_channel for fg_channel, bg_channel in zip(fg, bg))
+    axis_length_sq = sum(component * component for component in axis)
+    if axis_length_sq <= 0.0:
+        return color_alpha
+    projected = sum(
+        (target_channel - bg_channel) * axis_component
+        for target_channel, bg_channel, axis_component in zip(target, bg, axis)
+    ) / axis_length_sq
+    return max(0.0, min(1.0, projected))
+
+
+def _ruby_timing_chunks(
+    characters: list[Character], char_indices: list[int]
+) -> list[tuple[str, bool]]:
+    """按 RubyPart 返回注音文本及其是否已有对应 checkpoint 时间戳。
+
+    这里只读取现有 ``RubyPart <-> checkpoint`` 的位置对应关系，不修改领域模型：
+
+    - ``part_idx < len(global_timestamps)`` 的 part 已打轴；
+    - 没有对应时间戳的尾部 part 未打轴；
+    - ``check_count == 0`` 的注音没有节奏点，整段保持未打轴态；
+    - 历史脏数据中超出 ``check_count`` 的 part 也保持未打轴态。
+
+    ``char_indices`` 可以只含一个字符，也可以是一整个连词组。后者仍按各字符
+    自己的 checkpoint 归属逐 part 判断，只在显示时拼成一行。
+    """
+    chunks: list[tuple[str, bool]] = []
+    for char_idx in char_indices:
+        character = characters[char_idx]
+        ruby = character.ruby
+        if ruby is None:
+            continue
+        timed_part_count = min(
+            character.check_count, len(character.global_timestamps)
+        )
+        for part_idx, part in enumerate(ruby.parts):
+            chunks.append(
+                (
+                    part.text,
+                    character.check_count > 0 and part_idx < timed_part_count,
+                )
+            )
+    return chunks
+
+
+def _ruby_timed_spans(
+    fm: QFontMetrics, chunks: list[tuple[str, bool]]
+) -> tuple[str, list[tuple[int, int]]]:
+    """把注音 part 状态转换成合并文本中的已打轴水平区间。
+
+    区间使用整串各前缀的 advance 计算，因此 ``ちょ`` 这类多码点 mora 仍是
+    一个不可拆的区间；相邻已打轴区间会合并，减少重复绘制。
+    """
+    text = ""
+    timed_spans: list[tuple[int, int]] = []
+    for part_text, is_timed in chunks:
+        start = fm.horizontalAdvance(text)
+        text += part_text
+        end = fm.horizontalAdvance(text)
+        if not is_timed or end <= start:
+            continue
+        if timed_spans and timed_spans[-1][1] >= start:
+            timed_spans[-1] = (timed_spans[-1][0], max(timed_spans[-1][1], end))
+        else:
+            timed_spans.append((start, end))
+    return text, timed_spans
+
+
+def _draw_ruby_timing_base(
+    painter: QPainter,
+    x: int,
+    baseline: int,
+    text: str,
+    timed_spans: list[tuple[int, int]],
+    fm: QFontMetrics,
+    foreground: QColor,
+    max_alpha: float,
+) -> None:
+    """绘制注音的静态打轴状态，不参与也不改变后续走字逻辑。
+
+    当前行全串先以主题黑/白的 30% 不透明度绘制，再把已有 checkpoint 时间戳的
+    mora 用 100% 重绘。非当前行以其原有 past/future 灰度对应的 ``max_alpha``
+    为上限，按相同比例缩放为 ``30% * max_alpha / max_alpha``。调用方仍在此层
+    之上执行原有 singer-color wipe。
+    """
+    max_alpha = max(0.0, min(1.0, max_alpha))
+    untimed_color = QColor(foreground)
+    untimed_color.setAlphaF(_RUBY_UNTIMED_ALPHA * max_alpha)
+    painter.setPen(untimed_color)
+    painter.drawText(x, baseline, text)
+
+    if not timed_spans:
+        return
+
+    text_advance = fm.horizontalAdvance(text)
+    ink_rect = fm.tightBoundingRect(text)
+    ink_left = ink_rect.left()
+    ink_right = ink_rect.right() + 1
+    clip_top = baseline - fm.ascent() - 2
+    clip_height = fm.height() + 4
+    timed_color = QColor(foreground)
+    timed_color.setAlphaF(max_alpha)
+    painter.setPen(timed_color)
+    for start, end in timed_spans:
+        # 首尾区间把侧 bearing 一并纳入，避免最外沿抗锯齿仍残留 30% 底色。
+        clip_left = min(start, ink_left) if start <= 0 else start
+        clip_right = max(end, ink_right) if end >= text_advance else end
+        if clip_right <= clip_left:
+            continue
+        painter.save()
+        painter.setClipRect(
+            QRect(x + clip_left, clip_top, clip_right - clip_left, clip_height),
+            Qt.ClipOperation.IntersectClip,
+        )
+        painter.drawText(x, baseline, text)
+        painter.restore()
+
+
 def _ink_bounds(fm: QFontMetrics, text: str) -> tuple[int, int]:
     """返回 ``text`` 在给定字体度量下的墨水边界：``(ink_left, ink_width)``。
 
@@ -2411,12 +2550,17 @@ class KaraokePreview(QWidget):
         # ruby_x + ink_left，宽度由 ink_width × ratio 决定。
         char_ruby_ink: dict[int, tuple[int, int]] = {}
         group_ruby_ink: dict[int, tuple[int, int]] = {}
+        char_ruby_timed_spans: dict[int, list[tuple[int, int]]] = {}
+        group_ruby_timed_spans: dict[int, list[tuple[int, int]]] = {}
         for ci, ch_obj in enumerate(characters):
             if ci in linked_leader_groups or ci in linked_non_leader:
                 continue
             ruby = ch_obj.ruby
             if ruby and ruby.text:
                 char_ruby_ink[ci] = _ink_bounds(fm_ruby, ruby.text)
+                _, char_ruby_timed_spans[ci] = _ruby_timed_spans(
+                    fm_ruby, _ruby_timing_chunks(characters, [ci])
+                )
         for leader_ci, group in linked_leader_groups.items():
             merged_text = ""
             for _gci in group:
@@ -2425,6 +2569,9 @@ class KaraokePreview(QWidget):
                     merged_text += _r.text
             if merged_text:
                 group_ruby_ink[leader_ci] = _ink_bounds(fm_ruby, merged_text)
+                _, group_ruby_timed_spans[leader_ci] = _ruby_timed_spans(
+                    fm_ruby, _ruby_timing_chunks(characters, group)
+                )
 
         # ---------- 连词组 ruby 的分段 wipe 时间轴 ----------
         # 连词组的 ruby 横跨整个组（如「明日」中「日」无节奏点，与「明」合并重分配
@@ -2508,6 +2655,8 @@ class KaraokePreview(QWidget):
             "seg_member_to_leader": seg_member_to_leader,
             "char_ruby_ink": char_ruby_ink,
             "group_ruby_ink": group_ruby_ink,
+            "char_ruby_timed_spans": char_ruby_timed_spans,
+            "group_ruby_timed_spans": group_ruby_timed_spans,
             "group_ruby_wipe": group_ruby_wipe,
         }
         self._sentence_cache[cache_key] = entry
@@ -2816,6 +2965,13 @@ class KaraokePreview(QWidget):
                 main_fm = fm_context
                 base_color = theme.karaoke_text_future
 
+            # Ruby 始终使用主题纯黑/白；非当前行把原 past/future 灰度换算成
+            # 等效 alpha 上限，未打轴/已打轴再在该上限内保持 30%/100% 比例。
+            _ruby_foreground = theme.karaoke_text_current
+            _ruby_max_alpha = _foreground_alpha_for_color(
+                base_color, _ruby_foreground, theme.karaoke_bg
+            )
+
             # 走字预览指引：仅在「设置开启 + 播放中 + 打轴光标所在行」时，对本行
             # 以光标 _current_char_idx 为锚，计算"上一个/正在/下一个"字群的过渡不透明度。
             # 锚定 _current_line_idx（打轴光标行）而非 effective_current（视觉高亮行），
@@ -2853,6 +3009,8 @@ class KaraokePreview(QWidget):
             _linked_frame_data: dict = {}
             _char_ruby_ink = _rd["char_ruby_ink"]
             _group_ruby_ink = _rd["group_ruby_ink"]
+            _char_ruby_timed_spans = _rd["char_ruby_timed_spans"]
+            _group_ruby_timed_spans = _rd["group_ruby_timed_spans"]
             _group_ruby_wipe = _rd["group_ruby_wipe"]
 
             # 根据对齐方式计算起始 x 坐标
@@ -2988,18 +3146,18 @@ class KaraokePreview(QWidget):
                         _rh_br = fm_ruby.tightBoundingRect(_merged)
                         _rh_ink_top = ruby_y + _rh_br.top()
                         _rh_ink_bottom = ruby_y + _rh_br.bottom() + 1
-                        # 底色：命中走字预览指引时用走字后分色 × 不透明度，否则用 base_color。
-                        # wipe 照常在底色之上叠加——能 wipe 的自然走字，无需任何拦截。
-                        _g_alpha_ruby = guide_alpha.get(char_pos)
-                        if _g_alpha_ruby is not None:
-                            _draw_split_text(
-                                painter, int(ruby_x), ruby_y, _merged,
-                                _guide_colors(_rh_colors, _g_alpha_ruby),
-                                _rh_ink_top, _rh_ink_bottom,
-                            )
-                        else:
-                            painter.setPen(base_color)
-                            painter.drawText(int(ruby_x), ruby_y, _merged)
+                        # 静态注音打轴状态：未打轴 30% 主题黑/白，已打轴 100%。
+                        # 后面的 singer-color wipe 保持既有实现，原样叠在此底层之上。
+                        _draw_ruby_timing_base(
+                            painter,
+                            int(ruby_x),
+                            ruby_y,
+                            _merged,
+                            _group_ruby_timed_spans.get(char_pos, []),
+                            fm_ruby,
+                            _ruby_foreground,
+                            _ruby_max_alpha,
+                        )
                         # Wipe — 连词组 ruby 与原字符逻辑一致：按各成员/各 part 的
                         # 时间轴分段，空 part 不推进、段间空隙保持，墨水边缘走字（非匀速）。
                         # 缺分段数据时回退为整段线性（组首 wipe 始 → 组尾 wipe 终）。
@@ -3123,18 +3281,18 @@ class KaraokePreview(QWidget):
                         _ruby_br = fm_ruby.tightBoundingRect(_ruby_disp)
                         _ruby_ink_top = ruby_y + _ruby_br.top()
                         _ruby_ink_bottom = ruby_y + _ruby_br.bottom() + 1
-                        # 底色：命中走字预览指引时用走字后分色 × 不透明度，否则用 base_color。
-                        # wipe 照常在底色之上叠加——能 wipe 的自然走字，无需任何拦截。
-                        _g_alpha_ruby = guide_alpha.get(char_pos)
-                        if _g_alpha_ruby is not None:
-                            _draw_split_text(
-                                painter, int(ruby_x), ruby_y, _ruby_disp,
-                                _guide_colors(ruby_highlight_colors, _g_alpha_ruby),
-                                _ruby_ink_top, _ruby_ink_bottom,
-                            )
-                        else:
-                            painter.setPen(base_color)
-                            painter.drawText(int(ruby_x), ruby_y, _ruby_disp)
+                        # 静态注音打轴状态：未打轴 30% 主题黑/白，已打轴 100%。
+                        # 后面的 singer-color wipe 保持既有实现，原样叠在此底层之上。
+                        _draw_ruby_timing_base(
+                            painter,
+                            int(ruby_x),
+                            ruby_y,
+                            _ruby_disp,
+                            _char_ruby_timed_spans.get(char_pos, []),
+                            fm_ruby,
+                            _ruby_foreground,
+                            _ruby_max_alpha,
+                        )
                         # Wipe — 优先用 part 锚点轴分段；缺锚点回退旧整段线性
                         _r_anchors = _char_part_anchors.get(char_pos)
                         if _r_anchors is not None and len(_r_anchors) >= 2:
