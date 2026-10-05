@@ -5,6 +5,7 @@
 """
 
 from copy import deepcopy
+import sys
 
 from PyQt6.QtCore import Qt, QTimer, QEvent, pyqtSignal
 from PyQt6.QtGui import QKeySequence, QShortcut
@@ -384,6 +385,24 @@ class MainWindow(MSFluentWindow):
         # 应用用户上次的窗口大小/最大化习惯（覆盖上面的默认尺寸）
         self._restore_window_geometry()
 
+    # MacFramelessWindow's show/paint handlers resolve NSView.window() to the
+    # host NSWindow after embedding. Guard native decoration operations even
+    # during construction; keep the normal Qt event chain and Windows setup.
+    def updateFrameless(self):
+        if sys.platform == "darwin" and self._embedded:
+            return
+        super().updateFrameless()
+
+    def _updateSystemTitleBar(self):
+        if sys.platform == "darwin" and self._embedded:
+            return
+        super()._updateSystemTitleBar()
+
+    def setSystemTitleBarButtonVisible(self, isVisible):
+        if sys.platform == "darwin" and self._embedded:
+            return
+        super().setSystemTitleBarButtonVisible(isVisible)
+
     def _remove_embedded_title_bar(self) -> None:
         """Remove MSFluentWindow's top title-bar space for embedded mode."""
         try:
@@ -537,6 +556,8 @@ class MainWindow(MSFluentWindow):
         macOS 重建 NSWindow styleMask），``show()`` 确保 ``setWindowFlags``
         改变时窗口不被隐藏。
         """
+        if self._embedded:
+            return
         try:
             self.updateFrameless()
             self.show()
