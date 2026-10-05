@@ -1113,6 +1113,10 @@ class AppSettings:
             tmp_path = path.with_name(path.name + ".tmp")
             with open(tmp_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
+                # fsync 后再 replace：断电时用户词典/演唱者预设等数据
+                # 不致空/半截（与 config.json 写盘同口径）
+                f.flush()
+                os.fsync(f.fileno())
             os.replace(str(tmp_path), str(path))
         except Exception as e:
             print(f"保存文件失败 {path}: {e}")
