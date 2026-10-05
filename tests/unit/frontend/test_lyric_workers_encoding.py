@@ -25,7 +25,7 @@ def _run_worker(worker: QObject):
     box = {"result": None, "error": None, "progress": []}
     if hasattr(worker, "finished"):
         worker.finished.connect(lambda *args: box.__setitem__("result", args))
-    worker.error.connect(box.__setitem__ if False else lambda msg: box.__setitem__("error", msg))
+    worker.error.connect(lambda msg: box.__setitem__("error", msg))
     if hasattr(worker, "progress"):
         worker.progress.connect(lambda *args: box["progress"].append(args))
     worker.run()
