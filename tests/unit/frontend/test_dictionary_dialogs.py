@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import pytest
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QTableWidgetSelectionRange
 
 from strange_uta_game.frontend.settings.dictionary_dialog import DictionaryEditDialog
@@ -143,3 +144,44 @@ def test_network_dictionary_dialog_shows_host_managed_cache(qapp):
     labels = [label.text() for label in dialog.findChildren(QLabel)]
     assert any("条目缓存：由宿主管理" in text for text in labels)
     assert all("None" not in text for text in labels)
+
+
+def test_builtin_source_url_readonly_and_not_collected(qapp):
+    """内置源 url 属代码所有：URL 列只读，收集不回写。
+
+    ensure_builtin_sources 每次加载都会用 BUILTIN_SOURCES 强制刷新内置源
+    url；若对话框仍允许编辑并保存，用户的修改会在下次加载被静默还原——
+    两头都认所有权。与 name 列同口径：UI 只读 + 收集守卫。
+    """
+    doc = {
+        "sources": [
+            {
+                "id": "builtin-1", "name": "内置",
+                "url": "https://builtin.example/dict",
+                "builtin": True, "enabled": True,
+                "entries": [], "last_fetched": None,
+            },
+            {
+                "id": "custom-1", "name": "自建",
+                "url": "https://mirror.example/dict",
+                "builtin": False, "enabled": True,
+                "entries": [], "last_fetched": None,
+            },
+        ]
+    }
+    dialog = NetworkDictionaryDialog(doc, cache_path=None)
+
+    builtin_flags = dialog._table.item(0, 2).flags()
+    assert not (builtin_flags & Qt.ItemFlag.ItemIsEditable), "内置源 URL 应只读"
+    assert dialog._table.item(1, 2).flags() & Qt.ItemFlag.ItemIsEditable
+
+    # 防御：即便 item 文本被程序性改写，收集也不得回写内置源 url
+    # （对话框内部深拷贝 doc，断言读 dialog._doc）
+    dialog._table.item(0, 2).setText("http://tampered/example")
+    dialog._collect_table_into_doc()
+    assert dialog._doc["sources"][0]["url"] == "https://builtin.example/dict"
+
+    # 自建源 url 正常收集
+    dialog._table.item(1, 2).setText("https://mirror.example/v2")
+    dialog._collect_table_into_doc()
+    assert dialog._doc["sources"][1]["url"] == "https://mirror.example/v2"

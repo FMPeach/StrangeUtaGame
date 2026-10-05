@@ -420,7 +420,13 @@ class NetworkDictionaryDialog(QDialog):
             )
             self._table.setItem(row, 0, chk)
             self._table.setItem(row, 1, QTableWidgetItem(src.get("name", "")))
-            self._table.setItem(row, 2, QTableWidgetItem(src.get("url", "")))
+            url_item = QTableWidgetItem(src.get("url", ""))
+            # 内置源 url 属代码所有：ensure_builtin_sources 每次加载都会
+            # 用 BUILTIN_SOURCES 强制刷新，可编辑但保存后被静默还原只会
+            # 误导用户——与 name 的收集守卫同口径，直接设为只读
+            if src.get("builtin"):
+                url_item.setFlags(url_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+            self._table.setItem(row, 2, url_item)
             count_item = QTableWidgetItem(str(len(src.get("entries", []) or [])))
             count_item.setFlags(count_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             self._table.setItem(row, 3, count_item)
@@ -442,7 +448,9 @@ class NetworkDictionaryDialog(QDialog):
             if name_item and not src.get("builtin"):
                 src["name"] = name_item.text().strip() or src.get("id", "")
             url_item = self._table.item(row, 2)
-            if url_item:
+            # 内置源 url 只读（见 _reload_table）：不回写，防止与
+            # ensure_builtin_sources 的强制刷新互相覆盖
+            if url_item and not src.get("builtin"):
                 src["url"] = url_item.text().strip()
 
     # ──────────────────────────────────────────────
