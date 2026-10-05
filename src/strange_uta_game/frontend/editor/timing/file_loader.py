@@ -399,11 +399,13 @@ class FileLoader:
             lambda temp, w=worker, p=file_path: self._on_video_loaded(temp, p, w)
         )
         worker.error.connect(lambda msg, w=worker: self._on_video_error(msg, w))
+        # 信号携带的 str payload（temp 路径/错误消息）由首位参数 _ 接住，
+        # 避免覆盖默认参数 t=thread（否则 str 会被当线程调用 quit）。
         worker.finished.connect(
-            lambda t=thread, w=worker: self._cleanup_video_thread(t, w)
+            lambda _, t=thread, w=worker: self._cleanup_video_thread(t, w)
         )
         worker.error.connect(
-            lambda t=thread, w=worker: self._cleanup_video_thread(t, w)
+            lambda _, t=thread, w=worker: self._cleanup_video_thread(t, w)
         )
 
         # 启动线程
