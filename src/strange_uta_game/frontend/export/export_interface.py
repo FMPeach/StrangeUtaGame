@@ -1464,8 +1464,19 @@ class ExportInterface(QWidget):
             state_tooltip.setContent(f"{phase} {current}/{total}")
 
         def _cleanup() -> None:
+            # 无父 QThread 的 C++ 对象由 Python 引用保活：必须先 quit+wait
+            # 让线程真正停止，再清引用（worker 的销毁由已连接的
+            # thread.finished → worker.deleteLater 链在线程收尾时完成，
+            # 这里不再重复 deleteLater——线程已停止时会因对象已被删除
+            # 抛 RuntimeError）。若先清引用，最后一个 Python 引用归零会
+            # 立即析构仍在运行的 QThread → qFatal（"QThread: Destroyed
+            # while thread is still running"）→ 导出文件已落盘但进程闪退。
+            thread = self._export_thread
+            if thread is not None:
+                thread.quit()
+                thread.wait()
+                self._export_thread = None
             self._export_worker = None
-            self._export_thread = None
             self._exporting = False
             btn = getattr(self, "btn_export", None)
             if btn is not None:
