@@ -239,7 +239,11 @@ SUG 的 `config/` 目录随包携带 AI 打轴的词典数据，嵌入（冻结�
 宿主无需复制、注入或另行配置这些文件：
 
 - `e2k.txt` / `cmudict-0.7b`：英文词 → 片假名 / CMU 音素（英文 token
-  转写的主进程数据源）；
+  转写的主进程数据源；`cmudict-0.7b` 亦为英文发音音节节奏点的音素来源）；
+- `g2p_en_checkpoint20.npz`（随附 `g2p_en_LICENSE.txt`）：g2p-en（Apache-2.0）
+  GRU 权重——CMU 未收录英文生词的离线发音预测，驱动英文发音音节节奏点，
+  不用于 AI 打轴、不联网补下；文件缺席或损坏（含截断 npz）时英文生词
+  退化为整词一个节奏点，不崩溃。来源与 SHA-256 见 `docs/english_syllables.md`；
 - `kanji_readings.json`：日语汉字读音；
 - `hanja_korean.json`：汉字 → 韩音谚文映射（8,525 字，Unihan kHangul
   派生，词典词目形优先，词首두음법칙由运行时应用）——韩文歌词的汉字
