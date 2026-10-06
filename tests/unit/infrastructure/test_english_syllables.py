@@ -33,6 +33,16 @@ from strange_uta_game.backend.infrastructure.parsers.english_ruby import (
         ("anger", "an-ger"),
         ("take", "take"),
         ("strength", "strength"),
+        ("running", "run-ning"),
+        ("getting", "get-ting"),
+        ("happen", "hap-pen"),
+        ("hidden", "hid-den"),
+        ("forgotten", "for-got-ten"),
+        ("poem", "po-em"),
+        ("cruel", "cru-el"),
+        ("science", "sci-ence"),
+        ("ruin", "ru-in"),
+        ("client", "cli-ent"),
     ],
 )
 def test_spelling_boundaries_follow_pronunciation(word, expected):
@@ -94,6 +104,30 @@ def test_ridiculously_has_five_pronunciation_syllables():
     result = en.analyze_english_word("ridiculously")
     assert result.source == "cmudict"
     assert len(result.offsets) == len(result.syllables) == 5
+
+
+@pytest.mark.parametrize(
+    "word, count",
+    [
+        ("crazy", 2),
+        ("amazing", 3),
+        ("zero", 2),
+        ("realize", 3),
+        ("organize", 3),
+        ("horizon", 3),
+    ],
+)
+def test_single_z_words_keep_all_pronunciation_syllables(word, count):
+    result = en.analyze_english_word(word)
+    assert result.source == "cmudict"
+    assert len(result.offsets) == len(result.syllables) == count
+
+
+@pytest.mark.parametrize("word", ["rhythm", "prism", "bottle", "puzzle"])
+def test_syllabic_consonants_remain_available_without_a_vowel_spelling(word):
+    result = en.analyze_english_word(word)
+    assert result.source == "cmudict"
+    assert len(result.offsets) == len(result.syllables) == 2
 
 
 def test_callers_cannot_mutate_cached_offsets():

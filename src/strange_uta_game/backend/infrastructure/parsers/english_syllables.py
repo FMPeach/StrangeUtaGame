@@ -158,7 +158,12 @@ def _dictionary():
 @lru_cache(maxsize=32768)
 def pronunciation_for_word(word: str) -> Optional[tuple[str, ...]]:
     key = normalize_apostrophes(word).lower()
-    return _dictionary().get(key) or predict_pronunciation(key)
+    return cmu_pronunciation_for_word(key) or predict_pronunciation(key)
+
+
+def cmu_pronunciation_for_word(word: str) -> Optional[tuple[str, ...]]:
+    """Dictionary-only lookup for callers whose Latin input may be romaji."""
+    return _dictionary().get(normalize_apostrophes(word).lower())
 
 
 def syllabify_word_phonemes(word, phones):
@@ -194,9 +199,12 @@ def syllabify_word_phonemes(word, phones):
             continue
         stem = key[: -len(suffix)]
         prefix = bases[: -len(ending)]
+        # A doubled consonant belongs across the displayed syllable boundary
+        # (run-ning, hid-den). Treat these with ordinary onset maximization;
+        # stripping the duplicate also invents stems such as hap + en.
+        if len(stem) >= 2 and stem[-1] == stem[-2] and stem[-1] not in "aeiouy":
+            continue
         candidates = [stem, stem + "e"]
-        if len(stem) >= 2 and stem[-1] == stem[-2]:
-            candidates.append(stem[:-1])
         if stem.endswith("i"):
             candidates.append(stem[:-1] + "y")
         for candidate in candidates:
@@ -237,6 +245,7 @@ _SPELLINGS = {
     "v": "V",
     "w": "W",
     "x": "K+S G+Z Z",
+    "z": "Z",
     "ai": "EY EH AE",
     "ay": "EY",
     "au": "AO AA",
@@ -322,8 +331,13 @@ _RULES = {
 }
 
 
-def _letter_alignment(word, phones):
-    """Return a letter span for each phone, or None if no credible path exists."""
+def _letter_alignment(word, phones, *, allow_syllabic_consonants=False):
+    """Map explicit vowel spellings first, then allow syllabic consonants.
+
+    A vowel digraph followed by an invented consonant nucleus must not displace
+    available vowel letters (po-em, sci-ence). The second pass still permits
+    genuine syllabic consonants in words such as rhythm and bottle.
+    """
     n, m = len(word), len(phones)
     bases = tuple(_base(p) for p in phones)
     best = {(0, 0): (0.0, ())}
@@ -361,6 +375,9 @@ def _letter_alignment(word, phones):
                 for variant, emitted in enumerate(_RULES.get(spelling, ())):
                     if bases[j : j + len(emitted)] != emitted:
                         continue
+                    syllabic = length == 1 and len(emitted) > 1 and spelling in "lmn"
+                    if syllabic and not allow_syllabic_consonants:
+                        continue
                     penalty = 1.0 + variant * 0.025
                     # Doubled consonants share a sound; its onset belongs to the
                     # second letter when another syllable follows (hap-py).
@@ -371,7 +388,7 @@ def _letter_alignment(word, phones):
                         and spelling[0] not in "aeiouy"
                         else i
                     )
-                    if length == 1 and len(emitted) > 1 and spelling in "lmn":
+                    if syllabic:
                         penalty += 1.0  # syllabic consonants, not ordinary l/m/n
                     phone_spans = None
                     if length == len(emitted) > 1 and all(
@@ -390,6 +407,8 @@ def _letter_alignment(word, phones):
             update(i + 1, 0, silent_cost)
     result = best.get((n, m))
     if result is None or result[0] > max(n, m) * 1.8:
+        if not allow_syllabic_consonants:
+            return _letter_alignment(word, phones, allow_syllabic_consonants=True)
         return None
     return result[1]
 

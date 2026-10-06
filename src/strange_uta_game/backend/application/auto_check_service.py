@@ -379,17 +379,6 @@ class AutoCheckService:
         # 稳定排序：按 word 长度降序，同长度保持用户定义顺序
         _dict_entries.sort(key=lambda x: len(x[0]), reverse=True)
         self._dict: List[Tuple[str, str]] = _dict_entries
-        # 英文用户词典的显式 RubyPart 分段优先于自动发音音节。
-        # 原有 Phase 5 只覆盖读音并保留 check_count，因此在生成节奏点时
-        # 就使用这份分段，避免稍后的节奏点重算又把手工拆分覆盖。
-        self._english_dict_counts: Dict[str, List[int]] = {}
-        for word, reading in self._dict:
-            matches = find_english_words(word)
-            if len(matches) != 1 or matches[0][:2] != (0, len(word)):
-                continue
-            parsed = _parse_dict_reading(reading, word)
-            if parsed and any(parsed[0]):
-                self._english_dict_counts.setdefault(word, [len(parts) for parts in parsed[0]])
         # pykakasi 用于无约束分区的参考读音
         self._pykakasi_conv = None
         try:
@@ -1279,9 +1268,7 @@ class AutoCheckService:
                     check_counts[i] = 0
 
     def _english_word_check_counts(self, word: str) -> List[int]:
-        """用户显式拆分 → 发音音节；关闭音节选项时自动部分按整词。"""
-        if word in self._english_dict_counts:
-            return list(self._english_dict_counts[word])
+        """自动发音音节；用户词典分段仅在 Phase 5 实际命中时应用。"""
         starts = (
             get_syllable_start_offsets(word)
             if self._flags.get("english_syllable_check", True) else {0}
@@ -1292,6 +1279,8 @@ class AutoCheckService:
         self,
         sentence: Sentence,
         check_counts: List[int],
+        *,
+        preserve_english_rubies: bool = False,
     ) -> None:
         """英文词音节规则 + 行尾/停顿点标记 + check_count 写入（共用）。
 
@@ -1307,6 +1296,28 @@ class AutoCheckService:
         chars = [c.char for c in sentence.characters]
         n = len(sentence.characters)
 
+        # 重算时以已经写入的连词块为准，而非重新按短词查询用户词典。
+        # 自动英文注音也可能把整词 ruby 放在首字，但在无 ruby 的后字上
+        # 保留发音节奏点；这些位置须沿用已有布局，不能一律归零。
+        ruby_counts: Dict[int, int] = {}
+        preserved_english: set[int] = set()
+        if preserve_english_rubies:
+            start = 0
+            while start < n:
+                end = start + 1
+                while end < n and sentence.characters[end - 1].linked_to_next:
+                    end += 1
+                block = sentence.characters[start:end]
+                if any(c.ruby and c.ruby.parts for c in block):
+                    for idx in range(start, end):
+                        char = sentence.characters[idx]
+                        ruby_counts[idx] = (
+                            len(char.ruby.parts)
+                            if char.check_count > 0 and char.ruby and char.ruby.parts
+                            else char.check_count
+                        )
+                start = end
+
         # ── 英文词组节奏点规则 ──
         english_sentence_end_idx: set[int] = set()
         english_word_end_idx: set[int] = set()
@@ -1317,7 +1328,9 @@ class AutoCheckService:
             word_counts = self._english_word_check_counts(text[start:end])
             for idx in range(start, end):
                 if idx < len(check_counts):
-                    check_counts[idx] = word_counts[idx - start]
+                    check_counts[idx] = ruby_counts.get(idx, word_counts[idx - start])
+                    if idx in ruby_counts:
+                        preserved_english.add(idx)
             if end - 1 < n:
                 english_word_end_idx.add(end - 1)
                 if not _is_single and check_english_word_end:
@@ -1372,7 +1385,11 @@ class AutoCheckService:
                 char.set_check_count(check_counts[i], force=True)
                 char.timestamps = preserved_ts
             else:
-                char.set_check_count(check_counts[i], force=True)
+                char.set_check_count(
+                    check_counts[i],
+                    force=True,
+                    ruby_split_mode="direct" if i in preserved_english else "mora",
+                )
 
             char.is_line_end = is_last and add_line_end
             char.is_sentence_end = is_sentence_end
@@ -2383,8 +2400,8 @@ class AutoCheckService:
           - 字符位置若已被更高优先级词条锁定，则跳过；
           - 命中后：解析 ``reading``（annotated 行内格式），为该 span 的每个
             ``Character`` 覆盖 ``ruby`` 和 ``linked_to_next``；
-            ``timestamps / check_count / singer_id / is_line_end / is_sentence_end /
-            sentence_end_ts / is_rest`` 等字段全部保留；
+            按实际 RubyPart 分段设置 check_count，并按 setter 规则收口 timestamps；
+            singer_id / is_line_end / is_sentence_end / sentence_end_ts / is_rest 保留；
           - 同一 annotated block 内相邻字符设 ``linked_to_next=True``，
             block 末字符 / 块外字符（无 ruby 段）设 ``linked_to_next=False``。
 
@@ -2431,12 +2448,18 @@ class AutoCheckService:
 
             # 检查是否需要拦截：当 annotate_katakana_with_english 为 False 时
             if not self._annotate_katakana_with_english:
+                english_words = find_english_words(word)
+                is_english_word = (
+                    len(english_words) == 1
+                    and english_words[0][:2] == (0, len(word))
+                    and any(per_char_parts)
+                )
                 # 检查条件1：word 是否含有汉字/平假名（含小平假名），有则放行
                 has_kanji_or_hira = any(
                     "\u4e00" <= c <= "\u9fff" or "\u3040" <= c <= "\u309f"
                     for c in word
                 )
-                if not has_kanji_or_hira and word not in self._english_dict_counts:
+                if not has_kanji_or_hira and not is_english_word:
                     # word 中无汉字/平假名 → 视为纯片假名词条，拦截
                     # 检查条件2：reading 中的 ruby 部分是否只有英文、空格和结构化修饰符
                     all_ruby_parts = []
@@ -2771,7 +2794,9 @@ class AutoCheckService:
         chars = [c.char for c in sentence.characters]
         self._apply_flags_filter(chars, check_counts, sentence.text)
 
-        self._apply_english_and_endpoints(sentence, check_counts)
+        self._apply_english_and_endpoints(
+            sentence, check_counts, preserve_english_rubies=True
+        )
 
         # #10: 此函数仅更新节奏点，不改变 linked_to_next。
         # linked_to_next 已由 analyze_sentence/apply_to_sentence 根据注音来源

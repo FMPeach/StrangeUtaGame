@@ -309,18 +309,18 @@ _PHONEME_CACHE: dict = {}
 
 
 def _cmu_lookup(word: str) -> Optional[List[str]]:
-    """共享 CMU/G2P 发音查询；保留可替换查询函数以便隔离测试。"""
+    """仅查 CMU；对齐输入可能是 ruby 罗马字，不能交给英文 G2P 猜读。"""
     global _CMU_LOOKUP_CACHE
     if _CMU_LOOKUP_CACHE is None:
         with _LAZY_INIT_LOCK:
             if _CMU_LOOKUP_CACHE is not None:
                 return _CMU_LOOKUP_CACHE(word)
             from strange_uta_game.backend.infrastructure.parsers.english_syllables import (
-                pronunciation_for_word,
+                cmu_pronunciation_for_word,
             )
 
             def lookup(key):
-                phones = pronunciation_for_word(key)
+                phones = cmu_pronunciation_for_word(key)
                 return list(phones) if phones else None
 
             _CMU_LOOKUP_CACHE = lookup
@@ -337,10 +337,11 @@ def _phoneme_syllabify(phonemes: List[str]) -> List[List[str]]:
 
 
 def english_word_phoneme_syllables(word: str) -> Optional[List[str]]:
-    """英文词 → CMU/G2P 发音音节罗马字；发音不可用返回 None。
+    """英文词 → CMU 发音音节罗马字；词典未收录返回 None。
 
     每个元音核保留一个音节，绝不按排版断字数合并或平均分配。
     命中结果逐音节独立对齐（alignment 侧不进 word_groups）。
+    G2P 仅用于自动英文节奏点，避免重读片假名 ruby 的罗马字和日语罗马字。
     """
     word = word.strip()
     if not word:
