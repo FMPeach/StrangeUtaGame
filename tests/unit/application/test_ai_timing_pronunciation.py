@@ -15,7 +15,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _hermetic_transcription(monkeypatch):
-    """封闭转写环境：默认禁用 e2k/pyphen（英文回退表面拼写）。
+    """封闭转写环境：默认禁用 CMU/G2P/e2k/pyphen（英文回退表面拼写）。
 
     本文件测 resolver/连词逻辑；转写行为在 alignment/transcription
     测试文件中用各自的词典注入覆盖。
@@ -25,6 +25,8 @@ def _hermetic_transcription(monkeypatch):
     )
 
     monkeypatch.setattr(transcription, "_E2K_LOOKUP_CACHE", lambda w: None)
+    monkeypatch.setattr(transcription, "_CMU_LOOKUP_CACHE", lambda w: None)
+    monkeypatch.setattr(transcription, "_PHONEME_CACHE", {})
     monkeypatch.setattr(transcription, "_PYPhen_CACHE", False)
     monkeypatch.setattr(transcription, "_ENGLISH_CACHE", {})
     yield

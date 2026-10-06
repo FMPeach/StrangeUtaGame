@@ -188,17 +188,18 @@ class TestEnglishPhonemes:
         ]
         assert transcription._phoneme_syllabify(["D", "HH"]) == [["D", "HH"]]
 
-    def test_merge_to_count_back_heavy(self):
-        assert transcription._merge_to_count(["a", "b", "c"], 2) == ["a", "bc"]
-        assert transcription._merge_to_count(["a", "b"], 2) == ["a", "b"]
-        assert transcription._merge_to_count(["a"], 3) == ["a"]
+    def test_pronunciation_works_without_pyphen(self, monkeypatch):
+        monkeypatch.setattr(transcription, "_PYPhen_CACHE", False)
+        assert transcription.english_word_phoneme_syllables("abandoned") == [
+            "a", "ban", "dand",
+        ]
 
     def test_word_phoneme_syllables(self):
         # take：T EY K → 单音节 → ["teik"]
         assert transcription.english_word_phoneme_syllables("take") == ["teik"]
-        # abandoned：读音 3 音节，pyphen 拼写 aban-doned=2 → 后段合并
+        # abandoned：完整保留三个发音音节，不合并到 Pyphen 的两段。
         assert transcription.english_word_phoneme_syllables("abandoned") == [
-            "a", "bandand",
+            "a", "ban", "dand",
         ]
 
     def test_special_a_and_oov(self):

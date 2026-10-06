@@ -282,8 +282,8 @@ def english_word_syllables(word: str) -> List[str]:
 
 # ── 英文：CMU 音素 → 音节罗马字（FA-Kara 口径，MIT）──
 # 与 e2k（词→片假名→按拍）不同：读音直接来自 cmudict ARPAbet 音素，
-# 按「最大节首辅音原则」切成音节后逐音素映射成罗马字，再合并到
-# pyphen 拼写音节数——token 粒度=拼写音节，每个音节可独立对齐
+# 使用与英文节奏点相同的发音分音节器，再逐音素映射成罗马字。
+# 每个发音音节可独立对齐，不再按 Pyphen 拼写断字数合并。
 # （e2k 按拍口径词内边界靠比例切分，实测不如音素口径准）。
 # 音素映射表取自 https://github.com/moriwx/FA-Kara（MIT），未内嵌其代码。
 
@@ -309,101 +309,39 @@ _PHONEME_CACHE: dict = {}
 
 
 def _cmu_lookup(word: str) -> Optional[List[str]]:
-    """cmudict-0.7b 查询（首选发音；文件缺失/解析失败返回 None）。"""
+    """仅查 CMU；对齐输入可能是 ruby 罗马字，不能交给英文 G2P 猜读。"""
     global _CMU_LOOKUP_CACHE
     if _CMU_LOOKUP_CACHE is None:
         with _LAZY_INIT_LOCK:
             if _CMU_LOOKUP_CACHE is not None:
                 return _CMU_LOOKUP_CACHE(word)
-            table: dict = {}
+            from strange_uta_game.backend.infrastructure.parsers.english_syllables import (
+                cmu_pronunciation_for_word,
+            )
 
-            def _load() -> Callable[[str], Optional[List[str]]]:
-                try:
-                    from strange_uta_game.backend.infrastructure.parsers.e2k_engine import (
-                        EnglishToKanaEngine,
-                    )
+            def lookup(key):
+                phones = cmu_pronunciation_for_word(key)
+                return list(phones) if phones else None
 
-                    path = EnglishToKanaEngine._resolve_cmudict_path()
-                except Exception:
-                    return lambda w: None
-                if path is None:
-                    return lambda w: None
-                try:
-                    with open(path, "r", encoding="latin-1", errors="ignore") as f:
-                        for line in f:
-                            parts = line.split()
-                            if len(parts) < 2:
-                                continue
-                            raw = parts[0]
-                            # 变体 WORD(2)/… 跳过，仅取首选发音
-                            if raw.endswith(")") and "(" in raw:
-                                continue
-                            if not raw or not raw[0].isalpha():
-                                continue
-                            table[raw.lower()] = parts[1:]
-                except Exception:
-                    return lambda w: None
-                return table.get
-
-            _CMU_LOOKUP_CACHE = _load()
+            _CMU_LOOKUP_CACHE = lookup
     return _CMU_LOOKUP_CACHE(word)
 
 
 def _phoneme_syllabify(phonemes: List[str]) -> List[List[str]]:
-    """音素序列 → 音节分组（元音为核，节首辅音最大化；FA-Kara 同款）。
+    """共享音素分音节：保留合法的节首辅音串。"""
+    from strange_uta_game.backend.infrastructure.parsers.english_syllables import (
+        syllabify_phonemes,
+    )
 
-    两个元音之间的辅音串：多于一个时第一个辅音归前一音节的节尾，
-    其余归下一音节节首；词尾剩余辅音并入最后一个音节。
-    """
-    vowel_positions = [
-        i
-        for i, ph in enumerate(phonemes)
-        if ph.rstrip("012") in _CMU_VOWELS
-    ]
-    if not vowel_positions:
-        return [list(phonemes)]
-    syllables: List[List[str]] = []
-    prev = -1
-    for vi in vowel_positions:
-        if not syllables:
-            syllables.append(list(phonemes[: vi + 1]))
-        else:
-            consonants = phonemes[prev + 1 : vi]
-            if consonants:
-                onset_start = 0
-                if len(consonants) > 1:
-                    syllables[-1].append(consonants[0])
-                    onset_start = 1
-                syllables.append(consonants[onset_start:] + [phonemes[vi]])
-            else:
-                syllables.append([phonemes[vi]])
-        prev = vi
-    if prev < len(phonemes) - 1:
-        syllables[-1].extend(phonemes[prev + 1 :])
-    return syllables
-
-
-def _merge_to_count(items: List[str], count: int) -> List[str]:
-    """把较长的读音音节列表均匀合并到 count 个（FA-Kara 对齐口径：
-    后面的段多分一个元素），数量相符时原样返回。"""
-    if len(items) <= count:
-        return list(items)
-    base, extra = divmod(len(items), count)
-    merged: List[str] = []
-    start = 0
-    for i in range(count):
-        size = base + (1 if i >= count - extra else 0)
-        merged.append("".join(items[start : start + size]))
-        start += size
-    return merged
+    return syllabify_phonemes(phonemes)
 
 
 def english_word_phoneme_syllables(word: str) -> Optional[List[str]]:
-    """英文词 → 音素口径的音节罗马字列表；CMU 未收录返回 None。
+    """英文词 → CMU 发音音节罗马字；词典未收录返回 None。
 
-    FA-Kara 口径：pyphen 拼写音节数决定 token 数，读音音节多于拼写
-    音节时按段合并（take→T EY K→["tei","k"]→拼写 1 音节→["teik"]）。
+    每个元音核保留一个音节，绝不按排版断字数合并或平均分配。
     命中结果逐音节独立对齐（alignment 侧不进 word_groups）。
+    G2P 仅用于自动英文节奏点，避免重读片假名 ruby 的罗马字和日语罗马字。
     """
     word = word.strip()
     if not word:
@@ -418,12 +356,12 @@ def english_word_phoneme_syllables(word: str) -> Optional[List[str]]:
 
     result: Optional[List[str]] = None
     phonemes = _cmu_lookup(key)
-    dic = _pyphen_dic()
-    if phonemes and dic is not None:
-        surface_count = len(
-            [s for s in dic.inserted(word).split("-") if s]
-        ) or 1
-        groups = _phoneme_syllabify(phonemes)
+    if phonemes:
+        from strange_uta_game.backend.infrastructure.parsers.english_syllables import (
+            syllabify_word_phonemes,
+        )
+
+        groups = syllabify_word_phonemes(word, phonemes)
         roms = [
             "".join(
                 _CMU_PHONEME_ROMAJI.get(ph.rstrip("012"), "")
@@ -433,7 +371,7 @@ def english_word_phoneme_syllables(word: str) -> Optional[List[str]]:
         ]
         roms = [r for r in roms if r]
         if roms:
-            result = _merge_to_count(roms, surface_count)
+            result = roms
 
     _PHONEME_CACHE[key] = list(result) if result else []
     return list(result) if result else None
