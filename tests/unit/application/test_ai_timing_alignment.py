@@ -715,12 +715,12 @@ class TestPhonemeLatinPath:
         assert [t.text for t in request.tokens] == ["teik"]
         assert request.word_groups == []
 
-    def test_multisyllable_merges_to_surface_count(self):
+    def test_multisyllable_preserves_pronunciation_count(self):
         s = _sentence([("x", 1, ["abandoned"], False)])
         project, plan = _resolved_project([s])
         request = build_alignment_request(plan)
-        # 读音音节 a/ban/dand，pyphen 拼写音节 aban-doned=2 → 后段合并
-        assert [t.text for t in request.tokens] == ["a", "bandand"]
+        # 三个发音音节分别对齐，不受 Pyphen 的两段拼写断字影响。
+        assert [t.text for t in request.tokens] == ["a", "ban", "dand"]
         assert request.word_groups == []
 
     def test_adjacent_dictionary_words_align_independently(self):
@@ -750,16 +750,16 @@ class TestPhonemeLatinPath:
         s = _sentence([("x", 1, ["abandoned"], False)])
         project, plan = _resolved_project([s])
         request = build_alignment_request(plan)
-        assert [t.text for t in request.tokens] == ["a", "bandand"]
-        spans = _spans_from_tokens(request, [100, 400])  # 每拍固定 200ms
+        assert [t.text for t in request.tokens] == ["a", "ban", "dand"]
+        spans = _spans_from_tokens(request, [100, 400, 700])  # 每拍固定 200ms
         span_map = checkpoint_timestamps(
             AlignmentResult(
                 annotation_digest=request.annotation_digest, spans=spans
             ),
             request,
         )
-        # 节奏点 = 首音节起点 100 → 末音节终点 600
-        assert span_map == {(0, 0, 0): (100, 600)}
+        # 整词的既有单节奏点仍覆盖全部发音音节，不改写工程结构。
+        assert span_map == {(0, 0, 0): (100, 900)}
 
     def test_split_pieces_get_own_token_spans(self):
         """手工按音节拆词（多节奏点）：每片独立对齐，各节奏点拿

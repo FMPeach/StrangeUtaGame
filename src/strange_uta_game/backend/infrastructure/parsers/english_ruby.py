@@ -123,17 +123,12 @@ def normalize_apostrophes(text: str) -> str:
 def get_syllable_start_offsets(word: str) -> Set[int]:
     """返回 word 内各音节首字母的偏移集合（始终含 0）。
 
-    使用 pyphen（en_US 连字词典）拆分音节。pyphen 不可用时退化为仅返回 {0}。
-    撇号/点号不参与断点，positions() 返回的索引直接对应 word 内字符偏移。
+    使用 CMU 发音词典与离线 G2P，按音素分音节后映射回原词字母位置。
+    无可靠发音/字母对应时保留整词；不把排版断字当作发音音节。
     """
-    try:
-        import pyphen
-        d = pyphen.Pyphen(lang="en_US")
-        offsets: Set[int] = {0}
-        offsets.update(d.positions(word))
-        return offsets
-    except Exception:
-        return {0}
+    from .english_syllables import analyze_english_word
+
+    return set(analyze_english_word(word).offsets)
 
 
 # 各类逗号：英文逗号、中文全角逗号、日文逗号

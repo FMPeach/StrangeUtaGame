@@ -635,7 +635,7 @@ class TestBlankLineLineStartEndGuard:
             True, True, True, True, False,
         ]
         line, _ = sentence_to_timed_line(sentence.characters)
-        assert line == "{magic||[T],,,[T],}![>T]"
+        assert line == "{magic||[T],,[T],,}![>T]"  # ma-gic，发音边界位于 g
 
     def test_kanji_type_removes_rubies_from_linked_kanji_word(self):
         """含汉字的连词块按汉字类型删除，而不是被无条件保护。"""
@@ -1192,7 +1192,7 @@ class TestEnglishWordCheckpoints:
         # 'Happy' = idx 3..8
         self._assert_word_rule(chars, 3, 8, "Happy", (0, 3))
         # 'honey' = idx 9..14
-        self._assert_word_rule(chars, 9, 14, "honey", (0, 3))
+        self._assert_word_rule(chars, 9, 14, "honey", (0, 2))
         # 'day' = idx 15..18
         self._assert_word_rule(chars, 15, 18, "day")
 
@@ -1206,7 +1206,7 @@ class TestEnglishWordCheckpoints:
         self._assert_word_rule(chars, 14, 17, "day")
         self._assert_word_rule(chars, 19, 25, "doctor", (0, 3))
         self._assert_word_rule(chars, 26, 28, "go")
-        self._assert_word_rule(chars, 29, 33, "away")
+        self._assert_word_rule(chars, 29, 33, "away", (0, 1))
 
     def test_heyyyyy_fallback(self):
         """Heyyyyy...：OOV 词走 english_fallback 分支，规则同样应用"""

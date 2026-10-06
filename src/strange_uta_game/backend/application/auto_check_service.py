@@ -379,6 +379,17 @@ class AutoCheckService:
         # 稳定排序：按 word 长度降序，同长度保持用户定义顺序
         _dict_entries.sort(key=lambda x: len(x[0]), reverse=True)
         self._dict: List[Tuple[str, str]] = _dict_entries
+        # 英文用户词典的显式 RubyPart 分段优先于自动发音音节。
+        # 原有 Phase 5 只覆盖读音并保留 check_count，因此在生成节奏点时
+        # 就使用这份分段，避免稍后的节奏点重算又把手工拆分覆盖。
+        self._english_dict_counts: Dict[str, List[int]] = {}
+        for word, reading in self._dict:
+            matches = find_english_words(word)
+            if len(matches) != 1 or matches[0][:2] != (0, len(word)):
+                continue
+            parsed = _parse_dict_reading(reading, word)
+            if parsed and any(parsed[0]):
+                self._english_dict_counts.setdefault(word, [len(parts) for parts in parsed[0]])
         # pykakasi 用于无约束分区的参考读音
         self._pykakasi_conv = None
         try:
@@ -1267,6 +1278,16 @@ class AutoCheckService:
                 elif depth > 0 and i < len(check_counts):
                     check_counts[i] = 0
 
+    def _english_word_check_counts(self, word: str) -> List[int]:
+        """用户显式拆分 → 发音音节；关闭音节选项时自动部分按整词。"""
+        if word in self._english_dict_counts:
+            return list(self._english_dict_counts[word])
+        starts = (
+            get_syllable_start_offsets(word)
+            if self._flags.get("english_syllable_check", True) else {0}
+        )
+        return [int(i in starts) for i in range(len(word))]
+
     def _apply_english_and_endpoints(
         self,
         sentence: Sentence,
@@ -1291,15 +1312,12 @@ class AutoCheckService:
         english_word_end_idx: set[int] = set()
         english_word_trailing_comma_idx: set[int] = set()
         check_english_word_end = self._flags.get("check_english_word_end", True)
-        _english_syllable_check = self._flags.get("english_syllable_check", True)
         for start, end, word in find_english_words(text):
             _is_single = end - start <= 1
-            _syllable_starts = (
-                get_syllable_start_offsets(word) if _english_syllable_check else {0}
-            )
+            word_counts = self._english_word_check_counts(text[start:end])
             for idx in range(start, end):
                 if idx < len(check_counts):
-                    check_counts[idx] = 1 if (idx - start) in _syllable_starts else 0
+                    check_counts[idx] = word_counts[idx - start]
             if end - 1 < n:
                 english_word_end_idx.add(end - 1)
                 if not _is_single and check_english_word_end:
@@ -1984,14 +2002,11 @@ class AutoCheckService:
         # 必须放在 e2k mora 分配之后，覆盖 e2k 命中分支的 per-char mora 计数。
         # english_fallback 分支已在前面手动应用过同样规则；此处再次覆盖是幂等的。
         # find_english_words 基于 text 的字符索引，与 chars/check_counts 一一对应。
-        _english_syllable_check = self._flags.get("english_syllable_check", True)
         for _start, _end, _word in find_english_words(text):
-            _syllable_starts = (
-                get_syllable_start_offsets(_word) if _english_syllable_check else {0}
-            )
+            word_counts = self._english_word_check_counts(text[_start:_end])
             for _idx in range(_start, _end):
                 if _idx < len(check_counts):
-                    check_counts[_idx] = 1 if (_idx - _start) in _syllable_starts else 0
+                    check_counts[_idx] = word_counts[_idx - _start]
 
         # compound_group_id 构建：在 char_to_morpheme（morpheme_span 来源）基础上，
         # 补入 char_to_dist_block（分发块来源）里未被 morpheme_span 覆盖的多字块。
@@ -2421,7 +2436,7 @@ class AutoCheckService:
                     "\u4e00" <= c <= "\u9fff" or "\u3040" <= c <= "\u309f"
                     for c in word
                 )
-                if not has_kanji_or_hira:
+                if not has_kanji_or_hira and word not in self._english_dict_counts:
                     # word 中无汉字/平假名 → 视为纯片假名词条，拦截
                     # 检查条件2：reading 中的 ruby 部分是否只有英文、空格和结构化修饰符
                     all_ruby_parts = []
