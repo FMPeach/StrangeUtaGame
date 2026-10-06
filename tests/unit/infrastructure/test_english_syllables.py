@@ -78,14 +78,70 @@ def test_unknown_or_unalignable_spelling_stays_whole(monkeypatch):
     en.analyze_english_word.cache_clear()
 
 
-def test_missing_g2p_model_has_conservative_fallback(monkeypatch):
+@pytest.fixture
+def fresh_g2p_caches():
     from strange_uta_game.backend.infrastructure.parsers import english_g2p
 
-    def missing():
-        raise FileNotFoundError("missing model")
+    en.pronunciation_for_word.cache_clear()
+    en.analyze_english_word.cache_clear()
+    english_g2p._weights.cache_clear()
+    yield english_g2p
+    en.pronunciation_for_word.cache_clear()
+    en.analyze_english_word.cache_clear()
+    english_g2p._weights.cache_clear()
 
-    monkeypatch.setattr(english_g2p, "_weights", missing)
+
+def test_missing_g2p_model_has_conservative_fallback(
+    monkeypatch, tmp_path, fresh_g2p_caches
+):
+    english_g2p = fresh_g2p_caches
+    monkeypatch.setattr(
+        english_g2p, "_model_path", lambda: tmp_path / "no-such-model.npz"
+    )
+
+    assert english_g2p._weights() is None
     assert english_g2p.predict_pronunciation("unlistedword") is None
+
+
+def test_corrupt_npz_degrades_to_whole_word(monkeypatch, tmp_path, fresh_g2p_caches):
+    """截断的 npz（zipfile.BadZipFile，直接继承 Exception）不得击穿兜底。"""
+    import zipfile
+
+    english_g2p = fresh_g2p_caches
+    corrupt = tmp_path / "g2p_en_checkpoint20.npz"
+    corrupt.write_bytes(b"PK\x03\x04truncated-not-a-real-archive")
+    assert not zipfile.is_zipfile(corrupt)
+    monkeypatch.setattr(english_g2p, "_model_path", lambda: corrupt)
+
+    assert english_g2p._weights() is None
+    assert english_g2p.predict_pronunciation("backdown") is None
+    # 失败被 lru_cache 缓存：文件消失后不再触碰磁盘，仍返回 None。
+    corrupt.unlink()
+    assert english_g2p._weights() is None
+
+    # 端到端：生词退化为整词一个节奏点，而非让导入/自动打轴崩溃。
+    assert get_syllable_start_offsets("backdown") == {0}
+
+
+def test_malformed_weights_return_none_instead_of_raising(
+    fresh_g2p_caches, monkeypatch
+):
+    import numpy as np
+
+    english_g2p = fresh_g2p_caches
+    monkeypatch.setattr(
+        english_g2p, "_weights", lambda: {"enc_w_hh": np.zeros((1, 3), dtype=np.float32)}
+    )
+
+    assert english_g2p.predict_pronunciation("backdown") is None
+
+
+def test_syllable_offsets_survive_unexpected_analyzer_failure(monkeypatch):
+    def boom(word):
+        raise RuntimeError("unexpected analyzer bug")
+
+    monkeypatch.setattr(en, "analyze_english_word", boom)
+    assert get_syllable_start_offsets("open") == {0}
 
 
 @pytest.mark.parametrize("word", ["", "...", "日本語", "x" * 1000, "heyyyyyyyyyyyy"])

@@ -125,10 +125,15 @@ def get_syllable_start_offsets(word: str) -> Set[int]:
 
     使用 CMU 发音词典与离线 G2P，按音素分音节后映射回原词字母位置。
     无可靠发音/字母对应时保留整词；不把排版断字当作发音音节。
+    底层任何异常（词典 IO、模型损坏等）同样退化为整词——本入口被歌词
+    导入与自动打轴调用，不允许向用户数据路径抛异常。
     """
-    from .english_syllables import analyze_english_word
+    try:
+        from .english_syllables import analyze_english_word
 
-    return set(analyze_english_word(word).offsets)
+        return set(analyze_english_word(word).offsets)
+    except Exception:
+        return {0}
 
 
 # 各类逗号：英文逗号、中文全角逗号、日文逗号

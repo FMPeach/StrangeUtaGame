@@ -88,13 +88,27 @@ _PHONES = [
 ]
 
 
+def _model_path() -> Path:
+    return Path(__file__).resolve().parents[3] / "config" / "g2p_en_checkpoint20.npz"
+
+
 @lru_cache(maxsize=1)
 def _weights():
+    """Load the GRU weights once; missing/corrupt resources degrade to None.
+
+    A truncated or damaged npz raises zipfile.BadZipFile, which derives
+    directly from Exception and therefore never matched the historical
+    (ImportError, OSError, ValueError) tuple. Catching broadly here also
+    lets lru_cache remember the failure, so a broken asset is read once,
+    not once per OOV word.
+    """
     import numpy as np
 
-    path = Path(__file__).resolve().parents[3] / "config" / "g2p_en_checkpoint20.npz"
-    with np.load(path, allow_pickle=False) as archive:
-        return {key: archive[key] for key in archive.files}
+    try:
+        with np.load(_model_path(), allow_pickle=False) as archive:
+            return {key: archive[key] for key in archive.files}
+    except Exception:
+        return None
 
 
 def predict_pronunciation(word: str) -> Optional[tuple[str, ...]]:
@@ -106,11 +120,10 @@ def predict_pronunciation(word: str) -> Optional[tuple[str, ...]]:
 
     if re.search(r"(.)\1{3}", word):
         return None
-    try:
-        import numpy as np
+    import numpy as np
 
-        weights = _weights()
-    except (ImportError, OSError, ValueError):
+    weights = _weights()
+    if weights is None:
         return None
 
     def step(x, hidden, prefix):
@@ -123,17 +136,23 @@ def predict_pronunciation(word: str) -> Optional[tuple[str, ...]]:
         proposal = np.tanh(candidate + reset * hc)
         return (1.0 - update) * proposal + update * hidden
 
-    hidden = np.zeros(weights["enc_w_hh"].shape[1], dtype=np.float32)
-    for char_id in [ord(char) - ord("a") + 3 for char in word.lower()] + [2]:
-        hidden = step(weights["enc_emb"][char_id], hidden, "enc")
-    previous = 2  # <s>
-    result = []
-    for _ in range(96):
-        hidden = step(weights["dec_emb"][previous], hidden, "dec")
-        previous = int((hidden @ weights["fc_w"].T + weights["fc_b"]).argmax())
-        if previous == 3:  # </s>; never use truncated predictions
-            return tuple(result) if any(p[-1:] in "012" for p in result) else None
-        if previous < 4:
-            return None
-        result.append(_PHONES[previous])
+    try:
+        hidden = np.zeros(weights["enc_w_hh"].shape[1], dtype=np.float32)
+        for char_id in [ord(char) - ord("a") + 3 for char in word.lower()] + [2]:
+            hidden = step(weights["enc_emb"][char_id], hidden, "enc")
+        previous = 2  # <s>
+        result = []
+        for _ in range(96):
+            hidden = step(weights["dec_emb"][previous], hidden, "dec")
+            previous = int((hidden @ weights["fc_w"].T + weights["fc_b"]).argmax())
+            if previous == 3:  # </s>; never use truncated predictions
+                return tuple(result) if any(p[-1:] in "012" for p in result) else None
+            if previous < 4:
+                return None
+            result.append(_PHONES[previous])
+    except Exception:
+        # Malformed weights (missing entries / unexpected shapes) degrade the
+        # same way as a missing model; this path must never raise into
+        # lyric import or auto-checkpoint analysis.
+        return None
     return None
