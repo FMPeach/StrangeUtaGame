@@ -8,6 +8,7 @@ from strange_uta_game.backend.infrastructure.parsers.kasugamuki_format import (
     krl_role_names,
     sentences_from_kasugamuki,
     sentences_to_kasugamuki,
+    sentences_to_kasugamuki_romaji,
     strip_krl_config,
 )
 from strange_uta_game.backend.domain import Singer
@@ -221,7 +222,7 @@ def test_krl_config_and_unnumbered_ruby_via_parse_lyric_content():
 def test_linked_group_primary_subtitle_and_ruby_round_trip():
     source = (
         "前{明日|[00:01:00]あ[00:01:20]し[00:01:40]た>"
-        "[00:01:00]a[00:01:20]shi[00:01:40]ta}後[>00:02:00]"
+        "[00:01:00]a[00:01:20]shi[00:01:40]ta}後[00:02:00]"
     )
 
     sentences = sentences_from_kasugamuki(source, SINGER_ID)
@@ -238,7 +239,7 @@ def test_linked_group_primary_subtitle_and_ruby_round_trip():
     assert sentence.characters[2].ruby is None
     exported = sentences_to_kasugamuki(sentences)
     assert exported == (
-        "前{明日|[00:01:00]あ[00:01:20]し[00:01:40]た}後[>00:02:00]"
+        "前{明日|[00:01:00]あ[00:01:20]し[00:01:40]た}後[00:02:00]"
     )
 
     reparsed = sentences_from_kasugamuki(exported, SINGER_ID)[0]
@@ -256,7 +257,7 @@ def test_primary_round_trip_preserves_empty_and_space_only_subtitle_lines():
         "{空|[00:01:00]そら}\n"
         "\n"
         " \n"
-        "{白|[00:02:00]しろ}[>00:02:50]"
+        "{白|[00:02:00]しろ}[00:02:50]"
     )
 
     sentences = sentences_from_kasugamuki(source, SINGER_ID)
@@ -277,7 +278,7 @@ def test_discarded_romaji_only_group_does_not_invent_linked_word():
 
 
 def test_linked_group_line_key_up_is_restored_on_group_tail():
-    source = "{明日|[00:01:00]あ[00:01:20]し[00:01:40]た}[>00:02:00]"
+    source = "{明日|[00:01:00]あ[00:01:20]し[00:01:40]た}[00:02:00]"
 
     sentences = sentences_from_kasugamuki(source, SINGER_ID)
     characters = sentences[0].characters
@@ -393,7 +394,7 @@ def test_all_placeholder_untimed_ruby_degrades_to_plain_char():
 
 
 # ──────────────────────────────────────────────
-# F9 / F11 回归
+# KRL 停顿点 / F11 回归
 # ──────────────────────────────────────────────
 
 
@@ -403,8 +404,8 @@ def _mk_sentence(chars):
     return Sentence(singer_id=SINGER_ID, characters=chars)
 
 
-def test_release_tag_before_untimed_char_keeps_symmetry_F9():
-    """F9：释放点用显式 [>ts] 标记，后随无 ts 正文不再凭空获得起始 ts。"""
+def test_pause_before_untimed_char_uses_standard_krl_timestamp():
+    """停顿点只能输出 KRL 支持的普通时间标签，不引入私有语法。"""
     from strange_uta_game.backend.domain.models import Character
 
     a = Character(
@@ -414,17 +415,11 @@ def test_release_tag_before_untimed_char_keeps_symmetry_F9():
     b = Character(char="い", check_count=0, singer_id=SINGER_ID)
 
     exported = sentences_to_kasugamuki([_mk_sentence([a, b])])
-    assert exported == "[00:10:00]あ[>00:12:00]い"
-
-    reparsed = sentences_from_kasugamuki(exported, SINGER_ID)[0]
-    assert reparsed.characters[0].is_sentence_end
-    assert reparsed.characters[0].sentence_end_ts == 12000
-    assert reparsed.characters[1].timestamps == []
-    assert reparsed.characters[1].check_count == 0
+    assert exported == "[00:10:00]あ[00:12:00]い"
 
 
-def test_linked_group_mid_release_not_lost_F9():
-    """F9：连词组中部的释放点按停顿点切子组导出，绑回对应字符。"""
+def test_linked_group_mid_pause_uses_standard_krl_timestamp():
+    """连词组中部停顿点切开导出，但时间标签仍遵守 KRL 语法。"""
     from strange_uta_game.backend.domain.models import Character, Ruby, RubyPart
 
     m1 = Character(
@@ -436,30 +431,29 @@ def test_linked_group_mid_release_not_lost_F9():
     m2 = Character(char="険", check_count=0, singer_id=SINGER_ID)
 
     exported = sentences_to_kasugamuki([_mk_sentence([m1, m2])])
-    assert exported == "{冒|[00:05:00]ぼ}[>00:06:00]険"
-
-    reparsed = sentences_from_kasugamuki(exported, SINGER_ID)[0]
-    assert reparsed.characters[0].sentence_end_ts == 6000
-    assert reparsed.characters[0].ruby.text == "ぼ"
+    assert exported == "{冒|[00:05:00]ぼ}[00:06:00]険"
 
 
-def test_tail_release_export_uses_release_marker_F9():
-    """F9：行尾释放同样输出 [>ts]（解析侧两者都识别）。"""
+def test_tail_pause_export_uses_standard_krl_timestamp():
+    """单注音和双注音导出的行尾停顿点都使用普通时间标签。"""
     from strange_uta_game.backend.domain.models import Character
 
     t = Character(
         char="た", check_count=1, timestamps=[1000],
         is_sentence_end=True, sentence_end_ts=2000, singer_id=SINGER_ID,
     )
-    exported = sentences_to_kasugamuki([_mk_sentence([t])])
-    assert exported == "[00:01:00]た[>00:02:00]"
+    sentence = _mk_sentence([t])
+    exported = sentences_to_kasugamuki([sentence])
+    romaji_exported = sentences_to_kasugamuki_romaji([sentence])
+    assert exported == "[00:01:00]た[00:02:00]"
+    assert romaji_exported == "{た|>[00:01:00]ta}[00:02:00]"
 
     reparsed = sentences_from_kasugamuki(exported, SINGER_ID)[0]
     assert reparsed.characters[0].sentence_end_ts == 2000
 
 
-def test_legacy_bare_release_tag_still_parsed_F9():
-    """F9：旧格式（裸 [ts] 在行尾/标签前）的释放语义保持向后兼容。"""
+def test_standard_tail_timestamp_is_parsed_as_pause():
+    """KRL 行尾的普通时间标签解析为前一个字符的停顿点。"""
     sentences = sentences_from_kasugamuki("{白|[00:02:00]しろ}[00:02:50]", SINGER_ID)
     assert sentences[0].characters[0].is_sentence_end
     assert sentences[0].characters[0].sentence_end_ts == 2500
