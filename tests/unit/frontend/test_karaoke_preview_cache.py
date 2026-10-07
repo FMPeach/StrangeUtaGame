@@ -238,6 +238,44 @@ def test_ruby_timing_base_scales_both_states_with_focus_limit(qapp):
     assert painter.draw_count == 2
 
 
+def test_ruby_base_restores_plain_color_when_preview_guide_is_disabled(qapp):
+    class RecordingPainter:
+        def __init__(self):
+            self.pens = []
+            self.draw_count = 0
+
+        def setPen(self, color):
+            self.pens.append(preview_module.QColor(color))
+
+        def drawText(self, *args):
+            self.draw_count += 1
+
+        def save(self):
+            pytest.fail("关闭打轴指引时不应进入注音状态分层绘制")
+
+    preview = preview_module.KaraokePreview()
+    fm = preview._fm_ruby
+    fallback_color = preview_module.QColor("#777777")
+    painter = RecordingPainter()
+
+    preview_module._draw_ruby_base(
+        painter,
+        0,
+        fm.ascent() + 2,
+        "はな",
+        [(0, fm.horizontalAdvance("は"))],
+        fm,
+        preview_module.QColor("#FFFFFF"),
+        1.0,
+        guide_enabled=False,
+        fallback_color=fallback_color,
+    )
+
+    assert [color.name() for color in painter.pens] == [fallback_color.name()]
+    assert painter.pens[0].alpha() == fallback_color.alpha()
+    assert painter.draw_count == 1
+
+
 def _project_with_linked_word() -> Project:
     singer = Singer(name="default", is_default=True)
     return Project(

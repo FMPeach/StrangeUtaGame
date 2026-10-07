@@ -363,6 +363,37 @@ def _draw_ruby_timing_base(
         painter.restore()
 
 
+def _draw_ruby_base(
+    painter: QPainter,
+    x: int,
+    baseline: int,
+    text: str,
+    timed_spans: list[tuple[int, int]],
+    fm: QFontMetrics,
+    foreground: QColor,
+    max_alpha: float,
+    *,
+    guide_enabled: bool,
+    fallback_color: QColor,
+) -> None:
+    """按打轴指引总开关绘制注音底层，关闭时恢复旧版纯基色。"""
+    if not guide_enabled:
+        painter.setPen(fallback_color)
+        painter.drawText(x, baseline, text)
+        return
+
+    _draw_ruby_timing_base(
+        painter,
+        x,
+        baseline,
+        text,
+        timed_spans,
+        fm,
+        foreground,
+        max_alpha,
+    )
+
+
 def _ink_bounds(fm: QFontMetrics, text: str) -> tuple[int, int]:
     """返回 ``text`` 在给定字体度量下的墨水边界：``(ink_left, ink_width)``。
 
@@ -588,7 +619,8 @@ class KaraokePreview(QWidget):
         self._line_versions: dict = {}  # line_idx -> version
         self._global_version: int = 0  # 全局版本号，用于字体变化等全局刷新
         self._is_playing: bool = False
-        self._preview_guide_enabled: bool = False  # 走字预览指引（仅播放打轴时光标所在行生效）
+        # 打轴指引总开关：控制正文走字预览及注音打轴状态。
+        self._preview_guide_enabled: bool = False
         self._guide_prev_alpha: float = 1.0       # 上一个打的字不透明度
         self._guide_curr_alpha: float = 0.5       # 正在打的字不透明度
         self._guide_next_alpha: float = 0.2       # 下一个要打的字不透明度
@@ -745,7 +777,7 @@ class KaraokePreview(QWidget):
         self.update()
 
     def set_preview_guide_enabled(self, enabled: bool):
-        """设置走字预览指引开关（播放打轴时当前行用过渡色提示打轴进度）。"""
+        """设置打轴指引总开关（正文走字预览与注音打轴状态）。"""
         self._preview_guide_enabled = bool(enabled)
         self.update()
 
@@ -3008,8 +3040,9 @@ class KaraokePreview(QWidget):
                 main_fm = fm_context
                 base_color = theme.karaoke_text_future
 
-            # Ruby 始终使用主题纯黑/白；非当前行把原 past/future 灰度换算成
-            # 等效 alpha 上限，未打轴/已打轴再在该上限内保持 30%/100% 比例。
+            # 打轴指引开启时，Ruby 使用主题纯黑/白；非当前行把原 past/future
+            # 灰度换算成等效 alpha 上限，未打轴/已打轴再保持 30%/100% 比例。
+            # 关闭时由 _draw_ruby_base 直接绘制原有 base_color。
             _ruby_foreground = theme.karaoke_text_current
             _ruby_max_alpha = _foreground_alpha_for_color(
                 base_color, _ruby_foreground, theme.karaoke_bg
@@ -3189,9 +3222,9 @@ class KaraokePreview(QWidget):
                         _rh_br = fm_ruby.tightBoundingRect(_merged)
                         _rh_ink_top = ruby_y + _rh_br.top()
                         _rh_ink_bottom = ruby_y + _rh_br.bottom() + 1
-                        # 静态注音打轴状态：未打轴 30% 主题黑/白，已打轴 100%。
+                        # 注音状态接入打轴指引总开关；关闭时恢复旧版纯基色。
                         # 后面的 singer-color wipe 保持既有实现，原样叠在此底层之上。
-                        _draw_ruby_timing_base(
+                        _draw_ruby_base(
                             painter,
                             int(ruby_x),
                             ruby_y,
@@ -3200,6 +3233,8 @@ class KaraokePreview(QWidget):
                             fm_ruby,
                             _ruby_foreground,
                             _ruby_max_alpha,
+                            guide_enabled=self._preview_guide_enabled,
+                            fallback_color=base_color,
                         )
                         # Wipe — 连词组 ruby 与原字符逻辑一致：按各成员/各 part 的
                         # 时间轴分段，空 part 不推进、段间空隙保持，墨水边缘走字（非匀速）。
@@ -3324,9 +3359,9 @@ class KaraokePreview(QWidget):
                         _ruby_br = fm_ruby.tightBoundingRect(_ruby_disp)
                         _ruby_ink_top = ruby_y + _ruby_br.top()
                         _ruby_ink_bottom = ruby_y + _ruby_br.bottom() + 1
-                        # 静态注音打轴状态：未打轴 30% 主题黑/白，已打轴 100%。
+                        # 注音状态接入打轴指引总开关；关闭时恢复旧版纯基色。
                         # 后面的 singer-color wipe 保持既有实现，原样叠在此底层之上。
-                        _draw_ruby_timing_base(
+                        _draw_ruby_base(
                             painter,
                             int(ruby_x),
                             ruby_y,
@@ -3335,6 +3370,8 @@ class KaraokePreview(QWidget):
                             fm_ruby,
                             _ruby_foreground,
                             _ruby_max_alpha,
+                            guide_enabled=self._preview_guide_enabled,
+                            fallback_color=base_color,
                         )
                         # Wipe — 优先用 part 锚点轴分段；缺锚点回退旧整段线性
                         _r_anchors = _char_part_anchors.get(char_pos)
