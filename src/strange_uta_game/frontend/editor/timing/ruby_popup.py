@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import Callable
 
 from PyQt6.QtCore import QEvent, QPoint, QRect, Qt, QTimer
@@ -44,7 +45,8 @@ class RubyEditPopup(QDialog):
         self._anchor: QRect | None = None
 
         self.setWindowFlags(
-            Qt.WindowType.Popup
+            # Cocoa popups cannot become key windows, which prevents IME input.
+            (Qt.WindowType.Tool if sys.platform == "darwin" else Qt.WindowType.Popup)
             | Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.NoDropShadowWindowHint
         )
@@ -179,7 +181,6 @@ class RubyEditPopup(QDialog):
         super().keyPressEvent(event)
 
     def event(self, event: QEvent) -> bool:
-        # A Qt.Popup receives WindowDeactivate when the user clicks elsewhere.
         # Queue the save so Qt can finish dispatching the outside click first.
         if (
             event.type() == QEvent.Type.WindowDeactivate
@@ -187,8 +188,18 @@ class RubyEditPopup(QDialog):
             and not self._cancelled
             and not self._finished
         ):
-            QTimer.singleShot(0, self._apply)
+            if sys.platform == "darwin":
+                QTimer.singleShot(0, self._apply_if_inactive)
+            else:
+                QTimer.singleShot(0, self._apply)
         return super().event(event)
+
+    def _apply_if_inactive(self) -> None:
+        # A macOS Tool also receives its parent's deactivation while opening.
+        # Wait for focus to settle and save only if the tool itself is inactive.
+        # isActiveWindow() can also be true for a tool whose parent is active.
+        if QApplication.activeWindow() is not self:
+            self._apply()
 
     def was_modified(self) -> bool:
         return self._modified

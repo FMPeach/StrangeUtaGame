@@ -1,8 +1,13 @@
+from types import SimpleNamespace
+
+import pytest
+
 from PyQt6.QtCore import QEvent, Qt
 from PyQt6.QtGui import QKeyEvent
-from PyQt6.QtWidgets import QDialog
+from PyQt6.QtWidgets import QApplication, QDialog
 
 from strange_uta_game.backend.domain import Character, Ruby, RubyPart
+from strange_uta_game.frontend.editor.timing import ruby_popup
 from strange_uta_game.frontend.editor.timing.ruby_popup import RubyEditPopup
 
 
@@ -81,7 +86,73 @@ def test_last_character_cannot_link_next(qapp, monkeypatch):
     assert popup.was_modified()
 
 
-def test_outside_dismissal_saves(qapp, monkeypatch):
+@pytest.mark.parametrize(
+    ("platform", "expected_type"),
+    [
+        ("darwin", Qt.WindowType.Tool),
+        ("win32", Qt.WindowType.Popup),
+        ("linux", Qt.WindowType.Popup),
+    ],
+)
+def test_window_type_is_tool_only_on_macos(qapp, monkeypatch, platform, expected_type):
+    monkeypatch.setattr(ruby_popup, "sys", SimpleNamespace(platform=platform))
+    popup = _popup(monkeypatch, can_link_next=True)
+
+    assert popup.windowType() == expected_type
+
+
+@pytest.mark.parametrize(
+    ("platform", "active_after_dispatch", "should_save"),
+    [
+        ("darwin", True, False),
+        ("darwin", False, True),
+        ("win32", True, True),
+        ("linux", True, True),
+    ],
+)
+def test_deactivation_save_depends_on_platform_and_settled_focus(
+    qapp, monkeypatch, platform, active_after_dispatch, should_save
+):
+    monkeypatch.setattr(ruby_popup, "sys", SimpleNamespace(platform=platform))
+    character = _character()
+    original_ruby = character.ruby
+    popup = _popup(monkeypatch, character, can_link_next=True)
+    popup.edit_ruby.setText("い,ま")
+
+    # Simulate activation changes without relying on the offscreen window manager.
+    other_window = object()
+    active_window = other_window
+    monkeypatch.setattr(QApplication, "activeWindow", lambda: active_window)
+    monkeypatch.setattr(popup, "isVisible", lambda: True)
+    # A Tool can report shared activation even when another window is active.
+    monkeypatch.setattr(popup, "isActiveWindow", lambda: True)
+    callbacks = []
+    monkeypatch.setattr(
+        ruby_popup,
+        "QTimer",
+        SimpleNamespace(singleShot=lambda delay, callback: callbacks.append(callback)),
+    )
+
+    popup.event(QEvent(QEvent.Type.WindowDeactivate))
+
+    assert len(callbacks) == 1
+    assert not popup.was_modified()
+    assert character.ruby is original_ruby
+
+    # Opening the macOS Tool may finish activating it after the event is sent.
+    active_window = popup if active_after_dispatch else other_window
+    callbacks[0]()
+
+    assert popup.was_modified() is should_save
+    assert popup._finished is should_save
+    if should_save:
+        assert popup.result() == QDialog.DialogCode.Accepted
+        assert [part.text for part in character.ruby.parts] == ["い", "ま"]
+    else:
+        assert character.ruby is original_ruby
+
+
+def test_reject_saves(qapp, monkeypatch):
     monkeypatch.setattr(
         "strange_uta_game.frontend.editor.timing.dialogs._get_ruby_split_mode",
         lambda: "direct",
@@ -95,7 +166,7 @@ def test_outside_dismissal_saves(qapp, monkeypatch):
     popup.edit_ruby.setText("い,ま")
     popup._toggle_link(True)
 
-    popup.reject()  # Qt.Popup uses rejection when an outside click dismisses it.
+    popup.reject()
 
     assert popup.result() == QDialog.DialogCode.Accepted
     assert [part.text for part in character.ruby.parts] == ["い", "ま"]
