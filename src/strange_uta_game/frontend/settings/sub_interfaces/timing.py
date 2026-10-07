@@ -168,9 +168,9 @@ class TimingSubInterface(SubSettingInterface):
         self._tr_register(g_guide, title_source="预览指引")
         self.card_preview_guide = self._tr_register(
             SwitchSettingCard(FIF.VIEW, tr("打轴预览指引"),
-                tr("打轴播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；具体不透明度与开关可在下方「预览指引方式」中自定义"), parent=g_guide),
+                tr("打轴指引总开关（默认开）：播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；未打轴注音以 30% 透明度灰显、已打轴注音全亮，关闭后恢复纯色渲染。过渡色各档不透明度与开关可在下方「预览指引方式」中自定义"), parent=g_guide),
             title_source="打轴预览指引",
-            content_source="打轴播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；具体不透明度与开关可在下方「预览指引方式」中自定义")
+            content_source="打轴指引总开关（默认开）：播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；未打轴注音以 30% 透明度灰显、已打轴注音全亮，关闭后恢复纯色渲染。过渡色各档不透明度与开关可在下方「预览指引方式」中自定义")
         self.card_preview_guide_style = self._tr_register(
             SettingCard(FIF.PALETTE, tr("预览指引方式"),
                 tr("设置预览指引中上一个/正在/下一个字群的不透明度和开关"), g_guide),
@@ -305,7 +305,9 @@ class TimingSubInterface(SubSettingInterface):
         self.card_disable_click_jump.setChecked(s.get("timing.disable_click_jump", False))
         self.card_disable_click_recenter.setChecked(s.get("timing.disable_click_recenter", False))
         self.card_hide_hitbox_highlights.setChecked(s.get("timing.hide_hitbox_highlights", False))
-        self.card_preview_guide.setChecked(s.get("timing.preview_guide_enabled", False))
+        self.card_preview_guide.setChecked(
+            s.get("timing.preview_guide_enabled", _defaults["timing"]["preview_guide_enabled"])
+        )
         self.card_keysound.setChecked(
             s.get("timing.keysound_enabled", _defaults["timing"]["keysound_enabled"])
         )

@@ -619,8 +619,9 @@ class KaraokePreview(QWidget):
         self._line_versions: dict = {}  # line_idx -> version
         self._global_version: int = 0  # 全局版本号，用于字体变化等全局刷新
         self._is_playing: bool = False
-        # 打轴指引总开关：控制正文走字预览及注音打轴状态。
-        self._preview_guide_enabled: bool = False
+        # 打轴指引总开关：控制正文走字预览及注音打轴状态（默认开，
+        # 实际值在应用设置时经 set_preview_guide_enabled 覆盖）。
+        self._preview_guide_enabled: bool = True
         self._guide_prev_alpha: float = 1.0       # 上一个打的字不透明度
         self._guide_curr_alpha: float = 0.5       # 正在打的字不透明度
         self._guide_next_alpha: float = 0.2       # 下一个要打的字不透明度

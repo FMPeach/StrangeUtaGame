@@ -10336,8 +10336,8 @@ KS 来源的配置将优先覆盖同名设置。</translation>
     </message>
     <message>
         <location filename="..\..\settings\sub_interfaces\timing.py" line="170" />
-        <source>打轴播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；具体不透明度与开关可在下方「预览指引方式」中自定义</source>
-        <translation>打轴播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；具体不透明度与开关可在下方「预览指引方式」中自定义</translation>
+        <source>打轴指引总开关（默认开）：播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；未打轴注音以 30% 透明度灰显、已打轴注音全亮，关闭后恢复纯色渲染。过渡色各档不透明度与开关可在下方「预览指引方式」中自定义</source>
+        <translation>打轴指引总开关（默认开）：播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；未打轴注音以 30% 透明度灰显、已打轴注音全亮，关闭后恢复纯色渲染。过渡色各档不透明度与开关可在下方「预览指引方式」中自定义</translation>
     </message>
     <message>
         <location filename="..\..\settings\sub_interfaces\timing.py" line="174" />

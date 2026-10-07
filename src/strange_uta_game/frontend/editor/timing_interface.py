@@ -1323,8 +1323,9 @@ class EditorInterface(QWidget):
         # 应用隐藏 hitbox 高亮设置
         hide_hitbox = settings.get("timing.hide_hitbox_highlights", False)
         self.preview.set_hide_hitbox_highlights(hide_hitbox)
-        # 应用走字预览指引开关
-        preview_guide = settings.get("timing.preview_guide_enabled", False)
+        # 应用打轴指引总开关（正文走字预览 + 注音打轴状态）
+        # 默认值与 DEFAULT_SETTINGS（preview_guide_enabled=True）一致
+        preview_guide = settings.get("timing.preview_guide_enabled", True)
         self.preview.set_preview_guide_enabled(preview_guide)
         # 应用走字预览指引逐群设置
         self.preview.set_preview_guide_config(

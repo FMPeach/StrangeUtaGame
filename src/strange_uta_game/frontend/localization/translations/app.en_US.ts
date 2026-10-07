@@ -10335,8 +10335,8 @@ Drag cards to reorder; edit offset/length/interval to generate a new SUG project
     </message>
     <message>
         <location filename="..\..\settings\sub_interfaces\timing.py" line="170" />
-        <source>打轴播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；具体不透明度与开关可在下方「预览指引方式」中自定义</source>
-        <translation>During timing playback, use the cursor as anchor on the current line with gradient color to indicate previous/current/next characters; opacity and toggles are customizable in 'Preview guide style' below</translation>
+        <source>打轴指引总开关（默认开）：播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；未打轴注音以 30% 透明度灰显、已打轴注音全亮，关闭后恢复纯色渲染。过渡色各档不透明度与开关可在下方「预览指引方式」中自定义</source>
+        <translation>Master switch for timing guides (on by default): during playback, the current line anchors at the cursor and uses gradient colors to mark the previous/current/next characters; untimed ruby dims to 30% opacity while timed ruby stays fully opaque — turn it off to restore plain rendering. Gradient opacity levels and toggles are customizable in 'Preview guide style' below</translation>
     </message>
     <message>
         <location filename="..\..\settings\sub_interfaces\timing.py" line="174" />
