@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from types import SimpleNamespace
 
+from strange_uta_game.backend.domain import Character, Ruby, RubyPart, Sentence
 from strange_uta_game.frontend.editor.timing_interface import EditorInterface
 
 
@@ -54,6 +55,7 @@ class _FakePreview:
         self.current_time_ms = None
         self.invalidated_lines = []
         self.dependents_invalidated_for = []
+        self.ruby_state_refreshed_for = []
         self.duration_ms = None
         self.playing = None
 
@@ -71,6 +73,9 @@ class _FakePreview:
 
     def _invalidate_line_and_dependents(self, line_idx: int) -> None:
         self.dependents_invalidated_for.append(line_idx)
+
+    def _refresh_ruby_timing_state(self, line_idx: int) -> None:
+        self.ruby_state_refreshed_for.append(line_idx)
 
 
 def test_seek_immediately_updates_preview_time():
@@ -213,6 +218,29 @@ def test_timetag_added_delegates_dependent_invalidation_to_preview():
     assert preview.invalidated_lines == []  # editor 不再直接逐行 invalidate
     assert editor.time_tags_scheduled is True
     assert editor.status_updated is True
+
+
+def test_backspace_timestamp_delete_refreshes_only_ruby_timing_state():
+    """退格删轴只刷新 Ruby 静态状态，不得失效走字依赖缓存。"""
+    character = Character(
+        char="花", check_count=2, timestamps=[1000, 1200], singer_id="s"
+    )
+    character.set_ruby(Ruby(parts=[RubyPart("は"), RubyPart("な")]))
+    sentence = Sentence(singer_id="s", characters=[character])
+    preview = _FakePreview()
+    editor = SimpleNamespace(
+        _project=SimpleNamespace(sentences=[sentence]),
+        preview=preview,
+    )
+
+    changed = EditorInterface._delete_timestamp(editor, 0, 0)
+
+    assert changed is True
+    assert character.timestamps == []
+    assert character.ruby is not None
+    assert character.ruby.timestamps == []
+    assert preview.ruby_state_refreshed_for == [0]
+    assert preview.dependents_invalidated_for == []
 
 
 def test_play_starts_from_locked_start_when_position_is_outside_range():

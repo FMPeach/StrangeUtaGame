@@ -70,6 +70,212 @@ def _char(text: str, ruby: str, *, linked: bool = False) -> Character:
     return ch
 
 
+def _ruby_char(
+    text: str,
+    parts: list[str],
+    *,
+    check_count: int,
+    timestamps: list[int],
+    linked: bool = False,
+) -> Character:
+    ch = Character(
+        char=text,
+        check_count=check_count,
+        timestamps=timestamps,
+        linked_to_next=linked,
+    )
+    ch.set_ruby(Ruby(parts=[RubyPart(text=part) for part in parts]))
+    return ch
+
+
+@pytest.mark.parametrize(
+    "timestamps,expected",
+    [
+        ([], [("は", False), ("な", False)]),
+        ([1000], [("は", True), ("な", False)]),
+        ([1000, 1200], [("は", True), ("な", True)]),
+    ],
+)
+def test_ruby_timing_chunks_follow_checkpoint_timestamps(timestamps, expected):
+    flower = _ruby_char(
+        "花", ["は", "な"], check_count=2, timestamps=timestamps
+    )
+
+    assert preview_module._ruby_timing_chunks([flower], [0]) == expected
+
+
+def test_ruby_timing_chunks_keep_zero_checkpoint_ruby_untimed():
+    no_checkpoint = _ruby_char(
+        "々", ["お", "な", "じ"], check_count=0, timestamps=[]
+    )
+
+    assert preview_module._ruby_timing_chunks([no_checkpoint], [0]) == [
+        ("お", False),
+        ("な", False),
+        ("じ", False),
+    ]
+
+
+def test_linked_ruby_timing_chunks_keep_each_char_part_ownership():
+    characters = [
+        _ruby_char(
+            "頂", ["ちょ", "う"], check_count=2, timestamps=[1000], linked=True
+        ),
+        _ruby_char("戴", ["だ", "い"], check_count=2, timestamps=[1200, 1400]),
+    ]
+
+    assert preview_module._ruby_timing_chunks(characters, [0, 1]) == [
+        ("ちょ", True),
+        ("う", False),
+        ("だ", True),
+        ("い", True),
+    ]
+
+
+def test_ruby_timed_spans_keep_multi_codepoint_mora_atomic(qapp):
+    preview = preview_module.KaraokePreview()
+    fm = preview._fm_ruby
+
+    text, spans = preview_module._ruby_timed_spans(
+        fm, [("ちょ", True), ("う", False)]
+    )
+
+    assert text == "ちょう"
+    assert spans == [(0, fm.horizontalAdvance("ちょ"))]
+
+
+def test_refresh_ruby_timing_state_preserves_wipe_cache(qapp, monkeypatch):
+    """退格清轴只更新 Ruby 底色，已缓存的走字时间轴不变。"""
+    monkeypatch.setattr(preview_module, "theme", _DummyTheme())
+    flower = _ruby_char(
+        "花", ["は", "な"], check_count=2, timestamps=[1000, 1200]
+    )
+    sentence = Sentence(singer_id="s", characters=[flower])
+    preview = preview_module.KaraokePreview()
+    preview.set_duration(2000)
+    preview.set_project(_project_from([sentence]))
+
+    entry = preview._sentence_cache[(0, "cur")]
+    wipe_times = entry["char_wipe_times"]
+    part_anchors = entry["char_part_anchors"]
+    group_wipe = entry["group_ruby_wipe"]
+    assert entry["char_ruby_timed_spans"][0]
+
+    flower.clear_timestamps()
+    preview._refresh_ruby_timing_state(0)
+
+    refreshed_entry = preview._sentence_cache[(0, "cur")]
+    assert refreshed_entry is entry
+    assert refreshed_entry["char_wipe_times"] is wipe_times
+    assert refreshed_entry["char_part_anchors"] is part_anchors
+    assert refreshed_entry["group_ruby_wipe"] is group_wipe
+    assert refreshed_entry["char_ruby_timed_spans"][0] == []
+
+
+@pytest.mark.parametrize(
+    "color,foreground,background,expected",
+    [
+        ("#FFFFFF", "#FFFFFF", "#1E1E1E", 1.0),
+        ("#888888", "#FFFFFF", "#1E1E1E", (0x88 - 0x1E) / (0xFF - 0x1E)),
+        ("#000000", "#000000", "#FFFFFF", 1.0),
+        ("#666666", "#000000", "#FFFFFF", (0xFF - 0x66) / 0xFF),
+    ],
+)
+def test_ruby_focus_alpha_follows_existing_line_gray(
+    color, foreground, background, expected
+):
+    actual = preview_module._foreground_alpha_for_color(
+        preview_module.QColor(color),
+        preview_module.QColor(foreground),
+        preview_module.QColor(background),
+    )
+
+    assert actual == pytest.approx(expected, abs=0.005)
+
+
+def test_ruby_timing_base_scales_both_states_with_focus_limit(qapp):
+    class RecordingPainter:
+        def __init__(self):
+            self.pens = []
+            self.draw_count = 0
+
+        def setPen(self, color):
+            self.pens.append(preview_module.QColor(color))
+
+        def drawText(self, *args):
+            self.draw_count += 1
+
+        def save(self):
+            pass
+
+        def setClipRect(self, *args):
+            pass
+
+        def restore(self):
+            pass
+
+    preview = preview_module.KaraokePreview()
+    fm = preview._fm_ruby
+    foreground = preview_module.QColor("#FFFFFF")
+    painter = RecordingPainter()
+    text = "はな"
+
+    preview_module._draw_ruby_timing_base(
+        painter,
+        0,
+        fm.ascent() + 2,
+        text,
+        [(0, fm.horizontalAdvance("は"))],
+        fm,
+        foreground,
+        0.40,
+    )
+
+    assert painter.pens[0].name() == foreground.name()
+    assert painter.pens[0].alphaF() == pytest.approx(0.12, abs=0.01)
+    assert painter.pens[1].name() == foreground.name()
+    assert painter.pens[1].alphaF() == pytest.approx(0.40, abs=0.01)
+    assert painter.draw_count == 2
+
+
+def test_ruby_base_restores_plain_color_when_preview_guide_is_disabled(qapp):
+    class RecordingPainter:
+        def __init__(self):
+            self.pens = []
+            self.draw_count = 0
+
+        def setPen(self, color):
+            self.pens.append(preview_module.QColor(color))
+
+        def drawText(self, *args):
+            self.draw_count += 1
+
+        def save(self):
+            pytest.fail("关闭打轴指引时不应进入注音状态分层绘制")
+
+    preview = preview_module.KaraokePreview()
+    fm = preview._fm_ruby
+    fallback_color = preview_module.QColor("#777777")
+    painter = RecordingPainter()
+
+    preview_module._draw_ruby_base(
+        painter,
+        0,
+        fm.ascent() + 2,
+        "はな",
+        [(0, fm.horizontalAdvance("は"))],
+        fm,
+        preview_module.QColor("#FFFFFF"),
+        1.0,
+        guide_enabled=False,
+        fallback_color=fallback_color,
+    )
+
+    assert [color.name() for color in painter.pens] == [fallback_color.name()]
+    assert painter.pens[0].alpha() == fallback_color.alpha()
+    assert painter.draw_count == 1
+
+
 def _project_with_linked_word() -> Project:
     singer = Singer(name="default", is_default=True)
     return Project(
