@@ -209,11 +209,19 @@ class RubyEditPopup(QDialog):
         self._anchor = QRect(anchor)
         self.adjustSize()
         self._position_above_anchor()
+        if sys.platform == "darwin":
+            # Keep Cocoa's initial fixed-size window adjustment invisible.
+            self.setWindowOpacity(0.0)
         # The native popup must exist before Windows can bind an IME context.
         # Refocus on the first event-loop turn so language switching and
         # composition work for Japanese, Chinese, and other input methods.
         QTimer.singleShot(0, self._activate_ruby_input)
-        return self.exec()
+        try:
+            return self.exec()
+        finally:
+            if sys.platform == "darwin":
+                # Also restore opacity if dismissed before the callback runs.
+                self.setWindowOpacity(1.0)
 
     def _activate_ruby_input(self) -> None:
         if self._finished:
@@ -225,6 +233,9 @@ class RubyEditPopup(QDialog):
         input_method.update(
             Qt.InputMethodQuery.ImEnabled | Qt.InputMethodQuery.ImHints
         )
+        if sys.platform == "darwin":
+            self._position_above_anchor()
+            self.setWindowOpacity(1.0)
 
     def _position_above_anchor(self) -> None:
         if self._anchor is None:

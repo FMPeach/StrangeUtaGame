@@ -2,8 +2,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from PyQt6.QtCore import QEvent, Qt
+from PyQt6.QtCore import QEvent, QRect, Qt, QTimer
 from PyQt6.QtGui import QKeyEvent
+from PyQt6.QtTest import QTest
 from PyQt6.QtWidgets import QApplication, QDialog
 
 from strange_uta_game.backend.domain import Character, Ruby, RubyPart
@@ -99,6 +100,68 @@ def test_window_type_is_tool_only_on_macos(qapp, monkeypatch, platform, expected
     popup = _popup(monkeypatch, can_link_next=True)
 
     assert popup.windowType() == expected_type
+
+
+@pytest.mark.parametrize("platform", ["darwin", "win32", "linux"])
+@pytest.mark.parametrize("key", [Qt.Key.Key_Return, Qt.Key.Key_Escape])
+def test_show_above_preserves_save_and_cancel(qapp, monkeypatch, platform, key):
+    monkeypatch.setattr(ruby_popup, "sys", SimpleNamespace(platform=platform))
+    character = _character()
+    original_ruby = character.ruby
+    popup = _popup(monkeypatch, character, can_link_next=True)
+    opened_state = []
+
+    def edit_and_close():
+        opened_state.append(
+            (
+                popup.isVisible(),
+                popup.windowOpacity(),
+                popup.minimumSize() == popup.maximumSize(),
+            )
+        )
+        popup.edit_ruby.selectAll()
+        QTest.keyClicks(popup.edit_ruby, "ka,na")
+        QTest.keyClick(popup.edit_ruby, key)
+
+    # Interact after the opening callback, using the real Qt event loop.
+    QTimer.singleShot(0, lambda: QTimer.singleShot(0, edit_and_close))
+    result = popup.show_above(QRect(200, 300, 30, 40))
+
+    assert opened_state == [(True, 1.0, True)]
+    assert not popup.isVisible()
+    assert popup.windowOpacity() == 1.0
+    if key == Qt.Key.Key_Return:
+        assert result == QDialog.DialogCode.Accepted
+        assert [part.text for part in character.ruby.parts] == ["ka", "na"]
+        assert popup.was_modified()
+    else:
+        assert result == QDialog.DialogCode.Rejected
+        assert character.ruby is original_ruby
+        assert not popup.was_modified()
+
+
+@pytest.mark.parametrize("key", [Qt.Key.Key_Return, Qt.Key.Key_Escape])
+def test_close_before_opening_callback_keeps_dialog_closed(
+    qapp, monkeypatch, key
+):
+    monkeypatch.setattr(ruby_popup, "sys", SimpleNamespace(platform="darwin"))
+    character = _character()
+    original_ruby = character.ruby
+    popup = _popup(monkeypatch, character, can_link_next=True)
+    QTimer.singleShot(0, lambda: QTest.keyClick(popup.edit_ruby, key))
+    result = popup.show_above(QRect(200, 300, 30, 40))
+    qapp.processEvents()  # Deliver the pending opening callback after closing.
+
+    expected = (
+        QDialog.DialogCode.Accepted
+        if key == Qt.Key.Key_Return
+        else QDialog.DialogCode.Rejected
+    )
+    assert result == popup.result() == expected
+    assert not popup.isVisible()
+    assert popup.windowOpacity() == 1.0
+    assert character.ruby is original_ruby
+    assert not popup.was_modified()
 
 
 @pytest.mark.parametrize(
