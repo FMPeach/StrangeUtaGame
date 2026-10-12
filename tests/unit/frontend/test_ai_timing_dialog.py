@@ -100,6 +100,10 @@ def _make_dialog(qapp, tmp_path, snapshot, applied_calls):
         on_applied=applied_calls.append,
         parent=None,
     )
+    # 构造函数会异步 refresh（QThread 以对话框为父）。不在用例内等它
+    # 收尾的话，用例结束 GC 时线程仍在跑，会命中
+    # 「QThread: Destroyed while thread is still running」直接杀死进程。
+    TestPathChangeAppliesImmediately._wait_initial_refresh(qapp, dialog)
     return dialog, service
 
 
