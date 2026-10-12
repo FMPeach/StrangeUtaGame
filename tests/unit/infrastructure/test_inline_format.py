@@ -599,7 +599,7 @@ class TestRoundtrip:
 
 
 # ──────────────────────────────────────────────
-# E4 / E7 / F1 / F4 / F11 / F15 回归
+# E4 / E7 / F1 / RL Ruby / F11 / F15 回归
 # ──────────────────────────────────────────────
 
 
@@ -654,8 +654,8 @@ class TestBareCharsKeptE7:
         assert [c.is_rest for c in sentence.characters] == [False, True, False]
 
 
-class TestUntimedRubySegmentsF4:
-    """F4：无 ts 的 ruby part 用 [N] 型分隔导出，分段与 cc=0 可往返。"""
+class TestUntimedRubySyntax:
+    """无 ts 的 ruby 仅在开头写一次 [N]，并可按 N 恢复分段。"""
 
     def test_untimed_multi_part_ruby_round_trip(self):
         original = Character(
@@ -666,7 +666,7 @@ class TestUntimedRubySegmentsF4:
             singer_id="s1",
         )
         text = to_inline_text(_make_sentence("漢", characters=[original]))
-        assert text == "{漢|[2]か[2]ん}"
+        assert text == "{漢|[2]かん}"
 
         restored = from_inline_text(text, singer_id="s1")
         ch = restored.characters[0]
@@ -690,7 +690,7 @@ class TestUntimedRubySegmentsF4:
         assert [p.text for p in ch.ruby.parts] == ["かな"]
 
     def test_partial_ts_ruby_parts_not_merged(self):
-        """有 ts 的路径：缺 ts 的拍输出 [N] 型分隔，不与前一拍合并。"""
+        """部分拍有 ts 时，尾部读音仍按首个 N 恢复 RubyPart。"""
         original = Character(
             char="漢",
             check_count=3,
@@ -699,13 +699,84 @@ class TestUntimedRubySegmentsF4:
             singer_id="s1",
         )
         text = to_inline_text(_make_sentence("漢", characters=[original]))
-        assert text == "{漢|[3|00:05:00]か[3]ん[3]ぬ}"
+        assert text == "{漢|[3|00:05:00]かんぬ}"
 
         restored = from_inline_text(text, singer_id="s1")
         ch = restored.characters[0]
         assert ch.check_count == 3
         assert [p.text for p in ch.ruby.parts] == ["か", "ん", "ぬ"]
         assert ch.timestamps == [5000]
+
+    def test_rl_export_does_not_repeat_n_for_each_ruby_part(self):
+        sentence = _make_sentence(
+            "本当の声",
+            characters=[
+                Character(
+                    char="本",
+                    check_count=2,
+                    ruby=Ruby(parts=[RubyPart(text="ほ"), RubyPart(text="ん")]),
+                    singer_id="s1",
+                ),
+                Character(
+                    char="当",
+                    check_count=2,
+                    ruby=Ruby(parts=[RubyPart(text="と"), RubyPart(text="う")]),
+                    singer_id="s1",
+                ),
+                Character(char="の", check_count=1, singer_id="s1"),
+                Character(
+                    char="声",
+                    check_count=2,
+                    ruby=Ruby(parts=[RubyPart(text="こ"), RubyPart(text="え")]),
+                    singer_id="s1",
+                ),
+            ],
+        )
+
+        exported = to_inline_text(sentence)
+        assert exported == "{本|[2]ほん}{当|[2]とう}[1]の{声|[2]こえ}"
+
+        restored = from_inline_text(exported, singer_id="s1")
+        assert [p.text for p in restored.characters[0].ruby.parts] == ["ほ", "ん"]
+        assert [p.text for p in restored.characters[1].ruby.parts] == ["と", "う"]
+        assert [p.text for p in restored.characters[3].ruby.parts] == ["こ", "え"]
+
+    def test_linked_rl_export_writes_one_n_per_display_character(self):
+        shibu = Character(
+            char="渋",
+            check_count=2,
+            ruby=Ruby(parts=[RubyPart(text="し"), RubyPart(text="ぶ")]),
+            singer_id="s1",
+        )
+        shibu.linked_to_next = True
+        sentence = _make_sentence(
+            "渋谷の街",
+            characters=[
+                shibu,
+                Character(
+                    char="谷",
+                    check_count=1,
+                    ruby=Ruby(parts=[RubyPart(text="や")]),
+                    singer_id="s1",
+                ),
+                Character(char="の", check_count=1, singer_id="s1"),
+                Character(
+                    char="街",
+                    check_count=2,
+                    ruby=Ruby(parts=[RubyPart(text="ま"), RubyPart(text="ち")]),
+                    singer_id="s1",
+                ),
+            ],
+        )
+
+        exported = to_inline_text(sentence)
+        assert exported == "{渋谷|[2]しぶ＋[1]や}[1]の{街|[2]まち}"
+
+        restored = from_inline_text(exported, singer_id="s1")
+        assert restored.characters[0].linked_to_next is True
+        assert [p.text for p in restored.characters[0].ruby.parts] == ["し", "ぶ"]
+        assert [p.text for p in restored.characters[1].ruby.parts] == ["や"]
+        assert [p.text for p in restored.characters[3].ruby.parts] == ["ま", "ち"]
 
 
 class TestLinkedGroupRubyNodeF1:

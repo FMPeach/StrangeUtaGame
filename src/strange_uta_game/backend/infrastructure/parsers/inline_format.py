@@ -419,8 +419,7 @@ def _single_char_to_ruby_node(char: Character) -> str:
 
     格式:
     - 有时间戳: {display|[count|ts]ruby[ts]ruby}
-    - 无时间戳: {display|[N]part1[N]part2}（F4：无 ts 的 part 用 [N] 型
-      分隔，N=check_count——保留分段结构与 cc=0 无 mora 形态，可往返）
+    - 无时间戳: {display|[N]ruby}
     - 有停顿点 CP 有时间戳: ...}[10|ts]
     - 有停顿点 CP 无时间戳: ...}[10]
 
@@ -447,10 +446,6 @@ def _single_char_to_ruby_node(char: Character) -> str:
                     portion_str += f"{format_timestamp(ts)}]"
                 else:
                     portion_str += f"[{format_timestamp(ts)}]"
-            elif cp_idx > 0:
-                # 该拍无时间戳（F4）：用 [N] 型分隔，防止分段被合并
-                portion_str += f"[{count}]"
-
             # ruby 文本始终输出
             if cp_idx < len(ruby_segments):
                 portion_str += ruby_segments[cp_idx]
@@ -460,12 +455,11 @@ def _single_char_to_ruby_node(char: Character) -> str:
         inner = "".join(mora_portions)
         result = f"{{{display}|[{count}|{inner}}}"
     else:
-        # 无时间戳的情况（F4）：每个 part 用 [N] 型分隔输出。N 取
-        # check_count（cc=0 的无 mora 形态输出 [0]），保留原分段；
-        # 旧实现把 parts 拼成一段，reimport 无法还原分段与 cc。
+        # RL 的 [N] 表示整个 ruby 的节奏点数量，只能在读音开头写一次；
+        # RubyPart 边界由导入侧按 N 重新拆分，不能把 [N] 当逐 part 分隔符。
         n_out = min(char.check_count, 9)
-        ruby_text = "".join(f"[{n_out}]{seg}" for seg in ruby_segments[:9])
-        result = f"{{{display}|{ruby_text}}}"
+        ruby_text = "".join(ruby_segments[:9])
+        result = f"{{{display}|[{n_out}]{ruby_text}}}"
 
     # 停顿点标记
     if char.is_sentence_end:
@@ -532,7 +526,6 @@ def _linked_group_to_ruby_node(group: List[Character]) -> str:
 
     F1：无注音但 cc>0 的成员同样按 ruby node 路径输出自己的多 cp
     标签（N 按 check_count），reimport 时连词关系与节奏点不丢。
-    F4：无 ts 的 part 用 [N] 型分隔，防止分段被合并。
     停顿符占位 part 原样保留（RL 编辑模式面向打轴软件，不剥离）。
     """
     display = "".join(c.char for c in group)
@@ -560,8 +553,8 @@ def _linked_group_to_ruby_node(group: List[Character]) -> str:
                         part_str += f"[{n_out}|{format_timestamp(ts)}]"
                     else:
                         part_str += f"[{format_timestamp(ts)}]"
-                else:
-                    # 该拍无时间戳（F4）：[N] 型分隔，防止分段被合并
+                elif cp_idx == 0:
+                    # 无时间戳时只在该字符读音开头写一次 [N]。
                     part_str += f"[{n_out}]"
 
                 if cp_idx < len(ruby_segments):
@@ -582,8 +575,8 @@ def _linked_group_to_ruby_node(group: List[Character]) -> str:
                         portion_parts.append(f"[{n_out}|{format_timestamp(ts)}]")
                     else:
                         portion_parts.append(f"[{format_timestamp(ts)}]")
-                else:
-                    # 该拍无时间戳（F4）：[N] 型分隔
+                elif cp_idx == 0:
+                    # 无时间戳时只在该字符 portion 开头写一次 [N]。
                     portion_parts.append(f"[{n_out}]")
             ruby_portions.append("".join(portion_parts))
         else:
@@ -895,6 +888,16 @@ def _parse_ruby_group(
                 ruby_text_parts.append(seg_text)
 
         timestamps = [ts for ts in all_timestamps[:count] if ts is not None]
+
+        # 标准 RL 写法只在 ruby 开头写一次 [N]；若后续没有时间标签，
+        # 剩余读音会全部落在最后一个 token 中。根据 N 把该尾段重新按
+        # mora 拆开，既接受标准格式，也继续兼容旧版重复 [N] 的文件。
+        if 0 < len(ruby_text_parts) < count and ruby_text_parts[-1]:
+            tail_count = count - len(ruby_text_parts) + 1
+            ruby_text_parts = (
+                ruby_text_parts[:-1]
+                + split_ruby_for_checkpoints(ruby_text_parts[-1], tail_count)
+            )
 
         if ruby_text_parts and not any(ruby_text_parts):
             # 所有拍都无文本 → 非注音的连词组成员（F1）：只还原字符、
