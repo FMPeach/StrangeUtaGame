@@ -19,7 +19,9 @@ worker → 宿主::
     {"type": "error", "message": "中文错误"}
 
 payload 结构与阶段 B 的 AlignmentRequest / AlignmentResult 一一对应；
-location 元组序列化为 JSON 数组，反序列化时还原为元组。
+location 元组序列化为 JSON 数组，反序列化时还原为元组。可选字段
+``windows`` 透传 LRC 锚点分窗（协议号维持 1：字段可选，宿主与 worker
+同仓同步发布；旧 worker 忽略未知键、宿主侧空窗时行为不变）。
 """
 
 import json
@@ -72,6 +74,20 @@ def serialize_request(request: AlignmentRequest) -> Dict[str, Any]:
         ],
         # 拉丁词组（手工拆分的英文词）：旧 worker 无此字段 = 无词组
         "word_groups": [list(g) for g in request.word_groups],
+        # LRC 锚点分窗（可选）：缺省/None → 整曲解码（契约不变式 4）
+        "windows": (
+            [
+                {
+                    "start_ms": int(w["start_ms"]),
+                    "end_ms": int(w["end_ms"]),
+                    "token_lo": int(w["token_lo"]),
+                    "token_hi": int(w["token_hi"]),
+                }
+                for w in request.windows
+            ]
+            if request.windows
+            else None
+        ),
     }
 
 
@@ -105,6 +121,19 @@ def deserialize_request(payload: Dict[str, Any]) -> AlignmentRequest:
                 for group in (payload.get("word_groups") or [])
                 if isinstance(group, (list, tuple))
             ],
+            windows=(
+                [
+                    {
+                        "start_ms": int(w["start_ms"]),
+                        "end_ms": int(w["end_ms"]),
+                        "token_lo": int(w["token_lo"]),
+                        "token_hi": int(w["token_hi"]),
+                    }
+                    for w in payload["windows"]
+                ]
+                if payload.get("windows")
+                else None
+            ),
         )
     except (KeyError, TypeError, ValueError) as exc:
         raise WorkerProtocolError(f"对齐请求数据无效：{exc}") from exc

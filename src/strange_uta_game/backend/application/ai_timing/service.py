@@ -33,6 +33,11 @@ from strange_uta_game.backend.application.ai_timing.models import (
     ModelRegistry,
     ModelStatus,
 )
+from strange_uta_game.backend.application.ai_timing.planning import (
+    AlignWindow,
+    plan_windows,
+    windows_digest,
+)
 from strange_uta_game.backend.application.ai_timing.pronunciation import (
     PronunciationPlan,
     compute_annotation_digest,
@@ -536,6 +541,14 @@ class AiTimingService:
             options=options,
         )
 
+        # LRC 锚点分窗：行现有最早全局时间戳为锚点；无锚点/无时长 → []，
+        # 不注入 windows、缓存键与现状完全一致（契约不变式 4，零回归）
+        planned_windows = self._plan_alignment_windows(project, plan, request)
+        if planned_windows:
+            request.windows = self._windows_payload(planned_windows, request)
+            log(f"LRC 锚点分窗：{len(request.windows)} 个窗口")
+        digest = windows_digest(planned_windows)
+
         # 对齐缓存命中 → 跳过推理。
         # transcript 指纹纳入缓存键：token 序列变化（如连词整词化修正）
         # 必须自动失效旧结果，否则旧 span 会按索引错配到新 token 上
@@ -544,11 +557,16 @@ class AiTimingService:
         transcript_digest = _sha256(
             " ".join(t.text for t in request.tokens).encode("utf-8")
         ).hexdigest()
+        cache_options = {**options, "transcript_digest": transcript_digest}
+        if digest:
+            # 锚点变化必须使缓存失效——窗口来自行时间戳，改时间戳后
+            # annotation_digest 不变，不加这个键会拿到旧缓存错配
+            cache_options["windows_digest"] = digest
         cache_meta = alignment_cache_metadata(
             media_sha256=media_sha,
             alignment_model=self.effective_model_id,
             annotation_digest=plan.annotation_digest,
-            options={**options, "transcript_digest": transcript_digest},
+            options=cache_options,
         )
         progress("cache", 18, "检查对齐缓存")
         cached = self._cache.lookup_alignment(cache_meta)
@@ -607,8 +625,34 @@ class AiTimingService:
             if "取消" in str(exc):
                 log(f"worker 已取消：{exc}")
                 raise AiTimingError(str(exc)) from exc
-            log(f"worker 执行失败：{exc}")
-            raise AiTimingError(f"AI 打轴执行失败：{exc}") from exc
+            if request.windows and "不支持分窗" in str(exc):
+                # 降级：去掉 windows 再执行一次。结果不写入含
+                # windows_digest 的缓存键——用无 windows 的原键缓存
+                log(f"worker 不支持分窗，降级整曲解码：{exc}")
+                request.windows = None
+                cache_meta = alignment_cache_metadata(
+                    media_sha256=media_sha,
+                    alignment_model=self.effective_model_id,
+                    annotation_digest=plan.annotation_digest,
+                    options={**options, "transcript_digest": transcript_digest},
+                )
+                try:
+                    result = worker.run(
+                        request,
+                        audio_path=str(vocal_path),
+                        model_spec=model_spec,
+                        on_progress=_map_worker_progress,
+                        timeout_s=WORKER_RUN_TIMEOUT_S,
+                    )
+                except Exception as exc2:
+                    if "取消" in str(exc2):
+                        log(f"worker 已取消：{exc2}")
+                        raise AiTimingError(str(exc2)) from exc2
+                    log(f"worker 降级执行失败：{exc2}")
+                    raise AiTimingError(f"AI 打轴执行失败：{exc2}") from exc2
+            else:
+                log(f"worker 执行失败：{exc}")
+                raise AiTimingError(f"AI 打轴执行失败：{exc}") from exc
         finally:
             cancel_done.set()
             cancel_watcher.join(timeout=3)
@@ -650,6 +694,81 @@ class AiTimingService:
         return self._build_command(project, plan, request, result)
 
     # ── 内部 ──
+
+    def _plan_alignment_windows(
+        self,
+        project: Project,
+        plan: PronunciationPlan,
+        request: AlignmentRequest,
+    ) -> List[AlignWindow]:
+        """采集行锚点并规划解码窗口（空列表 = 整曲退化）。"""
+        duration_ms = int(getattr(project, "audio_duration_ms", 0) or 0)
+        if duration_ms <= 0:
+            # 工程未记时长时尝试从分离后人声探一下；失败则放弃分窗
+            # （保持整曲路径，不引入额外硬依赖）
+            duration_ms = self._probe_duration_ms(request)
+        if duration_ms <= 0:
+            return []
+        lines = []
+        for i, sentence in enumerate(project.sentences):
+            lines.append((i, sentence.global_timing_start_ms, None))
+        try:
+            return plan_windows(lines, duration_ms)
+        except ValueError:
+            return []
+
+    def _probe_duration_ms(self, request: AlignmentRequest) -> int:
+        """轻量探测音频时长（毫秒）；不可用返回 0。"""
+        if request.media is not None and request.media.duration_ms > 0:
+            return int(request.media.duration_ms)
+        return 0
+
+    @staticmethod
+    def _windows_payload(
+        planned: List[AlignWindow],
+        request: AlignmentRequest,
+    ) -> List[dict]:
+        """AlignWindow 行区间 → 契约 windows（含 token 分区不变式断言）。"""
+        n = len(request.tokens)
+        # token 按 line_idx 分组（build 顺序按行号递增）
+        line_first: dict = {}
+        line_last: dict = {}
+        for t in request.tokens:
+            if t.line_idx not in line_first:
+                line_first[t.line_idx] = t.index
+            line_last[t.line_idx] = t.index
+        payloads: List[dict] = []
+        expected_lo = 0
+        for w in planned:
+            token_lo = None
+            token_hi = None
+            for line_idx in range(w.line_lo, w.line_hi):
+                if line_idx in line_first:
+                    if token_lo is None:
+                        token_lo = line_first[line_idx]
+                    token_hi = line_last[line_idx] + 1
+            if token_lo is None:
+                # 行区间内无 token（整行结构字符）：与前一窗共享边界空区间
+                token_lo = expected_lo
+                token_hi = expected_lo
+            assert token_lo == expected_lo, (
+                f"token 分区不连续：窗口 {w} token_lo={token_lo}，"
+                f"期望 {expected_lo}"
+            )
+            assert token_hi <= n, f"token_hi {token_hi} 越界（共 {n}）"
+            payloads.append(
+                {
+                    "start_ms": int(w.start_ms),
+                    "end_ms": int(w.end_ms),
+                    "token_lo": int(token_lo),
+                    "token_hi": int(token_hi),
+                }
+            )
+            expected_lo = token_hi
+        assert expected_lo == n, (
+            f"token 分区未覆盖全部 token：结束于 {expected_lo}，期望 {n}"
+        )
+        return payloads
 
     @staticmethod
     def _result_from_cache(

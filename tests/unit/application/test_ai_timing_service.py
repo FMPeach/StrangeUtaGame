@@ -572,3 +572,93 @@ class TestCancelWiringAndTimeout:
         # 取消经 service 的取消守望线程送达 client.cancel()
         assert worker.cancel_called.is_set()
         assert worker.cancelled_seen
+
+
+class TestWindowsInjection:
+    """LRC 锚点分窗接入执行链（契约不变式 1/2/3/4）。"""
+
+    def _project_anchored(self, duration_ms=20000, second_anchor=8000):
+        project = _project()
+        project.audio_duration_ms = duration_ms
+        project.sentences[0].characters[0].add_timestamp(2000)
+        project.sentences[0].characters[1].add_timestamp(2400)
+        project.sentences[1].characters[0].add_timestamp(second_anchor)
+        return project
+
+    def test_anchors_inject_windows_with_token_partition(self, tmp_path):
+        worker = _FakeWorker()
+        service, audio = _make_service(tmp_path, worker=worker)
+        project = self._project_anchored()
+        service.execute(project, str(audio))
+        assert len(worker.calls) == 1
+        request = worker.calls[0][0]
+        assert request.windows, "应注入分窗"
+        # token 分区：连续完整覆盖 [0, N)
+        n = len(request.tokens)
+        expected = 0
+        for w in request.windows:
+            assert w["token_lo"] == expected
+            assert 0 <= w["start_ms"] < w["end_ms"] <= 20000
+            expected = w["token_hi"]
+        assert expected == n
+        # start_ms 升序
+        starts = [w["start_ms"] for w in request.windows]
+        assert starts == sorted(starts)
+
+    def test_no_anchors_windows_absent_and_cache_options_match(self, tmp_path):
+        worker = _FakeWorker()
+        service, audio = _make_service(tmp_path, worker=worker)
+        project = _project()  # 无时间戳、无时长
+        service.execute(project, str(audio))
+        request = worker.calls[0][0]
+        assert request.windows is None
+        # 第二次执行：缓存命中且键不含 windows_digest
+        worker2 = _FakeWorker()
+        service2, _ = _make_service(tmp_path, worker=worker2)
+        service2._cache = service._cache
+        service2._vocal_service._cache = service._cache
+        service2.execute(_project(), str(audio))
+        assert len(worker2.calls) == 0
+
+    def test_changing_anchor_changes_windows_digest_cache(self, tmp_path):
+        worker_a = _FakeWorker()
+        service_a, audio = _make_service(tmp_path, worker=worker_a)
+        pa = self._project_anchored(second_anchor=8000)
+        service_a.execute(pa, str(audio))
+
+        worker_b = _FakeWorker()
+        service_b, _ = _make_service(tmp_path, worker=worker_b)
+        service_b._cache = service_a._cache
+        service_b._vocal_service._cache = service_a._cache
+        pb = self._project_anchored(second_anchor=9000)
+        service_b.execute(pb, str(audio))
+        # 锚点变了 → 缓存键应失效 → 再次推理
+        assert len(worker_b.calls) == 1
+        assert worker_a.calls[0][0].windows != worker_b.calls[0][0].windows
+
+    def test_unsupported_windows_falls_back_to_full_decode(self, tmp_path):
+        attempts = []
+
+        class _NoWinWorker(_FakeWorker):
+            def run(self, request, audio_path, model_spec, on_progress=None, timeout_s=None):
+                attempts.append(request.windows)
+                if request.windows:
+                    raise RuntimeError("当前对齐后端不支持分窗")
+                return super().run(
+                    request,
+                    audio_path,
+                    model_spec,
+                    on_progress=on_progress,
+                    timeout_s=timeout_s,
+                )
+
+        worker = _NoWinWorker()
+        service, audio = _make_service(tmp_path, worker=worker)
+        project = self._project_anchored()
+        cmd = service.execute(project, str(audio))
+        assert cmd is not None
+        # 首次带 windows 失败，降级重试无 windows 成功
+        assert attempts[0], "首次应带分窗"
+        assert attempts[-1] is None
+        assert worker.calls[-1][0].windows is None
+
