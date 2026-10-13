@@ -399,8 +399,24 @@ class AiTimingDialog(QDialog):
             [self.tr("自动"), "CPU", "CUDA", self.tr("MPS（Apple 芯片）")]
         )
         advanced.addWidget(self.combo_device)
+        # 对齐范围（上游评审：分窗必须直观可选，不得直接替换整曲解码）
+        advanced.addWidget(BodyLabel(self.tr("对齐范围:"), content))
+        self.combo_align_scope = ComboBox(content)
+        self.combo_align_scope.addItems(
+            [
+                self.tr("整曲（默认）"),
+                self.tr("按歌词行分窗（前奏/间奏更稳）"),
+            ]
+        )
+        self.combo_align_scope.setCurrentIndex(
+            0 if getattr(self._settings, "align_scope", "whole") == "whole" else 1
+        )
+        self.combo_align_scope.currentIndexChanged.connect(self._persist_settings)
+        advanced.addWidget(self.combo_align_scope)
         self._box_adv.contentLayout.addLayout(advanced)
         self._box_adv.contentLayout.addWidget(self.model_desc)
+        # 能力探测：工程无行时间戳时置灰并说明原因（不做静默降级）
+        self._update_align_scope_availability()
         mirror_row = QHBoxLayout()
         mirror_row.addWidget(BodyLabel(self.tr("下载镜像:"), content))
         self.combo_mirror = ComboBox(content)
@@ -759,6 +775,12 @@ class AiTimingDialog(QDialog):
         self._settings.device = ("auto", "cpu", "cuda", "mps")[
             self.combo_device.currentIndex()
         ]
+        # 对齐范围：整曲（默认）/ 按歌词行分窗。用户显式选择，绝不自动替换。
+        combo_scope = getattr(self, "combo_align_scope", None)
+        if combo_scope is not None:
+            self._settings.align_scope = (
+                "whole" if combo_scope.currentIndex() == 0 else "lrc_window"
+            )
         self._settings.download_mirror = self._mirror_value()
         # 下载端点必须同步到已建的 transport，否则镜像形同虚设：transport
         # 在弹窗构造时按当时设置固化 endpoint，改设置不改 transport 下载仍
@@ -829,6 +851,42 @@ class AiTimingDialog(QDialog):
         self.model_desc.setText(
             self.tr(self.MODEL_DESCRIPTIONS.get(index, ""))
         )
+
+    def _has_line_anchors(self) -> bool:
+        """工程是否存在可用作分窗锚点的行时间戳。
+
+        与 service._plan_alignment_windows 的锚点来源同口径
+        （sentence.global_timing_start_ms），保证 UI 可用性提示与实际
+        执行路径一致——UI 说可用就一定可分窗，说不可用就不会静默降级。
+        """
+        project = getattr(self, "_project", None)
+        if project is None:
+            return False
+        return any(
+            getattr(s, "global_timing_start_ms", None) is not None
+            for s in getattr(project, "sentences", []) or []
+        )
+
+    def _update_align_scope_availability(self) -> None:
+        """无行时间戳时禁用分窗选项并说明原因（能力探测优先）。
+
+        qfluentwidgets 的 ComboBox 是自绘下拉（QPushButton 派生），
+        禁用单项用 ``setItemEnabled``（没有 QComboBox 的 ``model()``）。
+        """
+        combo = getattr(self, "combo_align_scope", None)
+        if combo is None:
+            return
+        available = self._has_line_anchors()
+        combo.setItemEnabled(1, available)
+        combo.setToolTip(
+            ""
+            if available
+            else self.tr("当前歌词没有行时间戳，无法按行分窗；导入带时间的歌词后可用")
+        )
+        if not available and combo.currentIndex() != 0:
+            # 工程已无锚点（如切换了项目）→ 回落到整曲，避免停留在无效选择
+            combo.setCurrentIndex(0)
+            self._persist_settings()
 
     def _on_model_combo_changed(self, *_args) -> None:
         """高级选项切换模型 → 持久化并刷新状态行（保持两处一致）。

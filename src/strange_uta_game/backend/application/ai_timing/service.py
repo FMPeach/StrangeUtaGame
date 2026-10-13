@@ -541,12 +541,18 @@ class AiTimingService:
             options=options,
         )
 
-        # LRC 锚点分窗：行现有最早全局时间戳为锚点；无锚点/无时长 → []，
-        # 不注入 windows、缓存键与现状完全一致（契约不变式 4，零回归）
-        planned_windows = self._plan_alignment_windows(project, plan, request)
-        if planned_windows:
-            request.windows = self._windows_payload(planned_windows, request)
-            log(f"LRC 锚点分窗：{len(request.windows)} 个窗口")
+        # LRC 锚点分窗（用户可选，默认整曲）：仅当设置选「按歌词行分窗」时
+        # 才规划窗口——行现有最早全局时间戳为锚点；无锚点/无时长 → []，
+        # 不注入 windows、缓存键与现状完全一致（契约不变式 4，零回归）。
+        # 上游评审要求：不得无条件替换旧的整曲解码，必须由用户显式选择。
+        planned_windows: List[AlignWindow] = []
+        if getattr(self._settings, "align_scope", "whole") == "lrc_window":
+            planned_windows = self._plan_alignment_windows(project, plan, request)
+            if planned_windows:
+                request.windows = self._windows_payload(planned_windows, request)
+                log(f"LRC 锚点分窗：{len(request.windows)} 个窗口")
+            else:
+                log("已选择按歌词行分窗，但工程无行时间戳/时长，退化为整曲对齐")
         digest = windows_digest(planned_windows)
 
         # 对齐缓存命中 → 跳过推理。

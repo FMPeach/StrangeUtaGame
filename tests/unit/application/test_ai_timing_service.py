@@ -574,8 +574,17 @@ class TestCancelWiringAndTimeout:
         assert worker.cancelled_seen
 
 
+def _window_settings():
+    """显式选择「按歌词行分窗」的设置（上游评审：分窗必须用户可选）。"""
+    return AiTimingSettings(provider="wav2vec2", align_scope="lrc_window")
+
+
 class TestWindowsInjection:
-    """LRC 锚点分窗接入执行链（契约不变式 1/2/3/4）。"""
+    """LRC 锚点分窗接入执行链（契约不变式 1/2/3/4）。
+
+    分窗为可选项：以下用例显式传入 align_scope="lrc_window" 的设置，
+    默认整曲路径见 TestAlignScopeOption。
+    """
 
     def _project_anchored(self, duration_ms=20000, second_anchor=8000):
         project = _project()
@@ -587,7 +596,9 @@ class TestWindowsInjection:
 
     def test_anchors_inject_windows_with_token_partition(self, tmp_path):
         worker = _FakeWorker()
-        service, audio = _make_service(tmp_path, worker=worker)
+        service, audio = _make_service(
+            tmp_path, worker=worker, settings=_window_settings()
+        )
         project = self._project_anchored()
         service.execute(project, str(audio))
         assert len(worker.calls) == 1
@@ -607,14 +618,18 @@ class TestWindowsInjection:
 
     def test_no_anchors_windows_absent_and_cache_options_match(self, tmp_path):
         worker = _FakeWorker()
-        service, audio = _make_service(tmp_path, worker=worker)
+        service, audio = _make_service(
+            tmp_path, worker=worker, settings=_window_settings()
+        )
         project = _project()  # 无时间戳、无时长
         service.execute(project, str(audio))
         request = worker.calls[0][0]
         assert request.windows is None
         # 第二次执行：缓存命中且键不含 windows_digest
         worker2 = _FakeWorker()
-        service2, _ = _make_service(tmp_path, worker=worker2)
+        service2, _ = _make_service(
+            tmp_path, worker=worker2, settings=_window_settings()
+        )
         service2._cache = service._cache
         service2._vocal_service._cache = service._cache
         service2.execute(_project(), str(audio))
@@ -622,12 +637,16 @@ class TestWindowsInjection:
 
     def test_changing_anchor_changes_windows_digest_cache(self, tmp_path):
         worker_a = _FakeWorker()
-        service_a, audio = _make_service(tmp_path, worker=worker_a)
+        service_a, audio = _make_service(
+            tmp_path, worker=worker_a, settings=_window_settings()
+        )
         pa = self._project_anchored(second_anchor=8000)
         service_a.execute(pa, str(audio))
 
         worker_b = _FakeWorker()
-        service_b, _ = _make_service(tmp_path, worker=worker_b)
+        service_b, _ = _make_service(
+            tmp_path, worker=worker_b, settings=_window_settings()
+        )
         service_b._cache = service_a._cache
         service_b._vocal_service._cache = service_a._cache
         pb = self._project_anchored(second_anchor=9000)
@@ -653,7 +672,9 @@ class TestWindowsInjection:
                 )
 
         worker = _NoWinWorker()
-        service, audio = _make_service(tmp_path, worker=worker)
+        service, audio = _make_service(
+            tmp_path, worker=worker, settings=_window_settings()
+        )
         project = self._project_anchored()
         cmd = service.execute(project, str(audio))
         assert cmd is not None
@@ -662,3 +683,70 @@ class TestWindowsInjection:
         assert attempts[-1] is None
         assert worker.calls[-1][0].windows is None
 
+
+
+class TestAlignScopeOption:
+    """上游评审（PR #130）：分窗必须直观可选，不得直接替换整曲解码。
+
+    以下用例锁定「默认整曲」这一行为契约——老用户升级后行为零变化。
+    """
+
+    def test_default_settings_is_whole_track(self):
+        """默认设置必须是整曲（新增字段的默认值不得改为分窗）。"""
+        assert AiTimingSettings().align_scope == "whole"
+
+    def test_default_scope_never_injects_windows(self, tmp_path):
+        """默认（整曲）：即使工程有行时间戳，也不得注入 windows。"""
+        worker = _FakeWorker()
+        service, audio = _make_service(tmp_path, worker=worker)
+        project = _project()
+        project.audio_duration_ms = 20000
+        project.sentences[0].characters[0].add_timestamp(2000)
+        project.sentences[1].characters[0].add_timestamp(8000)
+        service.execute(project, str(audio))
+        request = worker.calls[0][0]
+        assert request.windows is None, "默认整曲不得注入分窗"
+
+    def test_default_scope_reuses_cache_across_runs(self, tmp_path):
+        """默认整曲：两次执行命中同一缓存键（与历史一致，不含 windows_digest）。
+
+        以行为断言而非内部钩子：第二次不触发 worker 即证明缓存键稳定。
+        """
+        worker = _FakeWorker()
+        service, audio = _make_service(tmp_path, worker=worker)
+
+        def _anchored():
+            p = _project()
+            p.audio_duration_ms = 20000
+            p.sentences[0].characters[0].add_timestamp(2000)
+            return p
+
+        service.execute(_anchored(), str(audio))
+        assert len(worker.calls) == 1
+        service.execute(_anchored(), str(audio))
+        assert len(worker.calls) == 1, "同设置同工程应命中缓存"
+
+    def test_scope_switch_does_not_hit_whole_track_cache(self, tmp_path):
+        """切到分窗后不得命中整曲缓存（结果语义不同）。"""
+        worker_a = _FakeWorker()
+        service_a, audio = _make_service(tmp_path, worker=worker_a)
+        project = _project()
+        project.audio_duration_ms = 20000
+        project.sentences[0].characters[0].add_timestamp(2000)
+        project.sentences[1].characters[0].add_timestamp(8000)
+        service_a.execute(project, str(audio))
+        assert len(worker_a.calls) == 1
+
+        # 同一缓存目录、同一工程，但改为分窗 → 必须重新推理
+        worker_b = _FakeWorker()
+        service_b, _ = _make_service(
+            tmp_path, worker=worker_b, settings=_window_settings()
+        )
+        service_b._cache = service_a._cache
+        service_b._vocal_service._cache = service_a._cache
+        project2 = _project()
+        project2.audio_duration_ms = 20000
+        project2.sentences[0].characters[0].add_timestamp(2000)
+        project2.sentences[1].characters[0].add_timestamp(8000)
+        service_b.execute(project2, str(audio))
+        assert len(worker_b.calls) == 1, "分窗与整曲缓存键必须不同"
