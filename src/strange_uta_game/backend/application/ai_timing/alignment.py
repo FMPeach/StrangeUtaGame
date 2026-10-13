@@ -14,7 +14,7 @@
 
 import unicodedata
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from strange_uta_game.backend.application.ai_timing.pronunciation import (
     PronunciationPlan,
@@ -97,6 +97,21 @@ class AlignmentRequest:
     对齐质量修正，FA-Kara/yohane 均无此处理）。假名/汉字/拼音单位
     永不进入词组（逐字时序不受影响）。
     """
+    windows: Optional[List[Dict[str, int]]] = None
+    """LRC 锚点分窗（可选；缺省/None/空列表 = 整曲解码，缓存键不变）。
+
+    每项为 ``{"start_ms", "end_ms", "token_lo", "token_hi"}`` 纯 dict：
+    - 时间单位毫秒，``end_ms`` 开区间，``start_ms >= 0``，``end_ms <= 音频时长``；
+    - ``token_lo/token_hi`` 对 ``tokens`` 为半开区间，全部窗口的 token
+      区间构成 ``[0, len(tokens))`` 连续完整分区（首尾相接、无空洞、无重叠）；
+    - 窗口按 ``start_ms`` 升序；音频范围允许因规划 left/right margin 重叠
+      （plan_lrc 搜索边界语义，见 planning 模块）——「互不重叠」只约束
+      token 区间，不约束音频时间范围。
+    """
+
+    def __post_init__(self) -> None:
+        if self.windows:
+            validate_windows(self.windows, n_tokens=len(self.tokens))
 
 
 # ──────────────────────────────────────────────
@@ -332,6 +347,68 @@ def _build_tokens_and_word_groups(
     return tokens, word_groups
 
 
+def validate_windows(
+    windows: Sequence[Dict[str, int]],
+    *,
+    n_tokens: int,
+    duration_ms: Optional[int] = None,
+) -> None:
+    """校验分窗契约不变式（worker 入口 / 宿主注入后防御）。
+
+    不变式：
+    1. 按 start_ms 升序（音频范围允许 margin 重叠）；
+    2. token 区间是 ``[0, n_tokens)`` 的连续完整分区（半开、无空洞、无重叠）；
+    3. ``start_ms >= 0``，``end_ms > start_ms``；若给定 ``duration_ms`` 则
+       ``end_ms <= duration_ms``。
+
+    非法时抛 ``AlignmentValidationError``（中文消息）。
+    """
+    if not windows:
+        return
+    prev_start = -1
+    prev_token_hi = 0
+    for i, w in enumerate(windows):
+        try:
+            start = int(w["start_ms"])
+            end = int(w["end_ms"])
+            token_lo = int(w["token_lo"])
+            token_hi = int(w["token_hi"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise AlignmentValidationError(
+                f"分窗第 {i} 项字段无效：{exc}"
+            ) from exc
+        if start < 0:
+            raise AlignmentValidationError(f"分窗第 {i} 项 start_ms 为负：{start}")
+        if end <= start:
+            raise AlignmentValidationError(
+                f"分窗第 {i} 项区间非法：[{start}, {end})"
+            )
+        if duration_ms is not None and end > duration_ms:
+            raise AlignmentValidationError(
+                f"分窗第 {i} 项 end_ms {end} 超出音频时长 {duration_ms}"
+            )
+        if start < prev_start:
+            raise AlignmentValidationError(
+                f"分窗未按 start_ms 升序：第 {i} 项 {start} < 前项 {prev_start}"
+            )
+        if token_lo != prev_token_hi:
+            raise AlignmentValidationError(
+                f"分窗 token 区间不连续：第 {i} 项 token_lo={token_lo}，"
+                f"期望 {prev_token_hi}"
+            )
+        if token_hi < token_lo:
+            raise AlignmentValidationError(
+                f"分窗第 {i} 项 token 区间非法：[{token_lo}, {token_hi})"
+            )
+        prev_start = start
+        prev_token_hi = token_hi
+    if prev_token_hi != n_tokens:
+        raise AlignmentValidationError(
+            f"分窗 token 区间未覆盖全部 token：结束于 {prev_token_hi}，"
+            f"期望 {n_tokens}"
+        )
+
+
 def build_alignment_request(
     plan: PronunciationPlan,
     media: Optional[MediaIdentity] = None,
@@ -488,6 +565,7 @@ __all__ = [
     "AlignmentResult",
     "build_alignment_tokens",
     "build_alignment_request",
+    "validate_windows",
     "validate_result",
     "checkpoint_timestamps",
     "interpolate_structural_timestamps",

@@ -100,6 +100,10 @@ def _make_dialog(qapp, tmp_path, snapshot, applied_calls):
         on_applied=applied_calls.append,
         parent=None,
     )
+    # 构造函数会异步 refresh（QThread 以对话框为父）。不在用例内等它
+    # 收尾的话，用例结束 GC 时线程仍在跑，会命中
+    # 「QThread: Destroyed while thread is still running」直接杀死进程。
+    TestPathChangeAppliesImmediately._wait_initial_refresh(qapp, dialog)
     return dialog, service
 
 
@@ -1075,3 +1079,63 @@ class TestTaskGuardsAndTeardown:
         release.set()
         assert self._wait_idle(qapp, dialog)
         assert dialog._thread is None
+
+
+class TestAlignScopeOption:
+    """上游评审（PR #130）：分窗必须直观可选（下拉菜单），默认整曲。
+
+    锁定 UI 契约：下拉存在、默认选整曲、无行时间戳时分窗项置灰、
+    切换后写入 settings.align_scope。
+    """
+
+    def test_combo_exists_and_defaults_to_whole(self, qapp, tmp_path):
+        dialog, _ = _make_dialog(qapp, tmp_path, _ready_snapshot(), [])
+        combo = dialog.combo_align_scope
+        assert combo.count() == 2
+        assert combo.currentIndex() == 0, "默认必须是整曲"
+        assert "整曲" in combo.itemText(0)
+        assert "分窗" in combo.itemText(1)
+        dialog.close()
+
+    def test_scope_writes_to_settings(self, qapp, tmp_path):
+        dialog, _ = _make_dialog(qapp, tmp_path, _ready_snapshot(), [])
+        dialog.combo_align_scope.setCurrentIndex(1)
+        assert dialog._settings.align_scope == "lrc_window"
+        dialog.combo_align_scope.setCurrentIndex(0)
+        assert dialog._settings.align_scope == "whole"
+        dialog.close()
+
+    def test_window_option_disabled_without_line_anchors(self, qapp, tmp_path):
+        dialog, _ = _make_dialog(qapp, tmp_path, _ready_snapshot(), [])
+        # _project() 无时间戳 → 分窗项置灰 + tooltip 说明
+        assert dialog._has_line_anchors() is False
+        assert "行时间戳" in dialog.combo_align_scope.toolTip()
+        dialog.close()
+
+    def test_window_option_enabled_with_line_anchors(self, qapp, tmp_path):
+        from strange_uta_game.backend.domain import Project, Sentence, Character
+
+        dialog, _ = _make_dialog(qapp, tmp_path, _ready_snapshot(), [])
+        project = Project()
+        sent = Sentence(
+            singer_id="s1",
+            characters=[Character(char="あ", check_count=1, ruby=None, singer_id="s1")],
+        )
+        sent.characters[0].add_timestamp(2000)  # 行锚点
+        project.sentences = [sent]
+        dialog._project = project
+        dialog._update_align_scope_availability()
+        assert dialog._has_line_anchors() is True
+        assert dialog.combo_align_scope.toolTip() == ""
+        dialog.close()
+
+    def test_unavailable_scope_resets_to_whole(self, qapp, tmp_path):
+        """工程失去锚点（如切换项目）时回落整曲，不停留在无效选择。"""
+        dialog, _ = _make_dialog(qapp, tmp_path, _ready_snapshot(), [])
+        dialog.combo_align_scope.setCurrentIndex(1)
+        assert dialog._settings.align_scope == "lrc_window"
+        dialog._project = None  # 无工程 = 无锚点
+        dialog._update_align_scope_availability()
+        assert dialog.combo_align_scope.currentIndex() == 0
+        assert dialog._settings.align_scope == "whole"
+        dialog.close()

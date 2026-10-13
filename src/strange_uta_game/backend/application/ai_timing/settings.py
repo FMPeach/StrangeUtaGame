@@ -48,6 +48,11 @@ class AiTimingSettings:
     tail_snap: bool = True
     """尾音修正：token 终点吸附到下一 token 起点。"""
 
+    align_scope: str = "whole"
+    """对齐范围：``"whole"`` 整曲（默认，与历史行为一致）/
+    ``"lrc_window"`` 按歌词行分窗（用 LRC 行时间作锚点，长前奏、间奏、
+    重复副歌更稳；需工程含行时间戳，缺失时由 service 退化为整曲并记日志）。"""
+
     audio_speed: float = 1.0
     """音频倍速预处理（预留，阶段 C worker options 消费）。"""
 
@@ -119,6 +124,9 @@ def load_ai_timing_settings(getter: Getter) -> AiTimingSettings:
             getter(f"{SETTINGS_SECTION}.ai_cache_root", base.ai_cache_root)
         ),
         tail_snap=bool(getter(f"{SETTINGS_SECTION}.tail_snap", base.tail_snap)),
+        align_scope=str(
+            getter(f"{SETTINGS_SECTION}.align_scope", base.align_scope)
+        ),
         audio_speed=float(
             getter(f"{SETTINGS_SECTION}.audio_speed", base.audio_speed)
         ),

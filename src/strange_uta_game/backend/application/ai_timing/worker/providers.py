@@ -18,6 +18,7 @@ from strange_uta_game.backend.application.ai_timing.alignment import (
     AlignmentRequest,
     AlignmentResult,
     EmissionSpan,
+    validate_windows,
 )
 
 ProgressFn = Callable[[int, str], None]
@@ -231,6 +232,13 @@ class ForcedAlignmentProvider(ABC):
     """对齐器 provider 抽象（§5.2）。"""
 
     provider_id: str = ""
+    supports_windows: bool = False
+    """是否支持 AlignmentRequest.windows 分窗解码。
+
+    False 且请求携带非空 windows 时，align 入口抛
+    AlignmentProviderError("当前对齐后端不支持分窗")——禁止静默忽略
+    （宁可上层退化重试，不许悄悄整曲错解）。
+    """
 
     @abstractmethod
     def validate_model(self, model_spec: Dict[str, Any]) -> None:
@@ -263,6 +271,12 @@ class ForcedAlignmentProvider(ABC):
 def _cancelled_check(cancel: CancelFn) -> None:
     if cancel():
         raise AlignmentCancelledError("已取消")
+
+
+def _require_windows_support(provider: ForcedAlignmentProvider, request) -> None:
+    """请求带分窗且后端不支持 → 明确中文错误（禁止静默忽略）。"""
+    if request.windows and not getattr(provider, "supports_windows", False):
+        raise AlignmentProviderError("当前对齐后端不支持分窗")
 
 
 def _find_encoder_layers(model: Any) -> List[Any]:
@@ -339,6 +353,7 @@ class FakeProvider(ForcedAlignmentProvider):
     """
 
     provider_id = "fake"
+    supports_windows = True
 
     def validate_model(self, model_spec: Dict[str, Any]) -> None:
         if model_spec.get("fake_crash"):
@@ -367,12 +382,17 @@ class FakeProvider(ForcedAlignmentProvider):
         progress: ProgressFn,
         cancel: CancelFn,
     ) -> AlignmentResult:
+        _require_windows_support(self, request)
         options = request.options or {}
         duration = int(options.get("fake_duration_ms", 1000))
         delay = float(options.get("fake_delay_ms", 0))
         tokens = request.tokens
         if not tokens:
             raise AlignmentProviderError("没有可对齐的 token")
+        if request.windows:
+            validate_windows(
+                request.windows, n_tokens=len(tokens), duration_ms=duration
+            )
         step = duration / len(tokens)
         spans: List[EmissionSpan] = []
         import time
@@ -382,6 +402,40 @@ class FakeProvider(ForcedAlignmentProvider):
         # - "static"：每个 token 发同一内容 progress（有输出但无变化）；
         # - "silent"：align 循环不发 progress（模拟挂死/无探针输出）。
         progress_mode = str(options.get("fake_progress_mode", "normal"))
+        if request.windows:
+            # 分窗路径：每个窗口内按 token 数均分该窗口时间范围
+            for w in request.windows:
+                tlo, thi = int(w["token_lo"]), int(w["token_hi"])
+                count = thi - tlo
+                if count <= 0:
+                    continue
+                span_ms = int(w["end_ms"]) - int(w["start_ms"])
+                wstep = span_ms / count
+                for j, i in enumerate(range(tlo, thi)):
+                    _cancelled_check(cancel)
+                    if delay:
+                        time.sleep(delay / 1000.0)
+                    token = tokens[i]
+                    spans.append(
+                        EmissionSpan(
+                            token_index=token.index,
+                            start_ms=int(w["start_ms"] + round(j * wstep)),
+                            end_ms=int(w["start_ms"] + round((j + 1) * wstep)),
+                            score=1.0,
+                        )
+                    )
+                    if progress_mode == "normal":
+                        progress(
+                            50 + int(50 * len(spans) / max(1, len(tokens))),
+                            f"对齐进度 {len(spans)}/{len(tokens)}",
+                        )
+                    elif progress_mode == "static":
+                        progress(42, "对齐进度")
+            return AlignmentResult(
+                annotation_digest=request.annotation_digest,
+                model_id="fake",
+                spans=spans,
+            )
         for i, token in enumerate(tokens):
             _cancelled_check(cancel)
             if delay:
@@ -410,6 +464,8 @@ class FakeProvider(ForcedAlignmentProvider):
 
 class _TorchProviderBase(ForcedAlignmentProvider):
     """torch 系 provider 共用逻辑：音频加载、CTC 对齐、帧→毫秒换算。"""
+
+    supports_windows = True
 
     # Transformer 的峰值显存取决于单次 forward 的音频长度。
     FORWARD_CHUNK_SECONDS = 30
@@ -525,6 +581,61 @@ class _TorchProviderBase(ForcedAlignmentProvider):
             last = spans[offset + len(group) - 1]
             grouped.append((first.start, last.end))
             offset += len(group)
+        return grouped
+
+    def _ctc_align_groups_windowed(
+        self,
+        emission: Any,
+        token_groups: Sequence[Sequence[int]],
+        blank: int,
+        windows: Sequence[Dict[str, Any]],
+        duration_ms: int,
+    ) -> List[Tuple[int, int]]:
+        """按请求 windows 切 emission 帧区间做分窗 CTC 对齐。
+
+        ms→帧换算用实际 emission 长度与音频时长比例（worker 侧完成，
+        宿主不感知帧）。窗口内局部 span 加回帧偏移。无窗/单窗覆盖整曲
+        时与整曲解码路径逐位一致（退化等价）。
+        """
+        validate_windows(
+            windows, n_tokens=len(token_groups), duration_ms=duration_ms
+        )
+        if hasattr(emission, "cpu"):
+            emission = emission.cpu()
+        num_frames = int(emission.size(1))
+        if duration_ms <= 0 or num_frames <= 0:
+            raise AlignmentProviderError("分窗解码需要有效音频时长与 emission 帧")
+        # 单窗覆盖整曲：直接走整曲路径，保证与 windows=None 逐位一致
+        if (
+            len(windows) == 1
+            and int(windows[0]["token_lo"]) == 0
+            and int(windows[0]["token_hi"]) == len(token_groups)
+            and int(windows[0]["start_ms"]) <= 0
+            and int(windows[0]["end_ms"]) >= duration_ms
+        ):
+            return self._ctc_align_groups(emission, token_groups, blank)
+        grouped: List[Tuple[int, int]] = [(-1, -1)] * len(token_groups)
+        for w in windows:
+            tlo = int(w["token_lo"])
+            thi = int(w["token_hi"])
+            if thi <= tlo:
+                continue
+            f0 = int(round(int(w["start_ms"]) * num_frames / duration_ms))
+            f1 = int(round(int(w["end_ms"]) * num_frames / duration_ms))
+            f0 = max(0, min(num_frames, f0))
+            f1 = max(0, min(num_frames, f1))
+            if f1 <= f0:
+                if f0 >= num_frames:
+                    continue
+                f1 = f0 + 1
+            sub = emission[:, f0:f1]
+            sub_groups = list(token_groups[tlo:thi])
+            sub_grouped = self._ctc_align_groups(sub, sub_groups, blank=blank)
+            for i, g in enumerate(sub_grouped):
+                if g[0] < 0:
+                    grouped[tlo + i] = g
+                else:
+                    grouped[tlo + i] = (g[0] + f0, g[1] + f0)
         return grouped
 
     def _frame_energies(self, waveform: Any, num_frames: int) -> Any:
@@ -860,6 +971,7 @@ class Wav2Vec2LatnProvider(_TorchProviderBase):
         progress: ProgressFn,
         cancel: CancelFn,
     ) -> AlignmentResult:
+        _require_windows_support(self, request)
         if self._model is None:
             raise AlignmentProviderError("对齐模型尚未加载")
         torch = self._import_torch()
@@ -898,7 +1010,13 @@ class Wav2Vec2LatnProvider(_TorchProviderBase):
 
         progress(85, "计算对齐区间")
         blank = self._model.config.pad_token_id
-        grouped = self._ctc_align_groups(emission, groups, blank=blank)
+        duration_ms = int(round(waveform.size(1) / sample_rate * 1000))
+        if request.windows:
+            grouped = self._ctc_align_groups_windowed(
+                emission, groups, blank, request.windows, duration_ms
+            )
+        else:
+            grouped = self._ctc_align_groups(emission, groups, blank=blank)
         apply_word_group_resplit(grouped, groups, request.word_groups)
         spans = self._frames_to_spans(
             request,
@@ -957,6 +1075,7 @@ class MmsFaProvider(_TorchProviderBase):
         progress: ProgressFn,
         cancel: CancelFn,
     ) -> AlignmentResult:
+        _require_windows_support(self, request)
         if self._model is None:
             raise AlignmentProviderError("对齐模型尚未加载")
         torch = self._import_torch()
@@ -993,17 +1112,68 @@ class MmsFaProvider(_TorchProviderBase):
             )
 
         progress(85, "计算对齐区间")
-        non_empty = [g for g in groups if g]
-        # bundle aligner 内部同样要求 emission/targets 同设备：统一 CPU
-        token_spans = self._aligner(emission[0].cpu() if hasattr(emission, "cpu") else emission[0], non_empty)
-        grouped: List[Tuple[int, int]] = []
-        span_iter = iter(token_spans)
-        for g in groups:
-            if not g:
-                grouped.append((-1, -1))
-                continue
-            spans = next(span_iter)
-            grouped.append((spans[0].start, spans[-1].end))
+        duration_ms = int(round(waveform.size(1) / sample_rate * 1000))
+        if request.windows:
+            # bundle aligner 与 CTC 同为帧级 forced alignment：按窗切
+            # emission，对窗内 token 做 aligner，帧偏移加回
+            validate_windows(
+                request.windows, n_tokens=len(groups), duration_ms=duration_ms
+            )
+            if hasattr(emission, "cpu"):
+                emission = emission.cpu()
+            num_frames = int(emission.size(1))
+            grouped = [(-1, -1)] * len(groups)
+            for w in request.windows:
+                tlo, thi = int(w["token_lo"]), int(w["token_hi"])
+                if thi <= tlo:
+                    continue
+                f0 = max(
+                    0,
+                    min(
+                        num_frames,
+                        int(round(int(w["start_ms"]) * num_frames / duration_ms)),
+                    ),
+                )
+                f1 = max(
+                    0,
+                    min(
+                        num_frames,
+                        int(round(int(w["end_ms"]) * num_frames / duration_ms)),
+                    ),
+                )
+                if f1 <= f0:
+                    if f0 >= num_frames:
+                        continue
+                    f1 = f0 + 1
+                sub_groups = [g for g in groups[tlo:thi] if g]
+                if not sub_groups:
+                    continue
+                sub_emission = emission[:, f0:f1]
+                token_spans = self._aligner(
+                    sub_emission[0] if sub_emission.dim() > 1 else sub_emission,
+                    sub_groups,
+                )
+                span_iter = iter(token_spans)
+                for i, g in enumerate(groups[tlo:thi]):
+                    if not g:
+                        continue
+                    sp = next(span_iter)
+                    grouped[tlo + i] = (sp[0].start + f0, sp[-1].end + f0)
+        else:
+            non_empty = [g for g in groups if g]
+            # bundle aligner 内部同样要求 emission/targets 同设备：统一 CPU
+            token_spans = self._aligner(
+                emission[0].cpu() if hasattr(emission, "cpu") else emission[0],
+                non_empty,
+            )
+            grouped = []
+            span_iter = iter(token_spans)
+            for g in groups:
+                if not g:
+                    grouped.append((-1, -1))
+                    continue
+                sp = next(span_iter)
+                grouped.append((sp[0].start, sp[-1].end))
         apply_word_group_resplit(grouped, groups, request.word_groups)
         spans = self._frames_to_spans(
             request,
