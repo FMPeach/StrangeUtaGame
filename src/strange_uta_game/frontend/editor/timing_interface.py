@@ -9316,6 +9316,26 @@ class EditorInterface(QWidget):
     def refresh_lyric_display(self):
         self.preview._update_display()
 
+    @staticmethod
+    def _build_korean_sub_analyzer(auto_check_flags: dict):
+        """构造日文模式下谚文补标分析器（风格取自「韩文注音风格」设置）。
+
+        受「韩文歌词检测」开关门控——关闭时返回 None，谚文也回落日文路径
+        （与整曲韩文模式关闭时的承诺一致）。仅对谚文音节补标，汉字/假名/
+        英文不动。
+        """
+        if not auto_check_flags.get("korean_lyrics_detection", True):
+            return None
+        try:
+            from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+                create_korean_reading_analyzer,
+            )
+        except ImportError:
+            return None
+        return create_korean_reading_analyzer(
+            auto_check_flags.get("korean_annotation_style", "katakana")
+        )
+
     def _auto_analyze_rubies(self, only_noruby: bool = False, auto_detect_chinese: bool = False,
                              update_checkpoints: bool = True):
         """执行注音分析（核心逻辑，供多处复用）。
@@ -9423,6 +9443,7 @@ class EditorInterface(QWidget):
                 auto_check_flags=auto_check_flags,
                 user_dictionary=user_dict,
                 annotate_katakana_with_english=annotate_katakana_with_english,
+                korean_sub_analyzer=self._build_korean_sub_analyzer(auto_check_flags),
             )
 
         # 在主线程提前快照 before 状态和光标位置（worker 运行期间不能读 self._project）

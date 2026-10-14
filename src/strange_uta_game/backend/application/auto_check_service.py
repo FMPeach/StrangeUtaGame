@@ -338,6 +338,7 @@ class AutoCheckService:
         pinyin_analyzer: Optional[RubyAnalyzer] = None,
         korean_mode: bool = False,
         korean_analyzer: Optional[RubyAnalyzer] = None,
+        korean_sub_analyzer: Optional[RubyAnalyzer] = None,
     ):
         """
         Args:
@@ -353,6 +354,12 @@ class AutoCheckService:
             korean_analyzer: 韩文注音分析器（korean_mode=True 时，若提供则
                 为韩文字/汉字标注片假名/平假名/罗马音风格 ruby；
                 KoreanReadingAnalyzer，None 则不产生 ruby 仅节奏点）
+            korean_sub_analyzer: 日文模式下谚文的独立补标分析器（与
+                korean_mode 的整曲韩文路径互斥）。非 None 时，日文路径中
+                **仅有自读音**（日文分析器对谚文的逐字透传）的谚文音节
+                （U+AC00–U+D7A3）会按此分析器的风格补 ruby；已被真实注音
+                覆盖的谚文位保持不动；汉字/假名/英文一律不动，仍走日文注音。
+                典型传值：``create_korean_reading_analyzer(style)``。
         """
         self._chinese_mode = chinese_mode
         self._korean_mode = korean_mode
@@ -361,6 +368,8 @@ class AutoCheckService:
         )
         self._pinyin_analyzer = pinyin_analyzer
         self._korean_analyzer = korean_analyzer
+        # 日文模式下谚文补标分析器（korean_mode=False 时生效）
+        self._korean_sub_analyzer = korean_sub_analyzer
         self._ruby_analyzer = ruby_analyzer
         self._flags = auto_check_flags or {}
         self._romanize_ruby = bool(self._flags.get("romanize_ruby", False))
@@ -1619,6 +1628,14 @@ class AutoCheckService:
 
         ruby_results = [r for r in ruby_results if _result_should_keep(r)]
 
+        # 日文模式下谚文独立补标：谚文（한글）是表音文字、无多音歧义，
+        # 但日文分析器不认识它，会一路透传成「无读音」。此处仅对谚文音节
+        # 按韩文注音风格补 ruby，汉字/假名/英文不动（仍走日文注音）。
+        # 必须在 _result_should_keep 之后、英文词典覆盖之前：
+        #   - 之前：符号/标点等已被过滤，补标只面对有效字符；
+        #   - 之前：不可在英文词典之后，否则 e2k 会把谚文误当英文处理。
+        ruby_results = self._apply_korean_sub_annotation(text, ruby_results)
+
         # 用户词典覆盖已迁移到 Phase 5（apply_to_sentence 末尾，子串严格匹配
         # 覆盖 Character[]），此处不再处理；dict_covered 仅作为占位传给英文阶段。
         dict_covered: set = set()
@@ -2011,6 +2028,12 @@ class AutoCheckService:
             ):
                 if check_counts[i] > 1:
                     check_counts[i] = 1
+            # 谚文音节：每音节固定 1 cp（表音文字，一个音节块一个节拍单元），
+            # 不被其片假名读音的 mora 数拉高（한국→ハングク 是 2 音节 4 mora）。
+            # 与韩文整曲模式（_apply_korean_to_sentence 的 cc=1）口径一致。
+            elif len(ch) == 1 and get_char_type(ch) == CharType.HANGUL:
+                if check_counts[i] > 1:
+                    check_counts[i] = 1
 
         # 应用自动打勾过滤规则（含 check_line_start 和标点最终覆盖）
         self._apply_flags_filter(chars, check_counts, text)
@@ -2078,6 +2101,87 @@ class AutoCheckService:
             )
 
         return results
+
+    def _apply_korean_sub_annotation(
+        self, text: str, ruby_results: List[RubyResult]
+    ) -> List[RubyResult]:
+        """日文模式下为谚文音节补韩文风格注音（独立子步骤）。
+
+        仅当 ``korean_sub_analyzer`` 已提供、且当前非中文/韩文整曲模式时
+        生效。只处理**谚文音节**（U+AC00–U+D7A3）；汉字/假名/英文一律不动。
+
+        替换规则：日文分析器对谚文会逐字透传（``reading == 原字符`` 的自
+        读音块，无实际注音价值）——这类「仅自读音」的谚文位被替换为韩文风
+        格读音；已被真实注音覆盖的谚文位（reading != 原字符，如用户词典/
+        库函数结果是真实读音）保持不动，不覆盖既有标注。
+
+        产出的 RubyResult 与常规分析器结果同构，从而复用下游全部逻辑
+        （``_group_reading_for_character`` / check_count / romanize /
+        Phase 5 词典 / linked_to_next），无需在别处特判。
+        """
+        if self._korean_sub_analyzer is None:
+            return ruby_results
+        if self._chinese_mode or self._korean_mode:
+            # 中文/韩文整曲模式有各自的分句路径，不叠加补标
+            return ruby_results
+        if not text:
+            return ruby_results
+
+        # 该位置是否已被「真实注音」覆盖（reading 非空且异于原字符）。
+        # 仅自读音（reading == text）不算真实注音，可被韩文读音替换。
+        def _has_real_annotation(idx: int) -> bool:
+            for r in ruby_results:
+                if r.start_idx <= idx < r.end_idx:
+                    if r.reading and r.reading != r.text:
+                        return True
+            return False
+
+        new_results: List[RubyResult] = []
+        try:
+            readings = self._korean_sub_analyzer.analyze(text)
+        except Exception:
+            return ruby_results
+        korean_by_idx: Dict[int, str] = {}
+        for r in readings:
+            if r.end_idx - r.start_idx != 1:
+                continue
+            idx = r.start_idx
+            if idx < 0 or idx >= len(text):
+                continue
+            if get_char_type(text[idx]) != CharType.HANGUL:
+                continue
+            # reading == 原字符 = 未产出有效读音，跳过（保持原状）
+            if not r.reading or r.reading == r.text:
+                continue
+            korean_by_idx[idx] = r.reading
+
+        if not korean_by_idx:
+            return ruby_results
+
+        for r in ruby_results:
+            # 谚文单字符块且未被真实注音覆盖 → 移除，稍后由韩文读音重建
+            if (
+                r.end_idx - r.start_idx == 1
+                and r.start_idx in korean_by_idx
+                and not _has_real_annotation(r.start_idx)
+            ):
+                continue
+            new_results.append(r)
+
+        for idx, reading in korean_by_idx.items():
+            if _has_real_annotation(idx):
+                continue
+            new_results.append(
+                RubyResult(
+                    text=text[idx],
+                    reading=reading,
+                    start_idx=idx,
+                    end_idx=idx + 1,
+                )
+            )
+
+        new_results.sort(key=lambda x: (x.start_idx, x.end_idx))
+        return new_results
 
     def _is_char_already_rubied(
         self, sentence: Sentence, idx: int

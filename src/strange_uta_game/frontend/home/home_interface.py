@@ -591,6 +591,9 @@ class HomeInterface(QWidget):
                                 auto_check_flags=auto_check_flags,
                                 user_dictionary=user_dict,
                                 annotate_katakana_with_english=annotate_katakana_with_english,
+                                korean_sub_analyzer=HomeInterface._build_korean_sub_analyzer(
+                                    auto_check_flags
+                                ),
                             )
                             auto_check.analyze_and_apply_pipeline(
                                 project, only_noruby=True,
@@ -1044,6 +1047,25 @@ class HomeInterface(QWidget):
         self._lyric_lines = []
         self._nicokara_singers = []
         self._nicokara_singer_key_to_id = {}
+
+    @staticmethod
+    def _build_korean_sub_analyzer(auto_check_flags: dict):
+        """构造日文模式下谚文补标分析器（风格取自「韩文注音风格」设置）。
+
+        受「韩文歌词检测」开关门控——关闭时返回 None，谚文回落日文路径。
+        仅对谚文音节补标，汉字/假名/英文不动。
+        """
+        if not auto_check_flags.get("korean_lyrics_detection", True):
+            return None
+        try:
+            from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+                create_korean_reading_analyzer,
+            )
+        except ImportError:
+            return None
+        return create_korean_reading_analyzer(
+            auto_check_flags.get("korean_annotation_style", "katakana")
+        )
 
     def _open_project_file(self, file_path: str) -> None:
         """异步加载 .sug 项目文件"""

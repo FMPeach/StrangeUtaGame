@@ -1141,6 +1141,26 @@ class RubyInterface(QWidget):
             user_dictionary=user_dict,
             annotate_katakana_with_english=annotate_katakana_with_english,
             chinese_mode=chinese_mode,
+            korean_sub_analyzer=self._build_korean_sub_analyzer(auto_check_flags),
+        )
+
+    @staticmethod
+    def _build_korean_sub_analyzer(auto_check_flags: dict):
+        """构造日文模式下谚文补标分析器（风格取自「韩文注音风格」设置）。
+
+        受「韩文歌词检测」开关门控——关闭时返回 None，谚文回落日文路径。
+        仅对谚文音节补标，汉字/假名/英文不动。
+        """
+        if not auto_check_flags.get("korean_lyrics_detection", True):
+            return None
+        try:
+            from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+                create_korean_reading_analyzer,
+            )
+        except ImportError:
+            return None
+        return create_korean_reading_analyzer(
+            auto_check_flags.get("korean_annotation_style", "katakana")
         )
 
     # ==================== 批量操作 ====================

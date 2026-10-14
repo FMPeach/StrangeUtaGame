@@ -1496,3 +1496,113 @@ class TestTimedCheckpointPreservation:
         assert ch.check_count == 1
         assert ch.is_sentence_end is True
         assert ch.sentence_end_ts == 42678
+
+
+class TestKoreanSubAnnotation:
+    """日文模式下谚文独立补标：只标谚文音节，汉字/假名/英文走日文路径。"""
+
+    _FLAGS = {
+        "kanji": True,
+        "hiragana": True,
+        "katakana": True,
+        "hangul": True,
+        "alphabet": True,
+        "digit": True,
+    }
+
+    @staticmethod
+    def _korean_sub(style="katakana"):
+        from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+            create_korean_reading_analyzer,
+        )
+
+        return create_korean_reading_analyzer(style)
+
+    def _analyze(self, text, style="katakana", flags=None):
+        service = AutoCheckService(
+            _FixedReadingAnalyzer({"歌": "うた", "唱": "うた"}),
+            auto_check_flags=dict(flags or self._FLAGS),
+            korean_sub_analyzer=self._korean_sub(style),
+        )
+        sentence = Sentence.from_text(text, "s1")
+        return service.analyze_sentence(sentence), sentence
+
+    def test_hangul_gets_katakana_ruby(self):
+        """谚文音节补片假名风格 ruby；汉字仍走日文读音。"""
+        results, _ = self._analyze("歌를")
+        by_char = {r.char_idx: r for r in results}
+        # 谚文 를 → ㄹ+ㅡ+ㄹ(韵尾) → ルル
+        assert by_char[1].ruby == ["ルル"]
+        # 汉字 歌 仍走日文分析器
+        assert by_char[0].ruby == ["う", "た"]
+
+    def test_multisyllable_hangul_one_cp_each(self):
+        """每个谚文音节固定 1 个节奏点（不被假名读音的 mora 数拉高）。"""
+        results, _ = self._analyze("한국")
+        by_char = {r.char_idx: r for r in results}
+        assert by_char[0].ruby == ["ハン"]
+        assert by_char[1].ruby == ["グク"]
+        assert by_char[0].check_count == 1
+        assert by_char[1].check_count == 1
+
+    def test_kanji_not_touched_by_korean(self):
+        """汉字不进韩文补标：日文模式下 韓国 按日文读，不被韩音覆盖。"""
+        results, _ = self._analyze("韓国")
+        by_char = {r.char_idx: r for r in results}
+        # 韓/国 均为汉字 → 由日文分析器（此处 Dummy 映射外的字符自注音）
+        # 断言其 ruby 不是韩音（한/국 的片假名 ハン/グク）
+        assert (by_char[0].ruby or []) != ["ハン"]
+        assert (by_char[1].ruby or []) != ["グク"]
+
+    def test_romaji_style(self):
+        """风格切换为罗马音：谚文位 ruby 为 RR 串。"""
+        results, _ = self._analyze("한국", style="romaji")
+        by_char = {r.char_idx: r for r in results}
+        assert by_char[0].ruby == ["han"]
+        assert by_char[1].ruby == ["guk"]
+
+    def test_hiragana_style(self):
+        results, _ = self._analyze("사랑", style="hiragana")
+        by_char = {r.char_idx: r for r in results}
+        assert by_char[0].ruby == ["さ"]
+        assert by_char[1].ruby == ["らん"]
+
+    def test_detection_off_no_korean_ruby(self):
+        """「韩文歌词检测」关闭 → 无 sub analyzer → 谚文位无 ruby。"""
+        service = AutoCheckService(
+            _FixedReadingAnalyzer({"歌": "うた"}),
+            auto_check_flags=dict(self._FLAGS),
+            korean_sub_analyzer=None,
+        )
+        sentence = Sentence.from_text("歌를", "s1")
+        service.apply_to_sentence(sentence, apply_user_dict=False)
+        chars = sentence.characters
+        # 谚文 를 无韩文 ruby（自读音在 apply 阶段收敛为 None），且 cc 保留
+        assert chars[1].ruby is None
+        assert chars[1].check_count == 1
+
+    def test_pure_japanese_unchanged(self):
+        """纯日文行（无谚文）→ 补充路径不产生任何额外结果。"""
+        results, _ = self._analyze("歌を歌う")
+        assert all(r.char_idx < 5 for r in results)
+        by_char = {r.char_idx: r for r in results}
+        # 歌(0)→うた 按 cc 拆分为 う/た；を/う 假名自读音不产生真实 ruby
+        assert by_char[0].ruby == ["う", "た"]
+        assert by_char[2].ruby == ["う", "た"]
+
+    def test_korean_mode_does_not_double_annotate(self):
+        """整曲韩文模式（korean_mode=True）不叠加日文补标。"""
+        from strange_uta_game.backend.infrastructure.parsers.korean_reading import (
+            create_korean_reading_analyzer,
+        )
+
+        service = AutoCheckService(
+            auto_check_flags=dict(self._FLAGS),
+            korean_mode=True,
+            korean_analyzer=create_korean_reading_analyzer("katakana"),
+            korean_sub_analyzer=create_korean_reading_analyzer("romaji"),
+        )
+        sentence = Sentence.from_text("한국", "s1")
+        service._apply_korean_to_sentence(sentence, keep_existing_timetags=False)
+        # 走整曲韩文路径（片假名），未被 sub（罗马音）覆盖
+        assert sentence.characters[0].ruby.parts[0].text == "ハン"
