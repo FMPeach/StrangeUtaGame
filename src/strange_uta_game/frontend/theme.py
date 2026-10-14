@@ -333,6 +333,14 @@ def _apply_native_titlebar_theme(dialog: QDialog, dark: bool) -> None:
     """
     if sys.platform != "win32":
         return
+    if not dialog.isWindow():
+        # qfluentwidgets 的遮罩弹窗（MessageBoxBase，如字体选择器）是 QDialog
+        # 子类，但 setWindowFlags(FramelessWindowHint) 丢弃了 Qt.Window 顶层
+        # 标志，实际是宿主窗口内的子控件。对子控件调用 winId() 会强制创建
+        # 原生子窗口，并连带要求 z 序在它之上的兄弟控件（导航条、页面栈等）
+        # 也变原生；这些原生子窗口会截住主窗口边缘的鼠标消息，导致窗口
+        # 无法拖拽边缘缩放。原生标题栏明暗只对真正的顶层窗口有意义。
+        return
     try:
         hwnd = int(dialog.winId())
         if not hwnd:
