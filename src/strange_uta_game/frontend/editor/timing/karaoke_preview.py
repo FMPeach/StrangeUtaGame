@@ -1296,7 +1296,7 @@ class KaraokePreview(QWidget):
             cp_spacing: 节奏点标记顶端与主文字底部（descent）之间的垂直间距（默认4px）。
                 Marker 顶端按此 gap 对齐，避免大 cp_size 时被主文字遮盖上半。
         """
-        from strange_uta_game.frontend.font_utils import resolve_font_family
+        from strange_uta_game.frontend.font_utils import lyrics_font
 
         context_size = max(1, min(99, base_size))
         current_size = max(1, min(99, current_line_size if current_line_size > 0 else base_size + 4))
@@ -1305,12 +1305,10 @@ class KaraokePreview(QWidget):
         line_height_factor = max(-1.0, min(5.0, line_height_factor))
         ruby_spacing = max(0, min(99, ruby_spacing))
         cp_spacing = max(0, min(99, cp_spacing))
-        main_family = resolve_font_family(main_font)
-        ruby_family = resolve_font_family(ruby_font)
 
-        self._font_current = QFont(main_family, current_size, QFont.Weight.Bold)
-        self._font_context = QFont(main_family, context_size)
-        self._font_ruby = QFont(ruby_family, ruby_size)
+        self._font_current = lyrics_font(main_font, current_size, QFont.Weight.Bold)
+        self._font_context = lyrics_font(main_font, context_size)
+        self._font_ruby = lyrics_font(ruby_font, ruby_size)
         self._font_checkpoint = self._build_checkpoint_font(cp_size)
         self._fm_current = QFontMetrics(self._font_current)
         self._fm_context = QFontMetrics(self._font_context)

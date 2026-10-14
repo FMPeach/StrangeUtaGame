@@ -2,15 +2,60 @@
 
 from __future__ import annotations
 
-from PyQt6.QtGui import QFont
+import sys
+
+import pytest
+from PyQt6.QtCore import QChar
+from PyQt6.QtGui import QFont, QFontDatabase, QTextLayout
 
 from strange_uta_game.frontend.font_utils import (
     resolve_ui_font_override,
     set_ui_font_override,
     set_ui_language,
     ui_font,
+    configure_korean_font_fallback,
 )
 from strange_uta_game.frontend.localization import install_translators, localization
+
+
+def test_korean_fallback_is_stable_for_regular_and_selected_bold(qapp):
+    installed = QFontDatabase.families()
+    competitor = next((f for f in ("NanumBarunGothic", "Source Han Sans SC", "Gulim", "Batang") if f in installed), None)
+    if sys.platform != "win32" or competitor is None or not all(f in installed for f in ("Malgun Gothic", "Microsoft YaHei")):
+        pytest.skip("Windows Korean and Chinese system fonts required")
+
+    def faces(text, family="Microsoft YaHei", weight=QFont.Weight.Normal):
+        layout = QTextLayout(text, QFont(family, 30, weight))
+        layout.beginLayout()
+        line = layout.createLine()
+        line.setLineWidth(10000)
+        layout.endLayout()
+        return [(run.rawFont().familyName(), run.rawFont().styleName(), tuple(run.glyphIndexes())) for run in line.glyphRuns()]
+
+    script = QChar.Script.Script_Hangul
+    previous = QFontDatabase.applicationFallbackFontFamilies(script)
+    try:
+        QFontDatabase.setApplicationFallbackFontFamilies(script, [competitor])
+        assert {f[0] for f in faces("한글")} == {competitor}
+        unaffected = {text: faces(text) for text in ("0123456789", "中文", "あいう")}
+        assert configure_korean_font_fallback()
+        assert configure_korean_font_fallback()
+        assert QFontDatabase.applicationFallbackFontFamilies(script) == ["Malgun Gothic", competitor]
+        for weight in (QFont.Weight.Normal, QFont.Weight.Bold):
+            assert {f[0] for f in faces("한글", weight=weight)} == {"Malgun Gothic"}
+        assert {f[0] for f in faces("한글", family=competitor)} == {competitor}
+        assert {text: faces(text) for text in unaffected} == unaffected
+    finally:
+        QFontDatabase.setApplicationFallbackFontFamilies(script, previous)
+
+
+def test_missing_korean_font_preserves_fallbacks(qapp, monkeypatch):
+    monkeypatch.setattr(QFontDatabase, "families", lambda: [])
+    monkeypatch.setattr(
+        QFontDatabase, "setApplicationFallbackFontFamilies",
+        lambda *args: pytest.fail("missing system font must not change the fallback policy"),
+    )
+    assert configure_korean_font_fallback() is False
 
 
 def test_ui_font_changes_with_language(qapp, monkeypatch):

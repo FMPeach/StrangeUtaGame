@@ -184,6 +184,10 @@ class MainWindow(MSFluentWindow):
         # standalone 为 None，AI 打轴使用自身默认配置。
         self.aiTimingHost = ai_timing_host
 
+        from strange_uta_game.frontend.font_utils import configure_korean_font_fallback
+
+        configure_korean_font_fallback()
+
         self._report_progress(5, self.tr("正在初始化翻译器..."))
 
         # 翻译器安装：必须在 super().__init__() 与任何 widget 构造之前——

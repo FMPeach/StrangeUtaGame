@@ -14,7 +14,8 @@ from __future__ import annotations
 
 import sys
 
-from PyQt6.QtGui import QFont, QFontMetrics
+from PyQt6.QtCore import QChar
+from PyQt6.QtGui import QFont, QFontDatabase, QFontMetrics, QGuiApplication
 
 from strange_uta_game.frontend import font_cache
 
@@ -42,6 +43,21 @@ DEFAULT_FONT_FAMILY = _platform_default_font_family()
 _active_ui_language = "zh_CN"
 _ui_font_override = ""
 _managed_ui_primary_families: set[str] = set()
+
+
+def configure_korean_font_fallback() -> bool:
+    """Prefer the Windows Korean system font for missing Hangul glyphs only."""
+    if sys.platform != "win32" or QGuiApplication.instance() is None:
+        return False
+    family = "Malgun Gothic"
+    if family not in QFontDatabase.families():
+        return False
+    script = QChar.Script.Script_Hangul
+    previous = QFontDatabase.applicationFallbackFontFamilies(script)
+    preferred = [family] + [name for name in previous if name.casefold() != family.casefold()]
+    if previous != preferred:
+        QFontDatabase.setApplicationFallbackFontFamilies(script, preferred)
+    return True
 
 
 def _ui_font_candidates(language_code: str) -> tuple[str, ...]:
@@ -119,6 +135,7 @@ def _apply_application_ui_font(previous_families: list[str] | None = None) -> No
     ``QApplication.setFont`` 无法覆盖它；因此还要同步其全局字体配置，并刷新
     已创建且仍使用旧 UI 字体链的显式字体控件。
     """
+    configure_korean_font_fallback()
     families = ui_font_families()
     old_fluent_families: list[str] = []
     try:
@@ -245,3 +262,16 @@ def make_ch_width_metrics(family: str | None, point_size: int = 16) -> tuple[QFo
         fam = DEFAULT_FONT_FAMILY
         fm = QFontMetrics(QFont(fam, point_size))
     return fm, fam
+
+
+def lyrics_font(family: str, point_size: int, weight: QFont.Weight = QFont.Weight.Normal) -> QFont:
+    """Keep the selected lyric family before the default missing-glyph fallback."""
+    primary = resolve_font_family(family)
+    families = [primary]
+    if primary.casefold() != DEFAULT_FONT_FAMILY.casefold():
+        families.append(DEFAULT_FONT_FAMILY)
+    font = QFont()
+    font.setFamilies(families)
+    font.setPointSize(point_size)
+    font.setWeight(weight)
+    return font

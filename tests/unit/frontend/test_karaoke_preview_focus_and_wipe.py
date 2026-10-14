@@ -267,3 +267,23 @@ class TestLineSwitchPointsDirty:
         assert preview._wipe_affected_lines(None, 2000) is not None
         assert preview._find_line_for_time(2000) == 1
         preview.close()
+
+
+def test_preview_bold_keeps_primary_and_default_fallback(qapp):
+    from PyQt6.QtGui import QFont
+    from strange_uta_game.frontend.font_utils import DEFAULT_FONT_FAMILY
+    from strange_uta_game.frontend.editor.timing.karaoke_preview import KaraokePreview
+
+    preview = KaraokePreview()
+    try:
+        preview.set_font_sizes(18, main_font="Arial", ruby_font="Arial")
+        expected = ["Arial", DEFAULT_FONT_FAMILY]
+        assert preview._font_current.families() == expected
+        assert preview._font_context.families() == expected
+        assert preview._font_ruby.families() == expected
+        assert preview._font_current.weight() == QFont.Weight.Bold
+        assert preview._font_context.weight() == QFont.Weight.Normal
+        preview.set_font_sizes(18, main_font=DEFAULT_FONT_FAMILY)
+        assert preview._font_current.families() == [DEFAULT_FONT_FAMILY]
+    finally:
+        preview.close()
