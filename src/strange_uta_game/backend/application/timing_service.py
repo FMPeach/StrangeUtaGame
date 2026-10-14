@@ -29,6 +29,14 @@ from strange_uta_game.backend.infrastructure.audio import IAudioEngine
 from .command_manager import CommandManager
 
 
+def _format_clock(ms: int) -> str:
+    """毫秒 → HH:MM:SS.mmm（告警文案用的人类可读时间戳）"""
+    ms = max(0, int(ms))
+    h, rem = divmod(ms // 1000, 3600)
+    m, s = divmod(rem, 60)
+    return f"{h:02d}:{m:02d}:{s:02d}.{ms % 1000:03d}"
+
+
 class TimingError(Exception):
     """打轴相关错误"""
 
@@ -881,7 +889,7 @@ class TimingService:
                 self._backward_warned = True
                 self._notify_error(
                     "TIMESTAMP_BACKWARD",
-                    f"时间戳 {timestamp_ms}ms 早于前一节奏点 {prev_ts}ms",
+                    f"时间戳 {_format_clock(timestamp_ms)} 早于前一节奏点 {_format_clock(prev_ts)}",
                 )
 
         is_tail = char.is_sentence_end_tail_cp(checkpoint_idx)
@@ -892,7 +900,7 @@ class TimingService:
         ):
             self._notify_error(
                 "TIMESTAMP_GAP",
-                f"已跳过前一节奏点（尚无时间戳），拒绝本次 {timestamp_ms}ms 写入",
+                f"已跳过前一节奏点（尚无时间戳），拒绝本次 {_format_clock(timestamp_ms)} 写入",
             )
             return False
         return True
