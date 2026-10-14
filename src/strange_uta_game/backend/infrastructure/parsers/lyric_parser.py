@@ -293,15 +293,30 @@ class LRCParser(LyricParser):
                     )
                 continue
 
-            # 判断是逐行格式还是逐字格式
-            # 逐字格式特征：时间标签后面紧跟字符，然后又是时间标签
-            # 例如：[00:00.000]春[00:01.086]日[00:01.629]影
+            # LRC 重复段惯例（E2）：行首连续多个时间标签后接正文
+            # （[t1][t2][t3]歌词）表示同一段歌词在多个时间点重复出现，
+            # 展开为多行。必须先于逐字/逐词判定——这类行标签之间无正文、
+            # 末标签之后才有正文，会被逐字判定（末标签后带文本）错误吞掉。
+            if self._has_only_adjacent_tags(line_text, matches):
+                repeat_text = _cjk_strip(line_text[matches[-1].end():])
+                if repeat_text:
+                    for match in matches:
+                        lines.append(
+                            ParsedLine(
+                                text=repeat_text,
+                                timetags=[(0, self._parse_timestamp(match))],
+                            )
+                        )
+                    continue
 
-            # 检查时间标签分布
+            # 判断是逐行格式还是逐字/逐词格式
+            # 逐字/逐词格式特征：时间标签后面跟着文本，然后又是时间标签
+            # 例如：[00:00.000]春[00:01.086]日[00:01.629]影
+            #       [00:01.00]Wir [00:01.50]im [00:01.90]fernen
             is_word_by_word = self._is_word_by_word_format(line_text, matches)
 
             if is_word_by_word:
-                # 逐字格式：提取所有字符和时间标签
+                # 逐字/逐词格式：提取所有字符和时间标签
                 lyric_text, timetags, end_ts = self._parse_word_by_word(
                     line_text, matches
                 )
@@ -321,20 +336,6 @@ class LRCParser(LyricParser):
                 # 逐行格式：提取最后一个时间标签后的文本作为歌词
                 last_match = matches[-1]
                 lyric_text = _cjk_strip(line_text[last_match.end():])
-
-                # LRC 重复段惯例（E2）：行首连续多个时间标签后接正文
-                # （[t1][t2][t3]歌词）表示同一段歌词在多个时间点重复出现，
-                # 展开为多行；旧实现误把这类行当逐字格式，全部时间只挂到
-                # 最后一个标签上。
-                if lyric_text and self._has_only_adjacent_tags(line_text, matches):
-                    for match in matches:
-                        lines.append(
-                            ParsedLine(
-                                text=lyric_text,
-                                timetags=[(0, self._parse_timestamp(match))],
-                            )
-                        )
-                    continue
 
                 # 行尾空时间标签：最后一个标签后无文本（[start]歌词[end]），
                 # 该标签即行末释放点（与 SRT/ASS 的 End 同义）
@@ -388,48 +389,61 @@ class LRCParser(LyricParser):
         return True
 
     def _is_word_by_word_format(self, line_text: str, matches: List[re.Match]) -> bool:
-        """判断是否是逐字格式
+        """判断是否是逐字/逐词格式
 
-        逐字格式特征（E2）：
+        逐字/逐词格式特征（E2）：
         1. 时间标签数量 >= 3；
-        2. 第一个时间标签在行首；
-        3. **按标签间文本长度判定**：每个标签之间的文本都很短
-           （逐字打轴每个标签通常只带 1 个字符，放宽到 2）。
-           整句长文本夹在少数标签之间的「重复段」写法
-           （[t1][t2][t3]歌词）不在此列——那种行交给重复段展开。
+        2. 第一个时间标签在行首（标签前无正文）；
+        3. 至少有一个时间标签之后带正文（标签之间或被末标签之后）。
+
+        兼容两种粒度：
+        - 逐字：每个标签只带 1 个字符（[t]春[t]日[t]影）；
+        - 逐词：每个标签带一个词（[t]Wir [t]im [t]fernen …），
+          标签间文本可达若干字符。
+
+        判定依据是「标签后面跟着文本」这一事实，而不再限制标签间隙长度：
+        旧的「间隙 ≤ 2 字符」硬限制会把词级标签（间隙 5～10 字符）误判为
+        逐行格式，导致中间标签之后的文本被整段丢弃（只留最后一个词）。
+
+        纯相邻标签行（[t1][t2][t3]歌词）标签之间无正文、末标签之后才有
+        正文，虽满足「末标签之后带文本」，但由调用方在重复段展开
+        （`_has_only_adjacent_tags`）之前拦截，不会走到这里。
         """
         if len(matches) < 3:
             return False
 
-        # 检查第一个时间标签位置
+        # 检查第一个时间标签位置：标签前有正文 → 不是逐字/逐词格式
         first_match = matches[0]
         if first_match.start() > 0:
-            # 如果第一个时间标签前有内容，检查内容长度
             prefix = _cjk_strip(line_text[: first_match.start()])
             if len(prefix) > 0:
                 return False
 
-        # 标签间文本长度：任一间隙超过 2 个字符 → 不是逐字格式
+        # 至少有一个标签之后带正文：标签之间，或被末标签之后。
         for i in range(len(matches) - 1):
             gap = line_text[matches[i].end(): matches[i + 1].start()]
-            if len(_cjk_strip(gap)) > 2:
-                return False
+            if _cjk_strip(gap):
+                return True
 
-        # 末标签后的文本同样必须短（或为空 = 行尾释放标签）
         trailing = line_text[matches[-1].end():]
-        if len(_cjk_strip(trailing)) > 2:
-            return False
+        if _cjk_strip(trailing):
+            return True
 
-        return True
+        # 只有连续的裸标签（无任何正文），无法作为歌词使用
+        return False
 
     def _parse_word_by_word(
         self, line_text: str, matches: List[re.Match]
     ) -> Tuple[str, List[Tuple[int, int]], Optional[int]]:
-        """解析逐字格式
+        """解析逐字/逐词格式
 
         格式：[00:00.000]春[00:01.086]日[00:01.629]影[00:02.500]
                                                     ^ 末尾无文字的时间戳
                                                       = 停顿点 line_end_ts
+
+        每个时间标签只给「该段首个非空白字符」落一个轴，段内其余字符
+        原样保留、不补轴。逐字格式下每段恰好 1 个字符，等价于逐字落轴；
+        逐词格式下每段是一个词，轴落在词首字符，词内其余字母无轴。
 
         Returns:
             (歌词文本, 时间标签列表, line_end_ts)
@@ -461,18 +475,17 @@ class LRCParser(LyricParser):
                 line_end_ts = timestamp_ms
                 continue
 
-            # 为每个字符添加时间标签
+            # 只给段内首个非空白字符落轴，其余字符原样保留（不补轴、
+            # 不做 +10ms 递推）。旧实现给段内每个字符都补轴并按 10ms
+            # 递推，词级输入下会把轴铺满整个词且时刻被污染。
+            anchored = False
             for char in chars:
-                if char.strip():  # 只处理非空白字符
-                    lyric_chars.append(char)
-                    timetags.append((char_idx, timestamp_ms))
-                    char_idx += 1
-                    # 每个字符后的时间戳递增一个很小的值（10ms）
-                    timestamp_ms += 10
-                else:
-                    # 空白字符也添加到歌词，但不添加时间标签
-                    lyric_chars.append(char)
-                    char_idx += 1
+                if char.strip():
+                    if not anchored:
+                        timetags.append((char_idx, timestamp_ms))
+                        anchored = True
+                lyric_chars.append(char)
+                char_idx += 1
 
         raw_text = "".join(lyric_chars)
         lyric_text = _cjk_strip(raw_text)

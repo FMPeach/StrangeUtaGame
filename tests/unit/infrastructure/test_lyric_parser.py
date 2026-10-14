@@ -1099,6 +1099,97 @@ class TestNicokaraTagsRoundTrip:
         _sync_nicokara_metadata_to_settings(None)  # type: ignore[arg-type]
 
 
+class TestLRCWordLevelImport:
+    """词级（word by word）逐词 LRC 导入：整行字符不得丢失。
+
+    卡拉 OK 逐词 LRC / 酷狗 KRC / QQ YRC 转换产物的常见形态——每个词
+    各带一个时间标签。旧实现用「标签间隙 ≤ 2 字符」判定逐字格式，词级
+    标签的间隙 5～10 字符被误判为逐行，中间标签之后的文本被整段丢弃，
+    只留最后一个词。现在按「标签后带文本」判定，且每个标签只给该段
+    首个非空白字符落轴。
+    """
+
+    def test_german_word_level_keeps_all_chars(self):
+        parser = LRCParser()
+        result = parser.parse(
+            "[00:01.00]Wir [00:01.50]im [00:01.90]fernen "
+            "[00:02.80]Vaterland [00:04.30]geboren"
+        )
+
+        assert len(result) == 1
+        assert result[0].text == "Wir im fernen Vaterland geboren"
+        assert len(result[0].text) == 31
+        # 轴落在每个词的首个字符（词内其余字母无轴）
+        assert result[0].timetags == [
+            (0, 1000),   # W
+            (4, 1500),   # i
+            (7, 1900),   # f
+            (14, 2800),  # V
+            (24, 4300),  # g
+        ]
+
+    def test_english_word_level_keeps_all_chars(self):
+        parser = LRCParser()
+        result = parser.parse("[00:12.34]Apple [00:12.74]is [00:13.04]red")
+
+        assert len(result) == 1
+        assert result[0].text == "Apple is red"
+        assert len(result[0].text) == 12
+        assert result[0].timetags == [(0, 12340), (6, 12740), (9, 13040)]
+
+    def test_character_level_unchanged(self):
+        """逐字格式（每段 1 字）行为不变：轴落在每个单字上。"""
+        parser = LRCParser()
+        result = parser.parse("[00:01.00]春[00:01.50]日[00:01.90]影")
+
+        assert result[0].text == "春日影"
+        assert result[0].timetags == [(0, 1000), (1, 1500), (2, 1900)]
+
+    def test_word_level_does_not_ramp_within_word(self):
+        """段内多字符不补轴、不按 10ms 递推（旧实现会铺满整词）。"""
+        parser = LRCParser()
+        result = parser.parse("[00:01.00]日本[00:02.00]語[00:03.00]歌")
+
+        assert result[0].text == "日本語歌"
+        # 日=1000（本无轴）、語=2000、歌=3000
+        assert result[0].timetags == [(0, 1000), (2, 2000), (3, 3000)]
+
+    def test_word_level_with_trailing_release_tag(self):
+        parser = LRCParser()
+        result = parser.parse("[00:01.00]春[00:01.50]日[00:01.90]影[00:02.50]")
+
+        assert result[0].text == "春日影"
+        assert result[0].timetags == [(0, 1000), (1, 1500), (2, 1900)]
+        assert result[0].line_end_ts == 2500
+        assert result[0].line_end_bind_last is True
+
+    def test_word_export_round_trip_preserves_all_chars(self, tmp_path):
+        """SUG 自己的逐字 LRC 导出→重新导入不得丢字（同一根因）。"""
+        from strange_uta_game.backend.domain import Project, Sentence
+        from strange_uta_game.backend.infrastructure.exporters.lrc_exporter import (
+            LRCWordExporter,
+        )
+
+        project = Project()
+        singer_id = project.singers[0].id
+        sentence = Sentence.from_text("Hello beautiful world", singer_id)
+        for ch, ts in zip(
+            sentence.characters,
+            [1000, 1500, 1900, 2400, 2800, 3300, 3800, 4200, 4600, 5000,
+             5400, 5800, 6200, 6600, 7000, 7400, 7800, 8200, 8600, 9000, 9400],
+        ):
+            ch.add_timestamp(ts)
+        project.add_sentence(sentence)
+
+        out_path = str(tmp_path / "word.lrc")
+        LRCWordExporter().export(project, out_path)
+        content = Path(out_path).read_text(encoding="utf-8")
+
+        parsed = [p for p in LRCParser().parse(content) if p.text]
+        assert len(parsed) == 1
+        assert parsed[0].text == "Hello beautiful world"
+
+
 class TestLRCRepeatLinesE2:
     """E2：一行 ≥3 个时间标签不再被误判逐字格式，重复段按 LRC 惯例展开。"""
 
@@ -1130,7 +1221,7 @@ class TestLRCRepeatLinesE2:
         assert result[0].line_end_ts == 2500
 
     def test_long_gap_is_not_word_by_word(self):
-        """任一标签间隙超过 2 字 → 不按逐字格式（旧行为会拆坏文本）。"""
+        """纯相邻标签 + 长尾文本 → 不按逐字格式，仍是重复段展开。"""
         parser = LRCParser()
         result = parser.parse("[00:10.00][00:20.00][00:30.00]春よ来い遠き日々よ")
 
