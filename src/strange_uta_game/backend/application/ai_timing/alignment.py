@@ -409,6 +409,52 @@ def validate_windows(
         )
 
 
+def window_commit_ranges(
+    windows: Sequence[Dict[str, int]],
+) -> List[Optional[Tuple[int, int]]]:
+    """相邻重叠窗口的提交范围仲裁（搜索边界 vs 提交边界）。
+
+    规划器让窗口 i 的 ``end_ms`` 越过下一锚点、窗口 i+1 的 ``start_ms``
+    提前到锚点之前（left/right margin 是解码搜索边距，对照 MiliKara 的
+    participating/retained 语义：窗口 hi 只是搜索边界，不是提交边界）。
+    分窗解码按 token 分区各窗独立进行，若直接拼接，前窗尾 token 可以
+    延伸进重叠区、后窗首 token 也可以从重叠区开始——全局时间轴必然
+    有机会不单调，被 :func:`validate_result` 拒绝。
+
+    仲裁规则：相邻（跳过空窗）两窗的重叠区取中点作为提交边界，双方
+    span 各自裁到中点以内。默认对称边距（1500/1500）时中点恰为下一
+    锚点，即 LRC 语义下「前组语音不越过下一行锚点、后组从锚点起算」。
+    解码仍用整窗 emission（保留搜索边距的声学上下文），只收窄提交范围。
+
+    Returns:
+        与入参同序的 ``(commit_lo_ms, commit_hi_ms)`` 列表；空窗
+        （token 区间为空）对应 ``None``，调用方跳过。
+    """
+    if not windows:
+        return []
+    real = [
+        i
+        for i, w in enumerate(windows)
+        if int(w["token_hi"]) > int(w["token_lo"])
+    ]
+    ranges: List[Optional[Tuple[int, int]]] = [None] * len(windows)
+    for pos, idx in enumerate(real):
+        cur = windows[idx]
+        lo = int(cur["start_ms"])
+        hi = int(cur["end_ms"])
+        if pos > 0:
+            prev = windows[real[pos - 1]]
+            # 与前一窗的提交边界 = 两窗重叠区中点（首尾相接时为公共端点）
+            lo = max(lo, (int(prev["end_ms"]) + lo) // 2)
+        if pos < len(real) - 1:
+            nxt = windows[real[pos + 1]]
+            hi = min(hi, (hi + int(nxt["start_ms"])) // 2)
+        if hi < lo:
+            hi = lo
+        ranges[idx] = (lo, hi)
+    return ranges
+
+
 def build_alignment_request(
     plan: PronunciationPlan,
     media: Optional[MediaIdentity] = None,
@@ -566,6 +612,7 @@ __all__ = [
     "build_alignment_tokens",
     "build_alignment_request",
     "validate_windows",
+    "window_commit_ranges",
     "validate_result",
     "checkpoint_timestamps",
     "interpolate_structural_timestamps",

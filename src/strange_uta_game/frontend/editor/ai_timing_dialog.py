@@ -610,10 +610,12 @@ class AiTimingDialog(QDialog):
 
     def _advanced_widgets(self) -> list:
         """高级选项控件：任务进行中一并禁用（改 provider/device/镜像/
-        运行环境会让在途任务与设置处于不一致状态）。"""
+        对齐范围/运行环境会让在途任务与设置处于不一致状态——服务在
+        分离人声、算完指纹后才读 align_scope，中途改值会串味）。"""
         return [
             self.combo_model,
             self.combo_device,
+            self.combo_align_scope,
             self.combo_mirror,
             self.edit_mirror,
         ]
@@ -1549,8 +1551,13 @@ class AiTimingDialog(QDialog):
         self._settings.device = "auto"
         self._settings.tail_snap = True
         self._settings.download_mirror = ""
+        # 对齐范围一并复原为界面承诺的默认「整曲」
+        self._settings.align_scope = "whole"
         self.combo_model.setCurrentIndex(0)
         self.combo_device.setCurrentIndex(0)
+        combo_scope = getattr(self, "combo_align_scope", None)
+        if combo_scope is not None:
+            combo_scope.setCurrentIndex(0)
         self.combo_mirror.setCurrentIndex(0)
         self._update_mirror_edit_visibility()
         self._persist_settings()

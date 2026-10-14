@@ -683,6 +683,31 @@ class TestWindowsInjection:
         assert attempts[-1] is None
         assert worker.calls[-1][0].windows is None
 
+    def test_out_of_range_anchor_degrades_to_whole(self, tmp_path):
+        """锚点越界的行（如换过更短音频的旧时间戳）不得让任务崩溃：
+        探测到未覆盖行后安全退化整曲（PR #130 评审 P1-2）。"""
+        worker = _FakeWorker()
+        service, audio = _make_service(
+            tmp_path, worker=worker, settings=_window_settings()
+        )
+        project = self._project_anchored(second_anchor=45000)  # 时长 20000
+        cmd = service.execute(project, str(audio))
+        assert cmd is not None
+        assert len(worker.calls) == 1
+        assert worker.calls[0][0].windows is None, "越界锚点应退化整曲"
+
+    def test_out_of_range_leading_anchor_degrades_to_whole(self, tmp_path):
+        worker = _FakeWorker()
+        service, audio = _make_service(
+            tmp_path, worker=worker, settings=_window_settings()
+        )
+        project = _project()
+        project.audio_duration_ms = 20000
+        project.sentences[0].characters[0].add_timestamp(25000)  # 越界（首行）
+        project.sentences[1].characters[0].add_timestamp(8000)
+        service.execute(project, str(audio))
+        assert worker.calls[0][0].windows is None
+
 
 
 class TestAlignScopeOption:

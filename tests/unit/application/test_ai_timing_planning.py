@@ -16,6 +16,7 @@ from strange_uta_game.backend.application.ai_timing.planning import (
     RIGHT_MARGIN_MS,
     AlignWindow,
     plan_windows,
+    uncovered_line_indices,
     windows_digest,
 )
 
@@ -251,3 +252,43 @@ class TestPayloadAndDigest:
         """空列表 → 空串：拼接到既有缓存键不改变字节（契约不变式 4）。"""
         assert windows_digest([]) == ""
         assert windows_digest(plan_windows([(0, None, None)], 20000)) == ""
+
+
+class TestUncoveredLineIndices:
+    """exclude 行探测：锚点越界的行不产生窗口，但 token 仍在请求里。
+
+    宿主侧（service）探测到未覆盖行必须退化整曲，不得硬走分区映射
+    （PR #130 评审 P1-2：越界锚点导致 _windows_payload 断言崩溃）。
+    """
+
+    def test_middle_out_of_range_anchor_leaves_hole(self):
+        wins = plan_windows(
+            [(0, 1000, None), (1, 90000, None), (2, 5000, None)], 20000
+        )
+        assert uncovered_line_indices(wins, [0, 1, 2]) == [1]
+        # 无 token 的行号不在探测范围（探测的是「有 token 的行」）
+        assert uncovered_line_indices(wins, [0, 2]) == []
+
+    def test_leading_out_of_range_anchor(self):
+        wins = plan_windows([(0, 25000, None), (1, 8000, None)], 20000)
+        assert uncovered_line_indices(wins, [0, 1]) == [0]
+
+    def test_trailing_out_of_range_anchor(self):
+        wins = plan_windows([(0, 1000, None), (1, 25000, None)], 20000)
+        assert uncovered_line_indices(wins, [0, 1]) == [1]
+
+    def test_complete_coverage_reports_nothing(self):
+        wins = plan_windows([(0, 1000, None), (1, 8000, None)], 20000)
+        assert uncovered_line_indices(wins, [0, 1]) == []
+        # 无锚点行由前一组窗口覆盖
+        wins = plan_windows(
+            [(0, 1000, None), (1, None, None), (2, 8000, None)], 20000
+        )
+        assert uncovered_line_indices(wins, [0, 1, 2]) == []
+
+    def test_no_windows_means_all_uncovered(self):
+        assert uncovered_line_indices([], [0, 3]) == [0, 3]
+
+    def test_result_is_sorted_and_deduplicated(self):
+        wins = plan_windows([(0, 1000, None), (1, 90000, None)], 20000)
+        assert uncovered_line_indices(wins, [1, 1, 0]) == [1]

@@ -36,6 +36,7 @@ from strange_uta_game.backend.application.ai_timing.models import (
 from strange_uta_game.backend.application.ai_timing.planning import (
     AlignWindow,
     plan_windows,
+    uncovered_line_indices,
     windows_digest,
 )
 from strange_uta_game.backend.application.ai_timing.pronunciation import (
@@ -548,10 +549,25 @@ class AiTimingService:
         planned_windows: List[AlignWindow] = []
         if getattr(self._settings, "align_scope", "whole") == "lrc_window":
             planned_windows = self._plan_alignment_windows(project, plan, request)
+            anchor_untrusted = False
+            if planned_windows:
+                missing = uncovered_line_indices(
+                    planned_windows, [t.line_idx for t in request.tokens]
+                )
+                if missing:
+                    # 锚点越界被规划器 exclude 的行仍带着 token：分区映射
+                    # 无法覆盖它们，硬走分窗会在 _windows_payload 断言崩溃。
+                    # 锚点数据已不可信，安全退化为整曲对齐。
+                    log(
+                        f"第 {missing[0] + 1} 行等 {len(missing)} 行的时间戳"
+                        "超出音频范围，无法安全分窗，退化为整曲对齐"
+                    )
+                    planned_windows = []
+                    anchor_untrusted = True
             if planned_windows:
                 request.windows = self._windows_payload(planned_windows, request)
                 log(f"LRC 锚点分窗：{len(request.windows)} 个窗口")
-            else:
+            elif not anchor_untrusted:
                 log("已选择按歌词行分窗，但工程无行时间戳/时长，退化为整曲对齐")
         digest = windows_digest(planned_windows)
 

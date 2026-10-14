@@ -19,6 +19,7 @@ from strange_uta_game.backend.application.ai_timing.alignment import (
     AlignmentResult,
     EmissionSpan,
     validate_windows,
+    window_commit_ranges,
 )
 
 ProgressFn = Callable[[int, str], None]
@@ -403,14 +404,17 @@ class FakeProvider(ForcedAlignmentProvider):
         # - "silent"：align 循环不发 progress（模拟挂死/无探针输出）。
         progress_mode = str(options.get("fake_progress_mode", "normal"))
         if request.windows:
-            # 分窗路径：每个窗口内按 token 数均分该窗口时间范围
-            for w in request.windows:
+            # 分窗路径：token 在各自窗口的提交范围（重叠区中点仲裁，见
+            # window_commit_ranges）内均分——与真实 provider 的「整窗解码
+            # + span 裁到提交范围」结果形态一致，保证拼接后全局单调
+            commit_ranges = window_commit_ranges(request.windows)
+            for w, commit in zip(request.windows, commit_ranges):
                 tlo, thi = int(w["token_lo"]), int(w["token_hi"])
                 count = thi - tlo
-                if count <= 0:
+                if count <= 0 or commit is None:
                     continue
-                span_ms = int(w["end_ms"]) - int(w["start_ms"])
-                wstep = span_ms / count
+                c_lo, c_hi = commit
+                wstep = (c_hi - c_lo) / count
                 for j, i in enumerate(range(tlo, thi)):
                     _cancelled_check(cancel)
                     if delay:
@@ -419,8 +423,8 @@ class FakeProvider(ForcedAlignmentProvider):
                     spans.append(
                         EmissionSpan(
                             token_index=token.index,
-                            start_ms=int(w["start_ms"] + round(j * wstep)),
-                            end_ms=int(w["start_ms"] + round((j + 1) * wstep)),
+                            start_ms=int(c_lo + round(j * wstep)),
+                            end_ms=int(c_lo + round((j + 1) * wstep)),
                             score=1.0,
                         )
                     )
@@ -594,8 +598,10 @@ class _TorchProviderBase(ForcedAlignmentProvider):
         """按请求 windows 切 emission 帧区间做分窗 CTC 对齐。
 
         ms→帧换算用实际 emission 长度与音频时长比例（worker 侧完成，
-        宿主不感知帧）。窗口内局部 span 加回帧偏移。无窗/单窗覆盖整曲
-        时与整曲解码路径逐位一致（退化等价）。
+        宿主不感知帧）。窗口内局部 span 加回帧偏移，再各自裁到提交范围
+        （相邻窗重叠区中点，见 :func:`window_commit_ranges`），保证拼接
+        后全局时间轴单调。无窗/单窗覆盖整曲时与整曲解码路径逐位一致
+        （退化等价）。
         """
         validate_windows(
             windows, n_tokens=len(token_groups), duration_ms=duration_ms
@@ -615,10 +621,11 @@ class _TorchProviderBase(ForcedAlignmentProvider):
         ):
             return self._ctc_align_groups(emission, token_groups, blank)
         grouped: List[Tuple[int, int]] = [(-1, -1)] * len(token_groups)
-        for w in windows:
+        commit_ranges = window_commit_ranges(windows)
+        for w, commit in zip(windows, commit_ranges):
             tlo = int(w["token_lo"])
             thi = int(w["token_hi"])
-            if thi <= tlo:
+            if thi <= tlo or commit is None:
                 continue
             f0 = int(round(int(w["start_ms"]) * num_frames / duration_ms))
             f1 = int(round(int(w["end_ms"]) * num_frames / duration_ms))
@@ -631,11 +638,22 @@ class _TorchProviderBase(ForcedAlignmentProvider):
             sub = emission[:, f0:f1]
             sub_groups = list(token_groups[tlo:thi])
             sub_grouped = self._ctc_align_groups(sub, sub_groups, blank=blank)
+            # 提交范围仲裁：窗口 end/相邻窗 start 带 margin 重叠（搜索边距），
+            # 双方 span 各自裁到重叠区中点以内，拼接后才满足全局单调
+            c_lo, c_hi = commit
+            cf_lo = max(f0, int(round(c_lo * num_frames / duration_ms)))
+            cf_hi = min(f1, int(round(c_hi * num_frames / duration_ms)))
+            if cf_hi < cf_lo:
+                cf_hi = cf_lo
             for i, g in enumerate(sub_grouped):
                 if g[0] < 0:
                     grouped[tlo + i] = g
                 else:
-                    grouped[tlo + i] = (g[0] + f0, g[1] + f0)
+                    s = max(g[0] + f0, cf_lo)
+                    e = min(g[1] + f0, cf_hi)
+                    if e < s:
+                        e = s
+                    grouped[tlo + i] = (s, e)
         return grouped
 
     def _frame_energies(self, waveform: Any, num_frames: int) -> Any:
@@ -1123,9 +1141,10 @@ class MmsFaProvider(_TorchProviderBase):
                 emission = emission.cpu()
             num_frames = int(emission.size(1))
             grouped = [(-1, -1)] * len(groups)
-            for w in request.windows:
+            commit_ranges = window_commit_ranges(request.windows)
+            for w, commit in zip(request.windows, commit_ranges):
                 tlo, thi = int(w["token_lo"]), int(w["token_hi"])
-                if thi <= tlo:
+                if thi <= tlo or commit is None:
                     continue
                 f0 = max(
                     0,
@@ -1153,12 +1172,23 @@ class MmsFaProvider(_TorchProviderBase):
                     sub_emission[0] if sub_emission.dim() > 1 else sub_emission,
                     sub_groups,
                 )
+                # 与 CTC 分窗同款提交范围仲裁：裁到重叠区中点以内，
+                # 保证拼接后全局时间轴单调
+                c_lo, c_hi = commit
+                cf_lo = max(f0, int(round(c_lo * num_frames / duration_ms)))
+                cf_hi = min(f1, int(round(c_hi * num_frames / duration_ms)))
+                if cf_hi < cf_lo:
+                    cf_hi = cf_lo
                 span_iter = iter(token_spans)
                 for i, g in enumerate(groups[tlo:thi]):
                     if not g:
                         continue
                     sp = next(span_iter)
-                    grouped[tlo + i] = (sp[0].start + f0, sp[-1].end + f0)
+                    s = max(sp[0].start + f0, cf_lo)
+                    e = min(sp[-1].end + f0, cf_hi)
+                    if e < s:
+                        e = s
+                    grouped[tlo + i] = (s, e)
         else:
             non_empty = [g for g in groups if g]
             # bundle aligner 内部同样要求 emission/targets 同设备：统一 CPU

@@ -977,7 +977,7 @@ class TestTaskGuardsAndTeardown:
         assert dialog._settings.runtime_python == ""
 
     def test_advanced_widgets_disabled_during_task(self, qapp, tmp_path):
-        """H11：任务进行中高级选项控件（模型/设备/镜像）全部禁用。"""
+        """H11：任务进行中高级选项控件（模型/设备/对齐范围/镜像）全部禁用。"""
         import threading as _threading
 
         snap = _ready_snapshot()
@@ -989,16 +989,16 @@ class TestTaskGuardsAndTeardown:
         self._start_blocking_task(qapp, dialog, started, release)
         assert started.wait(5)
 
-        for w in (dialog.combo_model, dialog.combo_device, dialog.combo_mirror,
-                  dialog.edit_mirror):
+        for w in (dialog.combo_model, dialog.combo_device, dialog.combo_align_scope,
+                  dialog.combo_mirror, dialog.edit_mirror):
             assert not w.isEnabled(), "任务中高级控件应禁用"
         assert not dialog.btn_run.isEnabled()
         assert dialog.btn_cancel.isEnabled()
 
         release.set()
         assert self._wait_idle(qapp, dialog)
-        for w in (dialog.combo_model, dialog.combo_device, dialog.combo_mirror,
-                  dialog.edit_mirror):
+        for w in (dialog.combo_model, dialog.combo_device, dialog.combo_align_scope,
+                  dialog.combo_mirror, dialog.edit_mirror):
             assert w.isEnabled(), "任务结束后高级控件应恢复"
 
     def test_thread_objects_deleted_after_task(self, qapp, tmp_path):
@@ -1138,4 +1138,19 @@ class TestAlignScopeOption:
         dialog._update_align_scope_availability()
         assert dialog.combo_align_scope.currentIndex() == 0
         assert dialog._settings.align_scope == "whole"
+        dialog.close()
+
+    def test_reset_settings_restores_whole_scope(self, qapp, tmp_path):
+        """「恢复推荐设置」必须把对齐范围一并复原为整曲（PR #130 评审：
+        其余项复原而 align_scope 留在实验模式，与「整曲（默认）」的
+        界面承诺冲突）。"""
+        dialog, _ = _make_dialog(qapp, tmp_path, _ready_snapshot(), [])
+        dialog.combo_align_scope.setCurrentIndex(1)
+        assert dialog._settings.align_scope == "lrc_window"
+        dialog._on_reset_settings()
+        assert dialog._settings.align_scope == "whole"
+        assert dialog.combo_align_scope.currentIndex() == 0
+        # reset 内部 refresh() 会置 _busy 并起异步线程；不等它收尾就
+        # close() 会命中 closeEvent 的「任务进行中」模态确认框，测试挂死
+        TestPathChangeAppliesImmediately._wait_initial_refresh(qapp, dialog)
         dialog.close()
