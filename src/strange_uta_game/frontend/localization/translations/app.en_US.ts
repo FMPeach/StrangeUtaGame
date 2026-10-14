@@ -1,326 +1,325 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
+<?xml version='1.0' encoding='utf-8'?>
 <TS version="2.1" language="en_US">
 <context>
     <name>AboutSubInterface</name>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="237" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="42" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="238" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="43" />
         <source>语言</source>
         <translation>Language</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="245" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="46" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="246" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="47" />
         <source>界面语言</source>
         <translation>Interface language</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="247" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="47" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="248" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="48" />
         <source>切换 UI 显示语言，更改后需重启软件生效</source>
         <translation>Switch the UI language. Restart required to take effect.</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="54" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="55" />
         <source>关于/语言</source>
         <translation>About/Language</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="250" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="56" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="251" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="57" />
         <source>StrangeUtaGame - 歌词打轴软件</source>
         <translation>StrangeUtaGame - Lyrics Timing Software</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="252" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="57" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="253" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="58" />
         <source>版本 v{ver}  |  由 RhythmicaLyrics 启发</source>
         <translation>Version v{ver}  |  Inspired by RhythmicaLyrics</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="265" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="64" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="266" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="65" />
         <source>打开</source>
         <translation>Open</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="255" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="72" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="256" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="73" />
         <source>配置文件位置</source>
         <translation>Config file location</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="73" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="74" />
         <source>（未加载）</source>
         <translation>(not loaded)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="267" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="74" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="268" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="75" />
         <source>打开目录</source>
         <translation>Open directory</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="269" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="77" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="270" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="78" />
         <source>更改位置</source>
         <translation>Change location</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="241" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="86" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="242" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="87" />
         <source>工具配置</source>
         <translation>Tool configuration</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="258" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="88" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="259" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="89" />
         <source>FFmpeg 路径</source>
         <translation>FFmpeg path</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="260" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="89" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="261" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="90" />
         <source>用于加载视频文件时提取音频（留空则使用系统环境变量）</source>
         <translation>Used to extract audio when loading a video file (empty = use system PATH)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="374" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="290" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="92" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="423" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="291" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="93" />
         <source>（使用环境变量）</source>
         <translation>(use environment variable)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="271" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="96" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="272" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="97" />
         <source>浏览</source>
         <translation>Browse</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="273" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="99" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="274" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="100" />
         <source>清除</source>
         <translation>Clear</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="275" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="106" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="276" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="107" />
         <source>一键安装</source>
         <translation>One-click install</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="277" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="120" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="278" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="121" />
         <source>保存设置</source>
         <translation>Save settings</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="281" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="124" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="282" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="125" />
         <source>从KS配置导入</source>
         <translation>Import from KS Config</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="279" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="127" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="280" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="128" />
         <source>重置为默认设置</source>
         <translation>Reset to defaults</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="216" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="217" />
         <source>语言已切换</source>
         <translation>Language switched</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="217" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="218" />
         <source>当前页已应用新语言；部分页面（编辑器/导出/演唱者管理）会在重新打开后刷新</source>
         <translation>Current page applied the new language; some pages (Editor/Export/Singer manager) refresh on reopen</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="239" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="240" />
         <source>关于</source>
         <translation>About</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="316" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="319" />
         <source>选择配置文件存储目录</source>
         <translation>Choose config-file storage directory</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="334" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="339" />
         <source>更改失败</source>
         <translation>Change failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="335" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="340" />
         <source>无法写入重定向文件: {err}</source>
         <translation>Cannot write redirect file: {err}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="353" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="358" />
         <source>配置复制失败</source>
         <translation>Config copy failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="354" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="359" />
         <source>请手动复制配置文件: {err}</source>
         <translation>Please copy the config file manually: {err}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="363" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="372" />
         <source>配置位置已更改</source>
         <translation>Config location changed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="364" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="373" />
         <source>配置文件将保存到: {path}</source>
         <translation>Config file will be saved to: {path}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="404" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="453" />
         <source>选择 FFmpeg 可执行文件</source>
         <translation>Choose FFmpeg executable</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="425" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="474" />
         <source>FFmpeg 路径已保存</source>
         <translation>FFmpeg path saved</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="429" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="478" />
         <source>FFmpeg 路径已清除</source>
         <translation>FFmpeg path cleared</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="430" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="479" />
         <source>将使用系统环境变量中的 ffmpeg</source>
         <translation>Will use ffmpeg from system PATH</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="442" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="491" />
         <source>暂不支持</source>
         <translation>Not supported yet</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="443" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="492" />
         <source>当前平台不支持一键安装 FFmpeg，请手动安装后通过「浏览」指定路径。</source>
         <translation>One-click FFmpeg installation is not supported on this platform. Please install manually and specify the path via "Browse".</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="463" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="512" />
         <source>无法启动安装</source>
         <translation>Cannot start installation</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="464" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="513" />
         <source>ShellExecute 返回 {ret}，请检查是否拒绝了 UAC 提权。</source>
         <translation>ShellExecute returned {ret}. Did you decline the UAC elevation prompt?</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="470" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="519" />
         <source>已请求管理员权限启动 FFmpeg 安装</source>
         <translation>Requested admin rights to launch FFmpeg install</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="504" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="471" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="553" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="520" />
         <source>安装完成后，重启软件即可通过环境变量自动使用，或点击「浏览」手动指定路径。</source>
         <translation>After install, restart the app to auto-use via environment variables, or click 'Browse' to set a path manually.</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="496" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="488" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="545" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="537" />
         <source>无法启动终端</source>
         <translation>Unable to launch terminal</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="497" />
-        <location filename="..\..\settings\sub_interfaces\about.py" line="489" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="546" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="538" />
         <source>请确认已安装 Homebrew (https://brew.sh)，然后在终端中手动运行: brew install ffmpeg</source>
         <translation>Please ensure Homebrew (https://brew.sh) is installed, then manually run in terminal: brew install ffmpeg</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\about.py" line="503" />
+        <location filename="..\..\settings\sub_interfaces\about.py" line="552" />
         <source>已在终端中启动 FFmpeg 安装</source>
         <translation>FFmpeg installation started in terminal</translation>
     </message>
 </context><context>
     <name>AdjustRawTimestampDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2019" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2067" />
         <source>按行调整原始时间戳</source>
         <translation>Adjust raw timestamps per line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2024" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2020" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2072" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2068" />
         <source>作用范围：{label}</source>
         <translation>Scope: {label}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2020" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2068" />
         <source>当前行</source>
         <translation>Current line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2021" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2069" />
         <source>正数：该行所有原始时间戳向后移；负数：向前移。</source>
         <translation>Positive: shift this line's raw timestamps later. Negative: shift earlier.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2023" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2071" />
         <source>调整所选字符原始时间戳</source>
         <translation>Adjust raw timestamps of selected chars</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2024" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2072" />
         <source>所选字符</source>
         <translation>Selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2025" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2073" />
         <source>正数：所选字符原始时间戳向后移；负数：向前移。</source>
         <translation>Positive: shift selected chars' raw timestamps later. Negative: shift earlier.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2027" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2075" />
         <source>调整原始时间戳</source>
         <translation>Adjust raw timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2028" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2076" />
         <source>作用范围：所有原始时间戳</source>
         <translation>Scope: all raw timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2029" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2077" />
         <source>正数：所有原始时间戳向后移；负数：向前移。</source>
         <translation>Positive: shift all raw timestamps later. Negative: shift earlier.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2045" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2093" />
         <source>每次点击「应用」立即执行偏移，可叠加多次操作。</source>
         <translation>Each click 'Apply' applies the offset immediately and can be stacked.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2055" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2103" />
         <source>偏移量:</source>
         <translation>Offset:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2066" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2114" />
         <source>应用</source>
         <translation>Apply</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2070" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2118" />
         <source>关闭</source>
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2078" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2126" />
         <source>偏移量为 0，未做任何修改</source>
         <translation>Offset is 0, no changes</translation>
     </message>
@@ -438,570 +437,590 @@
         <translation>MPS (Apple silicon)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="405" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="403" />
+        <source>对齐范围:</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\ai_timing_dialog.py" line="407" />
+        <source>整曲（默认）</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\ai_timing_dialog.py" line="408" />
+        <source>按歌词行分窗（前奏/间奏更稳）</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\ai_timing_dialog.py" line="421" />
         <source>下载镜像:</source>
         <translation>Download mirror:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="411" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="427" />
         <source>官方（huggingface.co）</source>
         <translation>Official (huggingface.co)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="414" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="430" />
         <source>hf-mirror.com</source>
         <translation>hf-mirror.com</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="416" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="432" />
         <source>自定义 URL…</source>
         <translation>Custom URL…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="421" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="437" />
         <source>输入镜像端点，如 https://hf-mirror.com</source>
         <translation>Enter mirror endpoint, e.g. https://hf-mirror.com</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="431" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="447" />
         <source>存储位置</source>
         <translation>Storage Locations</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="452" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="468" />
         <source>模型目录</source>
         <translation>Model directory</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="486" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="469" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="456" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="502" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="485" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="472" />
         <source>浏览</source>
         <translation>Browse</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="494" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="472" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="459" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="510" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="488" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="475" />
         <source>更改…</source>
         <translation>Change…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="917" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="463" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="995" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="479" />
         <source>AI 缓存</source>
         <translation>AI Cache</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="466" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="482" />
         <source>默认（.cache）</source>
         <translation>Default (.cache)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="476" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="492" />
         <source>运行环境</source>
         <translation>Runtime</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="480" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="496" />
         <source>未安装（点击下方「安装 / 修复」）</source>
         <translation>Not installed (use "Install / Repair" below)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="482" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="498" />
         <source>当前解释器</source>
         <translation>Current interpreter</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="499" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="515" />
         <source>恢复推荐设置</source>
         <translation>Restore recommended settings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="868" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="513" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="946" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="529" />
         <source>就绪</source>
         <translation>Ready</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1203" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1098" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="520" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1281" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1176" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="536" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="523" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="539" />
         <source>自动对齐</source>
         <translation>Auto Align</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="675" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="631" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="711" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="667" />
         <source>已耗时 {m}:{s:02d}</source>
         <translation>Elapsed {m}:{s:02d}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="651" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="687" />
         <source>即将完成…</source>
         <translation>Finishing up…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="707" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="654" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="743" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="690" />
         <source>预计剩余 {m}:{s:02d}</source>
         <translation>ETA {m}:{s:02d}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="701" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="686" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="656" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="737" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="722" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="692" />
         <source>正在估算剩余时间…</source>
         <translation>Estimating remaining time…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="670" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="706" />
         <source>处理中…</source>
         <translation>Processing…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="721" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="713" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="757" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="749" />
         <source>已取消</source>
         <translation>Cancelled</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="714" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="750" />
         <source>AI 打轴已取消，未应用任何结果。</source>
         <translation>AI timing was cancelled. No results were applied.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="724" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="760" />
         <source>AI 打轴失败</source>
         <translation>AI Timing Failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="732" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="768" />
         <source>失败</source>
         <translation>Failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="850" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="886" />
+        <source>当前歌词没有行时间戳，无法按行分窗；导入带时间的歌词后可用</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\ai_timing_dialog.py" line="928" />
         <source>检查中…</source>
         <translation>Checking…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="861" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="939" />
         <source>正在检查执行条件…</source>
         <translation>Checking preconditions…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="862" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="940" />
         <source>正在探测运行环境（首次需导入 PyTorch，可能需要几十秒）…</source>
         <translation>Probing the runtime (the first probe imports PyTorch and may take tens of seconds)…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="882" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="960" />
         <source>未加载音频</source>
         <translation>No audio loaded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="903" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="981" />
         <source>既有标注优先，缺口已补足</source>
         <translation>Existing readings take priority; gaps auto-filled</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="906" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="984" />
         <source>工程没有可对齐正文</source>
         <translation>The project has no lyrics to align</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="913" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="991" />
         <source>未检查（缺少音频）</source>
         <translation>Not checked (no audio)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="916" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="994" />
         <source>工作台会话人声</source>
         <translation>Workbench session vocals</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="918" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="996" />
         <source>同目录人声文件</source>
         <translation>Vocal file in the same folder</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="919" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="997" />
         <source>本次分离的人声</source>
         <translation>Vocals separated this run</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="923" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1001" />
         <source>可复用（{source}）</source>
         <translation>Reusable ({source})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="929" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1007" />
         <source>同目录存在多个人声文件，请选择</source>
         <translation>Multiple vocal files found in the same folder — pick one</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="941" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1019" />
         <source>将自动分离人声</source>
         <translation>Vocals will be separated automatically</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="943" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1021" />
         <source>需要分离人声</source>
         <translation>Vocals need to be separated</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="949" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1027" />
         <source>跟随工作台「分离人声」设置</source>
         <translation>Follows the workbench "Vocal Separation" settings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="953" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1031" />
         <source>就绪：无人声时自动分离（UVR-MDX 人声模型）</source>
         <translation>Ready: separates vocals automatically when absent (UVR-MDX vocal model)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="958" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1036" />
         <source>未安装：点击「对齐环境 → 安装 / 修复」自动补装（已装过环境只会补缺失组件）</source>
         <translation>Not installed: use Alignment environment → Install / Repair to add it (only missing components are reinstalled)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="972" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1050" />
         <source>（检测到 {gpu}，点「安装 / 修复」可升级 CUDA 版）</source>
         <translation> ({gpu} detected — use Install / Repair to upgrade to the CUDA build)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="983" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1061" />
         <source>请先在第 2 步「音频分离」安装工作台运行环境</source>
         <translation>Install the workbench runtime in step 2 "Vocal Separation" first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="989" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1067" />
         <source>对齐环境不可用</source>
         <translation>Alignment environment unavailable</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="998" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1076" />
         <source>MMS_FA（备选）：随对齐环境自动获取，无需下载</source>
         <translation>MMS_FA (fallback): fetched automatically with the alignment environment, no manual download</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1006" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1084" />
         <source>未安装，将下载到 {path}</source>
         <translation>Not installed; will download to {path}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1018" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1096" />
         <source>执行前需解决：
 </source>
         <translation>Resolve before running:
 </translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1086" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1164" />
         <source>，磁盘剩余 {g:.0f}GB</source>
         <translation>, {g:.0f}GB free on disk</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1088" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1166" />
         <source>（空间不足！）</source>
         <translation> (insufficient space!)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1093" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1171" />
         <source>磁盘占用提醒</source>
         <translation>Disk usage notice</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1094" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1172" />
         <source>{detail}预计占用约 {e:g}GB{free}，是否继续？</source>
         <translation>{detail}Estimated disk usage: about {e:g}GB{free}. Continue?</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1097" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1175" />
         <source>继续</source>
         <translation>Continue</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1106" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1184" />
         <source>下载默认对齐模型（权重约 1.2GB）。</source>
         <translation>Download the default alignment model (weights ~1.2GB).</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1121" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1199" />
         <source>模型下载完成</source>
         <translation>Model download complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1122" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1200" />
         <source>对齐模型已就绪。</source>
         <translation>Alignment model is ready.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1134" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1212" />
         <source>正在下载模型…</source>
         <translation>Downloading model…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1135" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1213" />
         <source>正在下载（网络波动时进度可能短暂停顿）…</source>
         <translation>Downloading… (progress may pause briefly on network fluctuation)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1175" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1253" />
         <source>请切换页面</source>
         <translation>Please switch pages</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1176" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1254" />
         <source>请在主界面进入第 2 步「音频分离」页完成环境安装</source>
         <translation>Open step 2 "Vocal Separation" in the main window to set up the environment</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1196" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1274" />
         <source>独立安装 AI 运行环境</source>
         <translation>Standalone AI runtime install</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1197" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1275" />
         <source>当前工作台分离环境未使用托管 PyMSS（或尚未安装）。可以独立安装一份 AI 运行环境（与工作台环境互不影响），或先去第 2 步「音频分离」安装托管环境。</source>
         <translation>The workbench separation environment is not using the managed PyMSS runtime (or is not installed). You can install a standalone AI runtime (independent of the workbench environment), or set up the managed environment in step 2 "Vocal Separation" first.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1202" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1280" />
         <source>独立安装</source>
         <translation>Standalone install</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1231" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1309" />
         <source>打包版将下载官方运行环境发行包并安装（含 PyTorch，下载缓存安装成功后自动清理）。</source>
         <translation>The packaged app will download and install the official runtime release (PyTorch included; download cache is cleaned up after success).</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1236" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1314" />
         <source>安装 AI 运行环境（含 PyTorch 与依赖）。</source>
         <translation>Install the AI runtime (PyTorch and dependencies included).</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1272" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1350" />
         <source>正在停止工作台分离服务…</source>
         <translation>Stopping the workbench separation service…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1278" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1356" />
         <source>停止工作台分离服务失败：{e}</source>
         <translation>Failed to stop the workbench separation service: {e}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1288" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1366" />
         <source>无法停止工作台分离服务，请稍后重试</source>
         <translation>Could not stop the workbench separation service, please try again later</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1318" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1396" />
         <source>{e}
 详细安装日志：{p}</source>
         <translation>{e}
 Install log: {p}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1336" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1414" />
         <source>运行环境已就绪（CPU 版）</source>
         <translation>Runtime environment ready (CPU version)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1339" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1417" />
         <source>｜详细日志：{p} / {i}</source>
         <translation> | Detailed logs: {p} / {i}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1344" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1422" />
         <source>｜详细日志：{p}</source>
         <translation> | Detailed log: {p}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1354" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1432" />
         <source>对齐环境就绪</source>
         <translation>Alignment environment ready</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1357" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1435" />
         <source>（安装日志：{p}）</source>
         <translation> (install log: {p})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1372" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1450" />
         <source>正在安装对齐环境…</source>
         <translation>Installing alignment environment…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1373" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1451" />
         <source>正在安装（创建虚拟环境与下载大包期间可能数分钟没有输出）…</source>
         <translation>Installing… (venv creation and large package downloads may produce no output for minutes)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1387" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1465" />
         <source>位置已更新</source>
         <translation>Location updated</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1388" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1466" />
         <source>新位置已生效。</source>
         <translation>The new location is now active.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1604" />
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1399" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1692" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1477" />
         <source>任务进行中</source>
         <translation>Task in progress</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1400" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1478" />
         <source>请等待当前任务完成后再更改存储位置。</source>
         <translation>Wait for the current task to finish before changing storage locations.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1413" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1491" />
         <source>选择模型根目录</source>
         <translation>Choose the model root</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1431" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1509" />
         <source>选择 AI 缓存根目录（独立运行模式生效）</source>
         <translation>Choose the AI cache root (standalone mode only)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1447" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1530" />
         <source>选择对齐运行环境的 python.exe</source>
         <translation>Choose the alignment runtime python.exe</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1456" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1539" />
         <source>已保存</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1457" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1540" />
         <source>运行环境已更新，将立即生效。</source>
         <translation>Runtime updated. Takes effect immediately.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1484" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1572" />
         <source>校验完成</source>
         <translation>Verification finished</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1489" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1577" />
         <source>校验通过</source>
         <translation>Validation passed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1490" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1578" />
         <source>校验失败</source>
         <translation>Validation failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1491" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1579" />
         <source>下载未完成</source>
         <translation>Download incomplete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1492" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1580" />
         <source>模型未安装</source>
         <translation>Model not installed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1495" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1583" />
         <source>模型深度校验</source>
         <translation>Model deep verification</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1509" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1597" />
         <source>正在深度校验模型…</source>
         <translation>Deep-verifying model…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1510" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1598" />
         <source>正在校验（大模型哈希计算需要一些时间）…</source>
         <translation>Verifying (hashing large model files takes a while)…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1519" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1607" />
         <source>工程已变化</source>
         <translation>Project changed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1520" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1608" />
         <source>工程或音频在弹窗打开后发生了切换，请关闭本窗口后重新打开</source>
         <translation>The project or audio changed after this window opened. Close and reopen it.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1556" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1644" />
         <source>完成：时间轴已写入工程，可直接关闭本窗口（Ctrl+S 保存落盘）</source>
         <translation>Done: timestamps written to the project. You can close this window now (Ctrl+S to save)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1564" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1652" />
         <source>AI 打轴成功</source>
         <translation>AI timing succeeded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1565" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1653" />
         <source>时间轴已全部生成并写入当前工程，可直接关闭本窗口继续编辑。Ctrl+S 保存后落盘；如需恢复原时间轴，可在工具栏撤销一次。结果仅供辅助，请人工校准；和声/重叠人声段落务必人工复查。</source>
         <translation>All timestamps have been generated and written to the project — you can close this window and keep editing. Press Ctrl+S to save; one undo from the toolbar restores the previous timestamps. Results are for reference only: please proofread manually, and always double-check harmonies and overlapping vocals.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1581" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1669" />
         <source>正在执行自动对齐…</source>
         <translation>Running auto alignment…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1582" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1670" />
         <source>处理中…（模型加载期间无中间输出，大文件 CPU 需数分钟）</source>
         <translation>Processing… (no intermediate output while the model loads; large files may take minutes on CPU)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1589" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1677" />
         <source>取消 AI 打轴</source>
         <translation>Cancel AI Timing</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1590" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1678" />
         <source>确定取消 AI 打轴吗？当前尚未应用的结果将被丢弃。</source>
         <translation>Cancel AI timing? Unapplied results will be discarded.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1591" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1679" />
         <source>取消任务</source>
         <translation>Cancel Task</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1592" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1680" />
         <source>继续执行</source>
         <translation>Keep going</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1598" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1686" />
         <source>正在取消…</source>
         <translation>Cancelling…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1605" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1693" />
         <source>AI 打轴任务仍在进行，关闭窗口将取消任务并丢弃未应用的结果。确定关闭吗？</source>
         <translation>An AI timing task is still running. Closing this window will cancel it and discard unapplied results. Close anyway?</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1609" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1697" />
         <source>取消并关闭</source>
         <translation>Cancel and Close</translation>
     </message>
     <message>
-        <location filename="..\..\editor\ai_timing_dialog.py" line="1610" />
+        <location filename="..\..\editor\ai_timing_dialog.py" line="1698" />
         <source>继续任务</source>
         <translation>Keep running</translation>
     </message>
@@ -1009,153 +1028,153 @@ Install log: {p}</translation>
     <name>AiTimingSeparation</name>
     <message>
         <source>FFmpeg 不可用：请在「设置 → 关于/语言」配置 FFmpeg 路径后重试</source>
-        <translation type="vanished">FFmpeg is unavailable: set the FFmpeg path in "Settings → About/Language" and retry</translation>
+        <translation>FFmpeg is unavailable: set the FFmpeg path in "Settings → About/Language" and retry</translation>
     </message>
     <message>
         <source>FFmpeg 不可用：请检查工作台设置中的 FFmpeg 配置</source>
-        <translation type="vanished">FFmpeg is unavailable: check the FFmpeg configuration in workbench settings</translation>
+        <translation>FFmpeg is unavailable: check the FFmpeg configuration in workbench settings</translation>
     </message>
     <message>
         <source>FFmpeg 无响应（执行 ffmpeg -version 超时或失败）。请检查「设置 → 关于/语言」中配置的 FFmpeg（程序可能已损坏或被安全软件拦截）后重试</source>
-        <translation type="vanished">FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configured in "Settings → About/Language" (the program may be corrupted or blocked by security software), then retry</translation>
+        <translation>FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configured in "Settings → About/Language" (the program may be corrupted or blocked by security software), then retry</translation>
     </message>
     <message>
         <source>FFmpeg 无响应（执行 ffmpeg -version 超时或失败）。请检查工作台设置中的 FFmpeg 配置（程序可能已损坏或被安全软件拦截）后重试</source>
-        <translation type="vanished">FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configuration in workbench settings (the program may be corrupted or blocked by security software), then retry</translation>
+        <translation>FFmpeg is not responding (ffmpeg -version timed out or failed). Check the FFmpeg configuration in workbench settings (the program may be corrupted or blocked by security software), then retry</translation>
     </message>
     <message>
         <source>下载分离模型文件 {name}：{cur}/{tot}</source>
-        <translation type="vanished">Downloading separation model file {name}: {cur}/{tot}</translation>
+        <translation>Downloading separation model file {name}: {cur}/{tot}</translation>
     </message>
     <message>
         <source>人声分离失败（返回码 {code}）。</source>
-        <translation type="vanished">Vocal separation failed (exit code {code}).</translation>
+        <translation>Vocal separation failed (exit code {code}).</translation>
     </message>
     <message>
         <source>人声分离失败（返回码 {code}）。请确认分离环境已完整安装后重试</source>
-        <translation type="vanished">Vocal separation failed (exit code {code}). Make sure the separation environment is fully installed, then retry</translation>
+        <translation>Vocal separation failed (exit code {code}). Make sure the separation environment is fully installed, then retry</translation>
     </message>
     <message>
         <source>人声分离长时间无响应（超过 {minutes} 分钟无任何输出），已自动终止。常见原因：显卡驱动异常（CUDA 初始化卡住）、网络下载无响应或 FFmpeg 异常；请更新显卡驱动、检查网络（可在「设置 → 网络与代理」配置代理）后重试</source>
-        <translation type="vanished">Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Update the GPU driver and check the network (a proxy can be configured in "Settings → Network &amp; Proxy"), then retry</translation>
+        <translation>Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Update the GPU driver and check the network (a proxy can be configured in "Settings → Network &amp; Proxy"), then retry</translation>
     </message>
     <message>
         <source>人声分离长时间无响应（超过 {minutes} 分钟无任何输出），已自动终止。常见原因：显卡驱动异常（CUDA 初始化卡住）、网络下载无响应或 FFmpeg 异常；请检查工作台中的分离环境与显卡驱动后重试</source>
-        <translation type="vanished">Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Check the workbench separation environment and GPU driver, then retry</translation>
+        <translation>Vocal separation was unresponsive for too long (no output for over {minutes} minutes) and was terminated automatically. Common causes: GPU driver issues (CUDA init hang), stalled model download, or a broken FFmpeg. Check the workbench separation environment and GPU driver, then retry</translation>
     </message>
     <message>
         <source>人声分离需要 FFmpeg，但未在系统中找到。请在「设置 → 关于/语言」中配置 FFmpeg 路径（或安装 FFmpeg 并加入系统 PATH）后重试</source>
-        <translation type="vanished">Vocal separation requires FFmpeg, but it was not found on this system. Set the FFmpeg path in "Settings → About/Language" (or install FFmpeg and add it to PATH), then retry</translation>
+        <translation>Vocal separation requires FFmpeg, but it was not found on this system. Set the FFmpeg path in "Settings → About/Language" (or install FFmpeg and add it to PATH), then retry</translation>
     </message>
     <message>
         <source>人声分离需要 FFmpeg，但未找到可用的 FFmpeg。嵌入式运行的 FFmpeg 由工作台统一管理，请检查工作台设置中的 FFmpeg 配置后重试</source>
-        <translation type="vanished">Vocal separation requires FFmpeg, but no usable FFmpeg was found. In embedded mode FFmpeg is managed by the workbench; check the FFmpeg configuration in workbench settings and retry</translation>
+        <translation>Vocal separation requires FFmpeg, but no usable FFmpeg was found. In embedded mode FFmpeg is managed by the workbench; check the FFmpeg configuration in workbench settings and retry</translation>
     </message>
     <message>
         <source>分离模型数据表已损坏，已重置（将自动重新下载）</source>
-        <translation type="vanished">The separation model data table was corrupted and has been reset (it will be re-downloaded automatically)</translation>
+        <translation>The separation model data table was corrupted and has been reset (it will be re-downloaded automatically)</translation>
     </message>
     <message>
         <source>分离模型文件不完整（下载中断残留），已自动删除，将在下次分离时重新下载</source>
-        <translation type="vanished">The separation model file is incomplete (leftover from an interrupted download). It has been deleted and will be re-downloaded on the next separation</translation>
+        <translation>The separation model file is incomplete (leftover from an interrupted download). It has been deleted and will be re-downloaded on the next separation</translation>
     </message>
     <message>
         <source>分离模型首次使用需从 GitHub 下载，当前下载失败：请检查网络（代理跟随工作台的网络设置）后重试</source>
-        <translation type="vanished">The separation model downloads from GitHub on first use and the download just failed: check the network and retry (the proxy follows the workbench network settings)</translation>
+        <translation>The separation model downloads from GitHub on first use and the download just failed: check the network and retry (the proxy follows the workbench network settings)</translation>
     </message>
     <message>
         <source>分离模型首次使用需从 GitHub 下载，当前下载失败：请检查网络（可在「设置 → 网络与代理」配置代理）后重试</source>
-        <translation type="vanished">The separation model downloads from GitHub on first use and the download just failed: check the network (a proxy can be configured in "Settings → Network &amp; proxy") and retry</translation>
+        <translation>The separation model downloads from GitHub on first use and the download just failed: check the network (a proxy can be configured in "Settings → Network &amp; proxy") and retry</translation>
     </message>
     <message>
         <source>分离环境未安装：请先在弹窗中安装对齐环境（含分离能力）</source>
-        <translation type="vanished">Separation environment not installed: install the alignment environment (which includes separation) in the dialog first</translation>
+        <translation>Separation environment not installed: install the alignment environment (which includes separation) in the dialog first</translation>
     </message>
     <message>
         <source>子进程输出：{output}</source>
-        <translation type="vanished">Subprocess output: {output}</translation>
+        <translation>Subprocess output: {output}</translation>
     </message>
     <message>
         <source>工作台分离任务正在进行中{detail}，请等待其完成（或在工作台中取消）后重试 AI 打轴</source>
-        <translation type="vanished">A workbench separation task is currently running{detail}. Wait for it to finish (or cancel it in the workbench), then retry AI timing</translation>
+        <translation>A workbench separation task is currently running{detail}. Wait for it to finish (or cancel it in the workbench), then retry AI timing</translation>
     </message>
     <message>
         <source>工作台分离环境暂不可用，已改用 AI 运行环境内置分离（与工作台第 2 步环境不同，CPU 下可能需数分钟）</source>
-        <translation type="vanished">The workbench separation environment is unavailable; switched to the AI runtime's built-in separation (different from the workbench step-2 environment; may take several minutes on CPU)</translation>
+        <translation>The workbench separation environment is unavailable; switched to the AI runtime's built-in separation (different from the workbench step-2 environment; may take several minutes on CPU)</translation>
     </message>
     <message>
         <source>已取消</source>
-        <translation type="vanished">Cancelled</translation>
+        <translation>Cancelled</translation>
     </message>
     <message>
         <source>已取消人声分离</source>
-        <translation type="vanished">Vocal separation cancelled</translation>
+        <translation>Vocal separation cancelled</translation>
     </message>
     <message>
         <source>已补齐分离模型文件 {name}</source>
-        <translation type="vanished">Filled in missing separation model file {name}</translation>
+        <translation>Filled in missing separation model file {name}</translation>
     </message>
     <message>
         <source>正在下载分离模型文件 {name}…</source>
-        <translation type="vanished">Downloading separation model file {name}…</translation>
+        <translation>Downloading separation model file {name}…</translation>
     </message>
     <message>
         <source>正在检查分离模型…</source>
-        <translation type="vanished">Checking separation model…</translation>
+        <translation>Checking separation model…</translation>
     </message>
     <message>
         <source>（内置分离）{msg}</source>
-        <translation type="vanished">(built-in separation) {msg}</translation>
+        <translation>(built-in separation) {msg}</translation>
     </message>
 </context><context>
     <name>ApplySingerDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1720" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1768" />
         <source>应用演唱者</source>
         <translation>Apply singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1730" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1778" />
         <source>选中字符:</source>
         <translation>Selected character:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1736" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1784" />
         <source>无</source>
         <translation>None</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1739" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1787" />
         <source>当前演唱者:</source>
         <translation>Current singer:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1744" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1792" />
         <source>过滤:</source>
         <translation>Filter:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1746" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1794" />
         <source>输入演唱者名称进行过滤</source>
         <translation>Type a singer name to filter</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1753" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1801" />
         <source>演唱者</source>
         <translation>Singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1753" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1801" />
         <source>颜色预览</source>
         <translation>Color preview</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1780" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1828" />
         <source>应用</source>
         <translation>Apply</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1785" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1833" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
@@ -1441,149 +1460,149 @@ Install log: {p}</translation>
 </context><context>
     <name>AutoGenerateInterludeGuideDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2773" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2821" />
         <source>自动生成间奏指引</source>
         <translation>Auto-Generate Interlude Guide</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2819" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2781" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2867" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2829" />
         <source>「{position}约{time}秒」</source>
         <translation>"{position} ~{time}s"</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2902" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2897" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2783" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2950" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2945" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2831" />
         <source>前奏</source>
         <translation>Intro</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2903" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2898" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2784" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2951" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2946" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2832" />
         <source>间奏</source>
         <translation>Interlude</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2904" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2899" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2785" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2952" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2947" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2833" />
         <source>后奏</source>
         <translation>Outro</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2796" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2844" />
         <source>自动扫描整首歌中所有 is_sentence_end=True 的字符，根据前后时间戳间隔自动生成间奏指引文本并插入到对应位置。</source>
         <translation>Scan all is_sentence_end=True characters in the song and automatically generate interlude guide text based on timestamp intervals.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2805" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2853" />
         <source>基本设置</source>
         <translation>Basic Settings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2812" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2860" />
         <source>间隔时间小于此值的间隙将被跳过，支持小数</source>
         <translation>Gaps shorter than this value will be skipped; supports decimals</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2813" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2861" />
         <source>最小生成间奏指引时间 (s):</source>
         <translation>Min interlude guide time (s):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2816" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2864" />
         <source>间奏指引格式:</source>
         <translation>Interlude guide format:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2820" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2868" />
         <source>{position}=位置映射文本, {time}=计算间隔时间（秒）</source>
         <translation>{position}=position text, {time}=calculated interval (seconds)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2824" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2872" />
         <source>允许单行内插入</source>
         <translation>Allow inline insertion</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2826" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2874" />
         <source>允许在行中间的 is_sentence_end 字符处也进行插入</source>
         <translation>Also insert at is_sentence_end characters within a line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2827" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2875" />
         <source>新建一行</source>
         <translation>New Line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2829" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2877" />
         <source>将生成的间奏指引文本放在独立的新行中</source>
         <translation>Place generated interlude guide text in a separate new line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2841" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2889" />
         <source>时间戳偏移</source>
         <translation>Timestamp Offset</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2849" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2897" />
         <source>生成文本第一个字符的时间戳偏移</source>
         <translation>Timestamp offset for the first character of generated text</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2853" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2901" />
         <source>前余量:</source>
         <translation>Leading margin:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2859" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2907" />
         <source>生成文本最后一个字符的停顿点时间戳回退</source>
         <translation>Pause-point timestamp rollback for the last character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2863" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2911" />
         <source>后余量:</source>
         <translation>Trailing margin:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2870" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2918" />
         <source>应用</source>
         <translation>Apply</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2874" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2922" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2881" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2929" />
         <source>Position相关设置</source>
         <translation>Position Settings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2886" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2934" />
         <source>启用</source>
         <translation>Enabled</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2889" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2937" />
         <source>类别</source>
         <translation>Category</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2892" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2940" />
         <source>映射文本</source>
         <translation>Mapping Text</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2940" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2988" />
         <source>参数提示</source>
         <translation>Parameter Hint</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2941" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2989" />
         <source>前余量 + 后余量 ({sum}ms) 小于最小生成间奏指引时间 ({min}ms)，
 某些间隙可能无法容纳生成的文本。</source>
         <translation>Leading + trailing margin ({sum}ms) is less than min guide time ({min}ms). Some gaps may not fit the generated text.</translation>
@@ -1972,27 +1991,27 @@ The same singer may belong to multiple groups; a group with no singer checked in
 </context><context>
     <name>BatchGroupDialog</name>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="552" />
+        <location filename="..\..\singer\singer_interface.py" line="593" />
         <source>批量设置分组</source>
         <translation>Bulk set group</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="556" />
+        <location filename="..\..\singer\singer_interface.py" line="597" />
         <source>选择或输入分组名称（留空则清除分组）：</source>
         <translation>Pick or type a group name (empty = clear group):</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="559" />
+        <location filename="..\..\singer\singer_interface.py" line="600" />
         <source>留空则清除分组</source>
         <translation>Empty = clear group</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="570" />
+        <location filename="..\..\singer\singer_interface.py" line="611" />
         <source>确定</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="570" />
+        <location filename="..\..\singer\singer_interface.py" line="611" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
@@ -2126,73 +2145,73 @@ Same char count as the search → keep timestamps; different → lose all matche
         <translation>{n} matches</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="500" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="502" />
         <source>找到 0 处（无改动）</source>
         <translation>0 matches (no change)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="508" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="510" />
         <source>确认批量替换</source>
         <translation>Confirm bulk replace</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="509" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="511" />
         <source>替换后字符数 ({new}) 与搜索词 ({word}) 不同，
 将丢失全部 {n} 处匹配的时间戳。是否继续？</source>
         <translation>Char count after replacement ({new}) differs from the search ({word}).
 All {n} matched timestamps will be lost. Continue?</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="513" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="515" />
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="514" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="516" />
         <source>否</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="608" />
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="552" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="610" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="554" />
         <source>最后一个字符</source>
         <translation>Last character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="610" />
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="554" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="612" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="556" />
         <source>行尾</source>
         <translation>Line end</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="663" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="665" />
         <source>已修改 {n} 处</source>
         <translation>{n} changes applied</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="687" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="689" />
         <source>批量变更「{word}」（{n} 处）</source>
         <translation>Bulk change '{word}' ({n} matches)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="699" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="701" />
         <source>  第 {s} 句 第 {c} 字「{ch}」：{reason}</source>
         <translation>  Line {s} char {c} '{ch}': {reason}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="703" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="705" />
         <source>
 ...（还有 {n} 项未显示）</source>
         <translation>
 ...({n} more not shown)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="707" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="709" />
         <source>部分连词设置未应用</source>
         <translation>Some link settings were not applied</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="708" />
+        <location filename="..\..\editor\timing\bulk_change_dialog.py" line="710" />
         <source>以下位置为末字/行尾，不能设置连词，已自动跳过：
 
 </source>
@@ -2260,92 +2279,92 @@ All {n} matched timestamps will be lost. Continue?</translation>
 </context><context>
     <name>CharEditDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1053" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1071" />
         <source>编辑字符</source>
         <translation>Edit character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1075" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1093" />
         <source>当前字符:</source>
         <translation>Current character:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1082" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1100" />
         <source>转为批量</source>
         <translation>Switch to bulk</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1091" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1109" />
         <source>输入新字符</source>
         <translation>Enter new character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1093" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1111" />
         <source>新字符:</source>
         <translation>New character:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1099" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1117" />
         <source>按字符编辑（注音用半角逗号分隔 RubyPart；节奏点为非负整数）:</source>
         <translation>Edit per character (use half-width comma to separate RubyParts; checkpoints are non-negative integers):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1126" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1144" />
         <source>将此词注册到读音词典</source>
         <translation>Register this word to the reading dictionary</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1129" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1147" />
         <source>快速连词/取消连词</source>
         <translation>Quick link/unlink</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1130" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1148" />
         <source>若全部未连词，则将除最后一个字符外的向后连词全部勾选；否则全部取消连词</source>
         <translation>If none is linked, check all forward links except for the last char; otherwise uncheck all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1143" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1161" />
         <source>预览: </source>
         <translation>Preview: </translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1163" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1181" />
         <source>确定</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1166" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1184" />
         <source>查询候补字典</source>
         <translation>Query candidate dictionary</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1168" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1186" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1222" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1240" />
         <source>注音（逗号分隔多 RubyPart）</source>
         <translation>Ruby (comma-separated RubyParts)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1226" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1244" />
         <source>节奏点</source>
         <translation>Checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1229" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1247" />
         <source>向后连词</source>
         <translation>Link forward</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1231" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1249" />
         <source>连接到下一字符（末字/行尾不可连词，提交时将跳过并提示；停顿点允许连词）</source>
         <translation>Link to next character (last char/line end cannot be linked — skipped and warned on submit; pause points can be linked)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1301" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1319" />
         <source>预览: {items}</source>
         <translation>Preview: {items}</translation>
     </message>
@@ -2384,12 +2403,12 @@ All {n} matched timestamps will be lost. Continue?</translation>
 </context><context>
     <name>CompleteTimestampDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1841" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1889" />
         <source>补全时间戳</source>
         <translation>Fill timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1866" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1914" />
         <source>本功能用于所有打轴过程完成后，自动查找需要补轴点的字符（仅无普通时间戳字符），查找前后时间戳取平均值均分给待补偿时间戳。
 
 边界处理：行首无前方时间戳时，向后找到第一个时间戳并减去「行首扣除」值；行尾无后方时间戳时，向前找到第一个时间戳并加上「行尾增加」值。</source>
@@ -2398,271 +2417,271 @@ All {n} matched timestamps will be lost. Continue?</translation>
 Boundary handling: if the row head has no preceding timestamp, find the next forward and subtract the 'head deduct' value; if the row tail has no following timestamp, find the next backward and add the 'tail add' value.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1877" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1925" />
         <source>适用范围</source>
         <translation>Scope</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1884" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1932" />
         <source>汉字</source>
         <translation>Kanji</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1885" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1933" />
         <source>平假名</source>
         <translation>Hiragana</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1886" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1934" />
         <source>片假名</source>
         <translation>Katakana</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1887" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1935" />
         <source>促音（っ/ッ）</source>
         <translation>Sokuon (っ/ッ)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1888" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1936" />
         <source>长音符号</source>
         <translation>Chōonpu</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1889" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1937" />
         <source>拨音（ん/ン）</source>
         <translation>Hatsuon (ん/ン)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1890" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1938" />
         <source>捨仮名</source>
         <translation>Sutegana</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1891" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1939" />
         <source>英文字母</source>
         <translation>Alphabet</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1892" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1940" />
         <source>韩文（谚文）</source>
         <translation>Hangul (Korean)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1893" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1941" />
         <source>数字</source>
         <translation>Digit</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1894" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1942" />
         <source>特殊符号</source>
         <translation>Special symbol</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1906" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1954" />
         <source>排除规则</source>
         <translation>Exclusion rules</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1911" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1959" />
         <source>排除被连词字符</source>
         <translation>Exclude linked characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1923" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1971" />
         <source>边界时间戳偏移</source>
         <translation>Boundary timestamp offset</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1930" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1978" />
         <source>行首字符无前方时间戳时，向后找到第一个时间戳后减去此值</source>
         <translation>If the line-start character has no preceding timestamp, find the first one forward and subtract this value</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1933" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1981" />
         <source>行首扣除时间戳 (ms):</source>
         <translation>Head deduct timestamp (ms):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1938" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1986" />
         <source>行尾字符无后方时间戳时，向前找到第一个时间戳后加上此值</source>
         <translation>If the line-end character has no following timestamp, find the first one backward and add this value</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1941" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1989" />
         <source>行尾增加时间戳 (ms):</source>
         <translation>Tail add timestamp (ms):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1948" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1996" />
         <source>应用</source>
         <translation>Apply</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1952" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2000" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
 </context><context>
     <name>DeleteCheckpointByTypeDialog</name>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="499" />
+        <location filename="..\..\editor\fulltext_interface.py" line="511" />
         <source>按类型删除节奏点</source>
         <translation>Delete checkpoints by type</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="506" />
+        <location filename="..\..\editor\fulltext_interface.py" line="518" />
         <source>选择要删除节奏点的字符类型：</source>
         <translation>Choose character types of checkpoints to delete:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="521" />
+        <location filename="..\..\editor\fulltext_interface.py" line="533" />
         <source>ひらがな（平假名）</source>
         <translation>Hiragana</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="522" />
+        <location filename="..\..\editor\fulltext_interface.py" line="534" />
         <source>カタカナ（片假名）</source>
         <translation>Katakana</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="523" />
+        <location filename="..\..\editor\fulltext_interface.py" line="535" />
         <source>漢字（汉字）</source>
         <translation>Kanji</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="524" />
+        <location filename="..\..\editor\fulltext_interface.py" line="536" />
         <source>アルファベット（英文字母）</source>
         <translation>Alphabet</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="525" />
+        <location filename="..\..\editor\fulltext_interface.py" line="537" />
         <source>ハングル（韩文谚文）</source>
         <translation>ハングル（韓国語）</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="526" />
+        <location filename="..\..\editor\fulltext_interface.py" line="538" />
         <source>数字</source>
         <translation>Digit</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="527" />
+        <location filename="..\..\editor\fulltext_interface.py" line="539" />
         <source>記号（符号）</source>
         <translation>Symbol</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="528" />
+        <location filename="..\..\editor\fulltext_interface.py" line="540" />
         <source>長音符号（ー、～等）</source>
         <translation>Chōonpu (ー, ～ etc.)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="529" />
+        <location filename="..\..\editor\fulltext_interface.py" line="541" />
         <source>促音（っ/ッ）</source>
         <translation>Sokuon (っ/ッ)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="530" />
+        <location filename="..\..\editor\fulltext_interface.py" line="542" />
         <source>小写假名（ぁゃ等）</source>
         <translation>Small kana (ぁゃ etc.)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="531" />
+        <location filename="..\..\editor\fulltext_interface.py" line="543" />
         <source>その他（♪等特殊符号）</source>
         <translation>Other (♪ etc.)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="532" />
+        <location filename="..\..\editor\fulltext_interface.py" line="544" />
         <source>空格</source>
         <translation>Space</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="544" />
+        <location filename="..\..\editor\fulltext_interface.py" line="556" />
         <source>删除选中类型</source>
         <translation>Delete selected types</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="547" />
+        <location filename="..\..\editor\fulltext_interface.py" line="559" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
 </context><context>
     <name>DeleteRubyByTypeDialog</name>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="387" />
+        <location filename="..\..\editor\fulltext_interface.py" line="399" />
         <source>按类型删除注音</source>
         <translation>Delete ruby by type</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="394" />
+        <location filename="..\..\editor\fulltext_interface.py" line="406" />
         <source>选择要删除注音的字符类型：</source>
         <translation>Choose character types of ruby to delete:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="410" />
+        <location filename="..\..\editor\fulltext_interface.py" line="422" />
         <source>ひらがな（平假名）</source>
         <translation>Hiragana</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="411" />
+        <location filename="..\..\editor\fulltext_interface.py" line="423" />
         <source>カタカナ（片假名・注音为平假名）</source>
         <translation>Katakana (ruby is hiragana)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="412" />
+        <location filename="..\..\editor\fulltext_interface.py" line="424" />
         <source>カタカナ（片假名・注音含有英文）</source>
         <translation>Katakana (ruby contains English)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="413" />
+        <location filename="..\..\editor\fulltext_interface.py" line="425" />
         <source>漢字（汉字）</source>
         <translation>Kanji</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="414" />
+        <location filename="..\..\editor\fulltext_interface.py" line="426" />
         <source>アルファベット（英文字母）</source>
         <translation>Alphabet</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="415" />
+        <location filename="..\..\editor\fulltext_interface.py" line="427" />
         <source>ハングル（韩文谚文）</source>
         <translation>ハングル（韓国語）</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="416" />
+        <location filename="..\..\editor\fulltext_interface.py" line="428" />
         <source>数字</source>
         <translation>Digit</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="417" />
+        <location filename="..\..\editor\fulltext_interface.py" line="429" />
         <source>記号（符号）</source>
         <translation>Symbol</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="418" />
+        <location filename="..\..\editor\fulltext_interface.py" line="430" />
         <source>長音符号（ー、～等）</source>
         <translation>Chōonpu (ー, ～ etc.)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="419" />
+        <location filename="..\..\editor\fulltext_interface.py" line="431" />
         <source>促音（っ/ッ）</source>
         <translation>Sokuon (っ/ッ)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="420" />
+        <location filename="..\..\editor\fulltext_interface.py" line="432" />
         <source>その他（♪等特殊符号）</source>
         <translation>Other (♪ etc.)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="421" />
+        <location filename="..\..\editor\fulltext_interface.py" line="433" />
         <source>空格</source>
         <translation>Space</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="433" />
+        <location filename="..\..\editor\fulltext_interface.py" line="445" />
         <source>删除选中类型</source>
         <translation>Delete selected types</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="436" />
+        <location filename="..\..\editor\fulltext_interface.py" line="448" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
@@ -3064,7 +3083,7 @@ Example: {微笑||ほほ,え}ん  /  {大冒険||だ|い,ぼ|う,け|ん}</trans
         <translation>Send a sample ruby request with current config to verify address/key/model</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="577" />
+        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="578" />
         <location filename="..\..\settings\sub_interfaces\dictionary.py" line="365" />
         <source>测试</source>
         <translation>Test</translation>
@@ -3080,180 +3099,180 @@ Example: {微笑||ほほ,え}ん  /  {大冒険||だ|い,ぼ|う,け|ん}</trans
         <translation>When on, user-dictionary entries still override at highest priority even with LLM ruby; when off, use LLM result only</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="559" />
+        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="556" />
         <source>连接信息不完整</source>
         <translation>Connection info incomplete</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="560" />
+        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="557" />
         <source>请先填写 Base URL、API Key 与模型</source>
         <translation>Please fill Base URL, API Key and Model first</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="566" />
+        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="563" />
         <source>测试中…</source>
         <translation>Testing…</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="580" />
+        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="581" />
         <source>连接成功</source>
         <translation>Connected</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="585" />
+        <location filename="..\..\settings\sub_interfaces\dictionary.py" line="586" />
         <source>连接失败</source>
         <translation>Connection failed</translation>
     </message>
 </context><context>
     <name>EditInterface</name>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="836" />
+        <location filename="..\..\editor\line_interface.py" line="885" />
         <source>行编辑视图</source>
         <translation>Line edit view</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="840" />
+        <location filename="..\..\editor\line_interface.py" line="889" />
         <source>查看和编辑所有歌词行的打轴数据</source>
         <translation>View and edit timing data of all lyrics lines</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="940" />
-        <location filename="..\..\editor\line_interface.py" line="844" />
+        <location filename="..\..\editor\line_interface.py" line="989" />
+        <location filename="..\..\editor\line_interface.py" line="893" />
         <source>共 0 行 | 已完成 0 行 | 进度 0%</source>
         <translation>0 lines | done 0 | progress 0%</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="850" />
+        <location filename="..\..\editor\line_interface.py" line="899" />
         <source>刷新</source>
         <translation>Refresh</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="854" />
+        <location filename="..\..\editor\line_interface.py" line="903" />
         <source>添加行</source>
         <translation>Add row</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="857" />
+        <location filename="..\..\editor\line_interface.py" line="906" />
         <source>删除行</source>
         <translation>Delete line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="860" />
+        <location filename="..\..\editor\line_interface.py" line="909" />
         <source>复制行</source>
         <translation>Copy line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="863" />
+        <location filename="..\..\editor\line_interface.py" line="912" />
         <source>插入行</source>
         <translation>Insert line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="873" />
+        <location filename="..\..\editor\line_interface.py" line="922" />
         <source>行号</source>
         <translation>Line #</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="874" />
+        <location filename="..\..\editor\line_interface.py" line="923" />
         <source>歌词文本</source>
         <translation>Lyrics text</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="875" />
+        <location filename="..\..\editor\line_interface.py" line="924" />
         <source>演唱者</source>
         <translation>Singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="876" />
+        <location filename="..\..\editor\line_interface.py" line="925" />
         <source>字符数</source>
         <translation>Char count</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="877" />
+        <location filename="..\..\editor\line_interface.py" line="926" />
         <source>已打轴</source>
         <translation>Tagged</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="878" />
+        <location filename="..\..\editor\line_interface.py" line="927" />
         <source>总Checkpoint</source>
         <translation>Total checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="879" />
+        <location filename="..\..\editor\line_interface.py" line="928" />
         <source>时间范围</source>
         <translation>Time range</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="880" />
+        <location filename="..\..\editor\line_interface.py" line="929" />
         <source>操作</source>
         <translation>Action</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="952" />
+        <location filename="..\..\editor\line_interface.py" line="1001" />
         <source>共 {total} 行 | 已完成 {done} 行 | 进度 {pct:.1f}%</source>
         <translation>{total} lines | done {done} | progress {pct:.1f}%</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1040" />
+        <location filename="..\..\editor\line_interface.py" line="1089" />
         <source>编辑</source>
         <translation>Edit</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1123" />
-        <location filename="..\..\editor\line_interface.py" line="1103" />
+        <location filename="..\..\editor\line_interface.py" line="1172" />
+        <location filename="..\..\editor\line_interface.py" line="1152" />
         <source>未选择行</source>
         <translation>No line selected</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1103" />
+        <location filename="..\..\editor\line_interface.py" line="1152" />
         <source>请先选择要删除的行</source>
         <translation>Please select lines to delete first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1109" />
+        <location filename="..\..\editor\line_interface.py" line="1158" />
         <source>确认删除</source>
         <translation>Confirm delete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1110" />
+        <location filename="..\..\editor\line_interface.py" line="1159" />
         <source>确定要删除选中的 {n} 行吗？</source>
         <translation>Delete the selected {n} lines?</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1111" />
+        <location filename="..\..\editor\line_interface.py" line="1160" />
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1112" />
+        <location filename="..\..\editor\line_interface.py" line="1161" />
         <source>否</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1123" />
+        <location filename="..\..\editor\line_interface.py" line="1172" />
         <source>请先选择要复制的行</source>
         <translation>Please select lines to copy first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1135" />
+        <location filename="..\..\editor\line_interface.py" line="1184" />
         <source>剪贴板为空</source>
         <translation>Clipboard is empty</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="1135" />
+        <location filename="..\..\editor\line_interface.py" line="1184" />
         <source>请先复制行</source>
         <translation>Please copy lines first</translation>
     </message>
 </context><context>
     <name>EditorInterface</name>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="640" />
-        <location filename="..\..\editor\timing_interface.py" line="266" />
+        <location filename="..\..\editor\timing_interface.py" line="647" />
+        <location filename="..\..\editor\timing_interface.py" line="272" />
         <source>清除当前行时间戳</source>
         <translation>Clear current line timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="648" />
-        <location filename="..\..\editor\timing_interface.py" line="268" />
+        <location filename="..\..\editor\timing_interface.py" line="655" />
+        <location filename="..\..\editor\timing_interface.py" line="274" />
         <source>切换歌词预览滚动模式：
 自动滚动 — 操作后挂起 6 秒自动恢复
 始终滚动 — 始终跟随播放位置
@@ -3264,331 +3283,332 @@ Always — always follow playback
 Never — disable auto-scroll</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1294" />
-        <location filename="..\..\editor\timing_interface.py" line="314" />
+        <location filename="..\..\editor\timing_interface.py" line="1317" />
+        <location filename="..\..\editor\timing_interface.py" line="320" />
         <source>打轴 ({key})</source>
         <translation>Tag ({key})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5864" />
-        <location filename="..\..\editor\timing_interface.py" line="320" />
+        <location filename="..\..\editor\timing_interface.py" line="5900" />
+        <location filename="..\..\editor\timing_interface.py" line="326" />
         <source>播放中</source>
         <translation>Playing</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5892" />
-        <location filename="..\..\editor\timing_interface.py" line="321" />
+        <location filename="..\..\editor\timing_interface.py" line="5928" />
+        <location filename="..\..\editor\timing_interface.py" line="327" />
         <source>已暂停</source>
         <translation>Paused</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5916" />
-        <location filename="..\..\editor\timing_interface.py" line="322" />
+        <location filename="..\..\editor\timing_interface.py" line="5954" />
+        <location filename="..\..\editor\timing_interface.py" line="328" />
         <source>已停止</source>
         <translation>Stopped</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8699" />
-        <location filename="..\..\editor\timing_interface.py" line="323" />
+        <location filename="..\..\editor\timing_interface.py" line="8899" />
+        <location filename="..\..\editor\timing_interface.py" line="329" />
         <source>播放完毕</source>
         <translation>Playback finished</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8690" />
-        <location filename="..\..\editor\timing_interface.py" line="324" />
+        <location filename="..\..\editor\timing_interface.py" line="8890" />
+        <location filename="..\..\editor\timing_interface.py" line="330" />
         <source>已到达锁定终点</source>
         <translation>Reached Locked Playback End</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="673" />
-        <location filename="..\..\editor\timing_interface.py" line="325" />
+        <location filename="..\..\editor\timing_interface.py" line="680" />
+        <location filename="..\..\editor\timing_interface.py" line="331" />
         <source>就绪</source>
         <translation>Ready</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5712" />
-        <location filename="..\..\editor\timing_interface.py" line="630" />
+        <location filename="..\..\editor\timing_interface.py" line="5748" />
+        <location filename="..\..\editor\timing_interface.py" line="637" />
         <source>模式：编辑</source>
         <translation>Mode: Edit</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="633" />
+        <location filename="..\..\editor\timing_interface.py" line="640" />
         <source>打轴 (Space)</source>
         <translation>Tag (Space)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8736" />
-        <location filename="..\..\editor\timing_interface.py" line="645" />
+        <location filename="..\..\editor\timing_interface.py" line="8939" />
+        <location filename="..\..\editor\timing_interface.py" line="652" />
         <source>自动滚动</source>
         <translation>Auto scroll</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9009" />
-        <location filename="..\..\editor\timing_interface.py" line="677" />
+        <location filename="..\..\editor\timing_interface.py" line="9212" />
+        <location filename="..\..\editor\timing_interface.py" line="684" />
         <source>当前行: -</source>
         <translation>Current line: -</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9097" />
-        <location filename="..\..\editor\timing_interface.py" line="680" />
+        <location filename="..\..\editor\timing_interface.py" line="9300" />
+        <location filename="..\..\editor\timing_interface.py" line="687" />
         <source>行: 0/0 | 进度: 0%</source>
         <translation>Lines: 0/0 | Progress: 0%</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1348" />
+        <location filename="..\..\editor\timing_interface.py" line="1374" />
         <source>播放</source>
         <translation>Play</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1349" />
+        <location filename="..\..\editor\timing_interface.py" line="1375" />
         <source>停止</source>
         <translation>Stop</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1350" />
+        <location filename="..\..\editor\timing_interface.py" line="1376" />
         <source>后退</source>
         <translation>Back</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1351" />
+        <location filename="..\..\editor\timing_interface.py" line="1377" />
         <source>前进</source>
         <translation>Forward</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1352" />
+        <location filename="..\..\editor\timing_interface.py" line="1378" />
         <source>减速</source>
         <translation>Slow down</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1353" />
+        <location filename="..\..\editor\timing_interface.py" line="1379" />
         <source>加速</source>
         <translation>Speed up</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1354" />
+        <location filename="..\..\editor\timing_interface.py" line="1380" />
         <source>加节奏点</source>
         <translation>+CP</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1355" />
+        <location filename="..\..\editor\timing_interface.py" line="1381" />
         <source>减节奏点</source>
         <translation>-CP</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1356" />
+        <location filename="..\..\editor\timing_interface.py" line="1382" />
         <source>停顿点</source>
         <translation>Pause point</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1368" />
+        <location filename="..\..\editor\timing_interface.py" line="1394" />
         <source>Alt+→ 切换字内节奏点</source>
         <translation>Alt+→ Cycle checkpoints within character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1446" />
+        <location filename="..\..\editor\timing_interface.py" line="1478" />
         <source>已应用项目全局偏移</source>
         <translation>Project global offset applied</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1447" />
+        <location filename="..\..\editor\timing_interface.py" line="1479" />
         <source>从项目读取到全局偏移: {offset}ms，已同步到设置</source>
         <translation>Read global offset from project: {offset}ms, synced to settings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1818" />
+        <location filename="..\..\editor\timing_interface.py" line="1851" />
         <source>已复制</source>
         <translation>Copied</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="1819" />
+        <location filename="..\..\editor\timing_interface.py" line="1852" />
         <source>已复制 {n} 个字符</source>
         <translation>Copied {n} characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10182" />
-        <location filename="..\..\editor\timing_interface.py" line="8056" />
-        <location filename="..\..\editor\timing_interface.py" line="4766" />
-        <location filename="..\..\editor\timing_interface.py" line="4700" />
-        <location filename="..\..\editor\timing_interface.py" line="4641" />
-        <location filename="..\..\editor\timing_interface.py" line="4482" />
-        <location filename="..\..\editor\timing_interface.py" line="4396" />
-        <location filename="..\..\editor\timing_interface.py" line="4329" />
-        <location filename="..\..\editor\timing_interface.py" line="4206" />
-        <location filename="..\..\editor\timing_interface.py" line="4090" />
-        <location filename="..\..\editor\timing_interface.py" line="3990" />
-        <location filename="..\..\editor\timing_interface.py" line="3929" />
-        <location filename="..\..\editor\timing_interface.py" line="2189" />
-        <location filename="..\..\editor\timing_interface.py" line="1980" />
+        <location filename="..\..\editor\timing_interface.py" line="10531" />
+        <location filename="..\..\editor\timing_interface.py" line="8212" />
+        <location filename="..\..\editor\timing_interface.py" line="4799" />
+        <location filename="..\..\editor\timing_interface.py" line="4733" />
+        <location filename="..\..\editor\timing_interface.py" line="4674" />
+        <location filename="..\..\editor\timing_interface.py" line="4515" />
+        <location filename="..\..\editor\timing_interface.py" line="4429" />
+        <location filename="..\..\editor\timing_interface.py" line="4362" />
+        <location filename="..\..\editor\timing_interface.py" line="4239" />
+        <location filename="..\..\editor\timing_interface.py" line="4123" />
+        <location filename="..\..\editor\timing_interface.py" line="4023" />
+        <location filename="..\..\editor\timing_interface.py" line="3962" />
+        <location filename="..\..\editor\timing_interface.py" line="2222" />
+        <location filename="..\..\editor\timing_interface.py" line="2013" />
         <source>无项目</source>
         <translation>No project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10183" />
-        <location filename="..\..\editor\timing_interface.py" line="8057" />
-        <location filename="..\..\editor\timing_interface.py" line="4767" />
-        <location filename="..\..\editor\timing_interface.py" line="4701" />
-        <location filename="..\..\editor\timing_interface.py" line="4642" />
-        <location filename="..\..\editor\timing_interface.py" line="4483" />
-        <location filename="..\..\editor\timing_interface.py" line="4397" />
-        <location filename="..\..\editor\timing_interface.py" line="4330" />
-        <location filename="..\..\editor\timing_interface.py" line="4207" />
-        <location filename="..\..\editor\timing_interface.py" line="4091" />
-        <location filename="..\..\editor\timing_interface.py" line="3991" />
-        <location filename="..\..\editor\timing_interface.py" line="3930" />
-        <location filename="..\..\editor\timing_interface.py" line="2190" />
-        <location filename="..\..\editor\timing_interface.py" line="1981" />
+        <location filename="..\..\editor\timing_interface.py" line="10532" />
+        <location filename="..\..\editor\timing_interface.py" line="8213" />
+        <location filename="..\..\editor\timing_interface.py" line="4800" />
+        <location filename="..\..\editor\timing_interface.py" line="4734" />
+        <location filename="..\..\editor\timing_interface.py" line="4675" />
+        <location filename="..\..\editor\timing_interface.py" line="4516" />
+        <location filename="..\..\editor\timing_interface.py" line="4430" />
+        <location filename="..\..\editor\timing_interface.py" line="4363" />
+        <location filename="..\..\editor\timing_interface.py" line="4240" />
+        <location filename="..\..\editor\timing_interface.py" line="4124" />
+        <location filename="..\..\editor\timing_interface.py" line="4024" />
+        <location filename="..\..\editor\timing_interface.py" line="3963" />
+        <location filename="..\..\editor\timing_interface.py" line="2223" />
+        <location filename="..\..\editor\timing_interface.py" line="2014" />
         <source>请先创建或打开项目</source>
         <translation>Please create or open a project first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2005" />
+        <location filename="..\..\editor\timing_interface.py" line="2038" />
         <source>保存项目</source>
         <translation>Save project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2203" />
-        <location filename="..\..\editor\timing_interface.py" line="2006" />
+        <location filename="..\..\editor\timing_interface.py" line="2236" />
+        <location filename="..\..\editor\timing_interface.py" line="2039" />
         <source>StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)</source>
         <translation>StrangeUtaGame Project (*.sug);;All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2057" />
+        <location filename="..\..\editor\timing_interface.py" line="2090" />
         <source>正在保存</source>
         <translation>Saving</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2085" />
+        <location filename="..\..\editor\timing_interface.py" line="2118" />
         <source>保存完成</source>
         <translation>Save complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2125" />
-        <location filename="..\..\editor\timing_interface.py" line="2089" />
+        <location filename="..\..\editor\timing_interface.py" line="2158" />
+        <location filename="..\..\editor\timing_interface.py" line="2122" />
         <source>保存成功</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2136" />
-        <location filename="..\..\editor\timing_interface.py" line="2107" />
+        <location filename="..\..\editor\timing_interface.py" line="2169" />
+        <location filename="..\..\editor\timing_interface.py" line="2140" />
         <source>保存失败</source>
         <translation>Save failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2153" />
+        <location filename="..\..\editor\timing_interface.py" line="2186" />
         <source>保存当前项目</source>
         <translation>Save current project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2154" />
+        <location filename="..\..\editor\timing_interface.py" line="2187" />
         <source>当前项目有未保存的更改，是否保存？</source>
         <translation>Current project has unsaved changes. Save?</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2155" />
+        <location filename="..\..\editor\timing_interface.py" line="2188" />
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2155" />
+        <location filename="..\..\editor\timing_interface.py" line="2188" />
         <source>放弃</source>
         <translation>Discard</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9391" />
-        <location filename="..\..\editor\timing_interface.py" line="8049" />
-        <location filename="..\..\editor\timing_interface.py" line="4715" />
-        <location filename="..\..\editor\timing_interface.py" line="4656" />
-        <location filename="..\..\editor\timing_interface.py" line="4083" />
-        <location filename="..\..\editor\timing_interface.py" line="2155" />
+        <location filename="..\..\editor\timing_interface.py" line="9594" />
+        <location filename="..\..\editor\timing_interface.py" line="8205" />
+        <location filename="..\..\editor\timing_interface.py" line="4748" />
+        <location filename="..\..\editor\timing_interface.py" line="4689" />
+        <location filename="..\..\editor\timing_interface.py" line="4116" />
+        <location filename="..\..\editor\timing_interface.py" line="2188" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2202" />
+        <location filename="..\..\editor\timing_interface.py" line="2235" />
         <source>另存为</source>
         <translation>Save As</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2266" />
+        <location filename="..\..\editor\timing_interface.py" line="2299" />
         <source>正在拼接SUG</source>
         <translation>Concatenating SUG</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10076" />
-        <location filename="..\..\editor\timing_interface.py" line="9592" />
-        <location filename="..\..\editor\timing_interface.py" line="9461" />
-        <location filename="..\..\editor\timing_interface.py" line="9239" />
-        <location filename="..\..\editor\timing_interface.py" line="3059" />
-        <location filename="..\..\editor\timing_interface.py" line="2266" />
+        <location filename="..\..\editor\timing_interface.py" line="10425" />
+        <location filename="..\..\editor\timing_interface.py" line="9941" />
+        <location filename="..\..\editor\timing_interface.py" line="9810" />
+        <location filename="..\..\editor\timing_interface.py" line="9664" />
+        <location filename="..\..\editor\timing_interface.py" line="9442" />
+        <location filename="..\..\editor\timing_interface.py" line="3092" />
+        <location filename="..\..\editor\timing_interface.py" line="2299" />
         <source>准备中...</source>
         <translation>Preparing...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2326" />
-        <location filename="..\..\editor\timing_interface.py" line="2305" />
+        <location filename="..\..\editor\timing_interface.py" line="2359" />
+        <location filename="..\..\editor\timing_interface.py" line="2338" />
         <source>拼接完成</source>
         <translation>Concatenation complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2327" />
+        <location filename="..\..\editor\timing_interface.py" line="2360" />
         <source>已从 {n} 个SUG文件拼接生成新项目，共 {lines} 行歌词。</source>
         <translation>New project generated from {n} SUG files, {lines} lyric lines total.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2344" />
+        <location filename="..\..\editor\timing_interface.py" line="2377" />
         <source>拼接失败</source>
         <translation>Concatenation failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2384" />
-        <location filename="..\..\editor\timing_interface.py" line="2372" />
+        <location filename="..\..\editor\timing_interface.py" line="2417" />
+        <location filename="..\..\editor\timing_interface.py" line="2405" />
         <source>无法使用 AI 打轴</source>
         <translation>AI timing unavailable</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2373" />
+        <location filename="..\..\editor\timing_interface.py" line="2406" />
         <source>请先加载或创建包含歌词正文的工程</source>
         <translation>Load or create a project with lyrics first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2385" />
+        <location filename="..\..\editor\timing_interface.py" line="2418" />
         <source>请先加载音频，AI 打轴需要人声/音频素材</source>
         <translation>Load audio first — AI timing needs vocal/audio material</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2481" />
+        <location filename="..\..\editor\timing_interface.py" line="2514" />
         <source>AI 打轴初始化失败</source>
         <translation>AI timing failed to initialize</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2482" />
+        <location filename="..\..\editor\timing_interface.py" line="2515" />
         <source>无法读取应用设置，请重试或检查配置目录权限</source>
         <translation>Cannot read application settings. Retry or check the config directory permissions</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7022" />
-        <location filename="..\..\editor\timing_interface.py" line="2847" />
-        <location filename="..\..\editor\timing_interface.py" line="2767" />
+        <location filename="..\..\editor\timing_interface.py" line="7176" />
+        <location filename="..\..\editor\timing_interface.py" line="2880" />
+        <location filename="..\..\editor\timing_interface.py" line="2800" />
         <source>暂不允许多行</source>
         <translation>Multi-line not allowed yet</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2768" />
+        <location filename="..\..\editor\timing_interface.py" line="2801" />
         <source>批量编辑暂不允许多行选择</source>
         <translation>Bulk edit does not yet support multi-line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2848" />
+        <location filename="..\..\editor\timing_interface.py" line="2881" />
         <source>修改所选字符暂不允许多行选择</source>
         <translation>Modifying selected chars does not yet support multi-line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2944" />
+        <location filename="..\..\editor\timing_interface.py" line="2977" />
         <source>部分连词设置未应用</source>
         <translation>Some link settings were not applied</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="2945" />
+        <location filename="..\..\editor\timing_interface.py" line="2978" />
         <source>以下位置为末字/行尾，不能设置连词，已自动跳过：
 
 </source>
@@ -3597,277 +3617,279 @@ Never — disable auto-scroll</translation>
 </translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10040" />
-        <location filename="..\..\editor\timing_interface.py" line="3329" />
-        <location filename="..\..\editor\timing_interface.py" line="3184" />
-        <location filename="..\..\editor\timing_interface.py" line="3012" />
+        <location filename="..\..\editor\timing_interface.py" line="10389" />
+        <location filename="..\..\editor\timing_interface.py" line="6792" />
+        <location filename="..\..\editor\timing_interface.py" line="3362" />
+        <location filename="..\..\editor\timing_interface.py" line="3217" />
+        <location filename="..\..\editor\timing_interface.py" line="3045" />
         <source>注音分析进行中</source>
         <translation>Ruby analysis in progress</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10041" />
-        <location filename="..\..\editor\timing_interface.py" line="3330" />
-        <location filename="..\..\editor\timing_interface.py" line="3185" />
-        <location filename="..\..\editor\timing_interface.py" line="3013" />
+        <location filename="..\..\editor\timing_interface.py" line="10390" />
+        <location filename="..\..\editor\timing_interface.py" line="6793" />
+        <location filename="..\..\editor\timing_interface.py" line="3363" />
+        <location filename="..\..\editor\timing_interface.py" line="3218" />
+        <location filename="..\..\editor\timing_interface.py" line="3046" />
         <source>请等待当前注音分析完成后再试</source>
         <translation>Please wait for the current ruby analysis to finish</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3059" />
+        <location filename="..\..\editor\timing_interface.py" line="3092" />
         <source>正在删除注音</source>
         <translation>Deleting ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10112" />
-        <location filename="..\..\editor\timing_interface.py" line="3683" />
-        <location filename="..\..\editor\timing_interface.py" line="3635" />
-        <location filename="..\..\editor\timing_interface.py" line="3476" />
-        <location filename="..\..\editor\timing_interface.py" line="3356" />
-        <location filename="..\..\editor\timing_interface.py" line="3223" />
-        <location filename="..\..\editor\timing_interface.py" line="3096" />
+        <location filename="..\..\editor\timing_interface.py" line="10461" />
+        <location filename="..\..\editor\timing_interface.py" line="3716" />
+        <location filename="..\..\editor\timing_interface.py" line="3668" />
+        <location filename="..\..\editor\timing_interface.py" line="3509" />
+        <location filename="..\..\editor\timing_interface.py" line="3389" />
+        <location filename="..\..\editor\timing_interface.py" line="3256" />
+        <location filename="..\..\editor\timing_interface.py" line="3129" />
         <source>无变化</source>
         <translation>No change</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3097" />
+        <location filename="..\..\editor\timing_interface.py" line="3130" />
         <source>所选类型范围内没有需要删除的注音</source>
         <translation>No ruby to delete in selected types</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4812" />
-        <location filename="..\..\editor\timing_interface.py" line="4743" />
-        <location filename="..\..\editor\timing_interface.py" line="4677" />
-        <location filename="..\..\editor\timing_interface.py" line="3384" />
-        <location filename="..\..\editor\timing_interface.py" line="3257" />
-        <location filename="..\..\editor\timing_interface.py" line="3133" />
+        <location filename="..\..\editor\timing_interface.py" line="4845" />
+        <location filename="..\..\editor\timing_interface.py" line="4776" />
+        <location filename="..\..\editor\timing_interface.py" line="4710" />
+        <location filename="..\..\editor\timing_interface.py" line="3417" />
+        <location filename="..\..\editor\timing_interface.py" line="3290" />
+        <location filename="..\..\editor\timing_interface.py" line="3166" />
         <source>删除完成</source>
         <translation>Deletion done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3134" />
+        <location filename="..\..\editor\timing_interface.py" line="3167" />
         <source>已删除 {n} 个注音（类型: {labels}）</source>
         <translation>Deleted {n} ruby (types: {labels})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3147" />
+        <location filename="..\..\editor\timing_interface.py" line="3180" />
         <source>删除注音失败</source>
         <translation>Failed to delete ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3224" />
+        <location filename="..\..\editor\timing_interface.py" line="3257" />
         <source>所选类型范围内没有需要删除的节奏点</source>
         <translation>No checkpoints to delete in selected types</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3258" />
+        <location filename="..\..\editor\timing_interface.py" line="3291" />
         <source>已删除 {n} 个字符的节奏点（类型: {labels}）</source>
         <translation>Deleted checkpoints of {n} characters (types: {labels})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9924" />
-        <location filename="..\..\editor\timing_interface.py" line="4409" />
-        <location filename="..\..\editor\timing_interface.py" line="3274" />
+        <location filename="..\..\editor\timing_interface.py" line="10273" />
+        <location filename="..\..\editor\timing_interface.py" line="4442" />
+        <location filename="..\..\editor\timing_interface.py" line="3307" />
         <source>未选中行</source>
         <translation>No line selected</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3275" />
+        <location filename="..\..\editor\timing_interface.py" line="3308" />
         <source>请先在歌词中选择要删除注音的行</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3288" />
+        <location filename="..\..\editor\timing_interface.py" line="3321" />
         <source>删除选中行注音（第 {line} 句）</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9989" />
-        <location filename="..\..\editor\timing_interface.py" line="4779" />
-        <location filename="..\..\editor\timing_interface.py" line="4495" />
-        <location filename="..\..\editor\timing_interface.py" line="3298" />
+        <location filename="..\..\editor\timing_interface.py" line="10338" />
+        <location filename="..\..\editor\timing_interface.py" line="4812" />
+        <location filename="..\..\editor\timing_interface.py" line="4528" />
+        <location filename="..\..\editor\timing_interface.py" line="3331" />
         <source>未选中字符</source>
         <translation>No character selected</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3299" />
+        <location filename="..\..\editor\timing_interface.py" line="3332" />
         <source>请先选择要删除注音的字符</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3309" />
+        <location filename="..\..\editor\timing_interface.py" line="3342" />
         <source>删除所选字符注音（{label}）</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3357" />
+        <location filename="..\..\editor\timing_interface.py" line="3390" />
         <source>所选范围内没有需要删除的注音</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3385" />
+        <location filename="..\..\editor\timing_interface.py" line="3418" />
         <source>已删除 {n} 个注音</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3507" />
-        <location filename="..\..\editor\timing_interface.py" line="3404" />
+        <location filename="..\..\editor\timing_interface.py" line="3540" />
+        <location filename="..\..\editor\timing_interface.py" line="3437" />
         <source>无演唱者</source>
         <translation>No singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3508" />
-        <location filename="..\..\editor\timing_interface.py" line="3405" />
+        <location filename="..\..\editor\timing_interface.py" line="3541" />
+        <location filename="..\..\editor\timing_interface.py" line="3438" />
         <source>项目中没有演唱者，请先添加演唱者</source>
         <translation>No singer in the project; please add one first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3477" />
+        <location filename="..\..\editor\timing_interface.py" line="3510" />
         <source>所选行的演唱者未发生变化</source>
         <translation>Singer of selected lines unchanged</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3694" />
-        <location filename="..\..\editor\timing_interface.py" line="3645" />
-        <location filename="..\..\editor\timing_interface.py" line="3487" />
+        <location filename="..\..\editor\timing_interface.py" line="3727" />
+        <location filename="..\..\editor\timing_interface.py" line="3678" />
+        <location filename="..\..\editor\timing_interface.py" line="3520" />
         <source>设置完成</source>
         <translation>Setup done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3488" />
+        <location filename="..\..\editor\timing_interface.py" line="3521" />
         <source>已为 {n} 行设置演唱者</source>
         <translation>Set singer for {n} lines</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3684" />
-        <location filename="..\..\editor\timing_interface.py" line="3636" />
+        <location filename="..\..\editor\timing_interface.py" line="3717" />
+        <location filename="..\..\editor\timing_interface.py" line="3669" />
         <source>所选字符的演唱者未发生变化</source>
         <translation>Singer of selected chars unchanged</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3695" />
-        <location filename="..\..\editor\timing_interface.py" line="3646" />
+        <location filename="..\..\editor\timing_interface.py" line="3728" />
+        <location filename="..\..\editor\timing_interface.py" line="3679" />
         <source>已为选中字符设置演唱者</source>
         <translation>Set singer for selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3830" />
+        <location filename="..\..\editor\timing_interface.py" line="3863" />
         <source>没有导唱待办</source>
         <translation>No guide-symbol TODOs</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3831" />
+        <location filename="..\..\editor\timing_interface.py" line="3864" />
         <source>项目中没有导唱待办标记。</source>
         <translation>There are no guide-symbol TODO markers in the project.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3874" />
+        <location filename="..\..\editor\timing_interface.py" line="3907" />
         <source>未填充导唱</source>
         <translation>No guides filled</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3875" />
+        <location filename="..\..\editor\timing_interface.py" line="3908" />
         <source>{n} 个导唱待办均无时间戳锚点或间隔无效，已全部跳过。</source>
         <translation>All {n} TODOs lack a timestamp anchor or have an invalid gap, and were skipped.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3910" />
+        <location filename="..\..\editor\timing_interface.py" line="3943" />
         <source>已填充 {filled} 处导唱。</source>
         <translation>Filled {filled} guide(s). </translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3912" />
+        <location filename="..\..\editor\timing_interface.py" line="3945" />
         <source>{n} 处因缺时间戳/间隔无效被跳过。</source>
         <translation>{n} skipped due to missing timestamp / invalid gap. </translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3914" />
+        <location filename="..\..\editor\timing_interface.py" line="3947" />
         <source>部分时间戳越界已自动设为0ms。</source>
         <translation>Some timestamps out of range were auto-set to 0ms.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3916" />
+        <location filename="..\..\editor\timing_interface.py" line="3949" />
         <source>填充完成</source>
         <translation>Fill complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3952" />
+        <location filename="..\..\editor\timing_interface.py" line="3985" />
         <source>未选择适用范围</source>
         <translation>No scope selected</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3953" />
+        <location filename="..\..\editor\timing_interface.py" line="3986" />
         <source>请至少选择一种字符类型</source>
         <translation>Please select at least one character type</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3967" />
+        <location filename="..\..\editor\timing_interface.py" line="4000" />
         <source>补全完成</source>
         <translation>Fill done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3968" />
+        <location filename="..\..\editor\timing_interface.py" line="4001" />
         <source>已为 {n} 个字符补全时间戳</source>
         <translation>Filled timestamps for {n} characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3977" />
+        <location filename="..\..\editor\timing_interface.py" line="4010" />
         <source>无需补全</source>
         <translation>Nothing to fill</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="3978" />
+        <location filename="..\..\editor\timing_interface.py" line="4011" />
         <source>没有找到需要补全时间戳的字符</source>
         <translation>No character needs timestamp fill</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4013" />
+        <location filename="..\..\editor\timing_interface.py" line="4046" />
         <source>未选择符号分组</source>
         <translation>No symbol group selected</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4014" />
+        <location filename="..\..\editor\timing_interface.py" line="4047" />
         <source>请至少选择一个符号分组</source>
         <translation>Please select at least one symbol group</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4030" />
+        <location filename="..\..\editor\timing_interface.py" line="4063" />
         <source>分离完成</source>
         <translation>Separation done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4031" />
+        <location filename="..\..\editor\timing_interface.py" line="4064" />
         <source>共处理 {total} 个符号（后补偿 {post} 个，前补偿 {pre} 个）</source>
         <translation>Processed {total} symbols (back-compensated {post}, forward-compensated {pre})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4041" />
+        <location filename="..\..\editor\timing_interface.py" line="4074" />
         <source>无需处理</source>
         <translation>Nothing to do</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4042" />
+        <location filename="..\..\editor\timing_interface.py" line="4075" />
         <source>没有找到符合条件的符号时间戳</source>
         <translation>No matching symbol timestamp found</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4068" />
+        <location filename="..\..\editor\timing_interface.py" line="4101" />
         <source>第 {line} 行「{text}」</source>
         <translation>Line {line} "{text}"</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4073" />
+        <location filename="..\..\editor\timing_interface.py" line="4106" />
         <source>
 ...另 {n} 行</source>
         <translation>
 ...{n} more lines</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4078" />
+        <location filename="..\..\editor\timing_interface.py" line="4111" />
         <source>打轴尚未完毕</source>
         <translation>Tagging not yet complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4079" />
+        <location filename="..\..\editor\timing_interface.py" line="4112" />
         <source>仅有 {done}/{total} 行完成打轴，继续可能导致生成结果不准确。
 
 是否仍要继续？</source>
@@ -3876,876 +3898,907 @@ Never — disable auto-scroll</translation>
 Continue anyway?</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4082" />
+        <location filename="..\..\editor\timing_interface.py" line="4115" />
         <source>仍要继续</source>
         <translation>Continue Anyway</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4116" />
+        <location filename="..\..\editor\timing_interface.py" line="4149" />
         <source>格式为空</source>
         <translation>Format is empty</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4117" />
+        <location filename="..\..\editor\timing_interface.py" line="4150" />
         <source>请输入间奏指引格式字符串</source>
         <translation>Please enter the interlude guide format string</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4156" />
+        <location filename="..\..\editor\timing_interface.py" line="4189" />
         <source>无符合条件的间隙</source>
         <translation>No matching gaps found</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4157" />
+        <location filename="..\..\editor\timing_interface.py" line="4190" />
         <source>未找到满足最小间隔时间的 is_sentence_end 字符</source>
         <translation>No is_sentence_end characters found satisfying the minimum interval</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4176" />
+        <location filename="..\..\editor\timing_interface.py" line="4209" />
         <source>自动生成间奏指引（{n} 处）</source>
         <translation>Auto-generate interlude guide ({n} places)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4193" />
+        <location filename="..\..\editor\timing_interface.py" line="4226" />
         <source>生成完成</source>
         <translation>Generation complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4194" />
+        <location filename="..\..\editor\timing_interface.py" line="4227" />
         <source>已生成 {n} 处间奏指引</source>
         <translation>Generated {n} interlude guides</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4266" />
+        <location filename="..\..\editor\timing_interface.py" line="4299" />
         <source>未插入导唱</source>
         <translation>No guide symbols inserted</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4267" />
+        <location filename="..\..\editor\timing_interface.py" line="4300" />
         <source>所选候选均已失效或参数不可执行，请重新扫描。</source>
         <translation>All selected candidates are stale or invalid. Please rescan.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4285" />
+        <location filename="..\..\editor\timing_interface.py" line="4318" />
         <source>自动插入导唱符（{n} 处）</source>
         <translation>Auto-insert guide symbols ({n} positions)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4307" />
+        <location filename="..\..\editor\timing_interface.py" line="4340" />
         <source>自动导唱完成</source>
         <translation>Auto-guide complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4308" />
+        <location filename="..\..\editor\timing_interface.py" line="4341" />
         <source>处理 {positions} 处，新增 {chars} 个字符，替换 {replaced} 处已有导唱，清理 {todos} 个待办，跳过 {skipped} 处。</source>
         <translation>Processed {positions} positions, added {chars} characters, replaced {replaced} existing guides, cleared {todos} pending markers, and skipped {skipped}.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4621" />
-        <location filename="..\..\editor\timing_interface.py" line="4463" />
-        <location filename="..\..\editor\timing_interface.py" line="4378" />
+        <location filename="..\..\editor\timing_interface.py" line="4654" />
+        <location filename="..\..\editor\timing_interface.py" line="4496" />
+        <location filename="..\..\editor\timing_interface.py" line="4411" />
         <source>已成功偏移 {delta:+d} ms</source>
         <translation>Shifted by {delta:+d} ms</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4623" />
-        <location filename="..\..\editor\timing_interface.py" line="4465" />
-        <location filename="..\..\editor\timing_interface.py" line="4380" />
+        <location filename="..\..\editor\timing_interface.py" line="4656" />
+        <location filename="..\..\editor\timing_interface.py" line="4498" />
+        <location filename="..\..\editor\timing_interface.py" line="4413" />
         <source>调整完成</source>
         <translation>Adjustment done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4381" />
+        <location filename="..\..\editor\timing_interface.py" line="4414" />
         <source>所有原始时间戳已整体偏移 {delta:+d} ms</source>
         <translation>All raw timestamps shifted by {delta:+d} ms</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4633" />
-        <location filename="..\..\editor\timing_interface.py" line="4476" />
-        <location filename="..\..\editor\timing_interface.py" line="4390" />
+        <location filename="..\..\editor\timing_interface.py" line="4666" />
+        <location filename="..\..\editor\timing_interface.py" line="4509" />
+        <location filename="..\..\editor\timing_interface.py" line="4423" />
         <source>无可调整的时间戳</source>
         <translation>No timestamp to adjust</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4410" />
+        <location filename="..\..\editor\timing_interface.py" line="4443" />
         <source>请先选中要调整的歌词行</source>
         <translation>Please select lines to adjust first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4422" />
+        <location filename="..\..\editor\timing_interface.py" line="4455" />
         <source>第 {n} 行</source>
         <translation>Line {n}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4513" />
-        <location filename="..\..\editor\timing_interface.py" line="4427" />
+        <location filename="..\..\editor\timing_interface.py" line="4546" />
+        <location filename="..\..\editor\timing_interface.py" line="4460" />
         <source>作用范围：{label}</source>
         <translation>Scope: {label}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4441" />
+        <location filename="..\..\editor\timing_interface.py" line="4474" />
         <source>目标行已失效</source>
         <translation>Target line is invalid</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4466" />
+        <location filename="..\..\editor\timing_interface.py" line="4499" />
         <source>第 {line} 行原始时间戳已整体偏移 {delta:+d} ms</source>
         <translation>Raw timestamps of line {line} shifted by {delta:+d} ms</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4496" />
+        <location filename="..\..\editor\timing_interface.py" line="4529" />
         <source>请先选择要调整的字符</source>
         <translation>Please select characters to adjust first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4571" />
+        <location filename="..\..\editor\timing_interface.py" line="4604" />
         <source>所选字符</source>
         <translation>Selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8037" />
-        <location filename="..\..\editor\timing_interface.py" line="4575" />
+        <location filename="..\..\editor\timing_interface.py" line="8193" />
+        <location filename="..\..\editor\timing_interface.py" line="4608" />
         <source>第 {line} 行 第 {char} 字</source>
         <translation>Line {line} char {char}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4576" />
+        <location filename="..\..\editor\timing_interface.py" line="4609" />
         <source>第 {line} 行 第 {s}-{e} 字</source>
         <translation>Line {line} chars {s}-{e}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4579" />
+        <location filename="..\..\editor\timing_interface.py" line="4612" />
         <source>{start} - {end} 行，共 {total} 字</source>
         <translation>Lines {start} - {end}, {total} chars</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4590" />
+        <location filename="..\..\editor\timing_interface.py" line="4623" />
         <source>选区已失效</source>
         <translation>Selection invalid</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4624" />
+        <location filename="..\..\editor\timing_interface.py" line="4657" />
         <source>所选字符原始时间戳已偏移 {delta:+d} ms</source>
         <translation>Raw timestamps of selected chars shifted by {delta:+d} ms</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4653" />
+        <location filename="..\..\editor\timing_interface.py" line="4686" />
         <source>删除所有时间戳</source>
         <translation>Delete all timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4654" />
+        <location filename="..\..\editor\timing_interface.py" line="4687" />
         <source>确定要删除所有时间戳吗？此操作可撤销。</source>
         <translation>Delete all timestamps? This can be undone.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4714" />
-        <location filename="..\..\editor\timing_interface.py" line="4655" />
+        <location filename="..\..\editor\timing_interface.py" line="4747" />
+        <location filename="..\..\editor\timing_interface.py" line="4688" />
         <source>删除</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4678" />
+        <location filename="..\..\editor\timing_interface.py" line="4711" />
         <source>已删除所有时间戳</source>
         <translation>All timestamps deleted</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4822" />
-        <location filename="..\..\editor\timing_interface.py" line="4753" />
-        <location filename="..\..\editor\timing_interface.py" line="4687" />
+        <location filename="..\..\editor\timing_interface.py" line="4855" />
+        <location filename="..\..\editor\timing_interface.py" line="4786" />
+        <location filename="..\..\editor\timing_interface.py" line="4720" />
         <source>无时间戳</source>
         <translation>No timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4754" />
-        <location filename="..\..\editor\timing_interface.py" line="4688" />
+        <location filename="..\..\editor\timing_interface.py" line="4787" />
+        <location filename="..\..\editor\timing_interface.py" line="4721" />
         <source>当前项目没有需要删除的时间戳</source>
         <translation>No timestamps to delete in this project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4712" />
+        <location filename="..\..\editor\timing_interface.py" line="4745" />
         <source>删除所有时间戳（保留行首）</source>
         <translation>Delete all timestamps (keep line start)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4713" />
+        <location filename="..\..\editor\timing_interface.py" line="4746" />
         <source>确定要删除所有时间戳（保留行首）吗？此操作可撤销。</source>
         <translation>Delete all timestamps (keep line start)? This can be undone.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4744" />
+        <location filename="..\..\editor\timing_interface.py" line="4777" />
         <source>已删除所有时间戳（保留行首）</source>
         <translation>All timestamps deleted (line starts kept)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4780" />
+        <location filename="..\..\editor\timing_interface.py" line="4813" />
         <source>请先选择要删除时间戳的字符</source>
         <translation>Please select characters to delete timestamps from</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4813" />
+        <location filename="..\..\editor\timing_interface.py" line="4846" />
         <source>{scope} 的时间戳已删除</source>
         <translation>Timestamps of {scope} deleted</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="4823" />
+        <location filename="..\..\editor\timing_interface.py" line="4856" />
         <source>{scope} 没有需要删除的时间戳</source>
         <translation>No timestamps to delete in {scope}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5373" />
+        <location filename="..\..\editor\timing_interface.py" line="5409" />
         <source>演唱者已更新</source>
         <translation>Singer updated</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5374" />
+        <location filename="..\..\editor\timing_interface.py" line="5410" />
         <source>已将第 {line} 行第 {start}~{end} 字的演唱者更改</source>
         <translation>Changed singer for chars {start}~{end} of line {line}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5401" />
+        <location filename="..\..\editor\timing_interface.py" line="5437" />
         <source>正在加载音频</source>
         <translation>Loading audio</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5401" />
+        <location filename="..\..\editor\timing_interface.py" line="5437" />
         <source>正在读取音频文件...</source>
         <translation>Reading audio file...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5463" />
+        <location filename="..\..\editor\timing_interface.py" line="5499" />
         <source>加载完成</source>
         <translation>Loaded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5526" />
+        <location filename="..\..\editor\timing_interface.py" line="5562" />
         <source>音频已加载</source>
         <translation>Audio loaded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5643" />
+        <location filename="..\..\editor\timing_interface.py" line="5679" />
         <source>偏移已对齐首音</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5645" />
+        <location filename="..\..\editor\timing_interface.py" line="5681" />
         <source>高</source>
         <translation>High</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5646" />
+        <location filename="..\..\editor\timing_interface.py" line="5682" />
         <source>中</source>
         <translation>Medium</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5646" />
+        <location filename="..\..\editor\timing_interface.py" line="5682" />
         <source>低</source>
         <translation>Low</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5649" />
+        <location filename="..\..\editor\timing_interface.py" line="5685" />
         <source>BPM 自动识别</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5650" />
+        <location filename="..\..\editor\timing_interface.py" line="5686" />
         <source>置信度</source>
         <translation>Confidence: </translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5666" />
+        <location filename="..\..\editor\timing_interface.py" line="5702" />
         <source>加载失败</source>
         <translation>Load failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5701" />
+        <location filename="..\..\editor\timing_interface.py" line="5737" />
         <source>模式：打轴</source>
         <translation>Mode: Timing</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5786" />
+        <location filename="..\..\editor\timing_interface.py" line="5822" />
         <source>取消播放区间起点</source>
         <translation>Clear Playback Range Start</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5799" />
+        <location filename="..\..\editor\timing_interface.py" line="5835" />
         <source>锁定播放区间起点</source>
         <translation>Lock Playback Range Start</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5809" />
+        <location filename="..\..\editor\timing_interface.py" line="5845" />
         <source>取消播放区间终点</source>
         <translation>Clear Playback Range End</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5822" />
+        <location filename="..\..\editor\timing_interface.py" line="5858" />
         <source>锁定播放区间终点</source>
         <translation>Lock Playback Range End</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5827" />
+        <location filename="..\..\editor\timing_interface.py" line="5863" />
         <source>无法锁定播放区间</source>
         <translation>Cannot Lock Playback Range</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="5828" />
+        <location filename="..\..\editor\timing_interface.py" line="5864" />
         <source>终点必须晚于起点</source>
         <translation>The end must be later than the start</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="6306" />
+        <location filename="..\..\editor\timing_interface.py" line="6284" />
+        <source>校验时间戳（截断超长 timestamps）</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\timing_interface.py" line="6419" />
         <source>拖动时间标签</source>
         <translation>Drag time tag</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="6427" />
+        <location filename="..\..\editor\timing_interface.py" line="6540" />
         <source>注音已更新</source>
         <translation>Ruby Updated</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="6428" />
+        <location filename="..\..\editor\timing_interface.py" line="6541" />
         <source>已应用「{char}」的注音</source>
         <translation>Applied ruby to '{char}'</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7023" />
+        <location filename="..\..\editor\timing_interface.py" line="7177" />
         <source>F3连词暂不允许多行选择</source>
         <translation>F3 word-link does not yet support multi-line selection</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7064" />
+        <location filename="..\..\editor\timing_interface.py" line="7218" />
         <source>无法连词</source>
         <translation>Cannot link</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7065" />
+        <location filename="..\..\editor\timing_interface.py" line="7219" />
         <source>已是最后一个字符</source>
         <translation>Already at the last character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7134" />
-        <location filename="..\..\editor\timing_interface.py" line="7097" />
+        <location filename="..\..\editor\timing_interface.py" line="7288" />
+        <location filename="..\..\editor\timing_interface.py" line="7251" />
         <source>连词</source>
         <translation>Link</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7134" />
-        <location filename="..\..\editor\timing_interface.py" line="7097" />
+        <location filename="..\..\editor\timing_interface.py" line="7288" />
+        <location filename="..\..\editor\timing_interface.py" line="7251" />
         <source>取消连词</source>
         <translation>Unlink</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7099" />
+        <location filename="..\..\editor\timing_interface.py" line="7253" />
         <source>已连接「{a}」与「{b}」</source>
         <translation>Linked '{a}' and '{b}'</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7100" />
+        <location filename="..\..\editor\timing_interface.py" line="7254" />
         <source>已断开「{a}」与「{b}」</source>
         <translation>Unlinked '{a}' and '{b}'</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7136" />
+        <location filename="..\..\editor\timing_interface.py" line="7290" />
         <source>已将第 {line} 句 第 {s}-{e} 字连为一个词</source>
         <translation>Linked chars {s}-{e} of line {line} into one word</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="7138" />
+        <location filename="..\..\editor\timing_interface.py" line="7292" />
         <source>已断开第 {line} 句 第 {s}-{e} 字的连词</source>
         <translation>Unlinked chars {s}-{e} of line {line}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8040" />
+        <location filename="..\..\editor\timing_interface.py" line="8196" />
         <source>
 ...另 {n} 处</source>
         <translation>
 ...{n} more</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8043" />
+        <location filename="..\..\editor\timing_interface.py" line="8199" />
         <source>仍有导唱待办未处理</source>
         <translation>Some guide-symbol TODOs remain</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8044" />
+        <location filename="..\..\editor\timing_interface.py" line="8200" />
         <source>还剩 {n} 个标记点未添加导唱符。</source>
         <translation>{n} markers still missing a guide symbol.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8048" />
+        <location filename="..\..\editor\timing_interface.py" line="8204" />
         <source>继续导出</source>
         <translation>Continue exporting</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8138" />
-        <location filename="..\..\editor\timing_interface.py" line="8078" />
+        <location filename="..\..\editor\timing_interface.py" line="8294" />
+        <location filename="..\..\editor\timing_interface.py" line="8234" />
         <source>导出失败</source>
         <translation>Export failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8079" />
+        <location filename="..\..\editor\timing_interface.py" line="8235" />
         <source>未知的导出格式: {fmt}</source>
         <translation>Unknown export format: {fmt}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8108" />
+        <location filename="..\..\editor\timing_interface.py" line="8264" />
         <source>快捷导出</source>
         <translation>Quick export</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8128" />
+        <location filename="..\..\editor\timing_interface.py" line="8284" />
         <source>导出成功</source>
         <translation>Exported</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8139" />
+        <location filename="..\..\editor\timing_interface.py" line="8295" />
         <source>未知错误</source>
         <translation>Unknown error</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8733" />
+        <location filename="..\..\editor\timing_interface.py" line="8355" />
+        <source>界面卡顿</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\timing_interface.py" line="8356" />
+        <source>检测到界面卡顿超过 500ms，打轴时间可能存在偏差</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\timing_interface.py" line="8936" />
         <source>始终滚动</source>
         <translation>Always scroll</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8735" />
+        <location filename="..\..\editor\timing_interface.py" line="8938" />
         <source>从不滚动</source>
         <translation>Never scroll</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8967" />
+        <location filename="..\..\editor\timing_interface.py" line="9170" />
         <source>操作失败</source>
         <translation>Operation failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="8999" />
+        <location filename="..\..\editor\timing_interface.py" line="9202" />
         <source>停顿点{m:02d}:{s:02d}.{ms:03d}</source>
         <translation>Pause point {m:02d}:{s:02d}.{ms:03d}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9001" />
+        <location filename="..\..\editor\timing_interface.py" line="9204" />
         <source> | 字 {n}/{total} | 「{ch}」 {tags}</source>
         <translation> | char {n}/{total} | '{ch}' {tags}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9004" />
+        <location filename="..\..\editor\timing_interface.py" line="9207" />
         <source> | 字 {n}/{total} | 「{ch}」 未打轴</source>
         <translation> | char {n}/{total} | '{ch}' untagged</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9006" />
+        <location filename="..\..\editor\timing_interface.py" line="9209" />
         <source>行 {idx}/{total}: {preview}{char_info}</source>
         <translation>Line {idx}/{total}: {preview}{char_info}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9107" />
+        <location filename="..\..\editor\timing_interface.py" line="9310" />
         <source>行: {total} | 已打轴: {timed}/{total_again} ({pct}%)</source>
         <translation>Lines: {total} | Tagged: {timed}/{total_again} ({pct}%)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9115" />
+        <location filename="..\..\editor\timing_interface.py" line="9318" />
         <source>待添加导唱符：{n}</source>
         <translation>Guide symbols to add: {n}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9797" />
-        <location filename="..\..\editor\timing_interface.py" line="9239" />
+        <location filename="..\..\editor\timing_interface.py" line="10146" />
+        <location filename="..\..\editor\timing_interface.py" line="9442" />
         <source>正在分析注音</source>
         <translation>Analyzing ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9841" />
-        <location filename="..\..\editor\timing_interface.py" line="9281" />
+        <location filename="..\..\editor\timing_interface.py" line="10190" />
+        <location filename="..\..\editor\timing_interface.py" line="9484" />
         <source>LLM 注音失败，已回退本地引擎</source>
         <translation>LLM ruby failed, fell back to local engine</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9327" />
-        <location filename="..\..\editor\timing_interface.py" line="9317" />
+        <location filename="..\..\editor\timing_interface.py" line="9530" />
+        <location filename="..\..\editor\timing_interface.py" line="9520" />
         <source>注音分析完成</source>
         <translation>Ruby analysis done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9318" />
+        <location filename="..\..\editor\timing_interface.py" line="9521" />
         <source>已重新分析注音，并自动删除了 {n} 个注音</source>
         <translation>Ruby re-analyzed; auto-deleted {n} ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9328" />
+        <location filename="..\..\editor\timing_interface.py" line="9531" />
         <source>已重新分析注音</source>
         <translation>Ruby re-analyzed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9340" />
+        <location filename="..\..\editor\timing_interface.py" line="9543" />
         <source>注音分析失败</source>
         <translation>Ruby analysis failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9350" />
+        <location filename="..\..\editor\timing_interface.py" line="9553" />
         <source>正在等待 LLM 返回…（整首歌词一次性发送，请稍候）</source>
         <translation>Waiting for LLM response… (the whole lyrics is sent at once; please wait)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9377" />
+        <location filename="..\..\editor\timing_interface.py" line="9580" />
         <source>（分析后会重算节奏点）</source>
         <translation> (checkpoints recalculated after analysis)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9379" />
+        <location filename="..\..\editor\timing_interface.py" line="9582" />
         <source>（保留现有节奏点不动）</source>
         <translation> (existing checkpoints kept unchanged)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9383" />
+        <location filename="..\..\editor\timing_interface.py" line="9586" />
         <source>自动分析全部注音</source>
         <translation>Auto-analyze all ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9384" />
+        <location filename="..\..\editor\timing_interface.py" line="9587" />
         <source>请选择分析范围：</source>
         <translation>Please choose the analysis scope:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9387" />
+        <location filename="..\..\editor\timing_interface.py" line="9590" />
         <source>「全部重新分析」会覆盖现有注音。
 「仅分析未注音字符」会保留已有的人工/字典注音。</source>
         <translation>'Re-analyze all' overwrites existing ruby.
 'Only un-rubied' keeps existing manual/dictionary ruby.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9391" />
+        <location filename="..\..\editor\timing_interface.py" line="9594" />
         <source>全部重新分析</source>
         <translation>Re-analyze all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9391" />
+        <location filename="..\..\editor\timing_interface.py" line="9594" />
         <source>仅分析未注音字符</source>
         <translation>Only analyze un-rubied characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9437" />
+        <location filename="..\..\editor\timing_interface.py" line="9786" />
+        <location filename="..\..\editor\timing_interface.py" line="9640" />
         <source>缺少依赖</source>
         <translation>Missing dependency</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9461" />
+        <location filename="..\..\editor\timing_interface.py" line="9664" />
         <source>正在拼音注音</source>
         <translation>Annotating Pinyin</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9527" />
+        <location filename="..\..\editor\timing_interface.py" line="9730" />
         <source>拼音注音失败</source>
         <translation>Pinyin annotation failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9592" />
+        <location filename="..\..\editor\timing_interface.py" line="9810" />
+        <source>正在片假名注音</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\timing_interface.py" line="9876" />
+        <source>片假名注音失败</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\timing_interface.py" line="9941" />
         <source>正在韩文注音</source>
         <translation>Annotating Korean readings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9658" />
+        <location filename="..\..\editor\timing_interface.py" line="10007" />
         <source>韩文注音失败</source>
         <translation>Korean annotation failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9797" />
+        <location filename="..\..\editor\timing_interface.py" line="10146" />
         <source>正在初始化…</source>
         <translation>Initializing…</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9871" />
+        <location filename="..\..\editor\timing_interface.py" line="10220" />
         <source>{label}完成</source>
         <translation>{label} done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9872" />
+        <location filename="..\..\editor\timing_interface.py" line="10221" />
         <source>已分析所选范围的注音</source>
         <translation>Analyzed ruby for the selected range</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9886" />
+        <location filename="..\..\editor\timing_interface.py" line="10235" />
         <source>{label}失败</source>
         <translation>{label} failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9897" />
+        <location filename="..\..\editor\timing_interface.py" line="10246" />
         <source>正在等待 LLM 返回…（本批内容一次性发送，请稍候）</source>
         <translation>Waiting for the LLM response… (this batch is sent all at once; please wait)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9925" />
+        <location filename="..\..\editor\timing_interface.py" line="10274" />
         <source>请先在歌词中选择要分析的行</source>
         <translation>Please select lines to analyze in the lyrics first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="9990" />
+        <location filename="..\..\editor\timing_interface.py" line="10339" />
         <source>请先选择要分析的字符</source>
         <translation>Please select characters to analyze first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10076" />
+        <location filename="..\..\editor\timing_interface.py" line="10425" />
         <source>正在转换罗马字注音</source>
         <translation>Converting ruby to romaji</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10113" />
+        <location filename="..\..\editor\timing_interface.py" line="10462" />
         <source>没有可转为罗马字的注音或单假名</source>
         <translation>No ruby or standalone kana to romanize</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10145" />
+        <location filename="..\..\editor\timing_interface.py" line="10494" />
         <source>已转为罗马字注音</source>
         <translation>Converted to romaji ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10146" />
+        <location filename="..\..\editor\timing_interface.py" line="10495" />
         <source>共处理 {n} 行</source>
         <translation>Processed {n} lines</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing_interface.py" line="10158" />
+        <location filename="..\..\editor\timing_interface.py" line="10507" />
         <source>罗马字转换失败</source>
         <translation>Romaji conversion failed</translation>
     </message>
 </context><context>
     <name>EditorToolBar</name>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="87" />
+        <location filename="..\..\editor\timing\toolbar.py" line="88" />
         <source>文件管理</source>
         <translation>File</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="97" />
+        <location filename="..\..\editor\timing\toolbar.py" line="98" />
         <source>编辑管理</source>
         <translation>Edit</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="102" />
+        <location filename="..\..\editor\timing\toolbar.py" line="103" />
         <source>修改所选字符</source>
         <translation>Modify selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="103" />
+        <location filename="..\..\editor\timing\toolbar.py" line="104" />
         <source>批量变更</source>
         <translation>Bulk change</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="104" />
+        <location filename="..\..\editor\timing\toolbar.py" line="105" />
         <source>修改选中行</source>
         <translation>Modify selected line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="106" />
+        <location filename="..\..\editor\timing\toolbar.py" line="107" />
         <source>插入导唱符</source>
         <translation>Guide</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="107" />
+        <location filename="..\..\editor\timing\toolbar.py" line="108" />
         <source>自动插入导唱符</source>
         <translation>Automatically Insert Guide-Vocal Markers</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="114" />
+        <location filename="..\..\editor\timing\toolbar.py" line="115" />
         <source>自动注音管理</source>
         <translation>Ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="120" />
+        <location filename="..\..\editor\timing\toolbar.py" line="121" />
         <source>全部 · 含节奏点</source>
         <translation>All · with checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="121" />
+        <location filename="..\..\editor\timing\toolbar.py" line="122" />
         <source>按行 · 含节奏点</source>
         <translation>Per line · with checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="122" />
+        <location filename="..\..\editor\timing\toolbar.py" line="123" />
         <source>所选 · 含节奏点</source>
         <translation>Selection · with checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="125" />
+        <location filename="..\..\editor\timing\toolbar.py" line="126" />
         <source>全部 · 仅注音</source>
         <translation>All · ruby only</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="126" />
+        <location filename="..\..\editor\timing\toolbar.py" line="127" />
         <source>按行 · 仅注音</source>
         <translation>Per line · ruby only</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="127" />
+        <location filename="..\..\editor\timing\toolbar.py" line="128" />
         <source>所选 · 仅注音</source>
         <translation>Selection · ruby only</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="130" />
+        <location filename="..\..\editor\timing\toolbar.py" line="131" />
         <source>全部转为罗马字</source>
         <translation>Convert all to romaji</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="132" />
+        <location filename="..\..\editor\timing\toolbar.py" line="133" />
         <source>按类型删除注音</source>
         <translation>Delete ruby by type</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="133" />
+        <location filename="..\..\editor\timing\toolbar.py" line="134" />
         <source>删除选中行注音</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="134" />
+        <location filename="..\..\editor\timing\toolbar.py" line="135" />
         <source>删除所选字符注音</source>
         <translation type="unfinished" />
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="135" />
+        <location filename="..\..\editor\timing\toolbar.py" line="136" />
         <source>按类型删除节奏点</source>
         <translation>Delete checkpoints by type</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="137" />
+        <location filename="..\..\editor\timing\toolbar.py" line="138" />
         <source>中文拼音注音</source>
         <translation>Chinese Pinyin annotation</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="138" />
+        <location filename="..\..\editor\timing\toolbar.py" line="139" />
+        <source>中文片假名注音</source>
+        <translation>Chinese Katakana annotation</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\timing\toolbar.py" line="140" />
         <source>韩文注音</source>
         <translation>Korean reading annotation</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="143" />
+        <location filename="..\..\editor\timing\toolbar.py" line="145" />
         <source>演唱者相关</source>
         <translation>Singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="148" />
+        <location filename="..\..\editor\timing\toolbar.py" line="150" />
         <source>演唱者管理</source>
         <translation>Singer manager</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="149" />
+        <location filename="..\..\editor\timing\toolbar.py" line="151" />
         <source>应用演唱者</source>
         <translation>Apply singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="150" />
+        <location filename="..\..\editor\timing\toolbar.py" line="152" />
         <source>按行设置演唱者</source>
         <translation>Set singer per line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="155" />
+        <location filename="..\..\editor\timing\toolbar.py" line="157" />
         <source>全文本编辑</source>
         <translation>Full text</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="163" />
+        <location filename="..\..\editor\timing\toolbar.py" line="165" />
         <source>时间戳工具</source>
         <translation>Timestamp Tools</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="168" />
+        <location filename="..\..\editor\timing\toolbar.py" line="170" />
         <source>补全时间戳</source>
         <translation>Fill timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="169" />
+        <location filename="..\..\editor\timing\toolbar.py" line="171" />
         <source>分离符号时间戳</source>
         <translation>Separate symbol timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="171" />
+        <location filename="..\..\editor\timing\toolbar.py" line="173" />
         <source>调整原始时间戳</source>
         <translation>Adjust raw timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="172" />
+        <location filename="..\..\editor\timing\toolbar.py" line="174" />
         <source>按行调整原始时间戳</source>
         <translation>Adjust raw timestamps per line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="173" />
+        <location filename="..\..\editor\timing\toolbar.py" line="175" />
         <source>调整所选字符原始时间戳</source>
         <translation>Adjust raw timestamps of selected chars</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="175" />
+        <location filename="..\..\editor\timing\toolbar.py" line="177" />
         <source>删除所有时间戳</source>
         <translation>Delete all timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="176" />
+        <location filename="..\..\editor\timing\toolbar.py" line="178" />
         <source>删除所有时间戳（保留行首）</source>
         <translation>Delete all timestamps (keep line start)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="178" />
+        <location filename="..\..\editor\timing\toolbar.py" line="180" />
         <source>删除所选范围时间戳</source>
         <translation>Delete timestamps in selection</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="180" />
+        <location filename="..\..\editor\timing\toolbar.py" line="182" />
         <source>自动生成间奏指引</source>
         <translation>Auto-Generate Interlude Guide</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="185" />
+        <location filename="..\..\editor\timing\toolbar.py" line="187" />
         <source>AI 打轴</source>
         <translation>AI Timing</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="195" />
+        <location filename="..\..\editor\timing\toolbar.py" line="197" />
         <source>全局偏移:</source>
         <translation>Offset:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="212" />
+        <location filename="..\..\editor\timing\toolbar.py" line="214" />
         <source>新建项目</source>
         <translation>New project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="213" />
+        <location filename="..\..\editor\timing\toolbar.py" line="215" />
         <source>加载项目</source>
         <translation>Load project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="214" />
+        <location filename="..\..\editor\timing\toolbar.py" line="216" />
         <source>最近打开的文件</source>
         <translation>Recent Files</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="218" />
+        <location filename="..\..\editor\timing\toolbar.py" line="220" />
         <source>保存项目</source>
         <translation>Save project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="219" />
+        <location filename="..\..\editor\timing\toolbar.py" line="221" />
         <source>项目另存为</source>
         <translation>Save project as</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="221" />
-        <source>加载音频</source>
-        <translation>Load audio</translation>
-    </message>
-    <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="222" />
+        <location filename="..\..\editor\timing\toolbar.py" line="223" />
         <source>加载歌词</source>
         <translation>Load lyrics</translation>
     </message>
     <message>
         <location filename="..\..\editor\timing\toolbar.py" line="224" />
+        <source>加载音频</source>
+        <translation>Load audio</translation>
+    </message>
+    <message>
+        <location filename="..\..\editor\timing\toolbar.py" line="226" />
         <source>多项目拼接</source>
         <translation>Multi-Project Concat</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="261" />
+        <location filename="..\..\editor\timing\toolbar.py" line="263" />
         <source>清除最近打开记录</source>
         <translation>Clear Recent Files</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\toolbar.py" line="266" />
+        <location filename="..\..\editor\timing\toolbar.py" line="268" />
         <source>暂无最近打开的文件</source>
         <translation>No Recent Files</translation>
     </message>
@@ -4874,343 +4927,393 @@ Zoom defaults to 100% (subtitle size); Zoom allows 10%~500%; Fix keeps original 
 </context><context>
     <name>ExportInterface</name>
     <message>
-        <location filename="..\..\export\export_interface.py" line="381" />
-        <location filename="..\..\export\export_interface.py" line="188" />
+        <location filename="..\..\export\export_interface.py" line="1464" />
+        <location filename="..\..\export\export_interface.py" line="183" />
+        <source>取消导出</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1486" />
+        <location filename="..\..\export\export_interface.py" line="391" />
+        <location filename="..\..\export\export_interface.py" line="198" />
         <source>导出</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="191" />
+        <location filename="..\..\export\export_interface.py" line="201" />
         <source>将项目导出为多种歌词格式</source>
         <translation>Export project to various lyrics formats</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="204" />
+        <location filename="..\..\export\export_interface.py" line="214" />
         <source>选择导出格式</source>
         <translation>Choose export format</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="219" />
+        <location filename="..\..\export\export_interface.py" line="229" />
         <source>导出设置</source>
         <translation>Export settings</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="255" />
+        <location filename="..\..\export\export_interface.py" line="265" />
         <source>输出路径</source>
         <translation>Output path</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="260" />
+        <location filename="..\..\export\export_interface.py" line="270" />
         <source>选择导出目录...</source>
         <translation>Choose export directory...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="264" />
+        <location filename="..\..\export\export_interface.py" line="274" />
         <source>浏览...</source>
         <translation>Browse...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="271" />
+        <location filename="..\..\export\export_interface.py" line="281" />
         <source>文件名（不含扩展名）</source>
         <translation>Filename (no extension)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="282" />
+        <location filename="..\..\export\export_interface.py" line="292" />
         <source>导出罗马音</source>
         <translation>Export Romaji</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="284" />
+        <location filename="..\..\export\export_interface.py" line="294" />
         <source>勾选时输出假名与罗马音双注音；不勾选时仅输出假名注音</source>
         <translation>When enabled, export both kana and romaji ruby; when disabled, export kana ruby only</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="288" />
+        <location filename="..\..\export\export_interface.py" line="298" />
         <source>跳转到设置</source>
         <translation>Go to settings</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="302" />
+        <location filename="..\..\export\export_interface.py" line="312" />
         <source>Nicokara 标签设置...</source>
         <translation>Nicokara tag settings...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="310" />
+        <location filename="..\..\export\export_interface.py" line="320" />
         <source>导出字幕分组</source>
         <translation>Export subtitle groups</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="332" />
+        <location filename="..\..\export\export_interface.py" line="342" />
         <source>修改分组...</source>
         <translation>Edit groups...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="335" />
+        <location filename="..\..\export\export_interface.py" line="345" />
         <source>打开导出字幕分组编辑器：按组勾选演唱者（分色）、命名分组、指定主分组。存在 1 个以上分组时，导出将按组拆分为多个文件（文件名追加 _分组名）；主分组的文件携带完整标签信息</source>
         <translation>Open the subtitle grouping editor: check singers (colors) per group, name groups, and pick the primary group. With more than one group, export splits into one file per group (filename gets _GroupName appended); the primary group's file carries the full tag info</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="568" />
-        <location filename="..\..\export\export_interface.py" line="344" />
+        <location filename="..\..\export\export_interface.py" line="578" />
+        <location filename="..\..\export\export_interface.py" line="354" />
         <source>插入【演唱者名】标签</source>
         <translation>Insert [singer name] tag</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="571" />
-        <location filename="..\..\export\export_interface.py" line="346" />
+        <location filename="..\..\export\export_interface.py" line="581" />
+        <location filename="..\..\export\export_interface.py" line="356" />
         <source>导出时，当演唱者发生变化，在字符前自动插入演唱者名称标签</source>
         <translation>On export, insert singer-name tag before chars where the singer changes</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="350" />
+        <location filename="..\..\export\export_interface.py" line="360" />
         <source>-&gt;每行行首都插入演唱者</source>
         <translation>-&gt;Insert singer at start of every line</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="574" />
-        <location filename="..\..\export\export_interface.py" line="352" />
+        <location filename="..\..\export\export_interface.py" line="584" />
+        <location filename="..\..\export\export_interface.py" line="362" />
         <source>每一行开头都插入演唱者名称标签（需先启用「插入【演唱者名】标签」）</source>
         <translation>Insert singer-name tag at the start of every line (enable 'Insert [singer name] tag' first)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="361" />
+        <location filename="..\..\export\export_interface.py" line="371" />
         <source>分色标签设置助手...</source>
         <translation>Color tag setup helper...</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="363" />
+        <location filename="..\..\export\export_interface.py" line="373" />
         <source>为每位演唱者配置 @Emoji 分色标签，配置后自动写入 Nicokara 标签的自定义字段</source>
         <translation>Configure @Emoji color tags per singer; auto-written to Nicokara custom tag field</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="390" />
+        <location filename="..\..\export\export_interface.py" line="400" />
         <source>进入下一步</source>
         <translation>Go to Next Step</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="395" />
+        <location filename="..\..\export\export_interface.py" line="405" />
         <source>把项目送往宿主的下一步；已配置导出字幕分组时，宿主按分组拆分多个轴</source>
         <translation>Send the project to the host's next step; when subtitle groups are configured, the host splits them into multiple axes</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="478" />
+        <location filename="..\..\export\export_interface.py" line="488" />
         <source>LRC (增强型)</source>
         <translation>LRC (enhanced)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="479" />
+        <location filename="..\..\export\export_interface.py" line="489" />
         <source>LRC (逐行)</source>
         <translation>LRC (per line)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="480" />
+        <location filename="..\..\export\export_interface.py" line="490" />
         <source>LRC (逐字)</source>
         <translation>LRC (per character)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="481" />
+        <location filename="..\..\export\export_interface.py" line="491" />
         <source>Nicokara (带注音)</source>
         <translation>Nicokara (with ruby)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="482" />
+        <location filename="..\..\export\export_interface.py" line="492" />
         <source>RL 编辑模式</source>
         <translation>RL Editor Mode</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="483" />
+        <location filename="..\..\export\export_interface.py" line="493" />
         <source>春日向注音</source>
         <translation>Kasugamuki Ruby</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="558" />
+        <location filename="..\..\export\export_interface.py" line="568" />
         <source>插入【@演唱者名】标签</source>
         <translation>Insert [@Singer Name] Tags</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="561" />
+        <location filename="..\..\export\export_interface.py" line="571" />
         <source>导出时，当演唱者发生变化，在字符前自动插入【@演唱者名】标签</source>
         <translation>When the singer changes during export, automatically insert an [@Singer Name] tag before the character</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="564" />
+        <location filename="..\..\export\export_interface.py" line="574" />
         <source>每一行开头都插入【@演唱者名】标签（需先启用演唱者标签）</source>
         <translation>Insert an [@Singer Name] tag at the start of every line (singer tags must be enabled)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="797" />
-        <location filename="..\..\export\export_interface.py" line="750" />
+        <location filename="..\..\export\export_interface.py" line="807" />
+        <location filename="..\..\export\export_interface.py" line="760" />
         <source>未分组：导出全部演唱者</source>
         <translation>No groups: export all singers</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="887" />
-        <location filename="..\..\export\export_interface.py" line="756" />
+        <location filename="..\..\export\export_interface.py" line="897" />
+        <location filename="..\..\export\export_interface.py" line="766" />
         <source>未知</source>
         <translation>Unknown</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="761" />
+        <location filename="..\..\export\export_interface.py" line="771" />
         <source>全部</source>
         <translation>all</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="764" />
+        <location filename="..\..\export\export_interface.py" line="774" />
         <source>共 {n} 组：{parts}</source>
         <translation>{n} group(s): {parts}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="815" />
-        <location filename="..\..\export\export_interface.py" line="773" />
+        <location filename="..\..\export\export_interface.py" line="825" />
+        <location filename="..\..\export\export_interface.py" line="783" />
         <source>未入组（不进入任何轴）：{names}</source>
         <translation>Unassigned (excluded from every axis): {names}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="872" />
+        <location filename="..\..\export\export_interface.py" line="882" />
         <source>主分组</source>
         <translation>Primary group</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1166" />
-        <location filename="..\..\export\export_interface.py" line="973" />
+        <location filename="..\..\export\export_interface.py" line="1181" />
+        <location filename="..\..\export\export_interface.py" line="983" />
         <source>选择导出目录</source>
         <translation>Choose export directory</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1135" />
-        <location filename="..\..\export\export_interface.py" line="1120" />
-        <location filename="..\..\export\export_interface.py" line="1061" />
-        <location filename="..\..\export\export_interface.py" line="1005" />
+        <location filename="..\..\export\export_interface.py" line="1150" />
+        <location filename="..\..\export\export_interface.py" line="1130" />
+        <location filename="..\..\export\export_interface.py" line="1071" />
+        <location filename="..\..\export\export_interface.py" line="1015" />
         <source>无项目</source>
         <translation>No project</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1136" />
-        <location filename="..\..\export\export_interface.py" line="1121" />
-        <location filename="..\..\export\export_interface.py" line="1062" />
-        <location filename="..\..\export\export_interface.py" line="1006" />
+        <location filename="..\..\export\export_interface.py" line="1151" />
+        <location filename="..\..\export\export_interface.py" line="1131" />
+        <location filename="..\..\export\export_interface.py" line="1072" />
+        <location filename="..\..\export\export_interface.py" line="1016" />
         <source>请先创建或打开项目</source>
         <translation>Please create or open a project first</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1074" />
-        <location filename="..\..\export\export_interface.py" line="1023" />
+        <location filename="..\..\export\export_interface.py" line="1084" />
+        <location filename="..\..\export\export_interface.py" line="1033" />
         <source>无演唱者</source>
         <translation>No singer</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1075" />
-        <location filename="..\..\export\export_interface.py" line="1024" />
+        <location filename="..\..\export\export_interface.py" line="1085" />
+        <location filename="..\..\export\export_interface.py" line="1034" />
         <source>项目中没有可用的演唱者</source>
         <translation>No singer available in the project</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1148" />
+        <location filename="..\..\export\export_interface.py" line="1163" />
         <source>未选择格式</source>
         <translation>No format selected</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1149" />
+        <location filename="..\..\export\export_interface.py" line="1164" />
         <source>请选择导出格式</source>
         <translation>Please choose an export format</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1180" />
+        <location filename="..\..\export\export_interface.py" line="1195" />
         <source>第 {line} 行 第 {char} 字</source>
         <translation>Line {line} char {char}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1184" />
+        <location filename="..\..\export\export_interface.py" line="1199" />
         <source>
 ...另 {n} 处</source>
         <translation>
 ...{n} more</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1190" />
+        <location filename="..\..\export\export_interface.py" line="1205" />
         <source>仍有导唱待办未处理</source>
         <translation>Some guide-symbol TODOs remain</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1191" />
+        <location filename="..\..\export\export_interface.py" line="1206" />
         <source>还剩 {n} 个标记点未添加导唱符。</source>
         <translation>{n} markers still missing a guide symbol.</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1195" />
+        <location filename="..\..\export\export_interface.py" line="1210" />
         <source>继续导出</source>
         <translation>Continue exporting</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1366" />
-        <location filename="..\..\export\export_interface.py" line="1299" />
-        <location filename="..\..\export\export_interface.py" line="1196" />
+        <location filename="..\..\export\export_interface.py" line="1352" />
+        <location filename="..\..\export\export_interface.py" line="1337" />
+        <location filename="..\..\export\export_interface.py" line="1211" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1204" />
+        <location filename="..\..\export\export_interface.py" line="1219" />
         <source>导出提醒</source>
         <translation>Export notice</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1289" />
+        <location filename="..\..\export\export_interface.py" line="1242" />
+        <source>注音按{mode}均分</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1243" />
+        <source>字符</source>
+        <translation>Character</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1303" />
+        <source>导出文件名冲突</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1304" />
+        <source>多个分组的导出文件名相同：{filename}
+请修改轴分组名称后重试</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1327" />
         <source>...另 {n} 个文件</source>
         <translation>...and {n} more file(s)</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1361" />
-        <location filename="..\..\export\export_interface.py" line="1294" />
+        <location filename="..\..\export\export_interface.py" line="1347" />
+        <location filename="..\..\export\export_interface.py" line="1332" />
         <source>文件已存在</source>
         <translation>File already exists</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1295" />
+        <location filename="..\..\export\export_interface.py" line="1333" />
         <source>以下文件已存在：
 {files}</source>
         <translation>The following files already exist:
 {files}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1297" />
+        <location filename="..\..\export\export_interface.py" line="1335" />
         <source>是否覆盖这些文件？</source>
         <translation>Overwrite these files?</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1365" />
-        <location filename="..\..\export\export_interface.py" line="1298" />
+        <location filename="..\..\export\export_interface.py" line="1351" />
+        <location filename="..\..\export\export_interface.py" line="1336" />
         <source>覆盖</source>
         <translation>Overwrite</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1402" />
-        <location filename="..\..\export\export_interface.py" line="1325" />
-        <source>未知错误</source>
-        <translation>Unknown error</translation>
-    </message>
-    <message>
-        <location filename="..\..\export\export_interface.py" line="1391" />
-        <location filename="..\..\export\export_interface.py" line="1334" />
-        <source>导出成功</source>
-        <translation>Exported</translation>
-    </message>
-    <message>
-        <location filename="..\..\export\export_interface.py" line="1401" />
-        <location filename="..\..\export\export_interface.py" line="1344" />
-        <source>导出失败</source>
-        <translation>Export failed</translation>
-    </message>
-    <message>
-        <location filename="..\..\export\export_interface.py" line="1362" />
+        <location filename="..\..\export\export_interface.py" line="1348" />
         <source>文件已存在：
 {filename}</source>
         <translation>File already exists:
 {filename}</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="1364" />
+        <location filename="..\..\export\export_interface.py" line="1350" />
         <source>是否覆盖该文件？</source>
         <translation>Overwrite this file?</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1438" />
+        <source>正在导出</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1438" />
+        <source>准备中...</source>
+        <translation>Preparing...</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1501" />
+        <source>导出成功</source>
+        <translation>Exported</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1511" />
+        <source>未知错误</source>
+        <translation>Unknown error</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1514" />
+        <source>导出失败（成功 {n} / 失败 {m}）</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1528" />
+        <source>已取消</source>
+        <translation>Cancelled</translation>
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1529" />
+        <source>导出已取消，未写入任何文件</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\export\export_interface.py" line="1541" />
+        <source>导出失败</source>
+        <translation>Export failed</translation>
     </message>
     <message>
         <source>跳转到罗马音设置</source>
@@ -5301,266 +5404,273 @@ Leave empty to disable, and automatically use the saved project / last loaded fi
         <translation>Enter pause character</translation>
     </message>
 </context><context>
+    <name>ExportTaskWorker</name>
+    <message>
+        <location filename="..\..\workers.py" line="555" />
+        <source>导出中</source>
+        <translation type="unfinished" />
+    </message>
+</context><context>
     <name>FileLoader</name>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="233" />
+        <location filename="..\..\editor\timing\file_loader.py" line="280" />
         <source>文件不存在</source>
         <translation>File Not Found</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="234" />
+        <location filename="..\..\editor\timing\file_loader.py" line="281" />
         <source>最近打开的项目已被移动或删除。</source>
         <translation>The recent project has been moved or deleted.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="250" />
+        <location filename="..\..\editor\timing\file_loader.py" line="297" />
         <source>打开项目</source>
         <translation>Open project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="251" />
+        <location filename="..\..\editor\timing\file_loader.py" line="298" />
         <source>StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)</source>
         <translation>StrangeUtaGame Project (*.sug);;All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="261" />
+        <location filename="..\..\editor\timing\file_loader.py" line="308" />
         <source>选择音频或视频文件</source>
         <translation>Choose audio or video file</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="262" />
+        <location filename="..\..\editor\timing\file_loader.py" line="309" />
         <source>音频/视频文件 (*.mp3 *.wav *.flac *.ogg *.mp4 *.mkv *.m4a *.avi *.mov *.wmv *.flv *.webm *.m4v *.mpg *.mpeg *.ts *.3gp *.vob *.mts *.m2ts *.rm *.rmvb *.asf *.f4v *.ogv *.m4b *.aac *.wma *.opus *.ape *.ac3 *.dts);;所有文件 (*.*)</source>
         <translation>Audio/Video files (*.mp3 *.wav *.flac *.ogg *.mp4 *.mkv *.m4a *.avi *.mov *.wmv *.flv *.webm *.m4v *.mpg *.mpeg *.ts *.3gp *.vob *.mts *.m2ts *.rm *.rmvb *.asf *.f4v *.ogv *.m4b *.aac *.wma *.opus *.ape *.ac3 *.dts);;All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="283" />
+        <location filename="..\..\editor\timing\file_loader.py" line="334" />
         <source>选择歌词文件</source>
         <translation>Choose lyrics file</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="284" />
+        <location filename="..\..\editor\timing\file_loader.py" line="335" />
         <source>歌词文件 (*.lrc *.txt *.kra *.krl *.srt *.ass);;所有文件 (*.*)</source>
         <translation>Lyrics files (*.lrc *.txt *.kra *.krl *.srt *.ass);;All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="299" />
+        <location filename="..\..\editor\timing\file_loader.py" line="355" />
         <source>未检测到 FFmpeg。嵌入式运行的 FFmpeg 由工作台统一管理，请检查工作台设置中的 FFmpeg 配置。</source>
         <translation>FFmpeg not detected. In embedded mode FFmpeg is managed by the workbench; check the FFmpeg configuration in workbench settings.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="301" />
+        <location filename="..\..\editor\timing\file_loader.py" line="357" />
         <source>未检测到 FFmpeg，请在「设置 → 关于/语言 → 工具配置」中浏览并设置 FFmpeg 路径。</source>
         <translation>FFmpeg not detected. Set the FFmpeg path in Settings → About/Language → Tool configuration.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="303" />
+        <location filename="..\..\editor\timing\file_loader.py" line="359" />
         <source>无法读取视频文件</source>
         <translation>Cannot read video file</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="312" />
+        <location filename="..\..\editor\timing\file_loader.py" line="368" />
         <source>正在处理视频</source>
         <translation>Processing video</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="312" />
+        <location filename="..\..\editor\timing\file_loader.py" line="368" />
         <source>正在检查 FFmpeg 环境...</source>
         <translation>Checking FFmpeg environment...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="544" />
-        <location filename="..\..\editor\timing\file_loader.py" line="355" />
+        <location filename="..\..\editor\timing\file_loader.py" line="684" />
+        <location filename="..\..\editor\timing\file_loader.py" line="426" />
         <source>加载完成</source>
         <translation>Loaded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="422" />
+        <location filename="..\..\editor\timing\file_loader.py" line="493" />
         <source>音频已加载</source>
         <translation>Audio loaded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="443" />
+        <location filename="..\..\editor\timing\file_loader.py" line="539" />
         <source>视频处理失败</source>
         <translation>Video processing failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="478" />
+        <location filename="..\..\editor\timing\file_loader.py" line="580" />
         <source>保存当前项目</source>
         <translation>Save current project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="479" />
+        <location filename="..\..\editor\timing\file_loader.py" line="581" />
         <source>当前项目有未保存的更改，是否保存？</source>
         <translation>Current project has unsaved changes. Save?</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="481" />
+        <location filename="..\..\editor\timing\file_loader.py" line="583" />
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="482" />
+        <location filename="..\..\editor\timing\file_loader.py" line="584" />
         <source>放弃</source>
         <translation>Discard</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="483" />
+        <location filename="..\..\editor\timing\file_loader.py" line="585" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="506" />
+        <location filename="..\..\editor\timing\file_loader.py" line="611" />
         <source>正在加载项目</source>
         <translation>Loading project</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="506" />
+        <location filename="..\..\editor\timing\file_loader.py" line="611" />
         <source>正在解析项目数据...</source>
         <translation>Parsing project data...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="593" />
+        <location filename="..\..\editor\timing\file_loader.py" line="761" />
         <source>媒体文件未找到</source>
         <translation>Media file not found</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="594" />
+        <location filename="..\..\editor\timing\file_loader.py" line="762" />
         <source>上次关联的媒体文件不存在：{name}</source>
         <translation>Previously linked media file not found: {name}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="652" />
+        <location filename="..\..\editor\timing\file_loader.py" line="822" />
         <source>打开失败</source>
         <translation>Open failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="691" />
+        <location filename="..\..\editor\timing\file_loader.py" line="861" />
         <source>解析完成</source>
         <translation>Parsing done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1142" />
-        <location filename="..\..\editor\timing\file_loader.py" line="1088" />
-        <location filename="..\..\editor\timing\file_loader.py" line="1081" />
-        <location filename="..\..\editor\timing\file_loader.py" line="720" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1336" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1282" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1275" />
+        <location filename="..\..\editor\timing\file_loader.py" line="895" />
         <source>加载失败</source>
         <translation>Load failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1040" />
-        <location filename="..\..\editor\timing\file_loader.py" line="760" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1234" />
+        <location filename="..\..\editor\timing\file_loader.py" line="936" />
         <source>解析结果为空</source>
         <translation>Parsing result is empty</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1041" />
-        <location filename="..\..\editor\timing\file_loader.py" line="760" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1235" />
+        <location filename="..\..\editor\timing\file_loader.py" line="936" />
         <source>歌词文件未解析出有效内容</source>
         <translation>No valid content parsed from the lyrics file</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1065" />
-        <location filename="..\..\editor\timing\file_loader.py" line="781" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1259" />
+        <location filename="..\..\editor\timing\file_loader.py" line="957" />
         <source>歌词已加载</source>
         <translation>Lyrics loaded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1066" />
-        <location filename="..\..\editor\timing\file_loader.py" line="782" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1260" />
+        <location filename="..\..\editor\timing\file_loader.py" line="958" />
         <source>已加载 {n} 行歌词</source>
         <translation>Loaded {n} lyrics lines</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="807" />
+        <location filename="..\..\editor\timing\file_loader.py" line="983" />
         <source>剪贴板为空</source>
         <translation>Clipboard is empty</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="807" />
+        <location filename="..\..\editor\timing\file_loader.py" line="983" />
         <source>剪贴板中没有文本内容</source>
         <translation>Clipboard has no text</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1003" />
-        <location filename="..\..\editor\timing\file_loader.py" line="888" />
-        <location filename="..\..\editor\timing\file_loader.py" line="837" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1197" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1069" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1013" />
         <source>无法加载</source>
         <translation>Cannot load</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1003" />
-        <location filename="..\..\editor\timing\file_loader.py" line="889" />
-        <location filename="..\..\editor\timing\file_loader.py" line="837" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1197" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1070" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1013" />
         <source>请先创建或打开一个项目</source>
         <translation>Please create or open a project first</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="858" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1034" />
         <source>正在解析内容...</source>
         <translation>Parsing content...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="931" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1123" />
         <source>正在读取文件...</source>
         <translation>Reading file...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="957" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1149" />
         <source>正在解析歌词</source>
         <translation>Parsing lyrics</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1132" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1326" />
         <source>项目已加载</source>
         <translation>Project loaded</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1133" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1327" />
         <source>从剪贴板加载了 SUG 项目（保存时需选择路径）</source>
         <translation>Loaded SUG project from clipboard (choose a path when saving)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1143" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1337" />
         <source>解析 SUG 项目失败: {err}</source>
         <translation>Failed to parse SUG project: {err}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1160" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1354" />
         <source>检测到 Nicokara 格式歌词（已包含注音）。</source>
         <translation>Detected Nicokara-format lyrics (with ruby).</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1168" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1362" />
         <source>检测到含卡拉OK时间轴/注音的 ASS 字幕。</source>
         <translation>Detected ASS subtitles with karaoke timeline/ruby.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1170" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1364" />
         <source>春日向/KRL</source>
         <translation>Kasugamuki/KRL</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1171" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1365" />
         <source>检测到春日向/KRL 格式歌词（已包含注音）。</source>
         <translation>Detected Kasugamuki/KRL-format lyrics (with ruby).</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1173" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1367" />
         <source>歌词</source>
         <translation>Lyrics</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1174" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1368" />
         <source>检测到自带注音的歌词文件。</source>
         <translation>Detected a lyrics file with ruby.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1191" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1385" />
         <source>{format} 格式检测</source>
         <translation>{format} format detection</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1193" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1387" />
         <source>「保留原有注音」使用文件中的注音与逐字时间轴。
 「全部重新分析」清除原有注音，使用自动分析；文件时间戳将按音节位置复用，无法对齐的会被忽略。
 「仅分析未注音字符」保留已有注音，补充缺失的。</source>
@@ -5569,17 +5679,17 @@ Leave empty to disable, and automatically use the saved project / last loaded fi
 'Only analyze un-rubied characters' keeps existing ruby and fills in the missing ones.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1200" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1394" />
         <source>保留原有注音</source>
         <translation>Keep existing ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1201" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1395" />
         <source>全部重新分析</source>
         <translation>Re-analyze all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\file_loader.py" line="1202" />
+        <location filename="..\..\editor\timing\file_loader.py" line="1396" />
         <source>仅分析未注音字符</source>
         <translation>Only analyze un-rubied characters</translation>
     </message>
@@ -5646,17 +5756,17 @@ Leave empty to disable, and automatically use the saved project / last loaded fi
         <translation>Filter Tags</translation>
     </message>
     <message>
-        <location filename="..\..\editor\find_dialog.py" line="208" />
+        <location filename="..\..\editor\find_dialog.py" line="214" />
         <source>找到 {count} 个匹配</source>
         <translation>Found {count} match(es)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\find_dialog.py" line="383" />
+        <location filename="..\..\editor\find_dialog.py" line="389" />
         <source>替换完成</source>
         <translation>Replace complete</translation>
     </message>
     <message>
-        <location filename="..\..\editor\find_dialog.py" line="384" />
+        <location filename="..\..\editor\find_dialog.py" line="390" />
         <source>共替换了 {count} 处</source>
         <translation>Replaced {count} occurrence(s)</translation>
     </message>
@@ -5705,18 +5815,18 @@ Leave empty to disable, and automatically use the saved project / last loaded fi
 </context><context>
     <name>FullTextEditDialog</name>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1845" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1784" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1960" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1899" />
         <source>全文本编辑</source>
         <translation>Full text</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1819" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1934" />
         <source>注音操作进行中</source>
         <translation>Ruby operation in progress</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1820" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1935" />
         <source>请等待当前注音操作完成后再关闭窗口</source>
         <translation>Please wait for the current ruby operation to finish before closing the window</translation>
     </message>
@@ -5955,108 +6065,108 @@ Imported files fill this area and are parsed when creating a project.</translati
 </context><context>
     <name>InsertGuideSymbolDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="791" />
+        <location filename="..\..\editor\timing\dialogs.py" line="808" />
         <source>插入导唱符</source>
         <translation>Guide</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="803" />
+        <location filename="..\..\editor\timing\dialogs.py" line="820" />
         <source>当前选中字符:</source>
         <translation>Currently selected character:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="808" />
+        <location filename="..\..\editor\timing\dialogs.py" line="825" />
         <source>请填写要插入的导唱符</source>
         <translation>Please fill in the guide symbol to insert</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="809" />
+        <location filename="..\..\editor\timing\dialogs.py" line="826" />
         <source>导唱符:</source>
         <translation>Guide:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="814" />
+        <location filename="..\..\editor\timing\dialogs.py" line="831" />
         <source>个数</source>
         <translation>Count</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="815" />
+        <location filename="..\..\editor\timing\dialogs.py" line="832" />
         <source>个数:</source>
         <translation>Count:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="820" />
+        <location filename="..\..\editor\timing\dialogs.py" line="837" />
         <source>每个导唱符持续时间（毫秒）</source>
         <translation>Duration of each guide symbol (ms)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="821" />
+        <location filename="..\..\editor\timing\dialogs.py" line="838" />
         <source>持续时间 (ms):</source>
         <translation>Duration (ms):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="826" />
+        <location filename="..\..\editor\timing\dialogs.py" line="843" />
         <source>补足间隔时间</source>
         <translation>Fill interval time</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="832" />
+        <location filename="..\..\editor\timing\dialogs.py" line="849" />
         <source>时间戳反向</source>
         <translation>Timestamp reversed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="857" />
+        <location filename="..\..\editor\timing\dialogs.py" line="874" />
         <source>填充所有导唱待办</source>
         <translation>Fill all guide-symbol TODOs</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="860" />
+        <location filename="..\..\editor\timing\dialogs.py" line="877" />
         <source>填充所有导唱待办 ({n})</source>
         <translation>Fill all guide-symbol TODOs ({n})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="864" />
+        <location filename="..\..\editor\timing\dialogs.py" line="881" />
         <source>扫描整个项目中所有导唱待办标记，按当前数值批量插入导唱符</source>
         <translation>Scan all guide-symbol TODO markers in the project and batch-insert guide symbols using the current values</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="874" />
+        <location filename="..\..\editor\timing\dialogs.py" line="891" />
         <source>清除导唱标记</source>
         <translation>Clear guide markers</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="879" />
+        <location filename="..\..\editor\timing\dialogs.py" line="896" />
         <source>执行</source>
         <translation>Run</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="883" />
+        <location filename="..\..\editor\timing\dialogs.py" line="900" />
         <source>关闭</source>
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="955" />
-        <location filename="..\..\editor\timing\dialogs.py" line="945" />
+        <location filename="..\..\editor\timing\dialogs.py" line="972" />
+        <location filename="..\..\editor\timing\dialogs.py" line="962" />
         <source>无法补足间隔时间</source>
         <translation>Cannot fill the interval</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="946" />
+        <location filename="..\..\editor\timing\dialogs.py" line="963" />
         <source>当前字符没有时间戳，无法确定间隔终点。</source>
         <translation>Current character has no timestamp; cannot determine interval end.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="956" />
+        <location filename="..\..\editor\timing\dialogs.py" line="973" />
         <source>起点 {start}ms 不早于终点 {end}ms，间隔无效。</source>
         <translation>Start {start}ms is not before end {end}ms; interval is invalid.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="983" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1000" />
         <source>时间戳越界</source>
         <translation>Timestamp out of range</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="984" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1001" />
         <source>部分导唱符时间戳小于0，已自动设为0ms</source>
         <translation>Some guide-symbol timestamps were &lt; 0 and auto-set to 0ms</translation>
     </message>
@@ -6064,39 +6174,39 @@ Imported files fill this area and are parsed when creating a project.</translati
     <name>Installer</name>
     <message>
         <source>更新器已是最新，无需更新</source>
-        <translation type="vanished">Updater is up to date, no update needed</translation>
+        <translation>Updater is up to date, no update needed</translation>
     </message>
     <message>
         <source>更新器更新完毕</source>
-        <translation type="vanished">Updater update completed</translation>
+        <translation>Updater update completed</translation>
     </message>
     <message>
         <source>正在下载更新器…</source>
-        <translation type="vanished">Downloading updater…</translation>
+        <translation>Downloading updater…</translation>
     </message>
     <message>
         <source>正在下载更新器… (已下载 {done} MB)</source>
-        <translation type="vanished">Downloading updater… ({done} MB downloaded)</translation>
+        <translation>Downloading updater… ({done} MB downloaded)</translation>
     </message>
     <message>
         <source>正在下载更新器… {pct}%  ({done} / {total} MB)</source>
-        <translation type="vanished">Downloading updater… {pct}%  ({done} / {total} MB)</translation>
+        <translation>Downloading updater… {pct}%  ({done} / {total} MB)</translation>
     </message>
     <message>
         <source>正在启动更新器…</source>
-        <translation type="vanished">Starting updater…</translation>
+        <translation>Starting updater…</translation>
     </message>
     <message>
         <source>正在提取更新器…</source>
-        <translation type="vanished">Extracting updater…</translation>
+        <translation>Extracting updater…</translation>
     </message>
     <message>
         <source>正在校验文件完整性…</source>
-        <translation type="vanished">Verifying file integrity…</translation>
+        <translation>Verifying file integrity…</translation>
     </message>
     <message>
         <source>正在检查更新器版本…</source>
-        <translation type="vanished">Checking updater version…</translation>
+        <translation>Checking updater version…</translation>
     </message>
 </context><context>
     <name>InterfacePreview</name>
@@ -6108,80 +6218,80 @@ Imported files fill this area and are parsed when creating a project.</translati
 </context><context>
     <name>KaraokePreview</name>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1830" />
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1822" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2062" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2054" />
         <source>删除字符</source>
         <translation>Delete character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1838" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2070" />
         <source>删除当前时间戳并回滚</source>
         <translation>Delete current timestamp and roll back</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1846" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2078" />
         <source>在此前插入空格</source>
         <translation>Insert space before</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1854" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2086" />
         <source>在此后插入空格</source>
         <translation>Insert space after</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1863" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2095" />
         <source>合并上一行</source>
         <translation>Merge with previous line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1870" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2102" />
         <source>删除本行</source>
         <translation>Delete this line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1876" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2108" />
         <source>在此前插入空行</source>
         <translation>Insert blank line before</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1882" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2114" />
         <source>在此后插入空行</source>
         <translation>Insert blank line after</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1889" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2121" />
         <source>增加节奏点</source>
         <translation>Add checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1897" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2129" />
         <source>减少节奏点</source>
         <translation>Remove checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1905" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2137" />
         <source>设置/取消停顿点</source>
         <translation>Toggle pause point</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1913" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2145" />
         <source>标记/取消导唱待办</source>
         <translation>Toggle guide-symbol TODO</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1946" />
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1924" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2178" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2156" />
         <source>设置演唱者</source>
         <translation>Set singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1948" />
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="1926" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2180" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2158" />
         <source>默认演唱者</source>
         <translation>Default singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\karaoke_preview.py" line="2707" />
+        <location filename="..\..\editor\timing\karaoke_preview.py" line="2944" />
         <source>请拖入sug项目或者歌词文件或ctrl+v粘贴剪贴板上的歌词文件</source>
         <translation>Drag a sug project or lyrics file, or press Ctrl+V to paste lyrics from clipboard</translation>
     </message>
@@ -6304,16 +6414,37 @@ PausePoint column: 'Yes' marks pause point (separate release time), empty cancel
     </message>
     <message>
         <location filename="..\..\editor\line_interface.py" line="667" />
+        <source>无法保存：演唱者名含逗号</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\line_interface.py" line="668" />
+        <source>以下演唱者名称包含分隔符「,」，会破坏演唱者列的逗号分隔，请先在演唱者界面改名：
+{names}</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\line_interface.py" line="690" />
         <source>数据校验失败，未保存</source>
         <translation>Data validation failed, not saved</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="695" />
+        <location filename="..\..\editor\line_interface.py" line="731" />
+        <source>字符级标志已丢弃</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\line_interface.py" line="732" />
+        <source>本次保存增删了字符，原有字符上的强制演唱者标签/导唱标记无法按位对齐，已被丢弃</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\line_interface.py" line="744" />
         <source>已保存</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="..\..\editor\line_interface.py" line="696" />
+        <location filename="..\..\editor\line_interface.py" line="745" />
         <source>数据已更新</source>
         <translation>Data updated</translation>
     </message>
@@ -6357,382 +6488,382 @@ PausePoint column: 'Yes' marks pause point (separate release time), empty cancel
 </context><context>
     <name>LyricParseWorker</name>
     <message>
-        <location filename="..\..\workers.py" line="576" />
+        <location filename="..\..\workers.py" line="674" />
         <source>正在读取文件...</source>
         <translation>Reading file...</translation>
     </message>
 </context><context>
     <name>MainWindow</name>
     <message>
-        <location filename="..\..\main_window.py" line="186" />
+        <location filename="..\..\main_window.py" line="191" />
         <source>正在初始化翻译器...</source>
         <translation>Initializing translator...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="206" />
+        <location filename="..\..\main_window.py" line="211" />
         <source>正在初始化窗口框架...</source>
         <translation>Initializing window framework...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="213" />
+        <location filename="..\..\main_window.py" line="218" />
         <source>正在初始化音频引擎...</source>
         <translation>Initializing audio engine...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="219" />
+        <location filename="..\..\main_window.py" line="226" />
         <source>正在初始化核心服务...</source>
         <translation>Initializing core services...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="246" />
+        <location filename="..\..\main_window.py" line="253" />
         <source>正在初始化窗口...</source>
         <translation>Initializing window...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="248" />
+        <location filename="..\..\main_window.py" line="255" />
         <source>正在加载界面组件...</source>
         <translation>Loading UI components...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="250" />
+        <location filename="..\..\main_window.py" line="257" />
         <source>正在配置导航栏...</source>
         <translation>Configuring navigation bar...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="286" />
+        <location filename="..\..\main_window.py" line="293" />
         <source>正在完成初始化...</source>
         <translation>Finishing initialization...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="308" />
+        <location filename="..\..\main_window.py" line="315" />
         <source>准备就绪</source>
         <translation>Ready</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="880" />
-        <location filename="..\..\main_window.py" line="500" />
-        <location filename="..\..\main_window.py" line="368" />
+        <location filename="..\..\main_window.py" line="907" />
+        <location filename="..\..\main_window.py" line="525" />
+        <location filename="..\..\main_window.py" line="375" />
         <source>StrangeUtaGame - 歌词打轴工具 Bilibili@不会说话的呆轩cc</source>
         <translation>StrangeUtaGame - Lyrics Timing Tool Bilibili@不会说话的呆轩cc</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="717" />
-        <location filename="..\..\main_window.py" line="575" />
+        <location filename="..\..\main_window.py" line="744" />
+        <location filename="..\..\main_window.py" line="602" />
         <source>打轴</source>
         <translation>Tag</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="718" />
-        <location filename="..\..\main_window.py" line="576" />
+        <location filename="..\..\main_window.py" line="745" />
+        <location filename="..\..\main_window.py" line="603" />
         <source>导出</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="719" />
-        <location filename="..\..\main_window.py" line="577" />
+        <location filename="..\..\main_window.py" line="746" />
+        <location filename="..\..\main_window.py" line="604" />
         <source>演唱者</source>
         <translation>Singer</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="725" />
-        <location filename="..\..\main_window.py" line="578" />
+        <location filename="..\..\main_window.py" line="752" />
+        <location filename="..\..\main_window.py" line="605" />
         <source>设置</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="654" />
+        <location filename="..\..\main_window.py" line="681" />
         <source>正在加载主页...</source>
         <translation>Loading home page...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="662" />
+        <location filename="..\..\main_window.py" line="689" />
         <source>正在加载编辑器...</source>
         <translation>Loading editor...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="668" />
+        <location filename="..\..\main_window.py" line="695" />
         <source>正在加载导出界面...</source>
         <translation>Loading export interface...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="675" />
+        <location filename="..\..\main_window.py" line="702" />
         <source>正在加载演唱者管理...</source>
         <translation>Loading singer management...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="679" />
+        <location filename="..\..\main_window.py" line="706" />
         <source>正在加载注音界面...</source>
         <translation>Loading ruby interface...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="684" />
+        <location filename="..\..\main_window.py" line="711" />
         <source>正在加载设置界面...</source>
         <translation>Loading settings...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="692" />
+        <location filename="..\..\main_window.py" line="719" />
         <source>正在加载编辑视图...</source>
         <translation>Loading edit view...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="701" />
+        <location filename="..\..\main_window.py" line="728" />
         <source>正在连接数据存储...</source>
         <translation>Connecting data store...</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="793" />
+        <location filename="..\..\main_window.py" line="820" />
         <source>项目创建成功</source>
         <translation>Project created</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1562" />
-        <location filename="..\..\main_window.py" line="812" />
-        <location filename="..\..\main_window.py" line="794" />
+        <location filename="..\..\main_window.py" line="1645" />
+        <location filename="..\..\main_window.py" line="839" />
+        <location filename="..\..\main_window.py" line="821" />
         <source>共 {n} 行歌词</source>
         <translation>{n} lyrics lines</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1561" />
-        <location filename="..\..\main_window.py" line="811" />
+        <location filename="..\..\main_window.py" line="1644" />
+        <location filename="..\..\main_window.py" line="838" />
         <source>项目打开成功</source>
         <translation>Project opened</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="858" />
+        <location filename="..\..\main_window.py" line="885" />
         <source>媒体文件未找到</source>
         <translation>Media file not found</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="859" />
+        <location filename="..\..\main_window.py" line="886" />
         <source>上次关联的媒体文件不存在：{name}</source>
         <translation>Previously linked media file not found: {name}</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="886" />
+        <location filename="..\..\main_window.py" line="913" />
         <source>未命名</source>
         <translation>Untitled</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="887" />
+        <location filename="..\..\main_window.py" line="914" />
         <source>[未保存]</source>
         <translation>[unsaved]</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="888" />
+        <location filename="..\..\main_window.py" line="915" />
         <source>StrangeUtaGame - {name}{dirty_mark} //Bilibili@不会说话的呆轩cc</source>
         <translation>StrangeUtaGame - {name}{dirty_mark} //Bilibili@不会说话的呆轩cc</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1005" />
+        <location filename="..\..\main_window.py" line="1081" />
         <source>音频引擎已切换</source>
         <translation>Audio engine switched</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1006" />
+        <location filename="..\..\main_window.py" line="1082" />
         <source>已启用高质量变速（离线预渲染）</source>
         <translation>HQ speed-change ON (offline pre-render)</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1007" />
+        <location filename="..\..\main_window.py" line="1083" />
         <source>已关闭高质量变速（实时变速，可能爆音）</source>
         <translation>HQ speed-change OFF (real-time, may clip)</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1090" />
+        <location filename="..\..\main_window.py" line="1166" />
         <source>恢复未保存的项目</source>
         <translation>Restore unsaved project</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1091" />
+        <location filename="..\..\main_window.py" line="1167" />
         <source>检测到上次异常退出时的未保存项目数据。
 是否加载恢复？</source>
         <translation>Detected unsaved project data from a previous unexpected exit.
 Load to restore?</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1092" />
+        <location filename="..\..\main_window.py" line="1168" />
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1093" />
+        <location filename="..\..\main_window.py" line="1169" />
         <source>否</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1104" />
+        <location filename="..\..\main_window.py" line="1180" />
         <source>恢复成功</source>
         <translation>Restored</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1105" />
+        <location filename="..\..\main_window.py" line="1181" />
         <source>已恢复 {n} 行歌词</source>
         <translation>Restored {n} lyrics lines</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1118" />
+        <location filename="..\..\main_window.py" line="1194" />
         <source>恢复失败</source>
         <translation>Restore failed</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1119" />
+        <location filename="..\..\main_window.py" line="1195" />
         <source>无法读取恢复文件，文件可能已损坏</source>
         <translation>Cannot read restore file; it may be corrupted</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1275" />
+        <location filename="..\..\main_window.py" line="1351" />
         <source>已打开下载页面</source>
         <translation>Download page opened</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1276" />
+        <location filename="..\..\main_window.py" line="1352" />
         <source>macOS 暂不支持自动更新，已在浏览器打开最新版本下载页。</source>
         <translation>Auto-update isn't supported on macOS yet; the latest version's download page has been opened in your browser.</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1287" />
+        <location filename="..\..\main_window.py" line="1363" />
         <source>更新器未就绪</source>
         <translation>Updater not ready</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1288" />
+        <location filename="..\..\main_window.py" line="1364" />
         <source>未找到 Updater.exe。请到 GitHub 手动下载完整安装包。</source>
         <translation>Updater.exe not found. Please download the full installer from GitHub manually.</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1341" />
+        <location filename="..\..\main_window.py" line="1424" />
         <source>更新已取消</source>
         <translation>Update Cancelled</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1342" />
+        <location filename="..\..\main_window.py" line="1425" />
         <source>您可以稍后在设置中重新检查更新</source>
         <translation>You can check for updates later in Settings</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1354" />
+        <location filename="..\..\main_window.py" line="1437" />
         <source>启动 Updater 失败</source>
         <translation>Failed to launch Updater</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1355" />
+        <location filename="..\..\main_window.py" line="1438" />
         <source>未知错误</source>
         <translation>Unknown error</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1366" />
+        <location filename="..\..\main_window.py" line="1449" />
         <source>更新已启动</source>
         <translation>Update started</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1367" />
+        <location filename="..\..\main_window.py" line="1450" />
         <source>即将退出应用，由 Updater 完成替换并自动重启…</source>
         <translation>Exiting app. Updater will perform replacement and auto-restart…</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1544" />
-        <location filename="..\..\main_window.py" line="1460" />
+        <location filename="..\..\main_window.py" line="1627" />
+        <location filename="..\..\main_window.py" line="1543" />
         <source>无法打开文件</source>
         <translation>Cannot open file</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1545" />
-        <location filename="..\..\main_window.py" line="1461" />
+        <location filename="..\..\main_window.py" line="1628" />
+        <location filename="..\..\main_window.py" line="1544" />
         <source>文件不存在: {path}</source>
         <translation>File not found: {path}</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1479" />
+        <location filename="..\..\main_window.py" line="1562" />
         <source>不支持的文件类型</source>
         <translation>Unsupported file type</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1480" />
+        <location filename="..\..\main_window.py" line="1563" />
         <source>仅支持 .sug 项目、歌词（LRC/TXT/KRA/KRL/SRT/ASS）及音频/视频文件</source>
         <translation>Only .sug projects, lyrics (LRC/TXT/KRA/KRL/SRT/ASS) and audio/video files are supported</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1585" />
+        <location filename="..\..\main_window.py" line="1668" />
         <source>无项目</source>
         <translation>No project</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1586" />
+        <location filename="..\..\main_window.py" line="1669" />
         <source>请先创建或打开项目</source>
         <translation>Please create or open a project first</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1603" />
+        <location filename="..\..\main_window.py" line="1686" />
         <source>保存项目</source>
         <translation>Save project</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1605" />
+        <location filename="..\..\main_window.py" line="1688" />
         <source>StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)</source>
         <translation>StrangeUtaGame Project (*.sug);;All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1656" />
+        <location filename="..\..\main_window.py" line="1739" />
         <source>正在保存</source>
         <translation>Saving</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1684" />
+        <location filename="..\..\main_window.py" line="1767" />
         <source>保存完成</source>
         <translation>Save complete</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1691" />
+        <location filename="..\..\main_window.py" line="1774" />
         <source>保存成功</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1708" />
+        <location filename="..\..\main_window.py" line="1791" />
         <source>保存失败</source>
         <translation>Save failed</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1775" />
+        <location filename="..\..\main_window.py" line="1858" />
         <source>未保存的更改</source>
         <translation>Unsaved changes</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1776" />
+        <location filename="..\..\main_window.py" line="1859" />
         <source>项目有未保存的更改，是否在退出前保存？</source>
         <translation>Project has unsaved changes. Save before exit?</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1777" />
+        <location filename="..\..\main_window.py" line="1860" />
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1777" />
+        <location filename="..\..\main_window.py" line="1860" />
         <source>放弃</source>
         <translation>Discard</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1777" />
+        <location filename="..\..\main_window.py" line="1860" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1927" />
+        <location filename="..\..\main_window.py" line="2025" />
         <source>歌词为空</source>
         <translation>Lyrics are empty</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1928" />
+        <location filename="..\..\main_window.py" line="2026" />
         <source>没有可导入的歌词内容</source>
         <translation>No importable lyrics content</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1940" />
+        <location filename="..\..\main_window.py" line="2038" />
         <source>无法导入</source>
         <translation>Cannot import</translation>
     </message>
     <message>
-        <location filename="..\..\main_window.py" line="1941" />
+        <location filename="..\..\main_window.py" line="2039" />
         <source>打轴编辑器尚未准备好</source>
         <translation>Timing editor not ready</translation>
     </message>
@@ -6746,92 +6877,92 @@ Load to restore?</translation>
 </context><context>
     <name>ModifyCharacterDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="304" />
+        <location filename="..\..\editor\timing\dialogs.py" line="337" />
         <source>修改所选字符</source>
         <translation>Modify selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="317" />
+        <location filename="..\..\editor\timing\dialogs.py" line="350" />
         <source>当前选中字符:</source>
         <translation>Currently selected character:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="324" />
+        <location filename="..\..\editor\timing\dialogs.py" line="357" />
         <source>转为批量</source>
         <translation>Switch to bulk</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="330" />
+        <location filename="..\..\editor\timing\dialogs.py" line="363" />
         <source>输入新字符</source>
         <translation>Enter new character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="332" />
+        <location filename="..\..\editor\timing\dialogs.py" line="365" />
         <source>新字符:</source>
         <translation>New character:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="338" />
+        <location filename="..\..\editor\timing\dialogs.py" line="371" />
         <source>按字符编辑（注音用半角逗号分隔 RubyPart；节奏点为非负整数）:</source>
         <translation>Edit per character (use half-width comma to separate RubyParts; checkpoints are non-negative integers):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="364" />
+        <location filename="..\..\editor\timing\dialogs.py" line="397" />
         <source>将此词注册到读音词典</source>
         <translation>Register this word to the reading dictionary</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="367" />
+        <location filename="..\..\editor\timing\dialogs.py" line="400" />
         <source>快速连词/取消连词</source>
         <translation>Quick link/unlink</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="368" />
+        <location filename="..\..\editor\timing\dialogs.py" line="401" />
         <source>若全部未连词，则将除最后一个字符外的向后连词全部勾选；否则全部取消连词</source>
         <translation>If none is linked, check all forward links except for the last char; otherwise uncheck all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="381" />
+        <location filename="..\..\editor\timing\dialogs.py" line="414" />
         <source>预览: </source>
         <translation>Preview: </translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="399" />
+        <location filename="..\..\editor\timing\dialogs.py" line="432" />
         <source>执行</source>
         <translation>Run</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="403" />
+        <location filename="..\..\editor\timing\dialogs.py" line="436" />
         <source>查询候补字典</source>
         <translation>Query candidate dictionary</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="406" />
+        <location filename="..\..\editor\timing\dialogs.py" line="439" />
         <source>关闭</source>
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="453" />
+        <location filename="..\..\editor\timing\dialogs.py" line="486" />
         <source>注音（逗号分隔多 RubyPart）</source>
         <translation>Ruby (comma-separated RubyParts)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="457" />
+        <location filename="..\..\editor\timing\dialogs.py" line="490" />
         <source>节奏点</source>
         <translation>Checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="460" />
+        <location filename="..\..\editor\timing\dialogs.py" line="493" />
         <source>向后连词</source>
         <translation>Link forward</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="462" />
+        <location filename="..\..\editor\timing\dialogs.py" line="495" />
         <source>连接到下一字符（末字/行尾不可连词，提交时将跳过并提示；停顿点允许连词）</source>
         <translation>Link to next character (last char/line end cannot be linked — skipped and warned on submit; pause points can be linked)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="532" />
+        <location filename="..\..\editor\timing\dialogs.py" line="565" />
         <source>预览: {items}</source>
         <translation>Preview: {items}</translation>
     </message>
@@ -6941,8 +7072,8 @@ Load to restore?</translation>
         <translation>Import from file to selection</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="589" />
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="586" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="597" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="594" />
         <location filename="..\..\settings\network_dictionary_dialog.py" line="380" />
         <source>添加源</source>
         <translation>Add source</translation>
@@ -6973,92 +7104,92 @@ Load to restore?</translation>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="467" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="475" />
         <source>没有启用且 URL 非空的源</source>
         <translation>No enabled source with a non-empty URL</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="470" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="478" />
         <source>已有拉取任务在进行中</source>
         <translation>A fetch task is already running</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="497" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="505" />
         <source>开始拉取</source>
         <translation>Start fetch</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="498" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="506" />
         <source>后台同步 {n} 个源中...</source>
         <translation>Syncing {n} sources in background...</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="530" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="538" />
         <source>(均失败)</source>
         <translation>(all failed)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="532" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="540" />
         <source>  |  失败: </source>
         <translation>  |  Failed: </translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="537" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="545" />
         <source>刷新完成</source>
         <translation>Refreshed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="550" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="558" />
         <source>请先在表格中选择一个网络源</source>
         <translation>Please select a network source in the table first</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="563" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="571" />
         <source>请先选中一个网络源</source>
         <translation>Please select a network source first</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="567" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="575" />
         <source>选择 RL 兼容字典文件</source>
         <translation>Choose RL-compatible dictionary file</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="569" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="577" />
         <source>RL 字典 (*.txt *.hsp *.ini);;所有文件 (*)</source>
         <translation>RL Dictionary (*.txt *.hsp *.ini);;All Files (*)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="576" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="584" />
         <source>导入失败：{err}</source>
         <translation>Import failed: {err}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="586" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="594" />
         <source>源名称：</source>
         <translation>Source name:</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="589" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="597" />
         <source>源 URL（RL kakuteiyominet.php 兼容）：</source>
         <translation>Source URL (RL kakuteiyominet.php compatible):</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="613" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="621" />
         <source>内置预设不可删除（可在表格里关闭其启用开关）</source>
         <translation>Built-in presets cannot be deleted (toggle enabled in the table)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="617" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="625" />
         <source>确认</source>
         <translation>Confirm</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="618" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="626" />
         <source>删除源 {name}？</source>
         <translation>Delete source {name}?</translation>
     </message>
     <message>
-        <location filename="..\..\settings\network_dictionary_dialog.py" line="647" />
+        <location filename="..\..\settings\network_dictionary_dialog.py" line="655" />
         <source>提示</source>
         <translation>Tip</translation>
     </message>
@@ -7212,132 +7343,132 @@ Ruby format: {source||seg1,seg2,...} (| splits mora, , splits chars within a blo
 </context><context>
     <name>PlaybackSubInterface</name>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="22" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="23" />
         <source>开启后无爆音，但倍速切换可能有延迟，且需占用 .cache 进行离线预渲染；关闭后占用较小、切换即时，但可能会有爆音。默认开启。</source>
         <translation>When ON, no audio clipping, but speed switching may have latency and requires .cache for offline pre-rendering. When OFF, smaller .cache usage and instant switching, but possible clipping. Default ON.</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="25" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="26" />
         <source>演奏控制</source>
         <translation>Playback control</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="28" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="29" />
         <source>默认音量</source>
         <translation>Default volume</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="28" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="29" />
         <source>音频加载后的初始音量</source>
         <translation>Initial volume after audio loads</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="32" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="33" />
         <source>默认速度</source>
         <translation>Default speed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="32" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="33" />
         <source>音频加载后的初始播放速度</source>
         <translation>Initial playback speed after audio loads</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="36" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="37" />
         <source>速度滑块最小值</source>
         <translation>Speed slider min</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="36" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="37" />
         <source>播放栏速度滑块的下限</source>
         <translation>Lower limit of playback speed slider</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="40" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="41" />
         <source>速度滑块最大值</source>
         <translation>Speed slider max</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="40" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="41" />
         <source>播放栏速度滑块的上限</source>
         <translation>Upper limit of playback speed slider</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="44" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="45" />
         <source>快进量</source>
         <translation>Fast-forward amount</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="44" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="45" />
         <source>按下快进键跳过的时间</source>
         <translation>Time skipped per fast-forward press</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="48" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="49" />
         <source>快退量</source>
         <translation>Rewind amount</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="48" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="49" />
         <source>按下快退键后退的时间</source>
         <translation>Time rewound per rewind press</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="52" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="53" />
         <source>自动播放</source>
         <translation>Auto-play</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="52" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="53" />
         <source>加载音频文件后自动开始播放</source>
         <translation>Start playback automatically after loading audio</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="57" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="58" />
         <source>离开打轴界面时暂停</source>
         <translation>Pause when leaving Timing</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="58" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="59" />
         <source>从打轴界面切换至其他页面时自动暂停音乐</source>
         <translation>Automatically pause the music when switching from the Timing page to another page</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="65" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="66" />
         <source>高质量倍速</source>
         <translation>HQ speed-change</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="68" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="69" />
         <source>删除节奏点跳转提前量</source>
         <translation>Jump-back amount when deleting checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="69" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="70" />
         <source>删除节奏点时跳转到该时间戳前的毫秒数</source>
         <translation>Milliseconds before the timestamp to jump to when deleting a checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="78" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="79" />
         <source>歌词预览滚动模式</source>
         <translation>Lyrics preview scroll mode</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="79" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="80" />
         <source>打轴时歌词预览是否跟随播放位置自动滚动</source>
         <translation>Whether the lyrics preview auto-scrolls with playback during tagging</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="80" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="81" />
         <source>自动滚动（操作后挂起 6 秒）</source>
         <translation>Auto scroll (pause 6s after action)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="80" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="81" />
         <source>始终滚动</source>
         <translation>Always scroll</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\playback.py" line="80" />
+        <location filename="..\..\settings\sub_interfaces\playback.py" line="81" />
         <source>从不滚动</source>
         <translation>Never scroll</translation>
     </message>
@@ -7450,377 +7581,430 @@ Next group (low opacity preview).</translation>
 </context><context>
     <name>RubyEditPopup</name>
     <message>
-        <location filename="..\..\editor\timing\ruby_popup.py" line="59" />
+        <location filename="..\..\editor\timing\ruby_popup.py" line="61" />
         <source>注音</source>
         <translation>Ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\ruby_popup.py" line="60" />
+        <location filename="..\..\editor\timing\ruby_popup.py" line="62" />
         <source>回车保存，Esc 取消</source>
         <translation>Enter to save, Esc to cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\ruby_popup.py" line="100" />
+        <location filename="..\..\editor\timing\ruby_popup.py" line="102" />
         <source>链接</source>
         <translation>Link</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\ruby_popup.py" line="103" />
+        <location filename="..\..\editor\timing\ruby_popup.py" line="105" />
         <source>行末字符不能链接下一字</source>
         <translation>The last character in a line cannot link to the next character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\ruby_popup.py" line="106" />
+        <location filename="..\..\editor\timing\ruby_popup.py" line="108" />
         <source>点击取消与下一个字的链接</source>
         <translation>Click to unlink from the next character</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\ruby_popup.py" line="108" />
+        <location filename="..\..\editor\timing\ruby_popup.py" line="110" />
         <source>点击链接下一个字</source>
         <translation>Click to link the next character</translation>
     </message>
 </context><context>
     <name>RubyInterface</name>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1707" />
-        <location filename="..\..\editor\fulltext_interface.py" line="592" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1822" />
+        <location filename="..\..\editor\fulltext_interface.py" line="604" />
         <source>全文本编辑</source>
         <translation>Full text</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1709" />
-        <location filename="..\..\editor\fulltext_interface.py" line="594" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1824" />
+        <location filename="..\..\editor\fulltext_interface.py" line="606" />
         <source>（编辑后点「应用更改」写回；行号对应歌词行，时间轴随文本保留）</source>
         <translation>(After editing, click 'Apply changes' to write back. Line numbers map to lyrics lines; timestamps follow the text.)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1711" />
-        <location filename="..\..\editor\fulltext_interface.py" line="602" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1826" />
+        <location filename="..\..\editor\fulltext_interface.py" line="614" />
         <source>逐行编辑整篇歌词。格式：{原文||读音} 为注音块，注音块中`|` 分 RubyPart、`,` 分字；时间戳在字前 [分:秒.厘秒]（空=[T]），停顿点 [&gt;…] 贴在字后，演唱者切换用 【名】。</source>
         <translation>Edit the whole lyrics line by line. Format: {source||reading} is a ruby block; `|` splits RubyParts and `,` splits chars inside; timestamps go before the char [m:ss.cc] (empty = [T]); pause-point [&gt;…] goes after the char; singer changes use [name].</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1725" />
-        <location filename="..\..\editor\fulltext_interface.py" line="613" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1840" />
+        <location filename="..\..\editor\fulltext_interface.py" line="625" />
         <source>全部注音 · 含节奏点</source>
         <translation>All ruby · with checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1727" />
-        <location filename="..\..\editor\fulltext_interface.py" line="619" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1842" />
+        <location filename="..\..\editor\fulltext_interface.py" line="631" />
         <source>全部注音 · 仅注音</source>
         <translation>All ruby · ruby only</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1729" />
-        <location filename="..\..\editor\fulltext_interface.py" line="625" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1844" />
+        <location filename="..\..\editor\fulltext_interface.py" line="637" />
         <source>按类型删除注音</source>
         <translation>Delete ruby by type</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1731" />
-        <location filename="..\..\editor\fulltext_interface.py" line="631" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1846" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1603" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1598" />
+        <location filename="..\..\editor\fulltext_interface.py" line="643" />
         <source>更新节奏点</source>
         <translation>Update checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1733" />
-        <location filename="..\..\editor\fulltext_interface.py" line="637" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1848" />
+        <location filename="..\..\editor\fulltext_interface.py" line="649" />
         <source>查找和替换</source>
         <translation>Find and Replace</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1717" />
-        <location filename="..\..\editor\fulltext_interface.py" line="651" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1832" />
+        <location filename="..\..\editor\fulltext_interface.py" line="663" />
         <source>字号</source>
         <translation>Font size</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1719" />
-        <location filename="..\..\editor\fulltext_interface.py" line="661" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1834" />
+        <location filename="..\..\editor\fulltext_interface.py" line="673" />
         <source>字宽统计</source>
         <translation>Width metric</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1721" />
-        <location filename="..\..\editor\fulltext_interface.py" line="666" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1836" />
+        <location filename="..\..\editor\fulltext_interface.py" line="678" />
         <source>开</source>
         <translation>ON</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1722" />
-        <location filename="..\..\editor\fulltext_interface.py" line="667" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1837" />
+        <location filename="..\..\editor\fulltext_interface.py" line="679" />
         <source>关</source>
         <translation>OFF</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1742" />
-        <location filename="..\..\editor\fulltext_interface.py" line="682" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1857" />
+        <location filename="..\..\editor\fulltext_interface.py" line="694" />
         <source>加载项目后，歌词将以带时间戳的注音格式显示在此处...
 示例: {大冒険||[00:01.00]だ|[00:01.20]い,...}</source>
         <translation>After loading a project, lyrics will appear here in timed ruby format...
 Example: {大冒険||[00:01.00]だ|[00:01.20]い,...}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1052" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1044" />
-        <location filename="..\..\editor\fulltext_interface.py" line="979" />
-        <location filename="..\..\editor\fulltext_interface.py" line="708" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1069" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1061" />
+        <location filename="..\..\editor\fulltext_interface.py" line="996" />
+        <location filename="..\..\editor\fulltext_interface.py" line="720" />
         <source>共 {lines} 行，{rubies} 个注音</source>
         <translation>{lines} lines, {rubies} ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1735" />
-        <location filename="..\..\editor\fulltext_interface.py" line="713" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1850" />
+        <location filename="..\..\editor\fulltext_interface.py" line="725" />
         <source>应用更改</source>
         <translation>Apply changes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1737" />
-        <location filename="..\..\editor\fulltext_interface.py" line="719" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1852" />
+        <location filename="..\..\editor\fulltext_interface.py" line="731" />
         <source>还原</source>
         <translation>Revert</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1739" />
-        <location filename="..\..\editor\fulltext_interface.py" line="725" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1854" />
+        <location filename="..\..\editor\fulltext_interface.py" line="737" />
         <source>关闭</source>
         <translation>Close</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="933" />
+        <location filename="..\..\editor\fulltext_interface.py" line="950" />
         <source>字宽字体：{src} → {eff}</source>
         <translation>Width font: {src} → {eff}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="938" />
+        <location filename="..\..\editor\fulltext_interface.py" line="955" />
         <source>所选字体「{src}」缺少全角参考字形，字宽改用「{eff}」测量</source>
         <translation>Selected font '{src}' lacks the full-width reference glyph; width measured with '{eff}' instead</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="944" />
+        <location filename="..\..\editor\fulltext_interface.py" line="961" />
         <source>字宽字体：{eff}</source>
         <translation>Width font: {eff}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="947" />
+        <location filename="..\..\editor\fulltext_interface.py" line="964" />
         <source>字宽统计跟随卡拉OK主文字字体（设置 › 界面设定 › 主文字字体）</source>
         <translation>Width metric follows the karaoke main font (Settings › Interface › Main font)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1483" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1341" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1151" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1513" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1365" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1168" />
         <source>注音操作进行中</source>
         <translation>Ruby operation in progress</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1484" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1342" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1152" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1514" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1366" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1169" />
         <source>请等待当前注音操作完成后再试</source>
         <translation>Please wait for the current ruby operation to finish</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1187" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1204" />
         <source>（分析后会重算节奏点）</source>
         <translation> (checkpoints recalculated after analysis)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1189" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1206" />
         <source>（保留现有节奏点不动）</source>
         <translation> (existing checkpoints kept unchanged)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1194" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1211" />
         <source>自动分析全部注音</source>
         <translation>Auto-analyze all ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1195" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1212" />
         <source>请选择分析范围：</source>
         <translation>Please choose the analysis scope:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1198" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1215" />
         <source>「全部重新分析」会覆盖现有注音。
 「仅分析未注音字符」会保留已有的人工/字典注音。</source>
         <translation>'Re-analyze all' overwrites existing ruby.
 'Only un-rubied' keeps existing manual/dictionary ruby.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1202" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1219" />
         <source>全部重新分析</source>
         <translation>Re-analyze all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1202" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1219" />
         <source>仅分析未注音字符</source>
         <translation>Only analyze un-rubied characters</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1202" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1705" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1219" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1228" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1245" />
         <source>正在分析注音</source>
         <translation>Analyzing ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1534" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1394" />
-        <location filename="..\..\editor\fulltext_interface.py" line="1228" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1564" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1418" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1245" />
         <source>准备中...</source>
         <translation>Preparing...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1275" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1289" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1284" />
+        <source>自动分析注音</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1299" />
         <source>LLM 注音失败，已回退本地引擎</source>
         <translation>LLM ruby failed, fell back to local engine</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1284" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1308" />
         <source>已为 {lines} 行自动分析注音并更新节奏点</source>
         <translation>Auto-analyzed ruby for {lines} lines and updated checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1286" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1310" />
         <source>已为 {lines} 行自动分析注音（保留现有节奏点）</source>
         <translation>Auto-analyzed ruby for {lines} lines (existing checkpoints kept)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1289" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1313" />
         <source>分析完成</source>
         <translation>Analysis done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1302" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1326" />
         <source>注音分析失败</source>
         <translation>Ruby analysis failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1312" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1336" />
         <source>正在等待 LLM 返回…（整首歌词一次性发送，请稍候）</source>
         <translation>Waiting for LLM response… (the whole lyrics is sent at once; please wait)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1394" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1418" />
         <source>正在删除注音</source>
         <translation>Deleting ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1433" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1457" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1452" />
+        <source>删除注音</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1463" />
         <source>删除完成</source>
         <translation>Deletion done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1434" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1464" />
         <source>已删除 {count} 个注音（类型: {types}）</source>
         <translation>Deleted {count} ruby (types: {types})</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1453" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1483" />
         <source>删除注音失败</source>
         <translation>Failed to delete ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1534" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1564" />
         <source>正在更新节奏点</source>
         <translation>Updating checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1574" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1610" />
         <source>更新完成</source>
         <translation>Update done</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1575" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1611" />
         <source>已根据注音更新 {lines} 行的节奏点</source>
         <translation>Updated checkpoints of {lines} lines based on ruby</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1589" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1625" />
         <source>更新失败</source>
         <translation>Update failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1651" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1699" />
+        <source>有未应用的修改</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1700" />
+        <source>{action}已完成，但你在编辑框中的修改尚未「应用更改」。
+
+「覆盖修改」：写入{action}结果，未应用的修改将被丢弃；
+「保留修改」：放弃{action}结果，编辑框内容保持不变。</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1705" />
+        <source>覆盖修改</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1705" />
+        <source>保留修改</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1710" />
+        <source>已保留修改</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1711" />
+        <source>已放弃{action}结果，编辑框内容未变</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1763" />
         <source>第 {n} 行: {err}</source>
         <translation>Line {n}: {err}</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1662" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1774" />
         <source>部分行解析失败</source>
         <translation>Some lines failed to parse</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1685" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1792" />
+        <source>应用全文本更改</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\editor\fulltext_interface.py" line="1800" />
         <source>应用成功</source>
         <translation>Applied</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1686" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1801" />
         <source>已更新 {lines} 行</source>
         <translation>Updated {lines} lines</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1764" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1879" />
         <source>已还原</source>
         <translation>Reverted</translation>
     </message>
     <message>
-        <location filename="..\..\editor\fulltext_interface.py" line="1765" />
+        <location filename="..\..\editor\fulltext_interface.py" line="1880" />
         <source>编辑器内容已还原为项目当前状态</source>
         <translation>Editor content reverted to current project state</translation>
     </message>
 </context><context>
     <name>RubyMismatchDialog</name>
     <message>
-        <location filename="..\..\export\export_interface.py" line="67" />
+        <location filename="..\..\export\export_interface.py" line="70" />
         <source>注音分段不匹配</source>
         <translation>Ruby segmentation mismatch</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="74" />
+        <location filename="..\..\export\export_interface.py" line="77" />
         <source>以下字符的注音分段数量与节奏点数量不匹配。
 可选择自动均分方案修复后继续导出，或忽略继续导出。</source>
         <translation>The ruby segment count does not match the checkpoint count for the following characters.
 Choose an auto-even option to fix and continue, or ignore and continue exporting.</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="89" />
+        <location filename="..\..\export\export_interface.py" line="92" />
         <source>按字符均分并导出</source>
         <translation>Even by character and export</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="90" />
+        <location filename="..\..\export\export_interface.py" line="93" />
         <source>按mora均分并导出</source>
         <translation>Even by mora and export</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="91" />
+        <location filename="..\..\export\export_interface.py" line="94" />
         <source>忽略并继续导出</source>
         <translation>Ignore and continue exporting</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="92" />
+        <location filename="..\..\export\export_interface.py" line="95" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="108" />
+        <location filename="..\..\export\export_interface.py" line="111" />
         <source>【不匹配列表】</source>
         <translation>[Mismatch list]</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="114" />
+        <location filename="..\..\export\export_interface.py" line="117" />
         <source>【按字符均分预览】</source>
         <translation>[Even-by-char preview]</translation>
     </message>
     <message>
-        <location filename="..\..\export\export_interface.py" line="120" />
+        <location filename="..\..\export\export_interface.py" line="123" />
         <source>【按mora均分预览】</source>
         <translation>[Even-by-mora preview]</translation>
     </message>
@@ -7849,30 +8033,30 @@ Choose an auto-even option to fix and continue, or ignore and continue exporting
 </context><context>
     <name>RubySubsetAnalyzeWorker</name>
     <message>
-        <location filename="..\..\workers.py" line="424" />
+        <location filename="..\..\workers.py" line="425" />
         <source>注音分析</source>
         <translation>Analyze ruby</translation>
     </message>
 </context><context>
     <name>SeparateSymbolTimestampDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2243" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2173" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2291" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2221" />
         <source>详情 ▸</source>
         <translation>Detail ▸</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2241" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2289" />
         <source>收起 ▾</source>
         <translation>Collapse ▾</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2277" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2325" />
         <source>分离符号时间戳</source>
         <translation>Separate symbol timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2313" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2361" />
         <source>针对选中的符号分组，自动处理时间戳：
 • 后补偿：符号无普通时间戳（cc=0）但有停顿标记时，将停顿时间提升为普通时间戳，并将停顿点时间戳后移「后补偿」值。
 • 前补偿：符号已有时间戳（cc=1）且紧跟的第一个非符号字符无时间戳（cc=0）时，将符号时间戳传递给该字符，并将符号时间戳前移「前补偿」值。
@@ -7885,265 +8069,265 @@ Choose an auto-even option to fix and continue, or ignore and continue exporting
 Click "Detail" beside a group to select specific symbols within it.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2325" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2373" />
         <source>适用符号分组</source>
         <translation>Applicable symbol groups</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2349" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2397" />
         <source>圆括号</source>
         <translation>Parentheses</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2350" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2398" />
         <source>方括号</source>
         <translation>Brackets</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2351" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2399" />
         <source>感叹号</source>
         <translation>Exclamation</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2352" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2400" />
         <source>尖括号</source>
         <translation>Angle brackets</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2353" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2401" />
         <source>日文引号</source>
         <translation>Japanese quotes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2354" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2402" />
         <source>日文双引号</source>
         <translation>Japanese double quotes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2355" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2403" />
         <source>弯引号</source>
         <translation>Curly quotes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2356" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2404" />
         <source>直引号</source>
         <translation>Straight quotes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2357" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2405" />
         <source>问号</source>
         <translation>Question</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2358" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2406" />
         <source>省略号</source>
         <translation>Ellipsis</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2359" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2407" />
         <source>句号</source>
         <translation>Period</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2360" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2408" />
         <source>逗号</source>
         <translation>Comma</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2361" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2409" />
         <source>顿号</source>
         <translation>Enumeration comma</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2362" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2410" />
         <source>分号</source>
         <translation>Semicolon</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2363" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2411" />
         <source>冒号</source>
         <translation>Colon</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2364" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2412" />
         <source>波浪号</source>
         <translation>Tilde</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2365" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2413" />
         <source>破折号</source>
         <translation>Dash</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2366" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2414" />
         <source>中点</source>
         <translation>Middle dot</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2367" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2415" />
         <source>音符</source>
         <translation>Music notes</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2368" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2416" />
         <source>爱心</source>
         <translation>Heart</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2369" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2417" />
         <source>星形</source>
         <translation>Star</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2387" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2435" />
         <source>全选</source>
         <translation>Select all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2389" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2437" />
         <source>全不选</source>
         <translation>Deselect all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2395" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2443" />
         <source>ⓘ 悬停查看详情</source>
         <translation>ⓘ Hover for details</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2407" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2396" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2455" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2444" />
         <source>前补偿：不考虑后方字符是否已有时间戳，前移符号时间戳并强制复制给后一字符
 后补偿：连续停顿点符号视为整体，符号组时间戳集中赋予前一字符，组内均匀分配</source>
         <translation>Pre-comp: move symbol timestamps forward and force-copy to next char regardless of existing timestamps
 Post-comp: treat consecutive pause-point symbols as a group, give all timestamps to previous char, distribute evenly within group</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2405" />
-        <location filename="..\..\editor\timing\dialogs.py" line="2404" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2453" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2452" />
         <source>强制复制</source>
         <translation>Force copy</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2415" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2463" />
         <source>补偿时间戳</source>
         <translation>Compensation timestamp</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2423" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2471" />
         <source>符号已有时间戳（cc=1）时，将其时间戳前移的量；
 同时将原始符号时间戳赋给紧跟的无时间戳非符号字符</source>
         <translation>If a symbol has a timestamp (cc=1), the amount to advance it,
 and transfer the original symbol timestamp to the immediately following non-symbol char without a timestamp</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2427" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2475" />
         <source>前补偿（前移符号时间戳）:</source>
         <translation>Forward compensation (advance symbol timestamp):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2433" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2481" />
         <source>符号无普通时间戳（cc=0）但有停顿时，将停顿点时间戳后移的量</source>
         <translation>If a symbol has no regular timestamp (cc=0) but has a pause, the amount to delay the pause-point timestamp</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2436" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2484" />
         <source>后补偿（后移停顿点时间戳）:</source>
         <translation>Backward compensation (delay pause-point timestamp):</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2443" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2491" />
         <source>应用</source>
         <translation>Apply</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="2447" />
+        <location filename="..\..\editor\timing\dialogs.py" line="2495" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
 </context><context>
     <name>SetSingerByLineDialog</name>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1422" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1468" />
         <source>按行设置演唱者</source>
         <translation>Set singer per line</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1429" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1475" />
         <source>选择要设置演唱者的行：点击切换选择，Shift+点击范围选择，然后从下方选择演唱者，点击「应用」执行：</source>
         <translation>Choose lines to set singer for: click to toggle, Shift+click for range; then pick a singer below and click 'Apply':</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1435" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1481" />
         <source>选择</source>
         <translation>Choose</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1435" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1481" />
         <source>行号</source>
         <translation>Line #</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1435" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1481" />
         <source>歌词内容</source>
         <translation>Lyrics content</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1435" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1481" />
         <source>当前演唱者</source>
         <translation>Current singer</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1464" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1510" />
         <source>(空行)</source>
         <translation>(empty line)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1481" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1527" />
         <source>全选</source>
         <translation>Select all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1483" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1529" />
         <source>全不选</source>
         <translation>Deselect all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1491" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1537" />
         <source>设置演唱者为</source>
         <translation>Set singer to</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1497" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1543" />
         <source>名称:</source>
         <translation>Name:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1499" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1545" />
         <source>过滤名称...</source>
         <translation>Filter name...</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1503" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1549" />
         <source>分组:</source>
         <translation>Group:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1505" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1551" />
         <source>全部</source>
         <translation>all</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1508" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1554" />
         <source>（无分组）</source>
         <translation>(no group)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1535" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1581" />
         <source>应用</source>
         <translation>Apply</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\dialogs.py" line="1538" />
+        <location filename="..\..\editor\timing\dialogs.py" line="1584" />
         <source>关闭</source>
         <translation>Close</translation>
     </message>
@@ -8228,49 +8412,49 @@ and transfer the original symbol timestamp to the immediately following non-symb
 This overwrites your current settings (user dict and singer presets are unaffected).</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="583" />
+        <location filename="..\..\settings\settings_interface.py" line="584" />
         <location filename="..\..\settings\settings_interface.py" line="485" />
         <source>是</source>
         <translation>Yes</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="584" />
+        <location filename="..\..\settings\settings_interface.py" line="585" />
         <location filename="..\..\settings\settings_interface.py" line="486" />
         <source>否</source>
         <translation>No</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="504" />
+        <location filename="..\..\settings\settings_interface.py" line="505" />
         <source>设置已重置</source>
         <translation>Settings reset</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="504" />
+        <location filename="..\..\settings\settings_interface.py" line="505" />
         <source>所有设置已恢复为默认值</source>
         <translation>All settings restored to defaults</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="508" />
+        <location filename="..\..\settings\settings_interface.py" line="509" />
         <source>重置失败</source>
         <translation>Reset failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="561" />
+        <location filename="..\..\settings\settings_interface.py" line="562" />
         <source>不支持</source>
         <translation>Not Supported</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="562" />
+        <location filename="..\..\settings\settings_interface.py" line="563" />
         <source>嵌入模式下不支持从 KS 配置导入</source>
         <translation>KS config import is not supported in embedded mode</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="571" />
+        <location filename="..\..\settings\settings_interface.py" line="572" />
         <source>确认导入</source>
         <translation>Confirm Import</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="572" />
+        <location filename="..\..\settings\settings_interface.py" line="573" />
         <source>确定要从前 Karaoke Studio 的 settings.json 导入配置吗？
 
 将从 KS 配置中提取以下内容并合并到当前 SUG 配置：
@@ -8295,12 +8479,12 @@ The following will be extracted and merged into current SUG config:
 KS config values will take priority.</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="594" />
+        <location filename="..\..\settings\settings_interface.py" line="595" />
         <source>未找到 KS 配置</source>
         <translation>KS Config Not Found</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="595" />
+        <location filename="..\..\settings\settings_interface.py" line="596" />
         <source>未能自动找到 Karaoke Studio 的 settings.json。
 
 是否手动选择文件？</source>
@@ -8309,97 +8493,97 @@ KS config values will take priority.</translation>
 Browse for the file manually?</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="599" />
+        <location filename="..\..\settings\settings_interface.py" line="600" />
         <source>浏览</source>
         <translation>Browse</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="600" />
+        <location filename="..\..\settings\settings_interface.py" line="601" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="605" />
+        <location filename="..\..\settings\settings_interface.py" line="606" />
         <source>选择 KS settings.json</source>
         <translation>Select KS settings.json</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="606" />
+        <location filename="..\..\settings\settings_interface.py" line="607" />
         <source>所有文件 (*.*)</source>
         <translation>All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="618" />
+        <location filename="..\..\settings\settings_interface.py" line="619" />
         <source>读取失败</source>
         <translation>Read failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="619" />
+        <location filename="..\..\settings\settings_interface.py" line="620" />
         <source>无法读取 KS 配置文件: {err}</source>
         <translation>Cannot read KS config file: {err}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="627" />
+        <location filename="..\..\settings\settings_interface.py" line="628" />
         <source>格式错误</source>
         <translation>Format Error</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="628" />
+        <location filename="..\..\settings\settings_interface.py" line="629" />
         <source>KS 配置文件格式不正确</source>
         <translation>KS config file format is incorrect</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="641" />
+        <location filename="..\..\settings\settings_interface.py" line="642" />
         <source>主设置</source>
         <translation>Main Settings</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="670" />
+        <location filename="..\..\settings\settings_interface.py" line="671" />
         <source>用户词典</source>
         <translation>Dictionary</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="699" />
+        <location filename="..\..\settings\settings_interface.py" line="700" />
         <source>演唱者预设</source>
         <translation>Singer Presets</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="707" />
+        <location filename="..\..\settings\settings_interface.py" line="709" />
         <source>网络词典缓存</source>
         <translation>Network Dict Cache</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="713" />
+        <location filename="..\..\settings\settings_interface.py" line="715" />
         <source>界面主题</source>
         <translation>UI Theme</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="738" />
+        <location filename="..\..\settings\settings_interface.py" line="740" />
         <source>更新器设置</source>
         <translation>Updater Settings</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="745" />
+        <location filename="..\..\settings\settings_interface.py" line="747" />
         <source>保存失败</source>
         <translation>Save failed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="758" />
+        <location filename="..\..\settings\settings_interface.py" line="760" />
         <source>导入成功</source>
         <translation>Imported</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="759" />
+        <location filename="..\..\settings\settings_interface.py" line="761" />
         <source>已从 KS 配置导入: {items}</source>
         <translation>Imported from KS config: {items}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="767" />
+        <location filename="..\..\settings\settings_interface.py" line="769" />
         <source>无数据可导入</source>
         <translation>No Data to Import</translation>
     </message>
     <message>
-        <location filename="..\..\settings\settings_interface.py" line="768" />
+        <location filename="..\..\settings\settings_interface.py" line="770" />
         <source>KS 配置文件中未找到 SUG 相关的设置数据</source>
         <translation>No SUG-related settings found in KS config file</translation>
     </message>
@@ -8426,1295 +8610,1335 @@ Browse for the file manually?</translation>
 </context><context>
     <name>ShortcutSubInterface</name>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="192" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="193" />
         <source>[通用]</source>
         <translation>[Both]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="195" />
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="193" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="196" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="194" />
         <source>[打轴]</source>
         <translation>[Timing]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="196" />
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="194" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="197" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="195" />
         <source>[编辑]</source>
         <translation>[Edit]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="530" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="531" />
         <source>长按</source>
         <translation>Long press</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="530" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="531" />
         <source>短按</source>
         <translation>Short press</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="532" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="533" />
         <source>快捷键冲突</source>
         <translation>Shortcut conflict</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="533" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="534" />
         <source>[{mode}]「{action}」已占用{trigger}按键 {key}</source>
         <translation>[{mode}] '{action}' already occupies {trigger} key {key}</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
         <source>播放/暂停</source>
         <translation>Play/Pause</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
         <source>停止</source>
         <translation>Stop</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
         <source>从头播放</source>
         <translation>Play from beginning</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
         <source>减速</source>
         <translation>Slow down</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
         <source>加速</source>
         <translation>Speed up</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="238" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
         <source>恢复默认速度</source>
         <translation>Restore Default Speed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
         <source>音量增大</source>
         <translation>Volume up</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
         <source>音量减小</source>
         <translation>Volume down</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
         <source>恢复默认音量</source>
         <translation>Restore Default Volume</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
         <source>上一行</source>
         <translation>Previous line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="239" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
         <source>下一行</source>
         <translation>Next line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
         <source>上一字符</source>
         <translation>Previous character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="240" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
         <source>下一字符</source>
         <translation>Next character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
         <source>切换字内节奏点（反向）</source>
         <translation>Cycle checkpoints within character (reverse)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
         <source>时间戳+步长</source>
         <translation>Timestamp +step</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="241" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
         <source>时间戳-步长</source>
         <translation>Timestamp -step</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="242" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
         <source>切换字内节奏点</source>
         <translation>Cycle checkpoints within character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
         <source>注音编辑</source>
         <translation>Edit ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="243" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
         <source>连词</source>
         <translation>Link</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
         <source>打轴键</source>
         <translation>Tag key</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
         <source>打轴键 Extra</source>
         <translation>Tag key (extra)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="244" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
         <source>打轴并删除下一节奏点</source>
         <translation>Tag and delete next checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
         <source>打轴键（编辑模式）</source>
         <translation>Tag key (edit mode)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="245" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
         <source>打轴键 Extra（编辑模式）</source>
         <translation>Tag key extra (edit mode)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
         <source>后退</source>
         <translation>Back</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
         <source>前进</source>
         <translation>Forward</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="246" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
         <source>删除当前时间戳并回滚</source>
         <translation>Delete current timestamp and roll back</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="247" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
         <source>切换波形/声谱/双谱</source>
         <translation>Toggle Waveform / Spectrogram / Dual</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
         <source>增加节奏点</source>
         <translation>Add checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
         <source>删除节奏点</source>
         <translation>Delete checkpoint</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="248" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
         <source>切换停顿点</source>
         <translation>Toggle pause point</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
         <source>批量变更</source>
         <translation>Bulk change</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
         <source>修改所选字符</source>
         <translation>Modify selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
         <source>插入导唱符</source>
         <translation>Guide</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="249" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
         <source>自动插入导唱符</source>
         <translation>Automatically Insert Guide-Vocal Markers</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
         <source>切换导唱待办</source>
         <translation>Toggle guide-symbol TODO</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="250" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
         <source>修改选中行</source>
         <translation>Modify selected line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
         <source>注音分析</source>
         <translation>Analyze ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
         <source>按行注音分析</source>
         <translation>Analyze ruby per line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="251" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
         <source>注音分析所选字符</source>
         <translation>Analyze ruby of selected chars</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
         <source>全文本编辑</source>
         <translation>Full text</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="252" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
         <source>按类型删除注音</source>
         <translation>Delete ruby by type</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
         <source>按行设置演唱者</source>
         <translation>Set singer per line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="253" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
         <source>应用演唱者</source>
         <translation>Apply singer</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="255" />
         <source>时间戳转停顿点</source>
         <translation>Timestamps to pause point</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="254" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="255" />
         <source>清除所有节奏点</source>
         <translation>Clear all checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="255" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="256" />
         <source>快捷导出</source>
         <translation>Quick export</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="255" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="256" />
         <source>插入空格</source>
         <translation>Insert space</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="257" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="258" />
         <source>注音分析（仅注音）</source>
         <translation>Analyze ruby (ruby only)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="257" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="258" />
         <source>按行注音分析（仅注音）</source>
         <translation>Analyze ruby by line (ruby only)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="258" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="259" />
         <source>注音分析所选字符（仅注音）</source>
         <translation>Analyze ruby of selection (ruby only)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="258" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="259" />
         <source>全部转为罗马字</source>
         <translation>Convert all to romaji</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="259" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="260" />
         <source>中文拼音注音</source>
         <translation>Chinese Pinyin annotation</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="259" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="260" />
         <source>韩文注音</source>
         <translation>Korean reading annotation</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="260" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
         <source>演唱者管理</source>
         <translation>Singer manager</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
         <source>补全时间戳</source>
         <translation>Fill timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="261" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
         <source>分离符号时间戳</source>
         <translation>Separate symbol timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
         <source>调整原始时间戳</source>
         <translation>Adjust raw timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
         <source>按行调整原始时间戳</source>
         <translation>Adjust raw timestamps per line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="262" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
         <source>调整所选字符原始时间戳</source>
         <translation>Adjust raw timestamps of selected chars</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
         <source>删除所有时间戳</source>
         <translation>Delete all timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
         <source>删除所有时间戳（保留行首）</source>
         <translation>Delete all timestamps (keep line start)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="263" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
         <source>删除所选范围时间戳</source>
         <translation>Delete timestamps in selection</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="264" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
         <source>自动生成间奏指引</source>
         <translation>Auto-Generate Interlude Guide</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
         <source>新建项目</source>
         <translation>New project</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
         <source>加载项目</source>
         <translation>Load project</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
         <source>项目另存为</source>
         <translation>Save project as</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
         <source>加载音频</source>
         <translation>Load audio</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
         <source>加载歌词</source>
         <translation>Load lyrics</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="265" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
         <source>多项目拼接</source>
         <translation>Multi-Project Concat</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
         <source>撤销</source>
         <translation>Undo</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
         <source>重做</source>
         <translation>Redo</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
         <source>保存</source>
         <translation>Save</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="266" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
         <source>复制字符</source>
         <translation>Copy character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
         <source>粘贴</source>
         <translation>Paste</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
         <source>插入换行</source>
         <translation>Insert line break</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
         <source>合并上一行</source>
         <translation>Merge with previous line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="267" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="268" />
         <source>删除字符</source>
         <translation>Delete character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
         <source>切换播放和暂停</source>
         <translation>Toggle play/pause</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
         <source>停止播放</source>
         <translation>Stop playback</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="269" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
         <source>停止并从头播放</source>
         <translation>Stop and play from beginning</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="271" />
         <source>降低播放速度</source>
         <translation>Decrease playback speed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="270" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="271" />
         <source>提高播放速度</source>
         <translation>Increase playback speed</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="271" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="272" />
         <source>将播放速度恢复为设置中的默认速度；双击速度条也可恢复</source>
         <translation>Restore the playback speed configured in Settings; you can also double-click the speed slider</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="272" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="273" />
         <source>增大播放音量</source>
         <translation>Increase volume</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="272" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="273" />
         <source>减小播放音量</source>
         <translation>Decrease volume</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="273" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="274" />
         <source>将播放音量恢复为设置中的默认音量；双击音量条也可恢复</source>
         <translation>Restore the playback volume configured in Settings; you can also double-click the volume slider</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="274" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="275" />
         <source>移动到上一歌词行</source>
         <translation>Move to previous lyrics line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="274" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="275" />
         <source>移动到下一歌词行</source>
         <translation>Move to next lyrics line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="275" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="276" />
         <source>在波形图、声谱图与双谱模式之间循环切换</source>
         <translation>Cycle through waveform, spectrogram and dual view</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="276" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="277" />
         <source>在当前行内移动到上一个字符；若已在首字符则跳到上一行末字符</source>
         <translation>Move to the previous character in current line; if at the first char, jump to the last char of previous line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="277" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="278" />
         <source>在当前行内移动到下一个字符；若已在末字符则跳到下一行首字符</source>
         <translation>Move to the next character in current line; if at the last char, jump to the first char of next line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="278" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="279" />
         <source>在当前字符的多个节奏点之间反向循环切换（Alt+←）</source>
         <translation>Cycle backward through the current character's checkpoints (Alt+←)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="279" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="280" />
         <source>增加选中节奏点时间戳</source>
         <translation>Increase selected checkpoint timestamp</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="279" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="280" />
         <source>减少选中节奏点时间戳</source>
         <translation>Decrease selected checkpoint timestamp</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="280" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="281" />
         <source>在当前字符的多个节奏点之间循环切换（Alt+→）</source>
         <translation>Cycle through the current character's checkpoints (Alt+→)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="281" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="282" />
         <source>编辑当前字符注音</source>
         <translation>Edit current character's ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="282" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="283" />
         <source>连词/取消连词；划选多个字符时：全未连词则整段连为一个词，否则整段取消连词</source>
         <translation>Link/unlink. With multiple chars selected: if none linked, link the whole range; otherwise unlink it all.</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="283" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="284" />
         <source>打轴操作的按键【仅打轴模式】</source>
         <translation>Key for tagging [timing only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="284" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="285" />
         <source>打轴操作的备用按键【仅打轴模式】</source>
         <translation>Alternate key for tagging [timing only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="285" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="286" />
         <source>记录当前节奏点时间戳，同时删除下一个节奏点本身（减少 check_count），光标跳至原第三个节奏点【仅打轴模式】</source>
         <translation>Record current checkpoint timestamp and delete the next checkpoint (decrement check_count); the cursor jumps to the original 3rd checkpoint [timing only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="286" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="287" />
         <source>编辑模式下打轴：记录当前进度条时间戳至当前节奏点【仅编辑模式】</source>
         <translation>Tag in edit mode: record progress-bar timestamp to current checkpoint [edit only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="287" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="288" />
         <source>编辑模式下打轴（备用键）：记录当前进度条时间戳至当前节奏点【仅编辑模式】</source>
         <translation>Tag in edit mode (alt. key): record progress-bar timestamp to current checkpoint [edit only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="288" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="289" />
         <source>后退跳转【仅打轴模式】</source>
         <translation>Backward jump [timing only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="288" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="289" />
         <source>前进跳转【仅打轴模式】</source>
         <translation>Forward jump [timing only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="289" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="290" />
         <source>删除跳转【仅打轴模式】</source>
         <translation>Delete &amp; jump [timing only]</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="290" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="291" />
         <source>增加当前字符的节奏点数量</source>
         <translation>Add checkpoints to current character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="291" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="292" />
         <source>增加当前字符的节奏点数量（默认 [）</source>
         <translation>Add checkpoints (default [)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="292" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="293" />
         <source>增加当前字符的节奏点数量（默认 Space）</source>
         <translation>Add checkpoints (default Space)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="293" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="294" />
         <source>减少当前字符的节奏点数量</source>
         <translation>Decrease checkpoint count of current character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="294" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="295" />
         <source>减少当前字符的节奏点数量（默认 ]</source>
         <translation>Decrease checkpoint count (default ])</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="295" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="296" />
         <source>减少当前字符的节奏点数量（默认 Backspace）</source>
         <translation>Decrease checkpoint count (default Backspace)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="296" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="297" />
         <source>切换当前字符的停顿点标记</source>
         <translation>Toggle pause-point mark on current character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="297" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="298" />
         <source>切换当前字符的停顿点标记（默认 句号）</source>
         <translation>Toggle pause-point mark (default period)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="298" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="299" />
         <source>打开批量变更对话框</source>
         <translation>Open bulk-change dialog</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="298" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="299" />
         <source>打开修改所选字符对话框</source>
         <translation>Open modify-selected-chars dialog</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="299" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="300" />
         <source>打开插入导唱符对话框</source>
         <translation>Open insert-guide-symbol dialog</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="299" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="300" />
         <source>根据时间戳自动插入导唱符</source>
         <translation>Automatically insert guide-vocal markers based on timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="300" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="301" />
         <source>切换当前字符的导唱待办标记（在字符左上角显示半透明 ✚，提示稍后需要插入导唱符）</source>
         <translation>Toggle guide-symbol TODO on current character (translucent ✚ at top-left, marking that a guide symbol should be inserted later)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="301" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="302" />
         <source>打开修改选中行对话框</source>
         <translation>Open modify-selected-line dialog</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="302" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="303" />
         <source>自动分析全部注音</source>
         <translation>Auto-analyze all ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="302" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="303" />
         <source>仅分析当前行的注音</source>
         <translation>Only analyze ruby in current line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="303" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="304" />
         <source>仅分析当前行选中字符的注音</source>
         <translation>Only analyze ruby of selected chars in current line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="304" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="305" />
         <source>打开全文本编辑界面</source>
         <translation>Open full-text editor</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="304" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="305" />
         <source>按类型删除注音对话框</source>
         <translation>Delete-ruby-by-type dialog</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="305" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="306" />
         <source>按行批量设置演唱者</source>
         <translation>Bulk set singer per line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="305" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="306" />
         <source>为选中字符设置演唱者</source>
         <translation>Set singer for selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="306" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="307" />
         <source>取消所有节奏点、清除时间戳并标记为停顿点</source>
         <translation>Clear all checkpoints, wipe timestamps, mark as pause point</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="307" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="308" />
         <source>删除当前字符全部节奏点并取消停顿点标记（cc=0，is_sentence_end=False）</source>
         <translation>Delete all checkpoints of current character and clear pause-point (cc=0, is_sentence_end=False)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="308" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="309" />
         <source>使用默认导出格式快速导出到文件</source>
         <translation>Quick export to file using default format</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="309" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="310" />
         <source>在当前字符后插入空格</source>
         <translation>Insert space after current character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="311" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="312" />
         <source>分析全部注音，但不更新节奏点</source>
         <translation>Analyze all ruby but do not update checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="312" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="313" />
         <source>仅分析当前行注音，但不更新节奏点</source>
         <translation>Analyze current line ruby but do not update checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="313" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="314" />
         <source>仅分析选中字符注音，但不更新节奏点</source>
         <translation>Analyze selected characters' ruby but do not update checkpoints</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="314" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="315" />
         <source>将现有注音整体转为罗马字（不更新节奏点、不删除注音）</source>
         <translation>Convert existing ruby to romaji (without updating checkpoints or deleting ruby)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="315" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="316" />
         <source>打开演唱者管理窗口</source>
         <translation>Open the singer manager window</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="316" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="317" />
         <source>为缺失时间戳的字符补全时间戳</source>
         <translation>Fill timestamps for characters missing them</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="317" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="318" />
         <source>将符号与相邻字符的时间戳分离</source>
         <translation>Separate the timestamp of a symbol from its adjacent character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="318" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="319" />
         <source>整体调整全部原始时间戳</source>
         <translation>Adjust all raw timestamps as a whole</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="319" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="320" />
         <source>调整当前行的原始时间戳</source>
         <translation>Adjust the raw timestamps of the current line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="320" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="321" />
         <source>调整所选字符的原始时间戳</source>
         <translation>Adjust the raw timestamps of the selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="321" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="322" />
         <source>删除项目中全部时间戳</source>
         <translation>Delete all timestamps in the project</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="322" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="323" />
         <source>删除全部时间戳，但保留每行行首时间戳</source>
         <translation>Delete all timestamps but keep each line's first timestamp</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="323" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="324" />
         <source>删除所选范围内的时间戳</source>
         <translation>Delete timestamps within the selected range</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="324" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
         <source>根据时间戳自动生成间奏指引</source>
         <translation>Automatically generate interlude guides based on timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
         <source>新建空白项目</source>
         <translation>Create a new blank project</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
         <source>打开已有项目文件</source>
         <translation>Open an existing project file</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="325" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
         <source>将当前项目另存为新文件</source>
         <translation>Save the current project as a new file</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
         <source>加载音频文件</source>
         <translation>Load an audio file</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
         <source>加载歌词文本文件</source>
         <translation>Load a lyrics text file</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="326" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
         <source>拼接多个 SUG 项目</source>
         <translation>Combine multiple SUG projects</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
         <source>为中文歌词自动添加拼音注音</source>
         <translation>Automatically add Pinyin annotations to Chinese lyrics</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="327" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
         <source>为韩文歌词按设置风格标注片假名/平假名/罗马音注音</source>
         <translation>Annotate Korean lyrics with katakana/hiragana/romaji readings in the configured style</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
         <source>撤销操作</source>
         <translation>Undo action</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
         <source>重做操作</source>
         <translation>Redo action</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="328" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
         <source>保存项目</source>
         <translation>Save project</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="329" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="330" />
         <source>复制选中字符的完整信息</source>
         <translation>Copy full info of selected characters</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="330" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="331" />
         <source>无歌词时粘贴整批歌词文本；已有歌词时在光标处插入（复制的字符或纯文本）</source>
         <translation>If no lyrics exist, paste the entire batch; if lyrics exist, insert at cursor (copied characters or plain text)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="331" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="332" />
         <source>在光标处插入换行</source>
         <translation>Insert line break at cursor</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="331" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="332" />
         <source>将当前行合并到上一行末尾</source>
         <translation>Merge current line into the end of the previous line</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="332" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="333" />
         <source>删除选中内容或当前字符</source>
         <translation>Delete selection or current character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="334" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="335" />
         <source>打轴模式（音乐播放时）</source>
         <translation>Timing mode (during playback)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="334" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="335" />
         <source>编辑模式（音乐暂停时）</source>
         <translation>Edit mode (paused)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="336" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
         <source>播放控制</source>
         <translation>Playback</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="336" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
         <source>导航与跳转</source>
         <translation>Navigation &amp; Seek</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="336" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
         <source>时间轴显示</source>
         <translation>Timeline Display</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="336" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
         <source>打轴与时间戳微调</source>
         <translation>Timing &amp; Timestamp Tweaks</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="338" />
         <source>节奏点与停顿点</source>
         <translation>Checkpoints &amp; Pause Point</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="338" />
         <source>字符与行编辑</source>
         <translation>Character &amp; Line Editing</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="337" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="338" />
         <source>自动注音</source>
         <translation>Auto Ruby</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="338" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
         <source>演唱者</source>
         <translation>Singer</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="338" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
         <source>时间戳工具</source>
         <translation>Timestamp Tools</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="338" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
         <source>文件与导出</source>
         <translation>File &amp; Export</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="339" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="340" />
         <source>固定功能（不可修改）</source>
         <translation>Fixed Functions (Read-only)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="427" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="428" />
         <source>注音编辑窗口</source>
         <translation>Ruby editor window</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="428" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="429" />
         <source>选择使用迷你浮窗或完整编辑窗口</source>
         <translation>Choose the mini popup or full editor window</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="429" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="430" />
         <source>迷你浮窗</source>
         <translation>Mini popup</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="429" />
+        <location filename="..\..\settings\sub_interfaces\shortcut.py" line="430" />
         <source>经典大窗口</source>
         <translation>Classic full window</translation>
     </message>
 </context><context>
     <name>SingerColorPreviewPanel</name>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="972" />
+        <location filename="..\..\singer\singer_interface.py" line="1013" />
         <source>颜色预览</source>
         <translation>Color preview</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1013" />
-        <location filename="..\..\singer\singer_interface.py" line="980" />
+        <location filename="..\..\singer\singer_interface.py" line="1054" />
+        <location filename="..\..\singer\singer_interface.py" line="1021" />
         <source>未选中</source>
         <translation>Not selected</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1009" />
+        <location filename="..\..\singer\singer_interface.py" line="1050" />
         <source>已选中 {n} 位</source>
         <translation>{n} selected</translation>
     </message>
 </context><context>
     <name>SingerEditDialog</name>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="143" />
+        <location filename="..\..\singer\singer_interface.py" line="159" />
         <source>编辑演唱者</source>
         <translation>Edit singer</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="143" />
+        <location filename="..\..\singer\singer_interface.py" line="159" />
         <source>添加演唱者</source>
         <translation>Add singer</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="168" />
+        <location filename="..\..\singer\singer_interface.py" line="184" />
         <source>输入演唱者名称（留空自动编号）...</source>
         <translation>Singer name (empty = auto-numbered)...</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="169" />
+        <location filename="..\..\singer\singer_interface.py" line="185" />
         <source>显示名称:</source>
         <translation>Display name:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="173" />
+        <location filename="..\..\singer\singer_interface.py" line="189" />
         <source>留空为默认分组</source>
         <translation>Empty for default group</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="183" />
+        <location filename="..\..\singer\singer_interface.py" line="199" />
         <source>分组:</source>
         <translation>Group:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="187" />
+        <location filename="..\..\singer\singer_interface.py" line="203" />
         <source>从已有演唱者加载颜色…</source>
         <translation>Load color from existing singer…</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="189" />
+        <location filename="..\..\singer\singer_interface.py" line="205" />
         <source>颜色来源:</source>
         <translation>Color source:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="195" />
+        <location filename="..\..\singer\singer_interface.py" line="211" />
         <source>单色</source>
         <translation>Solid color</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="196" />
+        <location filename="..\..\singer\singer_interface.py" line="212" />
         <source>分色（最多5色）</source>
         <translation>Multi-color (up to 5)</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="205" />
+        <location filename="..\..\singer\singer_interface.py" line="221" />
         <source>颜色模式:</source>
         <translation>Color mode:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="215" />
+        <location filename="..\..\singer\singer_interface.py" line="231" />
         <source>选择颜色...</source>
         <translation>Choose color...</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="234" />
+        <location filename="..\..\singer\singer_interface.py" line="250" />
         <source>+ 添加颜色</source>
         <translation>+ Add color</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="239" />
+        <location filename="..\..\singer\singer_interface.py" line="255" />
         <source>预览：</source>
         <translation>Preview:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="252" />
+        <location filename="..\..\singer\singer_interface.py" line="269" />
         <source>设为默认演唱者</source>
         <translation>Set as default singer</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="259" />
+        <location filename="..\..\singer\singer_interface.py" line="273" />
+        <source>该演唱者已是默认演唱者</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="278" />
         <source>确定</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="259" />
+        <location filename="..\..\singer\singer_interface.py" line="278" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="342" />
+        <location filename="..\..\singer\singer_interface.py" line="361" />
         <source>点击选中此颜色位，然后从右侧面板选择颜色</source>
         <translation>Click this color slot, then pick a color from the panel on the right</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="345" />
+        <location filename="..\..\singer\singer_interface.py" line="364" />
         <source>颜色 {n}</source>
         <translation>Color {n}</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="365" />
+        <location filename="..\..\singer\singer_interface.py" line="384" />
         <source>选择颜色 {n}</source>
         <translation>Choose color {n}</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="471" />
+        <location filename="..\..\singer\singer_interface.py" line="492" />
         <source>项目已用颜色</source>
         <translation>Colors used in the project</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="500" />
+        <location filename="..\..\singer\singer_interface.py" line="521" />
         <source>暂无已用颜色</source>
         <translation>No colors used yet</translation>
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="554" />
+        <source>演唱者名称已自动修正</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="555" />
+        <source>名称中会破坏歌词标注/导出序列的字符已替换为全角：{name}</source>
+        <translation type="unfinished" />
     </message>
 </context><context>
     <name>SingerManagerInterface</name>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1074" />
+        <location filename="..\..\singer\singer_interface.py" line="1115" />
         <source>演唱者管理</source>
         <translation>Singer manager</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1080" />
+        <location filename="..\..\singer\singer_interface.py" line="1121" />
         <source>管理演唱者：双击编辑；Ctrl/Shift 多选可批量操作；拖动可调整顺序。</source>
         <translation>Manage singers: double-click to edit; Ctrl/Shift for multi-select; drag to reorder.</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1087" />
+        <location filename="..\..\singer\singer_interface.py" line="1128" />
         <source>搜索演唱者名称...</source>
         <translation>Search singer name...</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1092" />
+        <location filename="..\..\singer\singer_interface.py" line="1133" />
         <source>分组:</source>
         <translation>Group:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1279" />
-        <location filename="..\..\singer\singer_interface.py" line="1094" />
+        <location filename="..\..\singer\singer_interface.py" line="1359" />
+        <location filename="..\..\singer\singer_interface.py" line="1135" />
         <source>全部</source>
         <translation>all</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1127" />
+        <location filename="..\..\singer\singer_interface.py" line="1168" />
         <source>添加</source>
         <translation>Add</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1132" />
+        <location filename="..\..\singer\singer_interface.py" line="1173" />
         <source>编辑</source>
         <translation>Edit</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1138" />
+        <location filename="..\..\singer\singer_interface.py" line="1179" />
         <source>删除</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1147" />
+        <location filename="..\..\singer\singer_interface.py" line="1188" />
         <source>设置分组</source>
         <translation>Set group</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1155" />
+        <location filename="..\..\singer\singer_interface.py" line="1196" />
         <source>启用</source>
         <translation>Enabled</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1161" />
+        <location filename="..\..\singer\singer_interface.py" line="1202" />
         <source>禁用</source>
         <translation>Disabled</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1173" />
+        <location filename="..\..\singer\singer_interface.py" line="1214" />
         <source>置顶</source>
         <translation>Move to top</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1179" />
+        <location filename="..\..\singer\singer_interface.py" line="1220" />
         <source>上移</source>
         <translation>Move up</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1185" />
+        <location filename="..\..\singer\singer_interface.py" line="1226" />
         <source>下移</source>
         <translation>Move down</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1191" />
+        <location filename="..\..\singer\singer_interface.py" line="1232" />
         <source>置底</source>
         <translation>Move to bottom</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1200" />
+        <location filename="..\..\singer\singer_interface.py" line="1241" />
         <source>保存为软件预设</source>
         <translation>Save as app preset</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1203" />
+        <location filename="..\..\singer\singer_interface.py" line="1244" />
         <source>将当前演唱者列表保存到软件设置，每次启动自动加载</source>
         <translation>Save current singer list to app settings; auto-load on startup</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1208" />
+        <location filename="..\..\singer\singer_interface.py" line="1249" />
         <source>从软件预设加载</source>
         <translation>Load from preset</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1210" />
+        <location filename="..\..\singer\singer_interface.py" line="1251" />
         <source>从软件设置中加载已保存的演唱者预设到当前项目</source>
         <translation>Load saved singer preset from app settings into current project</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1214" />
+        <location filename="..\..\singer\singer_interface.py" line="1255" />
         <source>复制演唱者名称</source>
         <translation>Copy Singer Names</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1217" />
+        <location filename="..\..\singer\singer_interface.py" line="1258" />
         <source>忽略分组和当前筛选，将项目中的全部演唱者名称复制为 JSON 数组</source>
         <translation>Ignore groups and the current filter, and copy all singer names in the project as a JSON array</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1226" />
+        <location filename="..\..\singer\singer_interface.py" line="1267" />
         <source>共 0 位演唱者</source>
         <translation>0 singers</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1759" />
-        <location filename="..\..\singer\singer_interface.py" line="1281" />
+        <location filename="..\..\singer\singer_interface.py" line="1307" />
+        <source>演唱者名称已自动修复</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1308" />
+        <source>工程中有会破坏歌词标注/导出序列的字符，已替换为全角：{names}</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1866" />
+        <location filename="..\..\singer\singer_interface.py" line="1361" />
         <source>（无分组）</source>
         <translation>(no group)</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1837" />
-        <location filename="..\..\singer\singer_interface.py" line="1522" />
-        <location filename="..\..\singer\singer_interface.py" line="1293" />
+        <location filename="..\..\singer\singer_interface.py" line="1946" />
+        <location filename="..\..\singer\singer_interface.py" line="1602" />
+        <location filename="..\..\singer\singer_interface.py" line="1373" />
         <source>未加载项目</source>
         <translation>No project loaded</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1314" />
+        <location filename="..\..\singer\singer_interface.py" line="1394" />
         <source>未命名</source>
         <translation>Untitled</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1318" />
+        <location filename="..\..\singer\singer_interface.py" line="1398" />
         <source> [默认]</source>
         <translation> [default]</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1320" />
+        <location filename="..\..\singer\singer_interface.py" line="1400" />
         <source> (已禁用)</source>
         <translation> (disabled)</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1431" />
-        <location filename="..\..\singer\singer_interface.py" line="1362" />
+        <location filename="..\..\singer\singer_interface.py" line="1511" />
+        <location filename="..\..\singer\singer_interface.py" line="1442" />
         <source>共 {total} 位演唱者（{enabled} 位启用）</source>
         <translation>{total} singers ({enabled} enabled)</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1434" />
-        <location filename="..\..\singer\singer_interface.py" line="1365" />
+        <location filename="..\..\singer\singer_interface.py" line="1514" />
+        <location filename="..\..\singer\singer_interface.py" line="1445" />
         <source> — 已选中 {n} 位</source>
         <translation> — {n} selected</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1436" />
-        <location filename="..\..\singer\singer_interface.py" line="1368" />
+        <location filename="..\..\singer\singer_interface.py" line="1516" />
+        <location filename="..\..\singer\singer_interface.py" line="1448" />
         <source>  [过滤中：{n} 项可见]</source>
         <translation>  [Filtering: {n} visible]</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1837" />
-        <location filename="..\..\singer\singer_interface.py" line="1522" />
+        <location filename="..\..\singer\singer_interface.py" line="1946" />
+        <location filename="..\..\singer\singer_interface.py" line="1602" />
         <source>请先打开或创建一个项目</source>
         <translation>Please open or create a project first</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1527" />
+        <location filename="..\..\singer\singer_interface.py" line="1607" />
         <source>复制成功</source>
         <translation>Copied Successfully</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1528" />
+        <location filename="..\..\singer\singer_interface.py" line="1608" />
         <source>已复制 {n} 位演唱者的名称</source>
         <translation>Copied the names of {n} singers</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1602" />
+        <location filename="..\..\singer\singer_interface.py" line="1643" />
+        <source>调整演唱者顺序</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1686" />
+        <source>添加演唱者 {name}</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1689" />
         <source>添加成功</source>
         <translation>Added successfully</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1603" />
+        <location filename="..\..\singer\singer_interface.py" line="1690" />
         <source>已添加演唱者: {name}</source>
         <translation>Singer added: {name}</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1605" />
+        <location filename="..\..\singer\singer_interface.py" line="1692" />
         <source>添加失败</source>
         <translation>Add failed</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1647" />
+        <location filename="..\..\singer\singer_interface.py" line="1736" />
+        <source>编辑演唱者 {name}</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1739" />
         <source>修改成功</source>
         <translation>Modified</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1648" />
+        <location filename="..\..\singer\singer_interface.py" line="1740" />
         <source>已更新演唱者: {name}</source>
         <translation>Singer updated: {name}</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1650" />
+        <location filename="..\..\singer\singer_interface.py" line="1742" />
         <source>修改失败</source>
         <translation>Modify failed</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1675" />
-        <location filename="..\..\singer\singer_interface.py" line="1664" />
+        <location filename="..\..\singer\singer_interface.py" line="1767" />
+        <location filename="..\..\singer\singer_interface.py" line="1756" />
         <source>无法删除</source>
         <translation>Cannot delete</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1664" />
+        <location filename="..\..\singer\singer_interface.py" line="1756" />
         <source>必须至少保留一个演唱者</source>
         <translation>Must keep at least one singer</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1675" />
+        <location filename="..\..\singer\singer_interface.py" line="1767" />
         <source>没有可用的转移目标</source>
         <translation>No transfer target available</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1690" />
+        <location filename="..\..\singer\singer_interface.py" line="1782" />
         <source> 等 {n} 位</source>
         <translation> +{n} more</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1693" />
+        <location filename="..\..\singer\singer_interface.py" line="1785" />
         <source>确认批量删除</source>
         <translation>Confirm bulk delete</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1694" />
+        <location filename="..\..\singer\singer_interface.py" line="1786" />
         <source>确定要删除 {n} 位演唱者吗？
 
 {names}
@@ -9727,211 +9951,241 @@ Browse for the file manually?</translation>
 Their lyrics will be transferred to the singer you pick next.</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1698" />
+        <location filename="..\..\singer\singer_interface.py" line="1790" />
         <source>继续</source>
         <translation>Continue</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1699" />
+        <location filename="..\..\singer\singer_interface.py" line="1791" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1711" />
+        <location filename="..\..\singer\singer_interface.py" line="1806" />
         <source>删除失败</source>
         <translation>Delete failed</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1711" />
+        <location filename="..\..\singer\singer_interface.py" line="1806" />
         <source>请检查转移目标是否有效</source>
         <translation>Please check that the transfer target is valid</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1715" />
+        <location filename="..\..\singer\singer_interface.py" line="1811" />
+        <source>删除 {n} 位演唱者</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1815" />
         <source>删除成功</source>
         <translation>Deleted</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1716" />
+        <location filename="..\..\singer\singer_interface.py" line="1816" />
         <source>已删除 {n} 位演唱者</source>
         <translation>Deleted {n} singers</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1755" />
-        <location filename="..\..\singer\singer_interface.py" line="1727" />
+        <location filename="..\..\singer\singer_interface.py" line="1861" />
+        <location filename="..\..\singer\singer_interface.py" line="1828" />
         <source>操作失败</source>
         <translation>Operation failed</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1728" />
+        <location filename="..\..\singer\singer_interface.py" line="1829" />
         <source>部分演唱者状态未能更新</source>
         <translation>Some singer states could not be updated</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1728" />
+        <location filename="..\..\singer\singer_interface.py" line="1829" />
         <source>部分演唱者未能启用</source>
         <translation>Some singers could not be enabled</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1760" />
-        <location filename="..\..\singer\singer_interface.py" line="1733" />
+        <location filename="..\..\singer\singer_interface.py" line="1834" />
+        <source>启用演唱者</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1834" />
+        <source>禁用演唱者</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1867" />
+        <location filename="..\..\singer\singer_interface.py" line="1838" />
         <source>完成</source>
         <translation>Done</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1734" />
+        <location filename="..\..\singer\singer_interface.py" line="1839" />
         <source>已启用 {n} 位演唱者</source>
         <translation>Enabled {n} singers</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1734" />
+        <location filename="..\..\singer\singer_interface.py" line="1839" />
         <source>已禁用 {n} 位演唱者</source>
         <translation>Disabled {n} singers</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1755" />
+        <location filename="..\..\singer\singer_interface.py" line="1861" />
         <source>部分演唱者分组未能更新</source>
         <translation>Some singer groups could not be updated</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1761" />
+        <location filename="..\..\singer\singer_interface.py" line="1864" />
+        <source>设置演唱者分组</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1868" />
         <source>已将 {n} 位演唱者设为分组 {label}</source>
         <translation>Set {n} singers to group {label}</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1785" />
+        <location filename="..\..\singer\singer_interface.py" line="1882" />
+        <source>移动演唱者</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="1894" />
         <source>无法保存</source>
         <translation>Cannot save</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1785" />
+        <location filename="..\..\singer\singer_interface.py" line="1894" />
         <source>当前没有演唱者可保存</source>
         <translation>No singer to save</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1830" />
+        <location filename="..\..\singer\singer_interface.py" line="1939" />
         <source>保存成功</source>
         <translation>Saved</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1831" />
+        <location filename="..\..\singer\singer_interface.py" line="1940" />
         <source>已保存 {n} 位演唱者预设到软件设置</source>
         <translation>Saved {n} singer presets to app settings</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1846" />
+        <location filename="..\..\singer\singer_interface.py" line="1955" />
         <source>无预设</source>
         <translation>No preset</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1846" />
+        <location filename="..\..\singer\singer_interface.py" line="1955" />
         <source>软件中没有保存的演唱者预设，请先保存</source>
         <translation>No saved singer preset; please save first</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1899" />
+        <location filename="..\..\singer\singer_interface.py" line="2011" />
+        <source>加载演唱者预设（{n} 位）</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <location filename="..\..\singer\singer_interface.py" line="2018" />
         <source>加载成功</source>
         <translation>Loaded successfully</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="1900" />
+        <location filename="..\..\singer\singer_interface.py" line="2019" />
         <source>已从预设加载 {n} 位新演唱者</source>
         <translation>Loaded {n} new singers from preset</translation>
     </message>
 </context><context>
     <name>SingerPresetLoadDialog</name>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="667" />
+        <location filename="..\..\singer\singer_interface.py" line="708" />
         <source>从软件预设加载演唱者</source>
         <translation>Load singers from preset</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="685" />
+        <location filename="..\..\singer\singer_interface.py" line="726" />
         <source>过滤:</source>
         <translation>Filter:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="687" />
+        <location filename="..\..\singer\singer_interface.py" line="728" />
         <source>输入名称搜索...</source>
         <translation>Type a name to search...</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="691" />
+        <location filename="..\..\singer\singer_interface.py" line="732" />
         <source>分组:</source>
         <translation>Group:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="760" />
-        <location filename="..\..\singer\singer_interface.py" line="693" />
+        <location filename="..\..\singer\singer_interface.py" line="801" />
+        <location filename="..\..\singer\singer_interface.py" line="734" />
         <source>全部分组</source>
         <translation>All groups</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="764" />
-        <location filename="..\..\singer\singer_interface.py" line="697" />
+        <location filename="..\..\singer\singer_interface.py" line="805" />
+        <location filename="..\..\singer\singer_interface.py" line="738" />
         <source>（无分组）</source>
         <translation>(no group)</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="715" />
+        <location filename="..\..\singer\singer_interface.py" line="756" />
         <source>全选</source>
         <translation>Select all</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="719" />
+        <location filename="..\..\singer\singer_interface.py" line="760" />
         <source>全不选</source>
         <translation>Deselect all</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="734" />
+        <location filename="..\..\singer\singer_interface.py" line="775" />
         <source>删除选中演唱者</source>
         <translation>Delete selected singers</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="742" />
+        <location filename="..\..\singer\singer_interface.py" line="783" />
         <source>加载选中</source>
         <translation>Load selected</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="894" />
-        <location filename="..\..\singer\singer_interface.py" line="748" />
+        <location filename="..\..\singer\singer_interface.py" line="935" />
+        <location filename="..\..\singer\singer_interface.py" line="789" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="788" />
+        <location filename="..\..\singer\singer_interface.py" line="829" />
         <source>{name}  (已存在)</source>
         <translation>{name}  (already exists)</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="866" />
+        <location filename="..\..\singer\singer_interface.py" line="907" />
         <source>已选 {checked}/{total}</source>
         <translation>Selected {checked}/{total}</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="940" />
-        <location filename="..\..\singer\singer_interface.py" line="880" />
+        <location filename="..\..\singer\singer_interface.py" line="981" />
+        <location filename="..\..\singer\singer_interface.py" line="921" />
         <source>未选择</source>
         <translation>Not selected</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="940" />
-        <location filename="..\..\singer\singer_interface.py" line="880" />
+        <location filename="..\..\singer\singer_interface.py" line="981" />
+        <location filename="..\..\singer\singer_interface.py" line="921" />
         <source>请至少选择一位演唱者</source>
         <translation>Please select at least one singer</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="887" />
+        <location filename="..\..\singer\singer_interface.py" line="928" />
         <source> 等 {n} 位</source>
         <translation> +{n} more</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="891" />
+        <location filename="..\..\singer\singer_interface.py" line="932" />
         <source>确认删除</source>
         <translation>Confirm delete</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="892" />
+        <location filename="..\..\singer\singer_interface.py" line="933" />
         <source>确定要从预设中删除以下演唱者吗？
 
 {names}
@@ -9944,37 +10198,37 @@ Their lyrics will be transferred to the singer you pick next.</translation>
 This cannot be undone.</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="893" />
+        <location filename="..\..\singer\singer_interface.py" line="934" />
         <source>删除</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="901" />
+        <location filename="..\..\singer\singer_interface.py" line="942" />
         <source>错误</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="901" />
+        <location filename="..\..\singer\singer_interface.py" line="942" />
         <source>无法访问设置</source>
         <translation>Cannot access settings</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="925" />
+        <location filename="..\..\singer\singer_interface.py" line="966" />
         <source>删除成功</source>
         <translation>Deleted</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="926" />
+        <location filename="..\..\singer\singer_interface.py" line="967" />
         <source>已删除 {n} 位演唱者预设</source>
         <translation>Deleted {n} singer presets</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="929" />
+        <location filename="..\..\singer\singer_interface.py" line="970" />
         <source>删除失败</source>
         <translation>Delete failed</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="930" />
+        <location filename="..\..\singer\singer_interface.py" line="971" />
         <source>保存预设时出错: {err}</source>
         <translation>Error saving preset: {err}</translation>
     </message>
@@ -10035,67 +10289,67 @@ Drag cards to reorder; edit offset/length/interval to generate a new SUG project
         <translation>Gap to Next</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="515" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="517" />
         <source>尚未添加SUG文件，请点击「添加SUG文件」选择文件。</source>
         <translation>No SUG files yet. Click "Add SUG File" to select files.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="524" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="526" />
         <source>输出设置</source>
         <translation>Output Settings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="529" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="531" />
         <source>全局默认间隔:</source>
         <translation>Global Default Gap:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="536" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="538" />
         <source>应用到全部</source>
         <translation>Apply to All</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="544" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="546" />
         <source>拼接后文件名:</source>
         <translation>Output Filename:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="546" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="548" />
         <source>默认为第一首SUG名称+……</source>
         <translation>Default: first SUG name + …</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="553" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="555" />
         <source>最终项目偏移:</source>
         <translation>Final Project Offset:</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="568" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="570" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="571" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="573" />
         <source>应用</source>
         <translation>Apply</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="660" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="661" />
         <source>选择要拼接的SUG文件</source>
         <translation>Select SUG files to concatenate</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="662" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="663" />
         <source>StrangeUtaGame 项目 (*.sug);;所有文件 (*.*)</source>
         <translation>StrangeUtaGame Project (*.sug);;All Files (*.*)</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="699" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="700" />
         <source>无SUG文件</source>
         <translation>No SUG files</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="700" />
+        <location filename="..\..\editor\timing\sug_concat_dialog.py" line="701" />
         <source>请先添加至少一个SUG文件。</source>
         <translation>Please add at least one SUG file first.</translation>
     </message>
@@ -10116,317 +10370,317 @@ Drag cards to reorder; edit offset/length/interval to generate a new SUG project
 </context><context>
     <name>TimelineWidget</name>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2870" />
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2767" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2929" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2826" />
         <source>波形显示</source>
         <translation>Waveform display</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2868" />
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2770" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2927" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2829" />
         <source>开</source>
         <translation>ON</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2869" />
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2771" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2928" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2830" />
         <source>关</source>
         <translation>OFF</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2858" />
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2773" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2917" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2832" />
         <source>波形图高级设置</source>
         <translation>Waveform Advanced Settings</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="3018" />
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2843" />
-        <location filename="..\..\editor\timing\timeline_widget.py" line="2778" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="3077" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2902" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="2837" />
         <source>未加载音频</source>
         <translation>No audio loaded</translation>
     </message>
 </context><context>
     <name>TimingSubInterface</name>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="35" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="36" />
         <source>性能</source>
         <translation>Performance</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="40" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="41" />
         <source>打轴界面刷新率</source>
         <translation>Timing UI refresh rate</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="41" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="42" />
         <source>低配置电脑可选择 30 帧；仅降低界面动画刷新率，不影响打轴时间戳精度</source>
         <translation>Choose 30 fps on low-spec machines; only UI animation refresh drops, timing precision is unaffected</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="42" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="43" />
         <source>流畅（60 帧）</source>
         <translation>Smooth (60 fps)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="42" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="43" />
         <source>低性能模式（30 帧）</source>
         <translation>Low performance mode (30 fps)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="54" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="55" />
         <source>高分屏适配</source>
         <translation>High-DPI scaling</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="55" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="56" />
         <source>关闭后由 Windows 缩放整个程序，可降低高分屏渲染开销，但画面会变模糊；重启软件后生效</source>
         <translation>When off, Windows scales the entire app, reducing high-DPI rendering load at the cost of a blurrier image; takes effect after restart</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="72" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="73" />
         <source>时间补正</source>
         <translation>Timing correction</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="75" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="76" />
         <source>按键补偿</source>
         <translation>Key compensation</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="76" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="77" />
         <source>建议用下方的offset校正来矫正，用于设备引起的反应延迟（负值=提前，正值=延后）</source>
         <translation>Use the Offset calibration below to compensate device latency (negative = earlier, positive = later)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="81" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="82" />
         <source>速度补正</source>
         <translation>Speed correction</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="82" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="83" />
         <source>打轴时间戳的速度修正系数</source>
         <translation>Speed correction factor for tagged timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="86" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="87" />
         <source>全局偏移</source>
         <translation>Offset</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="87" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="88" />
         <source>全局偏移，用于控制本软件内整体轴时间偏移（毫秒），（负值=提前，正值=延后）</source>
         <translation>Global offset (ms). Negative = earlier, positive = later.</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="92" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="93" />
         <source>微调时间戳步长</source>
         <translation>Fine-tune timestamp step</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="93" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="94" />
         <source>Alt+↑/Alt+↓ 微调选中节奏点时间戳的步长</source>
         <translation>Step size for Alt+↑/Alt+↓ fine-tuning of selected checkpoint timestamps</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="99" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="100" />
         <source>节拍器校准</source>
         <translation>Metronome calibration</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="100" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="101" />
         <source>打开校准弹窗，跟随节拍器按空格键测量 Offset</source>
         <translation>Open the calibration dialog; press space to a metronome to measure Offset</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="103" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="104" />
         <source>开始校准</source>
         <translation>Start calibration</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="115" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="116" />
         <source>波形时间标签</source>
         <translation>Waveform time tags</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="118" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="119" />
         <source>波形时间标签拖拽</source>
         <translation>Waveform time-tag dragging</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="119" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="120" />
         <source>在波形区把时间标签作为可拖动对象：单击把手选中并跳转、拖动把手改时间、Ctrl 多选批量平移；关闭则恢复为旧的纯显示模式</source>
         <translation>Treat time tags on the waveform as draggable objects: click a handle to select and seek, drag a handle to change its time, Ctrl-click to multi-select and shift together; turn off to restore the old display-only mode</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="123" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="124" />
         <source>播放头居中模式</source>
         <translation>Centered playhead mode</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="124" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="125" />
         <source>播放时将播放头锁定在时间轴中央，由波形和时间标签随播放向左滚动</source>
         <translation>Keep the playhead locked at the center while playing and scroll the waveform and time tags to the left</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="128" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="129" />
         <source>波形标签显示字符</source>
         <translation>Show character on waveform tags</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="129" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="130" />
         <source>在波形时间标签上显示对应的本体字符文本；关闭后该字符不在波形上标注</source>
         <translation>Show the corresponding character text on waveform time tags; turn off to omit the character</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="133" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="134" />
         <source>波形标签显示注音</source>
         <translation>Show furigana on waveform tags</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="134" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="135" />
         <source>在波形时间标签上显示对应的注音(ruby)文本；关闭后注音不在波形上标注</source>
         <translation>Show the corresponding furigana (ruby) text on waveform time tags; turn off to omit the furigana</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="143" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="144" />
         <source>鼠标与焦点</source>
         <translation>Mouse &amp; focus</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="146" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="147" />
         <source>禁用单击跳转</source>
         <translation>Disable click-to-jump</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="147" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="148" />
         <source>关闭单击字符/节奏点延迟后跳转到目标行的功能（双击跳转不受影响）</source>
         <translation>Disable click-to-jump after delay (double-click unaffected)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="151" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="152" />
         <source>禁用点击时居中</source>
         <translation>Disable centering on click</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="152" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="153" />
         <source>单击或双击字符/节奏点时不再把目标行滚动到视口中央（光标仍会移动；播放自动滚动与键盘导航不受影响）</source>
         <translation>Single- or double-clicking a character/checkpoint no longer scrolls the target line to the viewport center (the cursor still moves; playback auto-scroll and keyboard navigation are unaffected)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="156" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="157" />
         <source>隐藏焦点高亮</source>
         <translation>Hide focus highlight</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="157" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="158" />
         <source>隐藏 current 域和 focus 域的 hitbox 高亮背景；启用后仅在拖拽多选时显示 focus 域高亮</source>
         <translation>Hide hitbox highlight backgrounds for current and focus domains; when enabled, focus domain highlight only shows during drag selection</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="166" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="167" />
         <source>预览指引</source>
         <translation>Preview guide</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="169" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="170" />
         <source>打轴预览指引</source>
         <translation>Timing preview guide</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="170" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="171" />
         <source>打轴指引总开关（默认开）：播放时在当前行以光标为锚用过渡色提示上一个/正在/下一个打的字；未打轴注音以 30% 透明度灰显、已打轴注音全亮，关闭后恢复纯色渲染。过渡色各档不透明度与开关可在下方「预览指引方式」中自定义</source>
         <translation>Master switch for timing guides (on by default): during playback, the current line anchors at the cursor and uses gradient colors to mark the previous/current/next characters; untimed ruby dims to 30% opacity while timed ruby stays fully opaque — turn it off to restore plain rendering. Gradient opacity levels and toggles are customizable in 'Preview guide style' below</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="174" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="175" />
         <source>预览指引方式</source>
         <translation>Preview guide style</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="175" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="176" />
         <source>设置预览指引中上一个/正在/下一个字群的不透明度和开关</source>
         <translation>Set opacity and toggle for previous/current/next character groups in the preview guide</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="178" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="179" />
         <source>设置指引</source>
         <translation>Configure guide</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="188" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="189" />
         <source>按键音效</source>
         <translation>Key sound</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="191" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="192" />
         <source>按键音</source>
         <translation>Key sound</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="192" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="193" />
         <source>打轴时按下按键播放按下音、抬起停顿点按键播放抬起音</source>
         <translation>Play press sound on key-down and release sound on pause-point key-up during tagging</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="195" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="196" />
         <source>按键音音量</source>
         <translation>Key-sound volume</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="196" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="197" />
         <source>按键音的播放音量（100 = 原始音量）</source>
         <translation>Key-sound playback volume (100 = original)</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="200" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="201" />
         <source>按键音风格</source>
         <translation>Key-sound style</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="201" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="202" />
         <source>选择按键音音效风格</source>
         <translation>Choose key-sound style</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="202" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="203" />
         <source>默认</source>
         <translation>Default</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="202" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="203" />
         <source>街机风</source>
         <translation>Arcade</translation>
     </message>
     <message>
-        <location filename="..\..\settings\sub_interfaces\timing.py" line="202" />
+        <location filename="..\..\settings\sub_interfaces\timing.py" line="203" />
         <source>金属感</source>
         <translation>Metallic</translation>
     </message>
 </context><context>
     <name>TransferTargetDialog</name>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="597" />
+        <location filename="..\..\singer\singer_interface.py" line="638" />
         <source>选择转移目标</source>
         <translation>Choose transfer target</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="604" />
+        <location filename="..\..\singer\singer_interface.py" line="645" />
         <source>被删除演唱者的歌词将转移到以下演唱者：</source>
         <translation>Lyrics of removed singers will be transferred to:</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="609" />
+        <location filename="..\..\singer\singer_interface.py" line="650" />
         <source>（默认）</source>
         <translation>(default)</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="618" />
+        <location filename="..\..\singer\singer_interface.py" line="659" />
         <source>确定</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="618" />
+        <location filename="..\..\singer\singer_interface.py" line="659" />
         <source>取消</source>
         <translation>Cancel</translation>
     </message>
@@ -10653,358 +10907,358 @@ Drag cards to reorder; edit offset/length/interval to generate a new SUG project
     <name>UpdateProgressWindow</name>
     <message>
         <source>取消更新</source>
-        <translation type="vanished">Cancel Update</translation>
+        <translation>Cancel Update</translation>
     </message>
     <message>
         <source>正在准备更新</source>
-        <translation type="vanished">Preparing update</translation>
+        <translation>Preparing update</translation>
     </message>
     <message>
         <source>正在取消…</source>
-        <translation type="vanished">Cancelling…</translation>
+        <translation>Cancelling…</translation>
     </message>
     <message>
         <source>正在获取最新更新器，请稍候…</source>
-        <translation type="vanished">Fetching latest updater, please wait…</translation>
+        <translation>Fetching latest updater, please wait…</translation>
     </message>
 </context><context>
     <name>UpdaterUI</name>
     <message>
         <source> 小时</source>
-        <translation type="vanished"> h</translation>
+        <translation> h</translation>
     </message>
     <message>
         <source>GitHub 可达</source>
-        <translation type="vanished">GitHub reachable</translation>
+        <translation>GitHub reachable</translation>
     </message>
     <message>
         <source>Windows 系统代理未启用，但 {hint}。建议切换为「自动检测代理」或「手动指定地址」。</source>
-        <translation type="vanished">Windows system proxy not enabled, but {hint}. Consider switching to 'Auto-detect proxy' or 'Manual'.</translation>
+        <translation>Windows system proxy not enabled, but {hint}. Consider switching to 'Auto-detect proxy' or 'Manual'.</translation>
     </message>
     <message>
         <source>Windows 系统代理未启用，本机也未发现常用代理端口监听。若你的代理软件正在运行，请改用「手动指定地址」。</source>
-        <translation type="vanished">Windows system proxy not enabled, and no common local proxy ports are listening. If your proxy is running, use 'Manual' instead.</translation>
+        <translation>Windows system proxy not enabled, and no common local proxy ports are listening. If your proxy is running, use 'Manual' instead.</translation>
     </message>
     <message>
         <source>{url}　已生效（{mode} · 来源：{source}）</source>
-        <translation type="vanished">{url}　active ({mode} · source: {source})</translation>
+        <translation>{url}　active ({mode} · source: {source})</translation>
     </message>
     <message>
         <source>↑ 上移</source>
-        <translation type="vanished">↑ Up</translation>
+        <translation>↑ Up</translation>
     </message>
     <message>
         <source>↓ 下移</source>
-        <translation type="vanished">↓ Down</translation>
+        <translation>↓ Down</translation>
     </message>
     <message>
         <source>下载源：{label}</source>
-        <translation type="vanished">Download source: {label}</translation>
+        <translation>Download source: {label}</translation>
     </message>
     <message>
         <source>代理可正常访问 GitHub，但官方 API 对你的出口 IP 限流（403）。检查更新会自动改用网页端探测，通常不受影响。</source>
-        <translation type="vanished">The proxy can reach GitHub fine, but the official API is rate-limiting your egress IP (403). Update checks fall back to web-page detection automatically, so this usually has no impact.</translation>
+        <translation>The proxy can reach GitHub fine, but the official API is rate-limiting your egress IP (403). Update checks fall back to web-page detection automatically, so this usually has no impact.</translation>
     </message>
     <message>
         <source>代理模式</source>
-        <translation type="vanished">Proxy mode</translation>
+        <translation>Proxy mode</translation>
     </message>
     <message>
         <source>使用系统代理</source>
-        <translation type="vanished">Use system proxy</translation>
+        <translation>Use system proxy</translation>
     </message>
     <message>
         <source>例如 http://127.0.0.1:7890 ；仅在选择「手动指定地址」时生效</source>
-        <translation type="vanished">E.g. http://127.0.0.1:7890. Only active when 'Manual' is selected.</translation>
+        <translation>E.g. http://127.0.0.1:7890. Only active when 'Manual' is selected.</translation>
     </message>
     <message>
         <source>关闭代理</source>
-        <translation type="vanished">No proxy</translation>
+        <translation>No proxy</translation>
     </message>
     <message>
         <source>即将退出当前应用，由 Updater 完成替换并自动重启…</source>
-        <translation type="vanished">Exiting current app. Updater will perform replacement and auto-restart…</translation>
+        <translation>Exiting current app. Updater will perform replacement and auto-restart…</translation>
     </message>
     <message>
         <source>发现新版本</source>
-        <translation type="vanished">New version available</translation>
+        <translation>New version available</translation>
     </message>
     <message>
         <source>取消</source>
-        <translation type="vanished">Cancel</translation>
+        <translation>Cancel</translation>
     </message>
     <message>
         <source>启动时检查更新</source>
-        <translation type="vanished">Check for updates on startup</translation>
+        <translation>Check for updates on startup</translation>
     </message>
     <message>
         <source>启动检查间隔</source>
-        <translation type="vanished">Startup check interval</translation>
+        <translation>Startup check interval</translation>
     </message>
     <message>
         <source>在本机端口 {ports} 上检测到代理监听</source>
-        <translation type="vanished">Detected proxy listening on local ports {ports}</translation>
+        <translation>Detected proxy listening on local ports {ports}</translation>
     </message>
     <message>
         <source>在浏览器中查看完整发布说明</source>
-        <translation type="vanished">Open full release notes in browser</translation>
+        <translation>Open full release notes in browser</translation>
     </message>
     <message>
         <source>尚未填写手动代理地址，例如 http://127.0.0.1:7897</source>
-        <translation type="vanished">Manual proxy address not set (e.g. http://127.0.0.1:7897)</translation>
+        <translation>Manual proxy address not set (e.g. http://127.0.0.1:7897)</translation>
     </message>
     <message>
         <source>已使用代理 {url}（来源：{source}）</source>
-        <translation type="vanished">Using proxy {url} (source: {source})</translation>
+        <translation>Using proxy {url} (source: {source})</translation>
     </message>
     <message>
         <source>已关闭代理 —— 应用将直接访问网络。</source>
-        <translation type="vanished">Proxy off — the app will access the network directly.</translation>
+        <translation>Proxy off — the app will access the network directly.</translation>
     </message>
     <message>
         <source>已是最新版本</source>
-        <translation type="vanished">Already up to date</translation>
+        <translation>Already up to date</translation>
     </message>
     <message>
         <source>已跳过此版本</source>
-        <translation type="vanished">This version has been skipped</translation>
+        <translation>This version has been skipped</translation>
     </message>
     <message>
         <source>应用启动后在后台轻量检查 GitHub Release，发现新版本时弹窗提示</source>
-        <translation type="vanished">After startup, lightly check GitHub Release in background; notify on new version</translation>
+        <translation>After startup, lightly check GitHub Release in background; notify on new version</translation>
     </message>
     <message>
         <source>应用更新</source>
-        <translation type="vanished">App update</translation>
+        <translation>App update</translation>
     </message>
     <message>
         <source>当前版本 v{local}　|　发布于 {date}</source>
-        <translation type="vanished">Current v{local}　|　Released on {date}</translation>
+        <translation>Current v{local}　|　Released on {date}</translation>
     </message>
     <message>
         <source>当前版本 v{version} 已是最新</source>
-        <translation type="vanished">Current v{version} is up to date</translation>
+        <translation>Current v{version} is up to date</translation>
     </message>
     <message>
         <source>当前生效代理</source>
-        <translation type="vanished">Active proxy</translation>
+        <translation>Active proxy</translation>
     </message>
     <message>
         <source>恢复默认</source>
-        <translation type="vanished">Restore default</translation>
+        <translation>Restore default</translation>
     </message>
     <message>
         <source>您可以稍后在设置中重新检查更新</source>
-        <translation type="vanished">You can check for updates later in Settings</translation>
+        <translation>You can check for updates later in Settings</translation>
     </message>
     <message>
         <source>我知道了</source>
-        <translation type="vanished">Got it</translation>
+        <translation>Got it</translation>
     </message>
     <message>
         <source>手动代理地址</source>
-        <translation type="vanished">Manual proxy address</translation>
+        <translation>Manual proxy address</translation>
     </message>
     <message>
         <source>手动地址 {url!r} 无效，请检查协议与端口。</source>
-        <translation type="vanished">Manual address {url!r} is invalid. Check the scheme and port.</translation>
+        <translation>Manual address {url!r} is invalid. Check the scheme and port.</translation>
     </message>
     <message>
         <source>手动指定</source>
-        <translation type="vanished">Manual</translation>
+        <translation>Manual</translation>
     </message>
     <message>
         <source>手动指定地址</source>
-        <translation type="vanished">Specify address manually</translation>
+        <translation>Specify address manually</translation>
     </message>
     <message>
         <source>按顺序尝试，前一项失败时自动降级到下一项。
 你可以拖动条目，或选中条目后用右侧 ↑/↓ 按钮调整。</source>
-        <translation type="vanished">Try in order; on failure, fall back to next. Drag items or use ↑/↓ on the right to reorder.</translation>
+        <translation>Try in order; on failure, fall back to next. Drag items or use ↑/↓ on the right to reorder.</translation>
     </message>
     <message>
         <source>无法启动 Updater</source>
-        <translation type="vanished">Cannot launch Updater</translation>
+        <translation>Cannot launch Updater</translation>
     </message>
     <message>
         <source>更新内容：</source>
-        <translation type="vanished">Changes:</translation>
+        <translation>Changes:</translation>
     </message>
     <message>
         <source>更新器未就绪</source>
-        <translation type="vanished">Updater not ready</translation>
+        <translation>Updater not ready</translation>
     </message>
     <message>
         <source>更新已取消</source>
-        <translation type="vanished">Update Cancelled</translation>
+        <translation>Update Cancelled</translation>
     </message>
     <message>
         <source>更新已启动</source>
-        <translation type="vanished">Update started</translation>
+        <translation>Update started</translation>
     </message>
     <message>
         <source>更新源优先级</source>
-        <translation type="vanished">Update-source priority</translation>
+        <translation>Update-source priority</translation>
     </message>
     <message>
         <source>未发现系统代理，也未在常用端口（{ports} 等）发现监听</source>
-        <translation type="vanished">No system proxy found; nothing listening on common ports ({ports} etc.)</translation>
+        <translation>No system proxy found; nothing listening on common ports ({ports} etc.)</translation>
     </message>
     <message>
         <source>未启用代理</source>
-        <translation type="vanished">Proxy disabled</translation>
+        <translation>Proxy disabled</translation>
     </message>
     <message>
         <source>未来不再为 v{version} 提示。重新检测可重新启用。</source>
-        <translation type="vanished">Will not notify for v{version} again. Re-check to re-enable.</translation>
+        <translation>Will not notify for v{version} again. Re-check to re-enable.</translation>
     </message>
     <message>
         <source>未检测到代理</source>
-        <translation type="vanished">No proxy detected</translation>
+        <translation>No proxy detected</translation>
     </message>
     <message>
         <source>未知</source>
-        <translation type="vanished">Unknown</translation>
+        <translation>Unknown</translation>
     </message>
     <message>
         <source>未知日期</source>
-        <translation type="vanished">Unknown date</translation>
+        <translation>Unknown date</translation>
     </message>
     <message>
         <source>未知错误</source>
-        <translation type="vanished">Unknown error</translation>
+        <translation>Unknown error</translation>
     </message>
     <message>
         <source>检查中...</source>
-        <translation type="vanished">Checking...</translation>
+        <translation>Checking...</translation>
     </message>
     <message>
         <source>检查更新</source>
-        <translation type="vanished">Check for updates</translation>
+        <translation>Check for updates</translation>
     </message>
     <message>
         <source>检查更新失败</source>
-        <translation type="vanished">Update check failed</translation>
+        <translation>Update check failed</translation>
     </message>
     <message>
         <source>检测成功</source>
-        <translation type="vanished">Detection succeeded</translation>
+        <translation>Detection succeeded</translation>
     </message>
     <message>
         <source>测试中...</source>
-        <translation type="vanished">Testing...</translation>
+        <translation>Testing...</translation>
     </message>
     <message>
         <source>测试连通性</source>
-        <translation type="vanished">Test connection</translation>
+        <translation>Test connection</translation>
     </message>
     <message>
         <source>源尝试记录：</source>
-        <translation type="vanished">Source attempt log:</translation>
+        <translation>Source attempt log:</translation>
     </message>
     <message>
         <source>版本 v{ver}  |  由 RhythmicaLyrics 启发</source>
-        <translation type="vanished">Version v{ver}  |  Inspired by RhythmicaLyrics</translation>
+        <translation>Version v{ver}  |  Inspired by RhythmicaLyrics</translation>
     </message>
     <message>
         <source>确定</source>
-        <translation type="vanished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <source>稍后再说</source>
-        <translation type="vanished">Later</translation>
+        <translation>Later</translation>
     </message>
     <message>
         <source>立即从所选源拉取最新发布信息（不受启动检查间隔限制）</source>
-        <translation type="vanished">Fetch latest release info from selected source now (not limited by startup interval)</translation>
+        <translation>Fetch latest release info from selected source now (not limited by startup interval)</translation>
     </message>
     <message>
         <source>立即更新</source>
-        <translation type="vanished">Update now</translation>
+        <translation>Update now</translation>
     </message>
     <message>
         <source>立即检查更新</source>
-        <translation type="vanished">Check now</translation>
+        <translation>Check now</translation>
     </message>
     <message>
         <source>系统代理</source>
-        <translation type="vanished">System proxy</translation>
+        <translation>System proxy</translation>
     </message>
     <message>
         <source>编辑顺序</source>
-        <translation type="vanished">Edit order</translation>
+        <translation>Edit order</translation>
     </message>
     <message>
         <source>缺少 Updater.exe。请到 GitHub Release 手动下载最新版本。</source>
-        <translation type="vanished">Updater.exe missing. Download the latest version from GitHub Release manually.</translation>
+        <translation>Updater.exe missing. Download the latest version from GitHub Release manually.</translation>
     </message>
     <message>
         <source>网络与代理（更新源）</source>
-        <translation type="vanished">Network &amp; proxy (update sources)</translation>
+        <translation>Network &amp; proxy (update sources)</translation>
     </message>
     <message>
         <source>自动检测</source>
-        <translation type="vanished">Auto-detect</translation>
+        <translation>Auto-detect</translation>
     </message>
     <message>
         <source>自动检测代理</source>
-        <translation type="vanished">Auto-detect proxy</translation>
+        <translation>Auto-detect proxy</translation>
     </message>
     <message>
         <source>自动检测未发现可用代理。如确有代理在运行，请改用「手动指定地址」。</source>
-        <translation type="vanished">No proxy found via auto-detect. If one is running, use 'Manual' instead.</translation>
+        <translation>No proxy found via auto-detect. If one is running, use 'Manual' instead.</translation>
     </message>
     <message>
         <source>访问 GitHub 时是否经过代理；自动检测会探测常用本地代理端口</source>
-        <translation type="vanished">Whether to use a proxy when accessing GitHub; auto-detect probes common local proxy ports</translation>
+        <translation>Whether to use a proxy when accessing GitHub; auto-detect probes common local proxy ports</translation>
     </message>
     <message>
         <source>调整更新源优先级</source>
-        <translation type="vanished">Adjust update-source priority</translation>
+        <translation>Adjust update-source priority</translation>
     </message>
     <message>
         <source>距上次检查不足该时长时，启动期不再发起请求（手动检查不受限）</source>
-        <translation type="vanished">If less than this duration has passed since last check, do not request at startup (manual checks unrestricted)</translation>
+        <translation>If less than this duration has passed since last check, do not request at startup (manual checks unrestricted)</translation>
     </message>
     <message>
         <source>跳过此版本</source>
-        <translation type="vanished">Skip this version</translation>
+        <translation>Skip this version</translation>
     </message>
     <message>
         <source>连通失败</source>
-        <translation type="vanished">Connectivity failed</translation>
+        <translation>Connectivity failed</translation>
     </message>
     <message>
         <source>连通成功</source>
-        <translation type="vanished">Connectivity succeeded</translation>
+        <translation>Connectivity succeeded</translation>
     </message>
     <message>
         <source>连通成功（API 限流中）</source>
-        <translation type="vanished">Connected (API rate-limited)</translation>
+        <translation>Connected (API rate-limited)</translation>
     </message>
     <message>
         <source>（发布说明为空）</source>
-        <translation type="vanished">(release notes empty)</translation>
+        <translation>(release notes empty)</translation>
     </message>
     <message>
         <source>（尚未检测）</source>
-        <translation type="vanished">(not yet detected)</translation>
+        <translation>(not yet detected)</translation>
     </message>
     <message>
         <source>（尚未读取）</source>
-        <translation type="vanished">(not yet read)</translation>
+        <translation>(not yet read)</translation>
     </message>
 </context><context>
     <name>VideoExtractOnlyWorker</name>
     <message>
-        <location filename="..\..\workers.py" line="233" />
+        <location filename="..\..\workers.py" line="234" />
         <source>正在提取音频...</source>
         <translation>Extracting audio...</translation>
     </message>
 </context><context>
     <name>VideoExtractWorker</name>
     <message>
-        <location filename="..\..\workers.py" line="206" />
+        <location filename="..\..\workers.py" line="207" />
         <source>正在提取音频...</source>
         <translation>Extracting audio...</translation>
     </message>
@@ -11352,22 +11606,22 @@ Drag cards to reorder; edit offset/length/interval to generate a new SUG project
 </context><context>
     <name>WaveformDisplay</name>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="1366" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="1402" />
         <source>音频过长：超出声谱内存预算，请降低窗口重叠率或缩短音频</source>
         <translation>Audio too long: exceeds spectrogram memory budget. Lower window overlap or shorten audio.</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="1552" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="1591" />
         <source>声谱计算失败</source>
         <translation>Spectrogram computation failed</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="1554" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="1593" />
         <source>声谱计算中</source>
         <translation>Computing spectrogram</translation>
     </message>
     <message>
-        <location filename="..\..\editor\timing\timeline_widget.py" line="1661" />
+        <location filename="..\..\editor\timing\timeline_widget.py" line="1713" />
         <source>请加载音频文件</source>
         <translation>Please load an audio file</translation>
     </message>
@@ -11487,7 +11741,7 @@ Continue?</translation>
 </context><context>
     <name>WorkspaceSwitcher</name>
     <message>
-        <location filename="..\..\fluent_widgets.py" line="127" />
+        <location filename="..\..\fluent_widgets.py" line="158" />
         <source>工作区切换</source>
         <translation>Workspace switcher</translation>
     </message>
@@ -11537,7 +11791,7 @@ Continue?</translation>
 </context><context>
     <name>_ColorSwatch</name>
     <message>
-        <location filename="..\..\singer\singer_interface.py" line="92" />
+        <location filename="..\..\singer\singer_interface.py" line="93" />
         <source>点击设置颜色
 {color}</source>
         <translation>Click to set color

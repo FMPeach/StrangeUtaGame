@@ -1880,5 +1880,6 @@
   "韩文注音": "Korean reading annotation",
   "正在韩文注音": "Annotating Korean readings",
   "韩文注音失败": "Korean annotation failed",
-  "为韩文歌词按设置风格标注片假名/平假名/罗马音注音": "Annotate Korean lyrics with katakana/hiragana/romaji readings in the configured style"
+  "为韩文歌词按设置风格标注片假名/平假名/罗马音注音": "Annotate Korean lyrics with katakana/hiragana/romaji readings in the configured style",
+  "中文片假名注音": "Chinese Katakana annotation"
 }

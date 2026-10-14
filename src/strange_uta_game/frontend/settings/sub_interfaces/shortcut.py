@@ -91,6 +91,7 @@ class ShortcutSubInterface(SubSettingInterface):
         ("analyze_rubies_selected_no_cp", FIF.SYNC, "注音分析所选字符（仅注音）", "仅分析选中字符注音，但不更新节奏点", "", "", "both", None, None, False),
         ("romanize_all", FIF.FONT, "全部转为罗马字", "将现有注音整体转为罗马字（不更新节奏点、不删除注音）", "", "", "both", None, None, False),
         ("analyze_pinyin", FIF.FONT, "中文拼音注音", "为中文歌词自动添加拼音注音", "", "", "both", None, None, False),
+        ("analyze_pinyin_katakana", FIF.FONT, "中文片假名注音", "为中文歌词自动添加片假名近似音注音", "", "", "both", None, None, False),
         ("analyze_korean", FIF.FONT, "韩文注音", "为韩文歌词按设置风格标注片假名/平假名/罗马音注音", "", "", "both", None, None, False),
         ("delete_rubies_by_type", FIF.DELETE, "按类型删除注音", "按类型删除注音对话框", "CTRL+4:short", "CTRL+4:short", "both", None, None, False),
 
