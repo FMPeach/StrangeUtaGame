@@ -41,23 +41,86 @@ _KRL_CONFIG_START_RE = re.compile(r"\A\ufeff?\s*config\s*\{", re.IGNORECASE)
 # 行首角色标签：【@角色名】，`+` 连接表示合唱（如 【@miku+rin】）。
 # 标签不属于歌词正文；未标注的行沿用上一个角色。
 _KRL_ROLE_TAG_RE = re.compile(r"\A\s*【@([^【】\r\n]+)】")
+_KRL_ROLE_TOKEN_RE = re.compile(r"【@[^】\r\n]+】")
+_KRL_INLINE_BLOCK_RE = re.compile(r"\{[^|]+\|[^}]+\}")
 
 
-def _escape_leading_role_tag(line: str, chars: List[Character]) -> str:
-    """歌词正文恰好以 `【@` 开头时，把半角 @ 换成全角 ＠（F11）。
+def _is_exported_role_tag(char: Character) -> bool:
+    """Return whether *char* is an exporter-inserted KRL role tag.
 
-    否则导入端会把 `【@...】` 当成角色元数据标签剥掉。导出器自插的
-    演唱者标签是单个 Character("【@名字】")，不满足「chars[0] 是单字
-    '【' 且 chars[1] 是 '@'」的条件，不受影响。
+    Project text is stored one code point per ``Character``.  The KRL exporter
+    deliberately inserts a complete ``【@name】`` token as one untimed
+    ``Character``; that token is metadata and must remain unescaped.
     """
-    if (
-        len(chars) >= 2
-        and chars[0].char == "【"
-        and chars[1].char == "@"
-        and line.startswith("【@")
-    ):
-        return "【＠" + line[2:]
-    return line
+    return bool(
+        char.check_count == 0
+        and char.ruby is None
+        and not char.timestamps
+        and _KRL_ROLE_TOKEN_RE.fullmatch(char.char)
+    )
+
+
+def _escape_literal_role_tags(text: str) -> str:
+    """Escape literal top-level ``【@name】`` tokens for Kirakara.
+
+    Kirakara treats a complete token anywhere in a lyric line as role
+    metadata.  Prefixing its opening bracket with ``\\`` makes it lyric text;
+    an unclosed ``【@`` is not a token and is left alone.  Existing literal
+    backslashes immediately before the token are doubled before adding the
+    escape, preserving them under Kirakara's ``\\\\`` / ``\\【`` lexer rules.
+
+    Role-shaped text inside ``{display|ruby}`` is already protected by the KRL
+    block grammar and must not be escaped, otherwise the added backslash would
+    become visible text inside the block.
+    """
+    result: List[str] = []
+    pos = 0
+    while pos < len(text):
+        block_match = _KRL_INLINE_BLOCK_RE.match(text, pos)
+        if block_match is not None:
+            result.append(block_match.group(0))
+            pos = block_match.end()
+            continue
+
+        slash_end = pos
+        while slash_end < len(text) and text[slash_end] == "\\":
+            slash_end += 1
+        role_match = _KRL_ROLE_TOKEN_RE.match(text, slash_end)
+        if role_match is not None:
+            slash_count = slash_end - pos
+            result.append("\\" * (slash_count * 2 + 1))
+            result.append(role_match.group(0))
+            pos = role_match.end()
+            continue
+
+        result.append(text[pos])
+        pos += 1
+    return "".join(result)
+
+
+def _join_krl_segments(segments: List[Tuple[str, bool]]) -> str:
+    """Join serialized segments while preserving real role metadata tags.
+
+    The boolean marks an exporter-inserted role tag.  Ordinary neighbouring
+    segments are escaped as one run so a literal token split over multiple
+    ``Character`` objects is still detected.
+    """
+    result: List[str] = []
+    ordinary: List[str] = []
+
+    def flush_ordinary() -> None:
+        if ordinary:
+            result.append(_escape_literal_role_tags("".join(ordinary)))
+            ordinary.clear()
+
+    for text, is_role_tag in segments:
+        if is_role_tag:
+            flush_ordinary()
+            result.append(text)
+        else:
+            ordinary.append(text)
+    flush_ordinary()
+    return "".join(result)
 
 
 def strip_krl_config(content: str) -> str:
@@ -221,15 +284,26 @@ def sentence_from_kasugamuki(line: str, singer_id: str) -> Sentence:
             pos = next_pos
             continue
 
+        literal = line[pos]
+        consumed = 1
+        if line.startswith("\\\\", pos):
+            # Kirakara escape: two backslashes represent one literal slash.
+            literal = "\\"
+            consumed = 2
+        elif line.startswith("\\【", pos):
+            # Kirakara escape: the opening bracket is lyric text, not a role tag.
+            literal = "【"
+            consumed = 2
+
         character = Character(
-            char=line[pos],
+            char=literal,
             check_count=1 if pending_timestamp is not None else 0,
             timestamps=[pending_timestamp] if pending_timestamp is not None else [],
             singer_id=singer_id,
         )
         pending_timestamp = None
         characters.append(character)
-        pos += 1
+        pos += consumed
 
     return Sentence(singer_id=singer_id, characters=characters)
 
@@ -413,21 +487,21 @@ def _build_tagged_parts(
 
 def sentence_to_kasugamuki(sentence: Sentence) -> str:
     """一行 → 春日向单注音格式。"""
-    segments: List[str] = []
+    segments: List[Tuple[str, bool]] = []
     chars = sentence.characters
     i = 0
     while i < len(chars):
         char = chars[i]
         if char.linked_to_next and i + 1 < len(chars):
             group, i = _collect_linked(chars, i)
-            segments.append(_linked_group_kana(group))
+            segments.append((_linked_group_kana(group), False))
         elif char.ruby:
-            segments.append(_char_ruby_kana(char))
+            segments.append((_char_ruby_kana(char), False))
             i += 1
         else:
-            segments.append(_char_plain(char))
+            segments.append((_char_plain(char), _is_exported_role_tag(char)))
             i += 1
-    return _escape_leading_role_tag("".join(segments), chars)
+    return _join_krl_segments(segments)
 
 
 def sentences_to_kasugamuki(sentences: List[Sentence]) -> str:
@@ -524,7 +598,7 @@ def sentence_to_kasugamuki_romaji(
         if ch.ruby
     }
 
-    segments: List[str] = []
+    segments: List[Tuple[str, bool]] = []
     i = 0
     while i < len(chars):
         char = chars[i]
@@ -532,18 +606,20 @@ def sentence_to_kasugamuki_romaji(
             group_start = i
             group, i = _collect_linked(chars, i, link_chars=effective_chars)
             segments.append(
-                _linked_group_romaji(group, group_start, romaji_by_char)
+                (_linked_group_romaji(group, group_start, romaji_by_char), False)
             )
         elif char.ruby:
             segments.append(
-                _char_ruby_romaji(char, romaji_by_char.get(i, []))
+                (_char_ruby_romaji(char, romaji_by_char.get(i, [])), False)
             )
             i += 1
         elif _is_kana_text(char.char):
             if not any(romaji_by_char.get(i, [])):
                 # 无独立罗马音的假名（拗音小假名被前导拍吸收等）→ 原样输出，
                 # 不与相邻字符合并成块，保持原有连词状态。
-                segments.append(_char_plain(char))
+                segments.append(
+                    (_char_plain(char), _is_exported_role_tag(char))
+                )
                 i += 1
                 continue
             mora_end = i + 1
@@ -561,21 +637,27 @@ def sentence_to_kasugamuki_romaji(
                 mora_end += 1
             if mora_end > i + 1:
                 segments.append(
-                    _self_kana_group_romaji(
-                        chars[i:mora_end], romaji_by_char.get(i, [])
+                    (
+                        _self_kana_group_romaji(
+                            chars[i:mora_end], romaji_by_char.get(i, [])
+                        ),
+                        False,
                     )
                 )
                 i = mora_end
             else:
                 segments.append(
-                    _char_self_ruby_romaji(char, romaji_by_char.get(i, []))
+                    (
+                        _char_self_ruby_romaji(char, romaji_by_char.get(i, [])),
+                        False,
+                    )
                 )
                 i += 1
         else:
             # 非假名无注音 → 回退到单注音格式
-            segments.append(_char_plain(char))
+            segments.append((_char_plain(char), _is_exported_role_tag(char)))
             i += 1
-    return _escape_leading_role_tag("".join(segments), chars)
+    return _join_krl_segments(segments)
 
 
 def sentences_to_kasugamuki_romaji(

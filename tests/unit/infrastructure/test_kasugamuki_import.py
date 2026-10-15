@@ -394,7 +394,7 @@ def test_all_placeholder_untimed_ruby_degrades_to_plain_char():
 
 
 # ──────────────────────────────────────────────
-# KRL 停顿点 / F11 回归
+# KRL 停顿点 / 角色标签转义回归
 # ──────────────────────────────────────────────
 
 
@@ -491,25 +491,84 @@ def test_reserved_char_in_ruby_layer_no_crash():
     assert reparsed.characters[0].ruby.text == "か"
 
 
-def test_leading_role_tag_collision_escaped_F11():
-    """F11：歌词正文恰好以 【@ 开头时，@ 被替换为全角 ＠，
-    导入端不再把正文当角色标签剥掉。"""
+def test_literal_role_tag_is_backslash_escaped_and_roundtrips():
+    r"""完整的歌词正文标签使用 KRL 原生 ``\【`` 转义，不篡改 @。"""
     from strange_uta_game.backend.domain.models import Character
 
     chars = [
         Character(char=ch, check_count=0, singer_id=SINGER_ID)
-        for ch in "【@サビ】だ"
+        for ch in "【@chorus】正文"
     ]
-    exported = sentences_to_kasugamuki([_mk_sentence(chars)])
-    assert exported.startswith("【＠")
+    sentence = _mk_sentence(chars)
+    exported = sentences_to_kasugamuki([sentence])
+    assert exported == "\\【@chorus】正文"
+    assert sentence.text == "【@chorus】正文"
 
     reparsed = sentences_from_kasugamuki(exported, SINGER_ID)
-    assert reparsed[0].text == "【＠サビ】だ"
+    assert reparsed[0].text == "【@chorus】正文"
 
 
-def test_exported_singer_tag_not_escaped_F11():
-    """F11：导出器自插的演唱者标签（单 Character 持有多字符）不受
-    行首碰撞转义影响，导入端仍识别为角色标签。"""
+def test_midline_literal_role_tag_is_escaped_in_both_krl_layers():
+    """Kirakara 在行中也识别角色标签，单/双注音导出都必须转义。"""
+    from strange_uta_game.backend.domain.models import Character
+
+    chars = [
+        Character(char=ch, check_count=0, singer_id=SINGER_ID)
+        for ch in "前【@chorus】后"
+    ]
+    sentence = _mk_sentence(chars)
+
+    assert sentences_to_kasugamuki([sentence]) == "前\\【@chorus】后"
+    assert sentences_to_kasugamuki_romaji([sentence]) == "前\\【@chorus】后"
+
+
+def test_unclosed_role_prefix_is_not_escaped():
+    """单纯敞开的 ``【@`` 不构成 Kirakara 角色标签。"""
+    from strange_uta_game.backend.domain.models import Character
+
+    chars = [
+        Character(char=ch, check_count=0, singer_id=SINGER_ID)
+        for ch in "前【@chorus"
+    ]
+
+    assert sentences_to_kasugamuki([_mk_sentence(chars)]) == "前【@chorus"
+
+
+def test_literal_backslash_before_role_text_is_preserved():
+    """已有反斜杠是歌词正文：编码为 ``\\\\\\【`` 后仍能无损导回。"""
+    from strange_uta_game.backend.domain.models import Character
+
+    source = "\\【@chorus】"
+    chars = [
+        Character(char=ch, check_count=0, singer_id=SINGER_ID)
+        for ch in source
+    ]
+    exported = sentences_to_kasugamuki([_mk_sentence(chars)])
+
+    assert exported == "\\\\\\【@chorus】"
+    assert sentences_from_kasugamuki(exported, SINGER_ID)[0].text == source
+
+
+def test_role_shaped_text_inside_ruby_block_needs_no_escape():
+    """注音块内部不会按角色标签词法解析，不能凭文本误加可见反斜杠。"""
+    from strange_uta_game.backend.domain.models import Character, Ruby, RubyPart
+
+    chars = [
+        Character(char=ch, check_count=0, singer_id=SINGER_ID)
+        for ch in "【@chorus】"
+    ]
+    chars[0].ruby = Ruby(parts=[RubyPart(text="コーラス")])
+    chars[0].check_count = 1
+    for char in chars[:-1]:
+        char.linked_to_next = True
+
+    assert sentences_to_kasugamuki([_mk_sentence(chars)]) == (
+        "{【@chorus】|コーラス}"
+    )
+
+
+def test_exported_singer_tag_is_not_escaped():
+    """导出器自插的演唱者标签仍是元数据，导入端可以识别。"""
     from strange_uta_game.backend.domain.models import Character
 
     tag = Character(char="【@miku】", check_count=0, singer_id=SINGER_ID)
