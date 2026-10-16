@@ -110,3 +110,25 @@ def test_each_line_option_repeats_singer_tag(tmp_path):
 
     assert once.read_text(encoding="utf-8").count("【@A】") == 1
     assert each_line.read_text(encoding="utf-8").count("【@A】") == 2
+
+
+def test_real_singer_tag_and_literal_role_text_are_distinguished(tmp_path):
+    project = Project()
+    singer = project.singers[0]
+    singer.name = "A"
+    sentence = Sentence.from_text("【@chorus】X", singer.id)
+    sentence.characters[0].add_timestamp(1000)
+    project.add_sentence(sentence)
+
+    output = tmp_path / "literal-role.krl"
+    KirakaraExporter().export(
+        project,
+        str(output),
+        insert_singer_tags=True,
+        singer_map={singer.id: "A"},
+        export_romaji=False,
+    )
+
+    assert output.read_text(encoding="utf-8") == (
+        "【@A】[00:01:00]\\【@chorus】X"
+    )
