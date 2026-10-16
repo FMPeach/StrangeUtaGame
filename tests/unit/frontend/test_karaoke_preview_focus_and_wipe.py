@@ -287,3 +287,47 @@ def test_preview_bold_keeps_primary_and_default_fallback(qapp):
         assert preview._font_current.families() == [DEFAULT_FONT_FAMILY]
     finally:
         preview.close()
+
+
+def test_click_focus_paints_ascii_with_primary_bold(qapp, monkeypatch):
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QFontDatabase, QPainter, QRawFont
+    from PyQt6.QtTest import QTest
+    from strange_uta_game.backend.domain import Project, Sentence
+    from strange_uta_game.frontend.editor.timing import karaoke_preview as module
+
+    if "Microsoft YaHei" not in QFontDatabase.families():
+        pytest.skip("Microsoft YaHei required")
+    painted = []
+
+    class RecordingPainter(QPainter):
+        def drawText(self, *args):
+            if self.font().pointSize() >= 18 and args and isinstance(args[-1], str) and args[-1] in ("A", "1", "A1"):
+                raw = QRawFont.fromFont(self.font())
+                painted.append((raw.familyName(), raw.weight()))
+            return super().drawText(*args)
+
+    monkeypatch.setattr(module, "QPainter", RecordingPainter)
+    preview = module.KaraokePreview()
+    try:
+        preview.resize(800, 500)
+        preview.set_font_sizes(18, main_font="Microsoft YaHei")
+        project = Project()
+        project.add_sentence(Sentence.from_text("test", project.get_default_singer().id))
+        project.add_sentence(Sentence.from_text("A1", project.get_default_singer().id))
+        preview.set_project(project)
+        preview.set_current_position(0, 0)
+        preview.show()
+        QTest.qWait(100)
+        preview.grab()
+        assert ("Microsoft YaHei", 400) in painted
+        rect = next(rect for rect, line, char in preview._char_hitboxes if line == 1 and char == 0)
+        painted.clear()
+        QTest.mouseClick(preview, Qt.MouseButton.LeftButton, pos=rect.center())
+        QTest.qWait(450)
+        preview.grab()
+        assert preview._focus_line_idx == 1
+        assert ("Microsoft YaHei", 700) in painted
+        assert all(family == "Microsoft YaHei" for family, _ in painted)
+    finally:
+        preview.close()
