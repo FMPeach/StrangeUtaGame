@@ -223,3 +223,83 @@ class TestLegacyNameRepairNotice:
         page.set_project(project)
 
         assert _InfoBarRecorder.calls == [], "无修复不应弹通知"
+
+
+def test_load_from_singer_copies_split_colors(qapp, monkeypatch):
+    """从多色演唱者加载时，颜色模式与全部分色一并复制（含 UI 状态）。"""
+    src = Singer(
+        name="多色来源",
+        color="#112233",
+        color_mode="split",
+        split_colors=["#445566", "#778899"],
+    )
+    dlg = SingerEditDialog(existing_singers=[src])
+
+    class _FakeAction:
+        def data(self):
+            return src
+
+    monkeypatch.setattr(QMenu, "exec", lambda self, *a, **k: _FakeAction())
+    dlg._on_load_from_singer()
+
+    assert dlg._color_mode == "split"
+    assert dlg._color == "#112233"
+    assert dlg._split_colors == ["#445566", "#778899"]
+    assert dlg._rb_split.isChecked()
+    # 分色面板按 主色 + 2 个分色重建
+    assert dlg._split_rows_layout.count() == 3
+    assert dlg.get_data() == {
+        "name": "",
+        "color": "#112233",
+        "color_mode": "split",
+        "split_colors": ["#445566", "#778899"],
+        "is_default": False,
+        "group": "",
+    }
+
+
+def test_load_from_singer_repairs_stale_solid_mode(qapp, monkeypatch):
+    """来源数据 color_mode 仍是 solid、但已存有分色时，按分色加载而不是只带主色。"""
+    src = Singer(
+        name="模式滞后的多色来源",
+        color="#112233",
+        color_mode="solid",
+        split_colors=["#445566", "#778899"],
+    )
+    dlg = SingerEditDialog(existing_singers=[src])
+
+    class _FakeAction:
+        def data(self):
+            return src
+
+    monkeypatch.setattr(QMenu, "exec", lambda self, *a, **k: _FakeAction())
+    dlg._on_load_from_singer()
+
+    assert dlg._color_mode == "split"
+    assert dlg._color == "#112233"
+    assert dlg._split_colors == ["#445566", "#778899"]
+    assert dlg._rb_split.isChecked()
+
+
+def test_singer_list_marks_split_singers_with_multicolor_icon(qapp):
+    """列表行背景只能显示主色：分色演唱者需额外显示多色条图标。"""
+    page = SingerManagerInterface()
+    page.set_project(
+        Project(
+            singers=[
+                Singer(
+                    name="多色",
+                    color="#112233",
+                    color_mode="split",
+                    split_colors=["#445566", "#778899"],
+                ),
+                Singer(name="单色", color="#FF3333"),
+            ]
+        )
+    )
+
+    split_item = page.list_singers.item(0)
+    solid_item = page.list_singers.item(1)
+    assert not split_item.icon().isNull()
+    assert "#445566" in split_item.toolTip()
+    assert solid_item.icon().isNull()

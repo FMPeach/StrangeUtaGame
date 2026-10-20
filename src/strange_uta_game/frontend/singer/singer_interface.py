@@ -447,9 +447,13 @@ class SingerEditDialog(QDialog):
             return
 
         src: Singer = chosen.data()
+        # 以实际存储的颜色列表为准，而不是只看 src.color_mode：
+        # 历史工程/外部导入可能出现 color_mode 仍为 solid、但 split_colors
+        # 已有内容的组合。此时若照搬 color_mode，界面会显示单色且只带入
+        # 主色，正是「多色演唱者加载后只剩第一个颜色」的原因。
         self._color = src.color
-        self._color_mode = src.color_mode
-        self._split_colors = list(src.split_colors)
+        self._split_colors = list(src.split_colors or [])
+        self._color_mode = "split" if self._split_colors else "solid"
         # 颜色列表整体替换，激活槽位重新指到主色，避免残留旧索引越界失效
         self._active_split_idx = 0
 
@@ -818,11 +822,12 @@ class SingerPresetLoadDialog(QDialog):
 
             is_existing = name in self._existing_names
             color = preset.get("color", "#FF6B6B")
-            color_mode = preset.get("color_mode", "solid")
             split_colors = preset.get("split_colors", [])
             group = preset.get("group", "")
 
-            all_colors = ([color] + split_colors) if color_mode == "split" and split_colors else [color]
+            # 预设有旧模式（solid）却仍有分色数据；有分色就按分色预览，
+            # 与「从已有演唱者加载颜色」的修复口径保持一致。
+            all_colors = ([color] + list(split_colors)) if split_colors else [color]
 
             item = QListWidgetItem()
             display_name = f"{name} [{group}]" if group else name
@@ -1144,6 +1149,8 @@ class SingerManagerInterface(QWidget):
 
         self.list_singers = ListWidget()
         self.list_singers.setMinimumHeight(260)
+        # 分色演唱者在列表里用多色条图标区分（行背景只能显示主色）
+        self.list_singers.setIconSize(QSize(32, 18))
         self.list_singers.setSelectionMode(
             QAbstractItemView.SelectionMode.ExtendedSelection
         )
@@ -1403,6 +1410,16 @@ class SingerManagerInterface(QWidget):
 
                 # 存储演唱者 ID
                 item.setData(Qt.ItemDataRole.UserRole, singer.id)
+
+                all_colors = singer.get_all_colors()
+                # 行背景只能表达一个颜色；分色演唱者额外用多色条图标标出，
+                # 否则新建/修改时“从已有演唱者加载”来的分色在列表里看不出来，
+                # 会被误以为只加载了主色。
+                if len(all_colors) > 1:
+                    item.setIcon(_make_singer_icon(all_colors, 32, 18))
+                    item.setToolTip(
+                        singer.name + "\n" + " / ".join(all_colors)
+                    )
 
                 # 颜色背景：选中时用补色，未选中时用演唱者本色
                 is_selected = singer.id in self._selected_ids
@@ -1983,11 +2000,17 @@ class SingerManagerInterface(QWidget):
             if not name or name in existing_names:
                 continue
             try:
+                # 旧预设可能只写了 split_colors、没写（或写错）color_mode；
+                # 只要还有分色数据就按分色恢复，避免导入后只剩主色。
+                split_colors = list(preset.get("split_colors") or [])
+                color_mode = (
+                    "split" if split_colors else preset.get("color_mode", "solid")
+                )
                 singer = self._singer_service.add_singer(
                     name=name,
                     color=preset.get("color", "#FF6B6B"),
-                    color_mode=preset.get("color_mode", "solid"),
-                    split_colors=preset.get("split_colors", []),
+                    color_mode=color_mode,
+                    split_colors=split_colors,
                     group=preset.get("group", ""),
                 )
                 if added == 0 and unnamed_default_id:
