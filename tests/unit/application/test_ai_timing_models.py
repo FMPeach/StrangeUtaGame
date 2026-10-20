@@ -1068,6 +1068,85 @@ class TestSharedRuntimeInstall:
         with pytest.raises(AiRuntimeError, match="不存在"):
             manager.install_shared(str(tmp_path / "nope" / "python.exe"))
 
+    def test_torchaudio_pin_keeps_local_tag_only_for_cuda(self):
+        """CPU 钉公共版本，CUDA 钉本地标签。
+
+        回归：宿主 torch=2.13.0+cpu 时旧实现钉 torchaudio==2.13.0+cpu，
+        PyPI 的 torchaudio 发行版本只有 2.13.0，pytorch 官方索引又停在
+        2.11.0，两处都无候选 → pip 返回 1。
+        """
+        import strange_uta_game.backend.application.ai_timing.runtime as rt
+
+        assert rt.torchaudio_pin("2.13.0", "cpu") == "torchaudio==2.13.0"
+        assert rt.torchaudio_pin("2.11.0", "cu128") == "torchaudio==2.11.0+cu128"
+
+    def test_install_shared_cpu_runtime_does_not_pin_local_tag(
+        self, tmp_path, monkeypatch
+    ):
+        exe = self._fake_managed_python(tmp_path)
+        monkeypatch.setattr(
+            AiRuntimeManager,
+            "probe",
+            lambda self, python_exe="", timeout_s=30.0: RuntimeStatus(
+                available=True, python_path=str(python_exe)
+            ),
+        )
+        import strange_uta_game.backend.application.ai_timing.runtime as rt
+
+        monkeypatch.setattr(
+            rt, "detect_torch_build", lambda exe: ("2.13.0", "cpu")
+        )
+        seen = []
+
+        def fake_runner(python, args, on_line, cancel):
+            seen.append(list(args))
+            return 0
+
+        AiRuntimeManager(pip_runner=fake_runner).install_shared(exe)
+        args = seen[0]
+        assert "torchaudio==2.13.0" in args
+        assert "torchaudio==2.13.0+cpu" not in args
+        # 索引仍按 torch 变体追加（cpu 索引 + 默认 PyPI 镜像）
+        j = args.index("--extra-index-url")
+        assert args[j + 1] == "https://download.pytorch.org/whl/cpu"
+
+    def test_pip_failure_includes_output_tail_in_error_and_log(
+        self, tmp_path, monkeypatch
+    ):
+        """pip 返回非 0：错误消息与安装日志都要带 pip 末尾 ERROR 行。
+
+        回归：旧实现只抛「依赖安装失败（pip 返回码 1）」，用户拿不到
+        「No matching distribution」这类定位信息。
+        """
+        exe = self._fake_managed_python(tmp_path)
+        import strange_uta_game.backend.application.ai_timing.runtime as rt
+
+        monkeypatch.setattr(
+            rt, "detect_torch_build", lambda exe: ("2.13.0", "cpu")
+        )
+
+        def fake_runner(python, args, on_line, cancel):
+            on_line("Collecting torchaudio==2.13.0+cpu\n")
+            on_line(
+                "ERROR: Could not find a version that satisfies the "
+                "requirement torchaudio==2.13.0+cpu\n"
+            )
+            on_line(
+                "ERROR: No matching distribution found for "
+                "torchaudio==2.13.0+cpu\n"
+            )
+            return 1
+
+        manager = AiRuntimeManager(pip_runner=fake_runner)
+        with pytest.raises(AiRuntimeError) as excinfo:
+            manager.install_shared(exe)
+        message = str(excinfo.value)
+        assert "pip 返回码 1" in message
+        assert "No matching distribution found" in message
+        log_text = (tmp_path / "install.log").read_text(encoding="utf-8")
+        assert "pip 安装失败（返回码 1）" in log_text
+        assert "No matching distribution found" in log_text
+
 
 class TestPortableRuntimePath:
     """runtime_python 相对路径持久化：基准目录内收相对，读回展开。"""
@@ -1312,8 +1391,10 @@ class TestInstallFromRelease:
             any("torch-2.7.1+cpu.whl" in str(x) for x in args)
             for _, args in calls
         )
-        # AI 增量：torchaudio 与探测到的 torch 版本/变体配对
-        assert any("torchaudio==2.7.1+cpu" in args for _, args in calls)
+        # AI 增量：torchaudio 与探测到的 torch 版本/变体配对（CPU 变体
+        # 不钉 +cpu 本地标签，见 torchaudio_pin）
+        assert any("torchaudio==2.7.1" in args for _, args in calls)
+        assert not any("torchaudio==2.7.1+cpu" in args for _, args in calls)
         assert events[-1][1] == "运行环境就绪"
         assert any("CPU 版托管运行环境" in m for _, m in events)
         # 安装日志：单会话头（install_shared 复用外层日志），含关键进度

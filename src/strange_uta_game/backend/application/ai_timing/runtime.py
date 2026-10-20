@@ -62,6 +62,8 @@ PIP_DEFAULT_INDEX = "https://mirrors.aliyun.com/pypi/simple/"
 #    cu128 索引 2.11.0+cu128），不钉版本 pip 依旧选 PyPI 的 CPU wheel；
 # 2. 只钉 ``torch==2.11.0`` 时，已装的 2.11.0+cpu torchaudio 会被视为
 #    已满足——CPU 变体 torchaudio 与 CUDA 变体 torch 混装不受支持。
+# CPU 路线相反，绝不能钉 ``+cpu`` 本地标签（PyPI 的 torchaudio 发行
+# 版本没有它），配对规则见 torchaudio_pin。
 # 升级 Runtime 基线时同步 bump 版本与 TORCH_CUDA_TAG。
 TORCH_CUDA_VERSION = "2.11.0"
 
@@ -282,6 +284,27 @@ def detect_torch_build(python_exe: str) -> Optional[Tuple[str, str]]:
     if not version or not tag:
         return None
     return version, tag
+
+
+def torchaudio_pin(torch_version: str, torch_tag: str) -> str:
+    """按已装 torch 生成 torchaudio 的精确钉子（同版本、同变体）。
+
+    变体标签的处理必须区分 CPU 与 CUDA：
+
+    - CUDA：必须连本地标签一起钉（``torchaudio==2.11.0+cu128``）。只钉
+      公共版本时，已装的 ``+cpu`` torchaudio 会被 pip 当成已满足
+      （PEP 440 规定未写本地标签的 == 忽略候选的本地标签），留下
+      CPU/CUDA 混装。
+    - CPU：只钉公共版本（``torchaudio==2.13.0``）。PyPI 的 torch 运行时
+      版本是 ``2.13.0+cpu``，但 torchaudio 在 PyPI 的发行版本只有
+      ``2.13.0``（``+cpu`` 本地标签只存在于 pytorch 官方索引，而官方
+      索引又可能落后于 PyPI，实测 cu128/cpu 索引停在 2.11.0）。钉死
+      ``+cpu`` 会在两个索引都找不到候选，pip 直接返回 1（报错只有
+      「pip 返回码 1」，日志里才看得到 No matching distribution）。
+    """
+    if torch_tag and torch_tag != "cpu":
+        return f"torchaudio=={torch_version}+{torch_tag}"
+    return f"torchaudio=={torch_version}"
 
 
 def _min_driver_text() -> str:
@@ -758,6 +781,37 @@ def _log_probe_outcome(exe: str, line: str) -> None:
     if _probe_log_state.get(exe) != line:
         _probe_log_state[exe] = line
         ailog("probe", line)
+
+
+def _pip_command_summary(args: List[str]) -> str:
+    """把 pip 参数拼成可入日志的一行（代理取值脱敏）。"""
+    parts: List[str] = []
+    skip_next = False
+    for arg in args:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg == "--proxy":
+            parts.append("--proxy <已配置>")
+            skip_next = True
+            continue
+        parts.append(arg)
+    return "pip " + " ".join(parts)
+
+
+def _pip_failure_detail(lines: List[str], limit: int = 3) -> str:
+    """从 pip 输出末尾提取可读的失败原因（优先 ERROR 行）。
+
+    依赖解析失败时 pip 会在末尾打印 ``ERROR: Could not find a version…``
+    / ``ERROR: No matching distribution found for…``；只报返回码 1 时
+    用户与开发者都无从判断是钉错版本还是源不可达。
+    """
+    errors = [
+        line for line in lines if line.lstrip().lower().startswith("error")
+    ]
+    picked = errors[-limit:] or lines[-limit:]
+    detail = "；".join(picked)
+    return detail[:600] + ("…" if len(detail) > 600 else "")
 
 
 class AiRuntimeManager:
@@ -1424,13 +1478,15 @@ class AiRuntimeManager:
                 "完成环境安装，再使用 AI 打轴"
             )
         torch_version, torch_tag = build
-        # torchaudio 必须与 torch 同版本同变体（混装不受支持）；PyPI 的
-        # torchaudio 可能比官方索引新，按「版本+本地标签」精确钉住
+        # torchaudio 必须与 torch 同版本同变体（混装不受支持）；CPU 变体
+        # 不能钉 ``+cpu`` 本地标签——PyPI 的 torchaudio 发行版本没有它，
+        # 详见 torchaudio_pin 的注释
+        torchaudio_requirement = torchaudio_pin(torch_version, torch_tag)
         index_url = f"https://download.pytorch.org/whl/{torch_tag}"
         # 注：对齐转写（拼音表音/CMU 英文音节）发生在主进程构建请求时
         # （transcription.py，主程序自带 pyphen/nltk），worker 无需这些依赖
         requirements: List[str] = [
-            f"torchaudio=={torch_version}+{torch_tag}",
+            torchaudio_requirement,
             PINNED_TRANSFORMERS,
             "soundfile",
             "huggingface_hub",
@@ -1445,7 +1501,8 @@ class AiRuntimeManager:
         ailog(
             "install",
             f"增量安装（install_shared）：解释器={python_exe} "
-            f"torch={torch_version}+{torch_tag}",
+            f"torch={torch_version}+{torch_tag} 钉子={torchaudio_requirement} "
+            f"索引={mirror or PIP_DEFAULT_INDEX} + {index_url}",
         )
         args: List[str] = [
             "-m",
@@ -1556,12 +1613,17 @@ class AiRuntimeManager:
         started = _time.monotonic()
         fetched = 0
         fallback_lines = 0
+        # pip 末尾输出（失败时并入异常与日志：状态行只保留最后一条，
+        # 而「pip 返回码 1」本身完全无法定位是版本钉错还是源不可达）
+        tail: List[str] = []
 
         def _on_line(line: str) -> None:
             nonlocal fetched, fallback_lines
             text = line.strip()
             if not text:
                 return
+            tail.append(text)
+            del tail[:-30]
             if text.startswith("Successfully installed"):
                 progress(95, text)
                 return
@@ -1596,7 +1658,22 @@ class AiRuntimeManager:
         if cancel():
             raise AiRuntimeError("已取消")
         if returncode != 0:
-            raise AiRuntimeError(f"依赖安装失败（pip 返回码 {returncode}）")
+            detail = _pip_failure_detail(tail)
+            command = _pip_command_summary(args)
+            # 完整流水进 install.log；末尾 ERROR 进 ai_timing.log（用户
+            # 点「日志」直接能看到失败原因，不必再找 install.log）
+            self.log_line(f"pip 安装失败（返回码 {returncode}）：{command}")
+            for line in tail[-20:]:
+                self.log_line(f"  {line}")
+            ailog(
+                "install",
+                f"pip 安装失败（返回码 {returncode}）：{detail or '无输出'}"
+                f"｜{command}",
+            )
+            raise AiRuntimeError(
+                f"依赖安装失败（pip 返回码 {returncode}）"
+                + (f"：{detail}" if detail else "")
+            )
 
         progress(97, "校验运行环境")
         status = self.probe(str(python_exe))
@@ -1652,6 +1729,7 @@ __all__ = [
     "AiRuntimeManager",
     "detect_nvidia_gpu",
     "detect_torch_build",
+    "torchaudio_pin",
     "nvidia_driver_supports_cu128",
     "explain_release_variant",
     "log_gpu_diagnostics",
