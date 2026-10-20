@@ -124,3 +124,19 @@ class TestPureCJKConsistencyWithLegacy:
             results = analyzer.analyze(text)
             readings = [r.reading for r in results if r.text != text[:0]]
             assert readings == expected_prefix, f"{text!r} → {readings}"
+
+
+@pytest.mark.parametrize("text, expected", [
+    ("音乐", ["yīn", "yuè"]), ("快乐", ["kuài", "lè"]),
+    ("银行", ["yín", "háng"]), ("行走", ["xíng", "zǒu"]),
+    ("重新", ["chóng", "xīn"]), ("重量", ["zhòng", "liàng"]),
+    ("谁", ["shéi"]), ("熟", ["shóu"]), ("血", ["xiě"]),
+])
+def test_context_and_dictionary_defaults(analyzer, text, expected):
+    from strange_uta_game.backend.infrastructure.parsers.pinyin_katakana import (
+        PinyinKatakanaAnalyzer, pinyin_syllable_to_katakana,
+    )
+    assert [r.reading for r in analyzer.analyze(text)] == expected
+    assert [r.reading for r in PinyinKatakanaAnalyzer().analyze(text)] == [
+        pinyin_syllable_to_katakana(p) for p in expected
+    ]

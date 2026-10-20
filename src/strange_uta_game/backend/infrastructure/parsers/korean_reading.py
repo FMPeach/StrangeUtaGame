@@ -1,19 +1,12 @@
 # -*- coding: utf-8 -*-
-"""韩文字（谚文）注音读音转换器（2026-10）。
+"""韩语歌唱辅助注音：基础音变 + 假名近似音 / RR 字母表。
 
-三种标注风格（设置 → 打轴自动检查 → 韩文注音风格）：
-
-- 片假名（默认）：韩日媒体通行对译口径——初声×中声合并为单假名、
-  词中平音清浊变化（대구→テグ）、紧音词中带ッ（오빠→オッパ）、
-  韵尾取首个可听音（한국→ハングク）。逐音节转写，不建模跨音节
-  音变（连音等）；唱法特殊可手改 ruby。
-- 平假名：片假名结果逐字符转平假名（사랑→さらん）。
-- 罗马音：标准 RR 罗马字（ㅓ→eo、ㅡ→eu、ㄹ 词首 r 词尾 l；
-  사랑→sarang）。**显示标注口径**——AI 打轴的对齐转写走
-  ``ai_timing/transcription.hangul_to_phonetic``（声学口径），
-  两者刻意分离。注意：RR 官方流程含「按发音换写」预处理
-  （종로→종노 式跨音节音变），本模块为逐音节口径（同官方
-  letter-by-letter 可逆变体的定位），跨音节音变不体现，可手改。
+参考国立国语院《标准发音法》及罗马字表；不是完整 RR 转写器。
+连续韩文及韩音汉字内处理连音、ㅎ 脱落/送气、鼻音化、流音化及
+阻塞音后紧音化。罗马音也显示紧音化，便于跟唱（区别于官方 RR）。
+不跨空格/标点推断连读；无词法分析，不处理复合词增音、词汇例外、
+助词 의 及歌手特殊唱法。假名不能精确区分韩语元音、送气及不除阻尾音。
+AI 打轴的声学转换独立，见 ai_timing/transcription.py。
 """
 
 from __future__ import annotations
@@ -129,7 +122,7 @@ def _kata_to_hira_char(ch: str) -> str:
     return ch
 
 
-# ── 罗马音：标准 RR（显示口径）──
+# ── 罗马音：RR 字母表（音变处理后作跟唱辅助，非完整 RR）──
 
 _RR_CHO = {
     0: "g", 1: "kk", 2: "n", 3: "d", 4: "tt", 5: "r", 6: "m",
@@ -203,36 +196,95 @@ def _hanja_hangul(text: str, idx: int) -> Optional[str]:
     )
 
 
-def korean_readings(text: str, style: str) -> Dict[int, str]:
-    """整行文本 → {字符索引: 风格读音}（仅韩文字与韩音汉字，其余不进表）。
+# 韵尾中和（标准发音法第 9–11 项），以及元音前的原始韵尾拆分。
+_CODA = [0, 1, 1, 1, 4, 4, 4, 7, 8, 1, 16, 8, 8, 8,
+         17, 8, 16, 17, 17, 7, 7, 21, 7, 7, 1, 7, 17, 7]
+_LINK = {1: (0, 0), 2: (0, 1), 3: (1, 10), 4: (0, 2),
+         5: (4, 12), 7: (0, 3), 8: (0, 5), 9: (8, 0),
+         10: (8, 6), 11: (8, 7), 12: (8, 10), 13: (8, 16),
+         14: (8, 17), 16: (0, 6), 17: (0, 7), 18: (17, 10),
+         19: (0, 9), 20: (0, 10), 22: (0, 12), 23: (0, 14),
+         24: (0, 15), 25: (0, 16), 26: (0, 17)}
+_TENSE = {0: 1, 3: 4, 7: 8, 9: 10, 12: 13}
 
-    词首语境按整行判定（紧音 ッ、词中浊化、汉字두음법칙）。
-    """
+
+def _pronounce_run(chars: str):
+    """保持一字一音节，音变只修改初声/韵尾，不改变注音索引。"""
+    parts = [list(_syllable_parts(c)) for c in chars]
+    for i, left in enumerate(parts):
+        if i + 1 == len(parts):
+            left[2] = _CODA[left[2]]
+            break
+        right = parts[i + 1]
+        jong, cho = left[2], right[0]
+        if jong in (6, 15, 27):  # ㄶ/ㅀ/ㅎ
+            retained = {6: 4, 15: 8, 27: 0}[jong]
+            if cho in (0, 3, 12):
+                left[2], right[0] = retained, {0: 15, 3: 16, 12: 14}[cho]
+                continue
+            if cho == 9:
+                left[2], right[0] = retained, 10
+                continue
+            if cho == 11:
+                left[2] = 0
+                right[0] = {4: 2, 8: 5, 0: 11}[retained]
+                continue
+        if cho == 11 and jong in _LINK:
+            left[2], right[0] = _LINK[jong]
+            # ㄷ/ㅌ + 이（常见语法词尾）；复合词例外需手工校正。
+            if right[1] == 20 and jong in (7, 25):
+                right[0] = 12 if jong == 7 else 14
+            continue
+        left[2] = _CODA[jong]
+        if cho == 18 and left[2] in (1, 7, 17):
+            right[0] = {1: 15, 7: 16, 17: 17}[left[2]]
+            if jong in (22, 23) or (jong == 7 and right[1] == 20):
+                right[0] = 14
+            left[2] = 0
+            continue
+        if right[0] == 5 and left[2] in (1, 16, 17, 21):
+            right[0] = 2
+        if left[2] == 4 and right[0] == 5:
+            left[2] = 8
+        elif left[2] == 8 and right[0] == 2:
+            right[0] = 5
+        if right[0] in (2, 6):
+            left[2] = {1: 21, 7: 4, 17: 16}.get(left[2], left[2])
+        elif left[2] in (1, 7, 17):
+            right[0] = _TENSE.get(right[0], right[0])
+    return parts
+
+
+def korean_readings(text: str, style: str) -> Dict[int, str]:
+    """整行 → 原字符索引到读音；空格、标点及未知汉字阻断音变。"""
+    if style not in KOREAN_ANNOTATION_STYLES:
+        raise ValueError(f"未知的韩文注音风格: {style}")
     readings: Dict[int, str] = {}
-    for i, ch in enumerate(text):
-        if _is_hangul_syllable(ch):
+    run = []
+
+    def flush():
+        parts = _pronounce_run("".join(c for _, c in run))
+        for j, ((idx, _), (cho, jung, jong)) in enumerate(zip(run, parts)):
+            ch = chr(_HANGUL_BASE + cho * 588 + jung * 28 + jong)
             if style == "romaji":
-                readings[i] = _syllable_romaji(ch)
+                reading = _syllable_romaji(ch)
+                if cho == 5 and j and parts[j - 1][2] == 8:
+                    reading = "l" + reading[1:]
             else:
-                kana = _syllable_katakana(ch, _is_word_initial(text, i))
+                voiced = j > 0 and parts[j - 1][2] in (0, 4, 8, 16, 21)
+                reading = _syllable_katakana(ch, not voiced)
                 if style == "hiragana":
-                    kana = "".join(_kata_to_hira_char(c) for c in kana)
-                readings[i] = kana
+                    reading = "".join(_kata_to_hira_char(c) for c in reading)
+            readings[idx] = readings.get(idx, "") + reading
+        run.clear()
+
+    for i, ch in enumerate(text):
+        hangul = ch if _is_hangul_syllable(ch) else _hanja_hangul(text, i)
+        if hangul:
+            run.extend((i, c) for c in hangul)
         else:
-            hangul = _hanja_hangul(text, i)
-            if hangul:
-                if style == "romaji":
-                    readings[i] = "".join(
-                        _syllable_romaji(c) for c in hangul
-                    )
-                else:
-                    kana = "".join(
-                        _syllable_katakana(c, _is_word_initial(text, i))
-                        for c in hangul
-                    )
-                    if style == "hiragana":
-                        kana = "".join(_kata_to_hira_char(c) for c in kana)
-                    readings[i] = kana
+            flush()
+    flush()
     return readings
 
 
@@ -255,7 +307,7 @@ def hangul_to_romaji(word: str) -> str:
 class KoreanReadingAnalyzer(RubyAnalyzer):
     """韩文注音分析器：韩文字/汉字 → 按风格生成片假名/平假名/罗马音读音。
 
-    纯查表无外部依赖；拉丁字母/数字/假名等其他字符原样透传
+    查表及基础音变，无外部依赖；拉丁字母/数字/假名等其他字符原样透传
     （与 PinyinAnalyzer 的透传口径一致，供中文式逐字注音路径使用）。
     """
 

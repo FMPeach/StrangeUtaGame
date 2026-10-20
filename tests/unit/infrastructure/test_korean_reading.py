@@ -37,9 +37,9 @@ class TestKatakana:
         assert hangul_to_katakana("토마토") == "トマト"
 
     def test_tense_consonants_get_sokuon(self):
-        # 紧音带 ッ（词首亦然：떡볶이→ットクボクイ 系统口径；오빠→オッパ）
+        # 紧音带 ッ（词首亦然；떡볶이 包含紧音化和连音；오빠→オッパ）
         assert hangul_to_katakana("오빠") == "オッパ"
-        assert hangul_to_katakana("떡볶이") == "ットクボクイ"
+        assert hangul_to_katakana("떡볶이") == "ットクッポッキ"
 
     def test_final_consonants(self):
         # 韵尾取首个可听音；ㅎ 弱化丢弃
@@ -123,3 +123,28 @@ class TestKoreanReadingAnalyzer:
         # 每个输出非空且不含谚文/汉字
         assert not any("\uac00" <= ch <= "\ud7a3" for ch in out)
         assert all(ch.strip() for ch in out.split()) or True  # noqa: B011
+
+
+@pytest.mark.parametrize("text, expected", [
+    ("먹어", "meogeo"), ("음악", "eumak"), ("꽃이", "kkochi"),
+    ("같이", "gachi"), ("좋아", "joa"), ("좋고", "joko"),
+    ("놓다", "nota"), ("굳히다", "guchida"), ("앉아", "anja"),
+    ("많아", "mana"), ("싫어", "sireo"), ("국물", "gungmul"),
+    ("한국말", "hangungmal"), ("종로", "jongno"), ("신라", "silla"),
+    ("설날", "seollal"), ("독립", "dongnip"), ("먹다", "meoktta"),
+    ("값", "gap"), ("닭", "dak"), ("옷", "ot"),
+    ("먹 어", "meok eo"), ("먹,어", "meok,eo"),
+])
+def test_pronunciation_rules(text, expected):
+    assert hangul_to_romaji(text) == expected
+
+
+def test_linking_preserves_original_indices_and_kana_styles():
+    results = KoreanReadingAnalyzer("romaji").analyze("A먹어!")
+    assert [(r.text, r.reading, r.start_idx, r.end_idx) for r in results] == [
+        ("A", "A", 0, 1), ("먹", "meo", 1, 2),
+        ("어", "geo", 2, 3), ("!", "!", 3, 4),
+    ]
+    assert hangul_to_katakana("먹어") == "モゴ"
+    assert hangul_to_hiragana("먹어") == "もご"
+    assert hangul_to_romaji("國물") == "gungmul"
