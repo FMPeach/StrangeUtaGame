@@ -1164,15 +1164,15 @@ class TestSharedRuntimeInstall:
         ]
         assert rt.newest_available_version(tail_local, "torchaudio") == "2.11.0"
 
-    def test_install_shared_aligns_torch_when_torchaudio_too_old(
+    def test_install_shared_installs_newest_torchaudio_without_touching_torch(
         self, tmp_path, monkeypatch
     ):
-        """torch 比所有 torchaudio 都新：对齐到 torchaudio 最高版本重装。
+        """torch 比最新 torchaudio 还新：只补 torchaudio，不动 torch。
 
         实测场景：工作台 torch=2.13.0+cpu，官方 torchaudio 最高
-        2.11.0——钉 2.13.0 在任何索引都无候选。此时把 torch 与
-        torchaudio 一起降到 2.11.0（唯一受支持的组合），而不是让
-        「安装 / 修复」永远失败。
+        2.11.0——钉 2.13.0 在任何索引都无候选。torchaudio 2.11 起已与
+        torch 解耦（wheel 不声明 torch 依赖），因此装最新 torchaudio
+        即可，不应把工作台的共享 torch 降级（省一次 200MB/3GB 重下）。
         """
         exe = self._fake_managed_python(tmp_path)
         monkeypatch.setattr(
@@ -1191,8 +1191,8 @@ class TestSharedRuntimeInstall:
 
         def fake_runner(python, args, on_line, cancel):
             calls.append(list(args))
-            if "torch==2.11.0" in args:
-                on_line("Successfully installed torch-2.11.0 torchaudio-2.11.0\n")
+            if "torchaudio==2.11.0" in args:
+                on_line("Successfully installed torchaudio-2.11.0\n")
                 return 0
             on_line(
                 "ERROR: Could not find a version that satisfies the "
@@ -1212,17 +1212,20 @@ class TestSharedRuntimeInstall:
             exe, progress=lambda p, m: events.append((p, m))
         )
         assert status.available
-        aligned = [args for args in calls if "torch==2.11.0" in args]
-        assert aligned, calls
-        assert "torchaudio==2.11.0" in aligned[0]
-        assert not any("torchaudio==2.11.0+cpu" in a for a in aligned)
+        fallback = [args for args in calls if "torchaudio==2.11.0" in args]
+        assert fallback, calls
+        # 关键：回退不包含任何 torch 版本钉子（共享 torch 保持 2.13）
+        assert not any(
+            str(a).startswith("torch==") for a in fallback[0]
+        ), fallback[0]
+        assert not any("torch==2.11.0" in a for a in fallback)
         assert any(
-            "对齐安装 torch/torchaudio 2.11.0" in m for _, m in events
+            "改用最新版 torchaudio 2.11.0" in m for _, m in events
         )
         log_text = (tmp_path / "install.log").read_text(encoding="utf-8")
-        assert "对齐安装 torch/torchaudio 2.11.0" in log_text
+        assert "改用最新版 torchaudio 2.11.0" in log_text
 
-    def test_torchaudio_aligned_requirements_keeps_cuda_tag(self):
+    def test_torchaudio_fallback_keeps_cuda_tag(self):
         import strange_uta_game.backend.application.ai_timing.runtime as rt
 
         exc = rt.PipInstallError(
@@ -1234,15 +1237,38 @@ class TestSharedRuntimeInstall:
                 "2.10.0+cu128, 2.11.0+cu128)"
             ],
         )
-        aligned = rt.torchaudio_aligned_requirements(exc, "2.13.0", "cu128")
-        assert aligned is not None
-        version, requirements = aligned
+        fallback = rt.torchaudio_fallback_requirements(
+            exc, "2.13.0", "cu128"
+        )
+        assert fallback is not None
+        version, requirements, replaces_torch = fallback
         assert version == "2.11.0"
-        assert "torch==2.11.0+cu128" in requirements
+        assert not replaces_torch
         assert "torchaudio==2.11.0+cu128" in requirements
-        # 已经是可配套的最高版本：不降级、不猜
+        assert not any(str(r).startswith("torch==") for r in requirements)
+
+    def test_torchaudio_fallback_aligns_old_pair(self):
+        """<2.11 的 torchaudio 仍与 torch 强绑定：只能成对对齐。"""
+        import strange_uta_game.backend.application.ai_timing.runtime as rt
+
+        exc = rt.PipInstallError(
+            "依赖安装失败（pip 返回码 1）",
+            returncode=1,
+            tail=[
+                "ERROR: Could not find a version that satisfies the "
+                "requirement torchaudio==2.9.1 (from versions: 2.9.0, "
+                "2.10.0)"
+            ],
+        )
+        fallback = rt.torchaudio_fallback_requirements(exc, "2.11.0", "cpu")
+        assert fallback is not None
+        version, requirements, replaces_torch = fallback
+        assert (version, replaces_torch) == ("2.10.0", True)
+        assert "torch==2.10.0" in requirements
+        assert "torchaudio==2.10.0" in requirements
+        # 没有更旧的版本可退：不猜
         assert (
-            rt.torchaudio_aligned_requirements(exc, "2.11.0", "cu128") is None
+            rt.torchaudio_fallback_requirements(exc, "2.10.0", "cpu") is None
         )
 
 

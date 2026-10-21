@@ -110,8 +110,9 @@ from strange_uta_game.backend.infrastructure.windows import (
 
 _PROBE_CODE = (
     "import json;"
-    "import torch,transformers,soundfile,audio_separator;"
+    "import torch,transformers,soundfile,audio_separator,torchaudio;"
     "print(json.dumps({'torch': torch.__version__,"
+    " 'torchaudio': torchaudio.__version__,"
     " 'cuda': bool(torch.cuda.is_available()),"
     " 'gpu': torch.cuda.get_device_name(0) if torch.cuda.is_available() else '',"
     " 'transformers': transformers.__version__}))"
@@ -306,16 +307,14 @@ def torchaudio_pin(torch_version: str, torch_tag: str) -> str:
       公共版本时，已装的 ``+cpu`` torchaudio 会被 pip 当成已满足
       （PEP 440 规定未写本地标签的 == 忽略候选的本地标签），留下
       CPU/CUDA 混装。
-    - CPU：只钉公共版本（``torchaudio==2.13.0``）。PyPI 的 torch 运行时
-      版本是 ``2.13.0+cpu``，但 torchaudio 在 PyPI 的发行版本只有
-      ``2.13.0``（``+cpu`` 本地标签只存在于 pytorch 官方索引，而官方
-      索引又可能落后于 PyPI）。钉死 ``+cpu`` 会在两个索引都找不到
-      候选，pip 直接返回 1（报错只有「pip 返回码 1」，日志里才看得到
-      No matching distribution）。
+    - CPU：只钉公共版本（``torchaudio==2.11.0``）。PyPI 的 torch 运行时
+      版本是 ``2.11.0+cpu``，但 torchaudio 在 PyPI 的发行版本没有
+      ``+cpu`` 本地标签。
 
-    注意 torchaudio 已进入维护模式、最后版本 2.11.0：torch 比它新时
-    公共版本同样不存在，需要 :func:`torchaudio_aligned_requirements`
-    回退对齐。
+    这条精确钉子只对 torchaudio ≤2.10 有意义（它们的 wheel 声明
+    ``Requires-Dist: torch==<同版本>``）。torchaudio 2.11 起进入维护
+    模式并移除了对 torch 的依赖声明，torch 更新时精确钉子会无候选，
+    由 :func:`torchaudio_fallback_requirements` 兜底。
     """
     if torch_tag and torch_tag != "cpu":
         return f"torchaudio=={torch_version}+{torch_tag}"
@@ -766,6 +765,7 @@ class RuntimeStatus:
     available: bool
     python_path: str = ""
     torch_version: str = ""
+    torchaudio_version: str = ""
     transformers_version: str = ""
     cuda_available: bool = False
     gpu_name: str = ""
@@ -891,19 +891,27 @@ def newest_available_version(tail: List[str], package: str) -> Optional[str]:
     return None
 
 
-def torchaudio_aligned_requirements(
-    exc: Exception, torch_version: str, torch_tag: str
-) -> Optional[Tuple[str, List[str]]]:
-    """torch 太新、没有任何可配套的 torchaudio 时给出可安装的对齐方案。
+# torchaudio 2.11 起进入维护模式，并**移除了对 torch 的依赖声明**
+# （2.10 及以前是 ``Requires-Dist: torch==<同版本>``）。实测
+# torch 2.14.1+cpu + torchaudio 2.11.0 的 import / forced_align /
+# resample 均可用，因此 torch 比 torchaudio 新时不需要降级 torch，
+# 装最新 torchaudio 即可。
+TORCHAUDIO_DECOUPLED_VERSION = (2, 11, 0)
 
-    torchaudio 已进入维护模式、最后一个发布版本是 2.11.0（2026-03），
-    而 torch 仍在继续发布：实测官方 PyPI / download.pytorch.org 的
-    torch 已到 2.14，torchaudio 全部止步 2.11.0（三处索引一致，不是
-    镜像滞后）。torchaudio 与 torch 必须同版本，此时唯一能得到受支持
-    组合的方式是把两者一起对齐到 torchaudio 可用的最高版本（会替换
-    托管 runtime 的共享 torch）。返回 ``(version, requirements)``；
-    不适用（不是 torchaudio 缺版本、或已没有更旧的版本可回退）返回
-    None。
+
+def torchaudio_fallback_requirements(
+    exc: Exception, torch_version: str, torch_tag: str
+) -> Optional[Tuple[str, List[str], bool]]:
+    """精确钉子无候选时的替代方案：``(版本, 依赖, 是否替换 torch)``。
+
+    分两种情况：
+
+    - 最新可用的 torchaudio ≥2.11（与 torch 解耦）：只装 torchaudio，
+      **不动**宿主的共享 torch——不重下 3GB/200MB，也不影响工作台分离；
+    - 最新可用仍 <2.11（旧版与 torch 强绑定）：只能把 torch/torchaudio
+      一起对齐到该版本（返回 ``替换=True``）。
+
+    不适用（不是 torchaudio 缺版本、或没有可回退的版本）返回 None。
     """
     tail = list(getattr(exc, "tail", []) or [])
     joined = "\n".join(tail).lower()
@@ -919,17 +927,28 @@ def torchaudio_aligned_requirements(
     newest_key = _version_tuple(newest or "")
     if newest is None or installed_key is None or newest_key is None:
         return None
-    if newest_key >= installed_key:
-        # 没有更旧的版本可退（或 pip 因别的原因失败）：不猜
-        return None
-    if torch_tag == "cpu":
-        pair = [f"torch=={newest}", f"torchaudio=={newest}"]
-    else:
-        pair = [
-            f"torch=={newest}+{torch_tag}",
-            f"torchaudio=={newest}+{torch_tag}",
-        ]
-    return newest, [*pair, *AI_SHARED_REQUIREMENTS]
+    tag_suffix = "" if torch_tag == "cpu" else f"+{torch_tag}"
+    if (
+        newest_key >= TORCHAUDIO_DECOUPLED_VERSION
+        and installed_key >= TORCHAUDIO_DECOUPLED_VERSION
+    ):
+        return (
+            newest,
+            [f"torchaudio=={newest}{tag_suffix}", *AI_SHARED_REQUIREMENTS],
+            False,
+        )
+    if newest_key < installed_key:
+        return (
+            newest,
+            [
+                f"torch=={newest}{tag_suffix}",
+                f"torchaudio=={newest}{tag_suffix}",
+                *AI_SHARED_REQUIREMENTS,
+            ],
+            True,
+        )
+    # 没有更旧的版本可退（或 pip 因别的原因失败）：不猜
+    return None
 
 
 class AiRuntimeManager:
@@ -1052,6 +1071,7 @@ class AiRuntimeManager:
             available=True,
             python_path=exe,
             torch_version=str(info.get("torch", "")),
+            torchaudio_version=str(info.get("torchaudio", "")),
             transformers_version=str(info.get("transformers", "")),
             cuda_available=bool(info.get("cuda", False)),
             gpu_name=str(info.get("gpu", "")) or detect_nvidia_gpu(),
@@ -1059,6 +1079,7 @@ class AiRuntimeManager:
         _log_probe_outcome(
             exe,
             f"环境可用：torch={status.torch_version} "
+            f"torchaudio={status.torchaudio_version or '未报告'} "
             f"transformers={status.transformers_version} "
             f"cuda={status.cuda_available} gpu={status.gpu_name or '无'}",
         )
@@ -1569,9 +1590,10 @@ class AiRuntimeManager:
         份 torch（含 CUDA），避免重复下载约 3GB。
 
         例外：宿主 torch 比所有 torchaudio 都新（PyPI 的 torch 领先官方
-        索引）时没有任何可配对版本，此时把 torch/torchaudio 一起对齐到
-        torchaudio 最高可用版本再装一次——共享 torch 会被替换，装完由
-        宿主 ``note_runtime_changed`` 重登记清单。
+        索引）时精确钉子无候选。torchaudio 2.11 起与 torch 解耦（wheel
+        不再声明 torch 依赖），此时只补最新 torchaudio、**不替换**宿主
+        的共享 torch；只有回退到 2.11 以前的版本才需要连 torch 一起
+        对齐（装完由宿主 ``note_runtime_changed`` 重登记清单）。
 
         Args:
             log: 复用外层安装日志（install_from_release 传入，避免一次
@@ -1646,31 +1668,39 @@ class AiRuntimeManager:
                 cancel=cancel,
             )
         except PipInstallError as exc:
-            # torch 比 torchaudio 新（PyPI 的 torch 领先官方索引）时没有任何
-            # 可配对版本；把两者一起对齐到 torchaudio 最高可用版本重试一次，
-            # 否则用户只会看到「pip 返回码 1」而 AI 打轴永远装不上
-            aligned = torchaudio_aligned_requirements(
+            # 宿主 torch 比最新的 torchaudio 还新（PyPI 的 torch 领先官方
+            # 索引）时精确钉子无候选。torchaudio 2.11 起与 torch 解耦，
+            # 只补最新 torchaudio；旧版本才需要连 torch 一起对齐。
+            fallback = torchaudio_fallback_requirements(
                 exc, torch_version, torch_tag
             )
-            if aligned is None:
+            if fallback is None:
                 raise
-            aligned_version, aligned_requirements = aligned
-            message = (
-                f"PyTorch {torch_version} 没有可配对的 torchaudio"
-                f"（官方最高 {aligned_version}），"
-                f"改为对齐安装 torch/torchaudio {aligned_version}"
-                f"（会替换工作台的共享 torch）…"
-            )
+            fallback_version, fallback_requirements, replaces_torch = fallback
+            if replaces_torch:
+                message = (
+                    f"PyTorch {torch_version} 没有可配对的 torchaudio"
+                    f"（官方最高 {fallback_version}），"
+                    f"改为对齐安装 torch/torchaudio {fallback_version}"
+                    f"（会替换工作台的共享 torch）…"
+                )
+            else:
+                message = (
+                    f"PyTorch {torch_version} 没有同版本 torchaudio，"
+                    f"改用最新版 torchaudio {fallback_version}"
+                    f"（保留现有 torch，不重下大文件）…"
+                )
             progress(20, message)
             ailog(
                 "install",
-                f"torchaudio 无匹配版本，回退对齐："
-                f"torch {torch_version}+{torch_tag} → "
-                f"{aligned_version}+{torch_tag}；{message}",
+                f"torchaudio 无匹配版本，回退："
+                f"{'替换' if replaces_torch else '保留'} torch "
+                f"{torch_version}+{torch_tag}，"
+                f"安装 torchaudio {fallback_version}；{message}",
             )
             status = self._pip_install_requirements(
                 str(exe),
-                [*base_args, *aligned_requirements],
+                [*base_args, *fallback_requirements],
                 progress=progress,
                 cancel=cancel,
             )

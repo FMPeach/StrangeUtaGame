@@ -77,12 +77,12 @@ class AiTimingHost(Protocol):
 
         SUG 检测到该方法且路径存在时，「安装/修复」改为向该解释器
         **增量**安装 AI 依赖（不建 venv、不重装 torch，torchaudio 按
-        其 torch 版本自动配对）；宿主 torch 比所有 torchaudio 都新、
-        没有可配对版本时，SUG 会把 torch/torchaudio 一起对齐到
-        torchaudio 最高可用版本（共享 torch 被替换，装完经
-        ``note_runtime_changed`` 重登记）。返回 None / 路径不存在时：
-        嵌入模式引导去宿主分离页安装，或经确认后独立安装兜底。
-        能力发现用 ``getattr``，不实现也不影响协议。
+        其 torch 版本自动配对）；宿主 torch 比最新的 torchaudio 还新时
+        精确钉子无候选——torchaudio 2.11 起与 torch 解耦，SUG 只补最新
+        torchaudio、保留宿主 torch；仅回退到 2.11 以前才需要连 torch
+        一起对齐（装完经 ``note_runtime_changed`` 重登记）。返回 None /
+        路径不存在时：嵌入模式引导去宿主分离页安装，或经确认后独立
+        安装兜底。能力发现用 ``getattr``，不实现也不影响协议。
         """
         ...
 
