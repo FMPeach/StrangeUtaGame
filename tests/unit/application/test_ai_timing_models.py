@@ -1147,6 +1147,104 @@ class TestSharedRuntimeInstall:
         assert "pip 安装失败（返回码 1）" in log_text
         assert "No matching distribution found" in log_text
 
+    def test_newest_available_version_parses_pip_error(self):
+        import strange_uta_game.backend.application.ai_timing.runtime as rt
+
+        tail = [
+            "ERROR: Could not find a version that satisfies the requirement "
+            "torchaudio==2.13.0 (from versions: 2.6.0, 2.6.0+cpu, 2.7.0, "
+            "2.7.0+cpu, 2.11.0, 2.11.0+cpu)"
+        ]
+        assert rt.newest_available_version(tail, "torchaudio") == "2.11.0"
+        assert rt.newest_available_version(tail, "torch") is None
+        # 只有本地标签候选时也按公共版本比较
+        tail_local = [
+            "ERROR: Could not find a version that satisfies the requirement "
+            "torchaudio==9.9.9 (from versions: 2.10.0+cpu, 2.11.0+cpu)"
+        ]
+        assert rt.newest_available_version(tail_local, "torchaudio") == "2.11.0"
+
+    def test_install_shared_aligns_torch_when_torchaudio_too_old(
+        self, tmp_path, monkeypatch
+    ):
+        """torch 比所有 torchaudio 都新：对齐到 torchaudio 最高版本重装。
+
+        实测场景：工作台 torch=2.13.0+cpu，官方 torchaudio 最高
+        2.11.0——钉 2.13.0 在任何索引都无候选。此时把 torch 与
+        torchaudio 一起降到 2.11.0（唯一受支持的组合），而不是让
+        「安装 / 修复」永远失败。
+        """
+        exe = self._fake_managed_python(tmp_path)
+        monkeypatch.setattr(
+            AiRuntimeManager,
+            "probe",
+            lambda self, python_exe="", timeout_s=30.0: RuntimeStatus(
+                available=True, python_path=str(python_exe)
+            ),
+        )
+        import strange_uta_game.backend.application.ai_timing.runtime as rt
+
+        monkeypatch.setattr(
+            rt, "detect_torch_build", lambda exe: ("2.13.0", "cpu")
+        )
+        calls = []
+
+        def fake_runner(python, args, on_line, cancel):
+            calls.append(list(args))
+            if "torch==2.11.0" in args:
+                on_line("Successfully installed torch-2.11.0 torchaudio-2.11.0\n")
+                return 0
+            on_line(
+                "ERROR: Could not find a version that satisfies the "
+                "requirement torchaudio==2.13.0 (from versions: 2.6.0, "
+                "2.6.0+cpu, 2.7.0, 2.7.0+cpu, 2.8.0, 2.8.0+cpu, 2.9.0, "
+                "2.9.0+cpu, 2.9.1, 2.9.1+cpu, 2.10.0, 2.10.0+cpu, "
+                "2.11.0, 2.11.0+cpu)\n"
+            )
+            on_line(
+                "ERROR: No matching distribution found for "
+                "torchaudio==2.13.0\n"
+            )
+            return 1
+
+        events = []
+        status = AiRuntimeManager(pip_runner=fake_runner).install_shared(
+            exe, progress=lambda p, m: events.append((p, m))
+        )
+        assert status.available
+        aligned = [args for args in calls if "torch==2.11.0" in args]
+        assert aligned, calls
+        assert "torchaudio==2.11.0" in aligned[0]
+        assert not any("torchaudio==2.11.0+cpu" in a for a in aligned)
+        assert any(
+            "对齐安装 torch/torchaudio 2.11.0" in m for _, m in events
+        )
+        log_text = (tmp_path / "install.log").read_text(encoding="utf-8")
+        assert "对齐安装 torch/torchaudio 2.11.0" in log_text
+
+    def test_torchaudio_aligned_requirements_keeps_cuda_tag(self):
+        import strange_uta_game.backend.application.ai_timing.runtime as rt
+
+        exc = rt.PipInstallError(
+            "依赖安装失败（pip 返回码 1）",
+            returncode=1,
+            tail=[
+                "ERROR: Could not find a version that satisfies the "
+                "requirement torchaudio==2.13.0+cu128 (from versions: "
+                "2.10.0+cu128, 2.11.0+cu128)"
+            ],
+        )
+        aligned = rt.torchaudio_aligned_requirements(exc, "2.13.0", "cu128")
+        assert aligned is not None
+        version, requirements = aligned
+        assert version == "2.11.0"
+        assert "torch==2.11.0+cu128" in requirements
+        assert "torchaudio==2.11.0+cu128" in requirements
+        # 已经是可配套的最高版本：不降级、不猜
+        assert (
+            rt.torchaudio_aligned_requirements(exc, "2.11.0", "cu128") is None
+        )
+
 
 class TestPortableRuntimePath:
     """runtime_python 相对路径持久化：基准目录内收相对，读回展开。"""

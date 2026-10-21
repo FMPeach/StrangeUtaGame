@@ -14,6 +14,7 @@ CI 仅覆盖 probe/编排逻辑。
 """
 
 import json
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -41,6 +42,16 @@ RUNTIME_REQUIREMENTS: List[str] = [
     "audio-separator[cpu]",
     # audio-separator 0.44.x 使用旧版 librosa API（get_duration(filename=)），
     # 0.11 起已移除该参数——必须钉住
+    "librosa==0.10.2.post1",
+]
+
+# install_shared（方案 B）除 torchaudio 之外的 AI 增量依赖；torchaudio
+# 按宿主 torch 动态配对后拼在最前（见 torchaudio_pin）
+AI_SHARED_REQUIREMENTS: List[str] = [
+    PINNED_TRANSFORMERS,
+    "soundfile",
+    "huggingface_hub",
+    "audio-separator[cpu]",
     "librosa==0.10.2.post1",
 ]
 
@@ -298,9 +309,13 @@ def torchaudio_pin(torch_version: str, torch_tag: str) -> str:
     - CPU：只钉公共版本（``torchaudio==2.13.0``）。PyPI 的 torch 运行时
       版本是 ``2.13.0+cpu``，但 torchaudio 在 PyPI 的发行版本只有
       ``2.13.0``（``+cpu`` 本地标签只存在于 pytorch 官方索引，而官方
-      索引又可能落后于 PyPI，实测 cu128/cpu 索引停在 2.11.0）。钉死
-      ``+cpu`` 会在两个索引都找不到候选，pip 直接返回 1（报错只有
-      「pip 返回码 1」，日志里才看得到 No matching distribution）。
+      索引又可能落后于 PyPI）。钉死 ``+cpu`` 会在两个索引都找不到
+      候选，pip 直接返回 1（报错只有「pip 返回码 1」，日志里才看得到
+      No matching distribution）。
+
+    注意 torchaudio 已进入维护模式、最后版本 2.11.0：torch 比它新时
+    公共版本同样不存在，需要 :func:`torchaudio_aligned_requirements`
+    回退对齐。
     """
     if torch_tag and torch_tag != "cpu":
         return f"torchaudio=={torch_version}+{torch_tag}"
@@ -729,6 +744,23 @@ class AiRuntimeError(RuntimeError):
     """Runtime 操作错误（中文消息）。"""
 
 
+class PipInstallError(AiRuntimeError):
+    """pip 以非 0 退出：附带末尾输出，供上层做兼容性回退与日志留档。"""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        returncode: int,
+        tail: List[str],
+        command: str = "",
+    ):
+        super().__init__(message)
+        self.returncode = returncode
+        self.tail = list(tail)
+        self.command = command
+
+
 @dataclass
 class RuntimeStatus:
     available: bool
@@ -812,6 +844,92 @@ def _pip_failure_detail(lines: List[str], limit: int = 3) -> str:
     picked = errors[-limit:] or lines[-limit:]
     detail = "；".join(picked)
     return detail[:600] + ("…" if len(detail) > 600 else "")
+
+
+_PIP_FROM_VERSIONS_RE = re.compile(r"from versions:\s*([^)]*)\)", re.IGNORECASE)
+
+
+def _version_tuple(text: str) -> Optional[Tuple[int, ...]]:
+    """把 ``2.11.0`` 这类公共版本解析成可比较的整数元组。"""
+    numbers: List[int] = []
+    for part in text.split("."):
+        if not part.isdigit():
+            return None
+        numbers.append(int(part))
+    return tuple(numbers) or None
+
+
+def newest_available_version(tail: List[str], package: str) -> Optional[str]:
+    """从 pip 的「(from versions: …)」里取某个包可用的最高公共版本。
+
+    依赖解析失败的报错形如::
+
+        ERROR: Could not find a version that satisfies the requirement
+        torchaudio==2.13.0 (from versions: 2.6.0, 2.6.0+cpu, …, 2.11.0)
+
+    本地标签（+cpu/+cu128）在这里剥掉、只比较公共版本，上层再按宿主
+    torch 的变体重新拼标签。
+    """
+    marker = f"requirement {package.lower()}=="
+    for line in tail:
+        lower = line.lower()
+        if "could not find a version" not in lower or marker not in lower:
+            continue
+        match = _PIP_FROM_VERSIONS_RE.search(line)
+        if match is None:
+            continue
+        newest = None
+        newest_key: Optional[Tuple[int, ...]] = None
+        for raw in match.group(1).split(","):
+            public = raw.strip().split("+", 1)[0]
+            key = _version_tuple(public)
+            if key is None:
+                continue
+            if newest_key is None or key > newest_key:
+                newest, newest_key = public, key
+        return newest
+    return None
+
+
+def torchaudio_aligned_requirements(
+    exc: Exception, torch_version: str, torch_tag: str
+) -> Optional[Tuple[str, List[str]]]:
+    """torch 太新、没有任何可配套的 torchaudio 时给出可安装的对齐方案。
+
+    torchaudio 已进入维护模式、最后一个发布版本是 2.11.0（2026-03），
+    而 torch 仍在继续发布：实测官方 PyPI / download.pytorch.org 的
+    torch 已到 2.14，torchaudio 全部止步 2.11.0（三处索引一致，不是
+    镜像滞后）。torchaudio 与 torch 必须同版本，此时唯一能得到受支持
+    组合的方式是把两者一起对齐到 torchaudio 可用的最高版本（会替换
+    托管 runtime 的共享 torch）。返回 ``(version, requirements)``；
+    不适用（不是 torchaudio 缺版本、或已没有更旧的版本可回退）返回
+    None。
+    """
+    tail = list(getattr(exc, "tail", []) or [])
+    joined = "\n".join(tail).lower()
+    if "torchaudio" not in joined:
+        return None
+    if (
+        "no matching distribution" not in joined
+        and "could not find a version" not in joined
+    ):
+        return None
+    newest = newest_available_version(tail, "torchaudio")
+    installed_key = _version_tuple(torch_version)
+    newest_key = _version_tuple(newest or "")
+    if newest is None or installed_key is None or newest_key is None:
+        return None
+    if newest_key >= installed_key:
+        # 没有更旧的版本可退（或 pip 因别的原因失败）：不猜
+        return None
+    if torch_tag == "cpu":
+        pair = [f"torch=={newest}", f"torchaudio=={newest}"]
+    else:
+        pair = [
+            f"torch=={newest}+{torch_tag}",
+            f"torchaudio=={newest}+{torch_tag}",
+        ]
+    return newest, [*pair, *AI_SHARED_REQUIREMENTS]
 
 
 class AiRuntimeManager:
@@ -1450,6 +1568,11 @@ class AiRuntimeManager:
         该解释器 pip 安装 AI 增量包。方案 B：embedded 与分离共享同一
         份 torch（含 CUDA），避免重复下载约 3GB。
 
+        例外：宿主 torch 比所有 torchaudio 都新（PyPI 的 torch 领先官方
+        索引）时没有任何可配对版本，此时把 torch/torchaudio 一起对齐到
+        torchaudio 最高可用版本再装一次——共享 torch 会被替换，装完由
+        宿主 ``note_runtime_changed`` 重登记清单。
+
         Args:
             log: 复用外层安装日志（install_from_release 传入，避免一次
                 安装写两个会话头）；缺省时在解释器上级目录自开。
@@ -1487,11 +1610,7 @@ class AiRuntimeManager:
         # （transcription.py，主程序自带 pyphen/nltk），worker 无需这些依赖
         requirements: List[str] = [
             torchaudio_requirement,
-            PINNED_TRANSFORMERS,
-            "soundfile",
-            "huggingface_hub",
-            "audio-separator[cpu]",
-            "librosa==0.10.2.post1",
+            *AI_SHARED_REQUIREMENTS,
         ]
         progress(
             2,
@@ -1504,7 +1623,7 @@ class AiRuntimeManager:
             f"torch={torch_version}+{torch_tag} 钉子={torchaudio_requirement} "
             f"索引={mirror or PIP_DEFAULT_INDEX} + {index_url}",
         )
-        args: List[str] = [
+        base_args: List[str] = [
             "-m",
             "pip",
             "install",
@@ -1514,15 +1633,47 @@ class AiRuntimeManager:
             "--no-warn-script-location",
         ]
         if proxy:
-            args += ["--proxy", proxy]
+            base_args += ["--proxy", proxy]
         # torchaudio 的 +cu128/+cpu 本地标签只在 pytorch 官方索引，走
         # --extra-index-url；其余依赖默认从阿里源解析（mirror 可覆盖）
-        args += ["--extra-index-url", index_url]
-        args += ["-i", mirror or PIP_DEFAULT_INDEX]
-        args += list(requirements)
-        status = self._pip_install_requirements(
-            str(exe), args, progress=progress, cancel=cancel
-        )
+        base_args += ["--extra-index-url", index_url]
+        base_args += ["-i", mirror or PIP_DEFAULT_INDEX]
+        try:
+            status = self._pip_install_requirements(
+                str(exe),
+                [*base_args, *requirements],
+                progress=progress,
+                cancel=cancel,
+            )
+        except PipInstallError as exc:
+            # torch 比 torchaudio 新（PyPI 的 torch 领先官方索引）时没有任何
+            # 可配对版本；把两者一起对齐到 torchaudio 最高可用版本重试一次，
+            # 否则用户只会看到「pip 返回码 1」而 AI 打轴永远装不上
+            aligned = torchaudio_aligned_requirements(
+                exc, torch_version, torch_tag
+            )
+            if aligned is None:
+                raise
+            aligned_version, aligned_requirements = aligned
+            message = (
+                f"PyTorch {torch_version} 没有可配对的 torchaudio"
+                f"（官方最高 {aligned_version}），"
+                f"改为对齐安装 torch/torchaudio {aligned_version}"
+                f"（会替换工作台的共享 torch）…"
+            )
+            progress(20, message)
+            ailog(
+                "install",
+                f"torchaudio 无匹配版本，回退对齐："
+                f"torch {torch_version}+{torch_tag} → "
+                f"{aligned_version}+{torch_tag}；{message}",
+            )
+            status = self._pip_install_requirements(
+                str(exe),
+                [*base_args, *aligned_requirements],
+                progress=progress,
+                cancel=cancel,
+            )
         hook = self._runtime_changed_hook
         if hook is not None:
             # 通知宿主按磁盘现状重登记清单（pip 动过共用包）；
@@ -1670,9 +1821,12 @@ class AiRuntimeManager:
                 f"pip 安装失败（返回码 {returncode}）：{detail or '无输出'}"
                 f"｜{command}",
             )
-            raise AiRuntimeError(
+            raise PipInstallError(
                 f"依赖安装失败（pip 返回码 {returncode}）"
-                + (f"：{detail}" if detail else "")
+                + (f"：{detail}" if detail else ""),
+                returncode=returncode,
+                tail=tail,
+                command=command,
             )
 
         progress(97, "校验运行环境")
@@ -1725,6 +1879,7 @@ __all__ = [
     "RUNTIME_VARIANT_CPU",
     "RUNTIME_VARIANT_CUDA",
     "AiRuntimeError",
+    "PipInstallError",
     "RuntimeStatus",
     "AiRuntimeManager",
     "detect_nvidia_gpu",
