@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from typing import Callable
+from collections.abc import Callable, Collection
 
 from PyQt6.QtCore import QEvent, QPoint, QRect, Qt, QTimer
 from PyQt6.QtGui import QKeyEvent
@@ -21,6 +21,13 @@ class RubyEditPopup(QDialog):
     _INPUT_MIN_WIDTH = 92
     _INPUT_MAX_WIDTH = 420
     _LINK_BUTTON_MIN_WIDTH = 52
+    _NAVIGATION_KEYS = {
+        Qt.Key.Key_Left: "left",
+        Qt.Key.Key_Up: "up",
+        Qt.Key.Key_Right: "right",
+        Qt.Key.Key_Down: "down",
+    }
+    _CURSOR_POSITIONS = {"select_all", "start", "end"}
 
     def __init__(
         self,
@@ -28,11 +35,21 @@ class RubyEditPopup(QDialog):
         can_link_next: bool,
         parent=None,
         link_toggle_callback: Callable[[], None] | None = None,
+        navigation_directions: Collection[str] | None = None,
+        initial_cursor_position: str = "select_all",
     ):
         super().__init__(parent)
         self._character = character
         self._can_link_next = can_link_next
         self._link_toggle_callback = link_toggle_callback
+        self._navigation_directions = set(navigation_directions or ())
+        self._navigation_request: str | None = None
+        self._input_method_composing = False
+        self._initial_cursor_position = (
+            initial_cursor_position
+            if initial_cursor_position in self._CURSOR_POSITIONS
+            else "select_all"
+        )
         self._split_mode = ruby_dialogs._get_ruby_split_mode()
         if self._split_mode not in ("direct", "char", "mora"):
             self._split_mode = "mora"
@@ -60,10 +77,9 @@ class RubyEditPopup(QDialog):
         self.edit_ruby.setText(self._original_ruby)
         self.edit_ruby.setPlaceholderText(self.tr("注音"))
         self.edit_ruby.setToolTip(self.tr("回车保存，Esc 取消"))
-        self.edit_ruby.setAttribute(
-            Qt.WidgetAttribute.WA_InputMethodEnabled, True
-        )
+        self.edit_ruby.setAttribute(Qt.WidgetAttribute.WA_InputMethodEnabled, True)
         self.edit_ruby.setInputMethodHints(Qt.InputMethodHint.ImhNone)
+        self.edit_ruby.installEventFilter(self)
         self.edit_ruby.setClearButtonEnabled(True)
         self.edit_ruby.setFixedWidth(self._INPUT_MIN_WIDTH)
         self.edit_ruby.returnPressed.connect(self._apply)
@@ -148,8 +164,7 @@ class RubyEditPopup(QDialog):
             ruby_dialogs._set_ruby_split_mode(split_mode)
             self._split_mode = split_mode
         link_changed = (
-            self._link_toggle_callback is None
-            and self._linked != self._original_linked
+            self._link_toggle_callback is None and self._linked != self._original_linked
         )
         if ruby_changed:
             self._character.set_ruby(
@@ -180,6 +195,50 @@ class RubyEditPopup(QDialog):
             return
         super().keyPressEvent(event)
 
+    def eventFilter(self, watched, event: QEvent) -> bool:  # noqa: N802
+        """Commit and request another character at the input boundary."""
+        if watched is self.edit_ruby:
+            if event.type() == QEvent.Type.InputMethod:
+                # Let the IME own arrows while composing/cycling candidates.
+                self._input_method_composing = bool(event.preeditString())
+            elif (
+                event.type() == QEvent.Type.KeyPress
+                and isinstance(event, QKeyEvent)
+                and self._handle_navigation_key(event)
+            ):
+                return True
+        return super().eventFilter(watched, event)
+
+    def _handle_navigation_key(self, event: QKeyEvent) -> bool:
+        direction = self._NAVIGATION_KEYS.get(event.key())
+        if (
+            direction is None
+            or direction not in self._navigation_directions
+            or self._input_method_composing
+            or event.modifiers()
+            not in (
+                Qt.KeyboardModifier.NoModifier,
+                Qt.KeyboardModifier.KeypadModifier,
+            )
+        ):
+            return False
+
+        # Up/down always switch rows. Left/right retain normal text editing
+        # until a collapsed caret is already at the corresponding boundary.
+        if direction in {"left", "right"}:
+            if self.edit_ruby.hasSelectedText():
+                return False
+            cursor = self.edit_ruby.cursorPosition()
+            if direction == "left" and cursor != 0:
+                return False
+            if direction == "right" and cursor != len(self.edit_ruby.text()):
+                return False
+
+        self._navigation_request = direction
+        self._apply()
+        event.accept()
+        return True
+
     def event(self, event: QEvent) -> bool:
         # Queue the save so Qt can finish dispatching the outside click first.
         if (
@@ -203,6 +262,10 @@ class RubyEditPopup(QDialog):
 
     def was_modified(self) -> bool:
         return self._modified
+
+    def navigation_request(self) -> str | None:
+        """Return the arrow direction that accepted this popup, if any."""
+        return self._navigation_request
 
     def show_above(self, anchor: QRect) -> int:
         """Run the popup just above a character rectangle in global coordinates."""
@@ -228,11 +291,14 @@ class RubyEditPopup(QDialog):
             return
         self.activateWindow()
         self.edit_ruby.setFocus(Qt.FocusReason.PopupFocusReason)
-        self.edit_ruby.selectAll()
+        if self._initial_cursor_position == "start":
+            self.edit_ruby.setCursorPosition(0)
+        elif self._initial_cursor_position == "end":
+            self.edit_ruby.setCursorPosition(len(self.edit_ruby.text()))
+        else:
+            self.edit_ruby.selectAll()
         input_method = QApplication.inputMethod()
-        input_method.update(
-            Qt.InputMethodQuery.ImEnabled | Qt.InputMethodQuery.ImHints
-        )
+        input_method.update(Qt.InputMethodQuery.ImEnabled | Qt.InputMethodQuery.ImHints)
         if sys.platform == "darwin":
             self._position_above_anchor()
             self.setWindowOpacity(1.0)
