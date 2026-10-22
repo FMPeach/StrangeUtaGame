@@ -115,6 +115,8 @@ def test_f2_popup_reopens_on_arrow_target_with_expected_caret(monkeypatch):
         _project=project,
         _f2_ruby_editor_mode="compact",
         preview=preview,
+        _resolve_word_join_shortcut=lambda _event: (False, False, False),
+        _long_press_timer=SimpleNamespace(interval=lambda: 300),
     )
     editor._ruby_navigation_target = lambda line, char, direction: (
         EditorInterface._ruby_navigation_target(editor, line, char, direction)
@@ -130,6 +132,69 @@ def test_f2_popup_reopens_on_arrow_target_with_expected_caret(monkeypatch):
     assert [entry[0] for entry in opened] == ["今", "宵", "麗"]
     assert [entry[2] for entry in opened] == ["end", "start", "end"]
     assert focused == [(0, 0, 1), (0, 2, 1)]
+
+
+def test_configured_word_join_inside_f2_delegates_to_regular_action(monkeypatch):
+    from PyQt6.QtCore import QEvent, QRect, Qt
+    from PyQt6.QtGui import QKeyEvent
+
+    from strange_uta_game.frontend.editor import timing_interface as module
+
+    project = Project(sentences=[_sentence("今宵")])
+    calls = []
+
+    class FakePopup:
+        def __init__(
+            self,
+            _character,
+            *,
+            word_join_shortcut_callback,
+            word_join_shortcut_resolver,
+            **_kwargs,
+        ):
+            self._word_join_shortcut_callback = word_join_shortcut_callback
+            self._word_join_shortcut_resolver = word_join_shortcut_resolver
+
+        def show_above(self, _anchor):
+            event = QKeyEvent(
+                QEvent.Type.KeyPress,
+                Qt.Key.Key_F6,
+                Qt.KeyboardModifier.NoModifier,
+            )
+            if self._word_join_shortcut_resolver(event)[0]:
+                self._word_join_shortcut_callback()
+
+        def was_modified(self):
+            return False
+
+        def navigation_request(self):
+            return None
+
+    editor = SimpleNamespace(
+        _project=project,
+        _f2_ruby_editor_mode="compact",
+        preview=SimpleNamespace(
+            character_global_rect=lambda _line, _char: QRect(10, 10, 20, 20)
+        ),
+        _toggle_word_join=lambda: calls.append("word_join"),
+        _key_map_short={"F6": "toggle_word_join"},
+        _key_map_long={},
+        _settings_loaded=True,
+        _qt_key_to_name=lambda key, *_args: "F6" if key == Qt.Key.Key_F6 else "F3",
+        _long_press_timer=SimpleNamespace(interval=lambda: 300),
+    )
+    editor._ruby_navigation_target = lambda line, char, direction: (
+        EditorInterface._ruby_navigation_target(editor, line, char, direction)
+    )
+    editor._resolve_word_join_shortcut = lambda event: (
+        EditorInterface._resolve_word_join_shortcut(editor, event)
+    )
+
+    monkeypatch.setattr(module, "RubyEditPopup", FakePopup)
+
+    EditorInterface._on_char_edit_requested(editor, 0, 0)
+
+    assert calls == ["word_join"]
 
 
 def test_f2_editor_setting_is_below_ruby_shortcut(qapp):

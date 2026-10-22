@@ -6511,9 +6511,24 @@ class EditorInterface(QWidget):
             ) -> None:
                 nonlocal before_character
                 self._toggle_word_join_single(target_line_idx, target_char_idx)
-                # The F3-compatible action owns its own undo command. If ruby
-                # is saved afterwards, its undo snapshot must preserve this
-                # new link state.
+                # The link action owns its own undo command. If ruby is saved
+                # afterwards, its undo snapshot must preserve this new state.
+                before_character = deepcopy(
+                    self._project.sentences[target_line_idx].characters[
+                        target_char_idx
+                    ]
+                )
+
+            def _toggle_word_join_shortcut_from_popup(
+                target_line_idx: int = edit_line_idx,
+                target_char_idx: int = edit_char_idx,
+            ) -> None:
+                nonlocal before_character
+                # Invoke the ordinary word-join action so a retained selection
+                # keeps the same single/range behavior as outside the popup.
+                self._toggle_word_join()
+                # The shortcut owns its undo command. A later ruby edit must
+                # preserve the resulting link state in its own snapshot.
                 before_character = deepcopy(
                     self._project.sentences[target_line_idx].characters[
                         target_char_idx
@@ -6535,6 +6550,13 @@ class EditorInterface(QWidget):
                 can_link_next=edit_char_idx < len(sentence.characters) - 1,
                 parent=self,
                 link_toggle_callback=_toggle_link_from_popup,
+                word_join_shortcut_callback=(
+                    _toggle_word_join_shortcut_from_popup
+                ),
+                word_join_shortcut_resolver=(
+                    self._resolve_word_join_shortcut
+                ),
+                shortcut_long_press_ms=self._long_press_timer.interval(),
                 navigation_directions=navigation_targets,
                 initial_cursor_position=cursor_position,
             )
@@ -6602,6 +6624,45 @@ class EditorInterface(QWidget):
                 duration=1400,
                 parent=self,
             )
+
+    def _resolve_word_join_shortcut(
+        self, event: QKeyEvent
+    ) -> tuple[bool, bool, bool]:
+        """Resolve the active configured shortcut for the word-join action.
+
+        Returns ``(short_is_word_join, long_is_word_join, has_long_action)``.
+        The third value preserves the editor's short-vs-long timing semantics
+        when the same physical key has another action on long press.
+        """
+        key_name = self._qt_key_to_name(
+            event.key(),
+            event.modifiers(),
+            event.nativeVirtualKey(),
+            event.nativeScanCode(),
+        )
+        if not key_name:
+            return False, False, False
+
+        key_upper = key_name.upper()
+        action_short = getattr(self, "_key_map_short", {}).get(key_upper)
+        action_long = getattr(self, "_key_map_long", {}).get(key_upper)
+        if (
+            not self._settings_loaded
+            and action_short is None
+            and action_long is None
+        ):
+            playing = bool(
+                self._timing_service and self._timing_service.is_playing()
+            )
+            action_short = self._default_key_action(
+                event.key(), event.modifiers(), playing=playing
+            )
+
+        return (
+            action_short == "toggle_word_join",
+            action_long == "toggle_word_join",
+            action_long is not None,
+        )
 
     def _ruby_navigation_target(
         self, line_idx: int, char_idx: int, direction: str

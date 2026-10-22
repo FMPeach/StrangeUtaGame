@@ -35,6 +35,11 @@ class RubyEditPopup(QDialog):
         can_link_next: bool,
         parent=None,
         link_toggle_callback: Callable[[], None] | None = None,
+        word_join_shortcut_callback: Callable[[], None] | None = None,
+        word_join_shortcut_resolver: (
+            Callable[[QKeyEvent], tuple[bool, bool, bool]] | None
+        ) = None,
+        shortcut_long_press_ms: int = 300,
         navigation_directions: Collection[str] | None = None,
         initial_cursor_position: str = "select_all",
     ):
@@ -42,6 +47,15 @@ class RubyEditPopup(QDialog):
         self._character = character
         self._can_link_next = can_link_next
         self._link_toggle_callback = link_toggle_callback
+        self._word_join_shortcut_callback = word_join_shortcut_callback
+        self._word_join_shortcut_resolver = word_join_shortcut_resolver
+        self._word_join_pending_key: int | None = None
+        self._word_join_pending_short = False
+        self._word_join_pending_long = False
+        self._word_join_hold_timer = QTimer(self)
+        self._word_join_hold_timer.setSingleShot(True)
+        self._word_join_hold_timer.setInterval(max(1, shortcut_long_press_ms))
+        self._word_join_hold_timer.timeout.connect(self._trigger_pending_long_word_join)
         self._navigation_directions = set(navigation_directions or ())
         self._navigation_request: str | None = None
         self._input_method_composing = False
@@ -90,6 +104,7 @@ class RubyEditPopup(QDialog):
         self.btn_link_next.setCheckable(True)
         self.btn_link_next.setFixedWidth(self._LINK_BUTTON_MIN_WIDTH)
         self.btn_link_next.setEnabled(can_link_next)
+        self.btn_link_next.installEventFilter(self)
         self.btn_link_next.clicked.connect(self._toggle_link)
         self._sync_link_button()
         layout.addWidget(self.btn_link_next)
@@ -188,6 +203,11 @@ class RubyEditPopup(QDialog):
             self._apply()
 
     def keyPressEvent(self, event: QKeyEvent) -> None:  # noqa: N802
+        # Child widgets normally propagate an unhandled shortcut here. Keep
+        # this fallback so remapped word-join keys also work after the link
+        # button gained keyboard focus.
+        if self._handle_word_join_shortcut_event(event):
+            return
         if event.key() == Qt.Key.Key_Escape:
             self._cancelled = True
             self._finished = True
@@ -195,19 +215,92 @@ class RubyEditPopup(QDialog):
             return
         super().keyPressEvent(event)
 
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:  # noqa: N802
+        if self._handle_word_join_shortcut_event(event):
+            return
+        super().keyReleaseEvent(event)
+
     def eventFilter(self, watched, event: QEvent) -> bool:  # noqa: N802
-        """Commit and request another character at the input boundary."""
-        if watched is self.edit_ruby:
-            if event.type() == QEvent.Type.InputMethod:
-                # Let the IME own arrows while composing/cycling candidates.
-                self._input_method_composing = bool(event.preeditString())
-            elif (
-                event.type() == QEvent.Type.KeyPress
-                and isinstance(event, QKeyEvent)
+        """Handle configured word-join and arrow shortcuts inside the popup."""
+        if watched is self.edit_ruby and event.type() == QEvent.Type.InputMethod:
+            # Let the IME own arrows while composing/cycling candidates.
+            self._input_method_composing = bool(event.preeditString())
+        elif (
+            watched in {self.edit_ruby, self.btn_link_next}
+            and event.type() in {QEvent.Type.KeyPress, QEvent.Type.KeyRelease}
+            and isinstance(event, QKeyEvent)
+        ):
+            if self._handle_word_join_shortcut_event(event):
+                return True
+            if (
+                watched is self.edit_ruby
+                and event.type() == QEvent.Type.KeyPress
                 and self._handle_navigation_key(event)
             ):
                 return True
         return super().eventFilter(watched, event)
+
+    def _handle_word_join_shortcut_event(self, event: QKeyEvent) -> bool:
+        """Run the configured short/long word-join trigger inside the popup."""
+        if event.type() == QEvent.Type.KeyRelease:
+            if self._word_join_pending_key != event.key():
+                return False
+            should_trigger_short = (
+                self._word_join_hold_timer.isActive() and self._word_join_pending_short
+            )
+            self._word_join_hold_timer.stop()
+            self._clear_pending_word_join()
+            if should_trigger_short:
+                self._trigger_word_join_shortcut()
+            event.accept()
+            return True
+
+        if (
+            event.type() != QEvent.Type.KeyPress
+            or self._word_join_shortcut_resolver is None
+        ):
+            return False
+
+        short_match, long_match, has_long_action = self._word_join_shortcut_resolver(
+            event
+        )
+        if not short_match and not long_match:
+            return False
+        if event.isAutoRepeat():
+            event.accept()
+            return True
+
+        if has_long_action:
+            self._word_join_pending_key = event.key()
+            self._word_join_pending_short = short_match
+            self._word_join_pending_long = long_match
+            self._word_join_hold_timer.start()
+        elif short_match:
+            self._trigger_word_join_shortcut()
+        event.accept()
+        return True
+
+    def _trigger_pending_long_word_join(self) -> None:
+        should_trigger = self._word_join_pending_long
+        # Keep the key marker until release so the release is consumed and
+        # cannot insert text into the ruby input after a long hold.
+        self._word_join_pending_short = False
+        self._word_join_pending_long = False
+        if should_trigger:
+            self._trigger_word_join_shortcut()
+
+    def _clear_pending_word_join(self) -> None:
+        self._word_join_pending_key = None
+        self._word_join_pending_short = False
+        self._word_join_pending_long = False
+
+    def _trigger_word_join_shortcut(self) -> None:
+        if self._word_join_shortcut_callback is not None:
+            self._word_join_shortcut_callback()
+            self._linked = bool(self._character.linked_to_next)
+            self._sync_link_button()
+        else:
+            self._toggle_link(not self._linked)
 
     def _handle_navigation_key(self, event: QKeyEvent) -> bool:
         direction = self._NAVIGATION_KEYS.get(event.key())

@@ -298,6 +298,89 @@ def test_link_button_delegates_each_toggle_and_tracks_character(qapp, monkeypatc
     assert popup.btn_link_next.isChecked() is False
 
 
+def test_remapped_word_join_shortcut_works_without_closing_popup(qapp, monkeypatch):
+    character = _character()
+    calls = []
+
+    def toggle_like_bare_f3():
+        character.linked_to_next = not character.linked_to_next
+        calls.append(character.linked_to_next)
+
+    popup = _popup(
+        monkeypatch,
+        character,
+        can_link_next=True,
+        word_join_shortcut_callback=toggle_like_bare_f3,
+        word_join_shortcut_resolver=lambda event: (
+            event.key() == Qt.Key.Key_F6,
+            False,
+            False,
+        ),
+    )
+
+    QApplication.sendEvent(
+        popup.edit_ruby,
+        QKeyEvent(
+            QEvent.Type.KeyPress,
+            Qt.Key.Key_F3,
+            Qt.KeyboardModifier.NoModifier,
+        ),
+    )
+    assert calls == []
+
+    for expected in (True, False):
+        QApplication.sendEvent(
+            popup.edit_ruby,
+            QKeyEvent(
+                QEvent.Type.KeyPress,
+                Qt.Key.Key_F6,
+                Qt.KeyboardModifier.NoModifier,
+            ),
+        )
+        assert popup.btn_link_next.isChecked() is expected
+
+    popup.show()
+    popup.btn_link_next.setFocus()
+    QTest.keyClick(popup.btn_link_next, Qt.Key.Key_F6)
+
+    assert calls == [True, False, True]
+    assert popup.btn_link_next.isChecked() is True
+    assert popup._finished is False
+    assert popup.navigation_request() is None
+
+
+def test_long_word_join_shortcut_waits_for_hold_threshold(qapp, monkeypatch):
+    character = _character()
+    calls = []
+
+    def toggle_link():
+        character.linked_to_next = not character.linked_to_next
+        calls.append(character.linked_to_next)
+
+    popup = _popup(
+        monkeypatch,
+        character,
+        can_link_next=True,
+        word_join_shortcut_callback=toggle_link,
+        word_join_shortcut_resolver=lambda event: (
+            False,
+            event.key() == Qt.Key.Key_F6,
+            event.key() == Qt.Key.Key_F6,
+        ),
+        shortcut_long_press_ms=20,
+    )
+    popup.show()
+
+    QTest.keyPress(popup.edit_ruby, Qt.Key.Key_F6)
+    assert calls == []
+    QTest.qWait(30)
+    assert calls == [True]
+    QTest.keyRelease(popup.edit_ruby, Qt.Key.Key_F6)
+
+    assert calls == [True]
+    assert popup._finished is False
+
+
 def test_ruby_input_accepts_unrestricted_ime_text(qapp, monkeypatch):
     popup = _popup(monkeypatch, can_link_next=True)
 
